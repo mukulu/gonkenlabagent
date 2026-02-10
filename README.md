@@ -1,4 +1,4 @@
-# Jansky — Voice Assistant for Raspberry Pi 5
+# PiBot — Voice Assisted local AI agent for Raspberry Pi 5
 
 A fully offline, wake-word-activated voice assistant that runs on a **Raspberry Pi 5**. Simple queries are handled locally by a 1.5 B parameter LLM; complex questions are handed off to a cloud model. Named after [Karl Jansky](https://en.wikipedia.org/wiki/Karl_Guthe_Jansky), the pioneer of radio astronomy.
 
