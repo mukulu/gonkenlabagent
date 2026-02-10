@@ -2,6 +2,17 @@
 
 A fully offline, wake-word-activated voice assistant that runs on a **Raspberry Pi 5**. Simple queries are handled locally by a 1.5 B parameter LLM; complex questions are handed off to a cloud model. Named after [Karl Jansky](https://en.wikipedia.org/wiki/Karl_Guthe_Jansky), the pioneer of radio astronomy.
 
+### Live Demo
+
+Weather Report:
+https://github.com/user-attachments/assets/6698d96d-14a2-45af-920d-24787662d25a
+
+Local System Info:
+https://github.com/user-attachments/assets/66fed292-bbec-45cc-ad6e-ddb9f11b678d
+
+
+
+
 ---
 
 ## System Architecture
