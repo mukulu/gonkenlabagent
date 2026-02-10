@@ -15,6 +15,18 @@ https://github.com/user-attachments/assets/66fed292-bbec-45cc-ad6e-ddb9f11b678d
 
 ---
 
+## Live Demo
+
+**Weather Report:**
+
+https://github.com/user-attachments/assets/6698d96d-14a2-45af-920d-24787662d25a
+
+**Local System Info:**
+
+https://github.com/user-attachments/assets/66fed292-bbec-45cc-ad6e-ddb9f11b678d
+
+---
+
 ## System Architecture
 
 ```
