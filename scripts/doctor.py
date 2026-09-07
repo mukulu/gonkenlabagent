@@ -47,7 +47,7 @@ def check_imports() -> bool:
         try:
             importlib.import_module(module)
             report(PASS, f"Python dependency {package}")
-        except Exception as exc:  # diagnostics should continue through all checks
+        except Exception as exc:
             ok = False
             report(FAIL, f"Python dependency {package}", str(exc))
     return ok
@@ -66,6 +66,64 @@ def check_paths(config: Config) -> bool:
         report(PASS if exists else FAIL, name, str(path))
         ok &= exists
     return ok
+
+
+def check_whisper_runtime(config: Config) -> bool:
+    path = Path(config.whisper_path)
+    if not path.is_file():
+        return False
+    try:
+        result = subprocess.run(
+            [str(path), "-h"], capture_output=True, text=True, timeout=15
+        )
+    except Exception as exc:
+        report(FAIL, "Whisper runtime", str(exc))
+        return False
+
+    if result.returncode != 0:
+        detail = (result.stderr or result.stdout).strip()
+        report(FAIL, "Whisper runtime", detail or f"exit {result.returncode}")
+        return False
+
+    report(PASS, "Whisper runtime", "whisper-cli starts successfully")
+    return True
+
+
+def check_piper_runtime(config: Config) -> bool:
+    try:
+        from piper import PiperVoice
+
+        PiperVoice.load(config.piper_voice)
+        report(PASS, "Piper voice runtime", Path(config.piper_voice).name)
+        return True
+    except Exception as exc:
+        report(FAIL, "Piper voice runtime", str(exc))
+        return False
+
+
+def check_openwakeword_runtime() -> bool:
+    try:
+        import numpy as np
+        import openwakeword
+        from openwakeword.model import Model
+
+        model_path = (
+            Path(openwakeword.__file__).resolve().parent
+            / "resources"
+            / "models"
+            / "hey_jarvis_v0.1.onnx"
+        )
+        if not model_path.is_file():
+            raise FileNotFoundError(model_path)
+        model = Model(wakeword_models=[str(model_path)], inference_framework="onnx")
+        prediction = model.predict(np.zeros(1280, dtype=np.int16))
+        if not isinstance(prediction, dict):
+            raise RuntimeError("unexpected prediction result")
+        report(PASS, "openWakeWord ONNX runtime", model_path.name)
+        return True
+    except Exception as exc:
+        report(FAIL, "openWakeWord ONNX runtime", str(exc))
+        return False
 
 
 def check_ollama(config: Config) -> bool:
@@ -93,11 +151,7 @@ def check_ollama(config: Config) -> bool:
             if line.split()
         }
         present = config.chat_model in installed
-        report(
-            PASS if present else FAIL,
-            "Ollama model",
-            config.chat_model,
-        )
+        report(PASS if present else FAIL, "Ollama model", config.chat_model)
         return present
     except Exception as exc:
         report(FAIL, "Ollama model list", str(exc))
@@ -105,18 +159,18 @@ def check_ollama(config: Config) -> bool:
 
 
 def check_audio(config: Config) -> bool:
+    """Report audio readiness without making unplugged hardware a software failure."""
     try:
         import sounddevice as sd
-    except Exception as exc:
-        report(FAIL, "Audio library", str(exc))
-        return False
-
-    try:
         devices = sd.query_devices()
     except Exception as exc:
-        report(FAIL, "Audio device enumeration", str(exc))
-        return False
+        report(WARN, "Audio device enumeration", str(exc))
+        return True
 
+    available = [
+        (i, d["name"], int(d["max_input_channels"]), int(d["max_output_channels"]))
+        for i, d in enumerate(devices)
+    ]
     mic_matches = [
         (i, d["name"])
         for i, d in enumerate(devices)
@@ -131,16 +185,22 @@ def check_audio(config: Config) -> bool:
     ]
 
     report(
-        PASS if mic_matches else FAIL,
+        PASS if mic_matches else WARN,
         "Microphone match",
-        repr(mic_matches) if mic_matches else config.mic_name,
+        repr(mic_matches) if mic_matches else f"wanted {config.mic_name!r}",
     )
     report(
-        PASS if speaker_matches else FAIL,
+        PASS if speaker_matches else WARN,
         "Speaker match",
-        repr(speaker_matches) if speaker_matches else config.speaker_name,
+        repr(speaker_matches) if speaker_matches else f"wanted {config.speaker_name!r}",
     )
-    return bool(mic_matches and speaker_matches)
+    if not mic_matches or not speaker_matches:
+        print(f"[WARN] Available audio devices: {available}")
+        print(
+            "[WARN] Override device-name matching in .env with "
+            "GONKEN_MIC_NAME and GONKEN_SPEAKER_NAME."
+        )
+    return True
 
 
 def main() -> int:
@@ -153,16 +213,19 @@ def main() -> int:
         check_python(),
         check_imports(),
         check_paths(config),
+        check_whisper_runtime(config),
+        check_piper_runtime(config),
+        check_openwakeword_runtime(),
         check_ollama(config),
         check_audio(config),
     ]
 
     print()
     if all(checks):
-        print("All core diagnostics passed.")
+        print("All required software diagnostics passed. Hardware warnings may remain above.")
         return 0
 
-    print("One or more diagnostics failed. Review the FAIL entries above.")
+    print("One or more required software diagnostics failed. Review the FAIL entries above.")
     return 1
 
 
