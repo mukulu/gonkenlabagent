@@ -8,7 +8,9 @@ from typing import Optional
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_WHISPER_PATH = Path("/usr/local/bin/whisper-cpp")
+DEFAULT_WHISPER_PATH = (
+    PROJECT_ROOT / "whisper.cpp" / "build" / "bin" / "whisper-cli"
+)
 DEFAULT_MODEL_PATH = (
     PROJECT_ROOT / "whisper.cpp" / "models" / "ggml-base.en-q5_0.bin"
 )
@@ -34,7 +36,7 @@ class WhisperSTT:
 
         if not requested_whisper.exists():
             alt_paths = [
-                PROJECT_ROOT / "whisper.cpp" / "build" / "bin" / "whisper-cli",
+                Path("/usr/local/bin/whisper-cpp"),
                 PROJECT_ROOT / "whisper.cpp" / "main",
             ]
             for alt in alt_paths:

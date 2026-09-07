@@ -34,7 +34,11 @@ class Config:
     speaker_name: str = "AIRHUG"
 
     # Whisper.cpp
-    whisper_path: str = "/usr/local/bin/whisper-cpp"
+    whisper_path: str = field(
+        default_factory=lambda: _project_path(
+            "whisper.cpp", "build", "bin", "whisper-cli"
+        )
+    )
     whisper_model: str = field(
         default_factory=lambda: _project_path(
             "whisper.cpp", "models", "ggml-base.en-q5_0.bin"

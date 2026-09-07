@@ -4,18 +4,12 @@
 # ==============================================================
 # Usage: chmod +x setup.sh && ./setup.sh
 #
-# The installer is intentionally safe to rerun. It:
-#   1. installs required system packages;
-#   2. creates/reuses the Python virtual environment;
-#   3. installs Python dependencies;
-#   4. installs Ollama, starts/waits for its server, pulls Qwen,
-#      and performs a non-interactive Qwen smoke test;
-#   5. builds/reuses whisper.cpp and its model;
-#   6. downloads/reuses the Piper voice;
-#   7. creates .env only when it does not already exist.
+# Safe to rerun. Python dependencies are installed only inside
+# the repository-owned .venv; the Debian/Raspberry Pi OS system
+# Python is never modified with pip.
 # ==============================================================
 
-set -euo pipefail
+set -Eeuo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
@@ -29,12 +23,28 @@ ok()   { echo -e "${GREEN}[✓]${NC} $*"; }
 info() { echo -e "${YELLOW}[→]${NC} $*"; }
 fail() { echo -e "${RED}[✗]${NC} $*" >&2; exit 1; }
 
+on_error() {
+  local exit_code=$?
+  local line_no=${1:-unknown}
+  echo -e "${RED}[✗]${NC} Setup failed at line ${line_no} (exit ${exit_code})." >&2
+  exit "$exit_code"
+}
+trap 'on_error $LINENO' ERR
+
+PYTHON_BIN="${PYTHON_BIN:-python3}"
+VENV_DIR="${GONKEN_VENV_DIR:-$SCRIPT_DIR/.venv}"
+VENV_PYTHON="$VENV_DIR/bin/python"
+REQUIREMENTS_FILE="$SCRIPT_DIR/requirements.txt"
+LEGACY_VENV_DIR="$SCRIPT_DIR/venv313"
+
 OLLAMA_MODEL="${OLLAMA_MODEL:-qwen2.5:1.5b}"
-OLLAMA_URL="http://127.0.0.1:11434"
-VENV_DIR="$SCRIPT_DIR/venv313"
+OLLAMA_URL="${OLLAMA_URL:-http://127.0.0.1:11434}"
+OLLAMA_LOG="${XDG_RUNTIME_DIR:-/tmp}/gonkenlabagent-ollama.log"
+
 WHISPER_DIR="$SCRIPT_DIR/whisper.cpp"
-WHISPER_BIN="/usr/local/bin/whisper-cpp"
+WHISPER_BIN="$WHISPER_DIR/build/bin/whisper-cli"
 WHISPER_MODEL="$WHISPER_DIR/models/ggml-base.en-q5_0.bin"
+
 PIPER_VOICE="$SCRIPT_DIR/piper/voices/en_GB-semaine-medium.onnx"
 
 ollama_ready() {
@@ -52,16 +62,18 @@ start_ollama() {
   if command -v systemctl >/dev/null 2>&1 \
       && systemctl list-unit-files --type=service 2>/dev/null \
         | grep -q '^ollama\.service'; then
-    sudo systemctl daemon-reload || true
-    sudo systemctl enable --now ollama || sudo systemctl start ollama
-  else
-    # Fallback for installations without an Ollama systemd unit.
-    if ! pgrep -x ollama >/dev/null 2>&1; then
-      nohup ollama serve >"$SCRIPT_DIR/ollama.log" 2>&1 &
-    fi
+    sudo systemctl daemon-reload >/dev/null 2>&1 || true
+    sudo systemctl enable ollama >/dev/null 2>&1 || true
+    sudo systemctl start ollama || true
   fi
 
-  for _ in $(seq 1 45); do
+  # Some Ollama installations do not create a systemd unit. Fall back to a
+  # user-owned background server rather than failing immediately.
+  if ! ollama_ready && ! pgrep -f '[o]llama serve' >/dev/null 2>&1; then
+    nohup ollama serve >"$OLLAMA_LOG" 2>&1 &
+  fi
+
+  for _ in $(seq 1 60); do
     if ollama_ready; then
       ok "Ollama server is ready"
       return 0
@@ -72,12 +84,34 @@ start_ollama() {
   if command -v systemctl >/dev/null 2>&1; then
     sudo systemctl status ollama --no-pager 2>/dev/null || true
   fi
-  [ -f "$SCRIPT_DIR/ollama.log" ] && tail -n 40 "$SCRIPT_DIR/ollama.log" || true
-  fail "Ollama was installed but its server did not become ready at $OLLAMA_URL"
+  [ -f "$OLLAMA_LOG" ] && tail -n 50 "$OLLAMA_LOG" || true
+  fail "Ollama did not become ready at $OLLAMA_URL"
+}
+
+venv_is_valid() {
+  [ -x "$VENV_PYTHON" ] || return 1
+  "$VENV_PYTHON" -c \
+    'import sys; raise SystemExit(0 if sys.prefix != sys.base_prefix else 1)' \
+    >/dev/null 2>&1 || return 1
+  "$VENV_PYTHON" -m pip --version >/dev/null 2>&1 || return 1
+}
+
+create_venv() {
+  info "Creating Python virtual environment at $VENV_DIR …"
+  rm -rf "$VENV_DIR"
+  "$PYTHON_BIN" -m venv "$VENV_DIR" || \
+    fail "Could not create $VENV_DIR. Ensure python3-venv is installed."
+
+  # venv normally bootstraps pip through ensurepip. Run it explicitly as a
+  # recovery step for minimal Debian/Raspberry Pi OS images.
+  "$VENV_PYTHON" -m ensurepip --upgrade >/dev/null 2>&1 || true
+
+  venv_is_valid || \
+    fail "Virtual environment was created but pip is unavailable inside it."
 }
 
 # ── 1. System packages ───────────────────────────────────────
-info "Installing system packages …"
+info "Installing required system packages …"
 sudo apt update
 sudo apt install -y \
   python3 python3-venv python3-dev \
@@ -87,27 +121,35 @@ sudo apt install -y \
   alsa-utils
 ok "System packages installed"
 
-# ── 2. Python virtual environment ────────────────────────────
-if [ ! -d "$VENV_DIR" ]; then
-  info "Creating Python virtual environment …"
-  python3 -m venv "$VENV_DIR"
+command -v "$PYTHON_BIN" >/dev/null 2>&1 || \
+  fail "$PYTHON_BIN was not found after package installation"
+
+if [ -d "$LEGACY_VENV_DIR" ] && [ "$LEGACY_VENV_DIR" != "$VENV_DIR" ]; then
+  info "Legacy venv313 detected; it is ignored. .venv is the canonical environment."
 fi
-# shellcheck disable=SC1091
-source "$VENV_DIR/bin/activate"
-python -m pip install --upgrade pip -q
-ok "Virtual environment ready ($VENV_DIR)"
+[ -f "$REQUIREMENTS_FILE" ] || \
+  fail "Missing dependency file: $REQUIREMENTS_FILE"
+
+# ── 2. Python virtual environment ────────────────────────────
+if [ -d "$VENV_DIR" ] && ! venv_is_valid; then
+  info "Existing virtual environment is incomplete or stale; recreating it …"
+  create_venv
+elif [ ! -d "$VENV_DIR" ]; then
+  create_venv
+else
+  ok "Existing virtual environment is valid"
+fi
+
+# Always call pip through the venv interpreter. This intentionally avoids
+# Debian/Raspberry Pi OS PEP 668 restrictions on the system Python.
+info "Updating packaging tools inside .venv …"
+"$VENV_PYTHON" -m pip install --upgrade pip setuptools wheel
 
 # ── 3. Python dependencies ───────────────────────────────────
-info "Installing Python packages …"
-python -m pip install -q \
-  httpx \
-  sounddevice \
-  numpy \
-  piper-tts \
-  openwakeword \
-  onnxruntime \
-  pygame
-ok "Python packages installed"
+info "Installing Python dependencies into .venv …"
+"$VENV_PYTHON" -m pip install -r "$REQUIREMENTS_FILE"
+"$VENV_PYTHON" -m pip check
+ok "Python environment ready ($VENV_DIR)"
 
 # ── 4. Ollama + Qwen ─────────────────────────────────────────
 if ! command -v ollama >/dev/null 2>&1; then
@@ -128,8 +170,14 @@ else
 fi
 
 info "Running a Qwen smoke test …"
-OLLAMA_SMOKE_OUTPUT="$(ollama run "$OLLAMA_MODEL" 'Reply with exactly: OK' 2>&1)" \
-  || fail "Qwen smoke test failed: $OLLAMA_SMOKE_OUTPUT"
+if command -v timeout >/dev/null 2>&1; then
+  OLLAMA_SMOKE_OUTPUT="$(timeout 180 ollama run "$OLLAMA_MODEL" 'Reply with exactly: OK' 2>&1)" || \
+    fail "Qwen smoke test failed: $OLLAMA_SMOKE_OUTPUT"
+else
+  OLLAMA_SMOKE_OUTPUT="$(ollama run "$OLLAMA_MODEL" 'Reply with exactly: OK' 2>&1)" || \
+    fail "Qwen smoke test failed: $OLLAMA_SMOKE_OUTPUT"
+fi
+[ -n "$OLLAMA_SMOKE_OUTPUT" ] || fail "Qwen smoke test returned no output"
 ok "Qwen is runnable through Ollama"
 
 # ── 5. whisper.cpp ───────────────────────────────────────────
@@ -137,22 +185,24 @@ if [ ! -d "$WHISPER_DIR/.git" ]; then
   info "Cloning whisper.cpp …"
   rm -rf "$WHISPER_DIR"
   git clone https://github.com/ggml-org/whisper.cpp.git "$WHISPER_DIR"
+else
+  ok "whisper.cpp source already present"
 fi
 
 if [ ! -x "$WHISPER_BIN" ]; then
   info "Building whisper.cpp …"
   cmake -S "$WHISPER_DIR" -B "$WHISPER_DIR/build"
   cmake --build "$WHISPER_DIR/build" --config Release -j"$(nproc)"
-  sudo cp "$WHISPER_DIR/build/bin/whisper-cli" "$WHISPER_BIN"
-  sudo chmod +x "$WHISPER_BIN"
-  ok "whisper.cpp installed to $WHISPER_BIN"
+  [ -x "$WHISPER_BIN" ] || fail "Whisper binary was not produced at $WHISPER_BIN"
+  ok "whisper.cpp built successfully"
 else
-  ok "whisper.cpp binary already installed"
+  ok "whisper.cpp binary already built"
 fi
 
 if [ ! -f "$WHISPER_MODEL" ]; then
   info "Preparing Whisper base.en q5_0 model …"
   BASE_MODEL="$WHISPER_DIR/models/ggml-base.en.bin"
+
   if [ ! -f "$BASE_MODEL" ]; then
     (cd "$WHISPER_DIR" && bash models/download-ggml-model.sh base.en)
   fi
@@ -160,14 +210,14 @@ if [ ! -f "$WHISPER_MODEL" ]; then
   QUANTIZER="$(find "$WHISPER_DIR/build/bin" -maxdepth 1 -type f -perm -111 -iname '*quant*' | head -n 1 || true)"
   if [ -z "$QUANTIZER" ]; then
     info "Quantizer not found; rebuilding whisper.cpp tools …"
-    cmake -S "$WHISPER_DIR" -B "$WHISPER_DIR/build"
     cmake --build "$WHISPER_DIR/build" --config Release -j"$(nproc)"
     QUANTIZER="$(find "$WHISPER_DIR/build/bin" -maxdepth 1 -type f -perm -111 -iname '*quant*' | head -n 1 || true)"
   fi
-  [ -n "$QUANTIZER" ] || fail "Could not locate whisper.cpp quantizer"
 
+  [ -n "$QUANTIZER" ] || fail "Could not locate whisper.cpp quantizer"
   "$QUANTIZER" "$BASE_MODEL" "$WHISPER_MODEL" q5_0
-  ok "Whisper model ready: $WHISPER_MODEL"
+  [ -s "$WHISPER_MODEL" ] || fail "Whisper model was not created"
+  ok "Whisper model ready"
 else
   ok "Whisper model already present"
 fi
@@ -188,7 +238,7 @@ fi
 [ -s "$PIPER_VOICE" ] || fail "Piper voice file is missing or empty: $PIPER_VOICE"
 [ -s "${PIPER_VOICE}.json" ] || fail "Piper voice config is missing or empty: ${PIPER_VOICE}.json"
 
-# ── 7. .env ──────────────────────────────────────────────────
+# ── 7. Local environment file ────────────────────────────────
 if [ ! -f "$SCRIPT_DIR/.env" ]; then
   cp "$SCRIPT_DIR/.env.example" "$SCRIPT_DIR/.env"
   chmod 600 "$SCRIPT_DIR/.env"
@@ -197,23 +247,27 @@ else
   ok ".env already exists; leaving it unchanged"
 fi
 
-# ── Installation summary ─────────────────────────────────────
+# ── 8. Installation summary ──────────────────────────────────
 echo ""
 echo -e "${GREEN}════════════════════════════════════════════════════${NC}"
 echo -e "${GREEN}  GonKenLab Agent installation completed${NC}"
 echo -e "${GREEN}════════════════════════════════════════════════════${NC}"
 echo "  Repository: $SCRIPT_DIR"
+echo "  Python:     $VENV_PYTHON"
 echo "  Ollama:     $OLLAMA_URL"
 echo "  Model:      $OLLAMA_MODEL"
-echo "  Microphone/speaker default match: AIRHUG"
+echo "  Whisper:    $WHISPER_BIN"
+echo "  Audio match defaults: AIRHUG"
+echo ""
+echo "  Diagnose installation:"
+echo "    .venv/bin/python scripts/doctor.py"
 echo ""
 echo "  Test audio pipeline:"
-echo "    source venv313/bin/activate"
-echo "    python tests/test_audio_pipeline.py"
+echo "    .venv/bin/python tests/test_audio_pipeline.py"
 echo ""
 echo "  Start assistant:"
-echo "    python orchestrator.py"
+echo "    .venv/bin/python orchestrator.py"
 echo ""
-echo "  Note: the repository currently has no custom Hey Gonken wake-word model."
-echo "  Wake-word training will be handled separately."
+echo "  Wake word: Hey Jarvis (bundled fallback)."
+echo "  A trained Hey Gonken model can replace it in a later revision."
 echo ""

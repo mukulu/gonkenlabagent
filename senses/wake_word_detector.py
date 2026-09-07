@@ -64,7 +64,7 @@ class WakeWordDetector:
     ):
         if not OPENWAKEWORD_AVAILABLE:
             raise RuntimeError(
-                "openwakeword not installed. Run: pip install openwakeword"
+                "openwakeword is not installed in the project environment. Run ./setup.sh"
             )
 
         self.threshold = threshold

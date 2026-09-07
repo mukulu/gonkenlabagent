@@ -41,7 +41,9 @@ class PiperTTS:
         if PIPER_AVAILABLE:
             self._voice = PiperVoice.load(str(resolved_model))
         else:
-            raise RuntimeError("piper-tts package not installed. Run: pip install piper-tts")
+            raise RuntimeError(
+                "piper-tts is not installed in the project environment. Run ./setup.sh"
+            )
 
     def synthesize(self, text: str, output_path: Optional[str] = None) -> str:
         """Synthesize text to a WAV file and return the WAV path."""
