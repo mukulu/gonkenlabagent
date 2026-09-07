@@ -1,57 +1,54 @@
-"""
-Whisper.cpp STT wrapper.
-"""
+"""Whisper.cpp STT wrapper using repository-relative model paths."""
 
+import os
 import subprocess
 import tempfile
 from pathlib import Path
 from typing import Optional
-import os
+
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+DEFAULT_WHISPER_PATH = Path("/usr/local/bin/whisper-cpp")
+DEFAULT_MODEL_PATH = (
+    PROJECT_ROOT / "whisper.cpp" / "models" / "ggml-base.en-q5_0.bin"
+)
 
 
 class WhisperSTT:
     """Whisper.cpp speech-to-text engine."""
-    
+
     def __init__(
         self,
-        whisper_path: str = "/usr/local/bin/whisper-cpp",
-        model_path: str = "/home/jansky/jansky/whisper.cpp/models/ggml-base.en-q5_0.bin",
+        whisper_path: Optional[str] = None,
+        model_path: Optional[str] = None,
         language: str = "en",
-        threads: int = 4
+        threads: int = 4,
     ):
-        self.whisper_path = whisper_path
-        self.model_path = model_path
+        requested_whisper = Path(whisper_path) if whisper_path else DEFAULT_WHISPER_PATH
+        requested_model = Path(model_path) if model_path else DEFAULT_MODEL_PATH
+
+        self.whisper_path = str(requested_whisper)
+        self.model_path = str(requested_model)
         self.language = language
         self.threads = threads
-        
-        # Verify paths
-        if not Path(whisper_path).exists():
-            # Try alternative paths
+
+        if not requested_whisper.exists():
             alt_paths = [
-                "/home/jansky/jansky/whisper.cpp/build/bin/whisper-cli",
-                "/home/jansky/jansky/whisper.cpp/main",
+                PROJECT_ROOT / "whisper.cpp" / "build" / "bin" / "whisper-cli",
+                PROJECT_ROOT / "whisper.cpp" / "main",
             ]
             for alt in alt_paths:
-                if Path(alt).exists():
-                    self.whisper_path = alt
+                if alt.exists():
+                    self.whisper_path = str(alt)
                     break
             else:
-                raise FileNotFoundError(f"Whisper not found at {whisper_path}")
-        
-        if not Path(model_path).exists():
-            raise FileNotFoundError(f"Model not found at {model_path}")
-    
+                raise FileNotFoundError(f"Whisper not found at {requested_whisper}")
+
+        if not requested_model.exists():
+            raise FileNotFoundError(f"Model not found at {requested_model}")
+
     def transcribe(self, audio_path: str) -> str:
-        """
-        Transcribe audio file to text.
-        
-        Args:
-            audio_path: Path to WAV file (16kHz, mono, 16-bit)
-        
-        Returns:
-            Transcribed text
-        """
-        # Run whisper.cpp
+        """Transcribe a 16 kHz mono WAV file to text."""
         process = subprocess.run(
             [
                 self.whisper_path,
@@ -60,48 +57,31 @@ class WhisperSTT:
                 "-l", self.language,
                 "-t", str(self.threads),
                 "--no-timestamps",
-                "-np"  # No prints except results
+                "-np",
             ],
             capture_output=True,
-            text=True
+            text=True,
         )
-        
+
         if process.returncode != 0:
             raise RuntimeError(f"Whisper failed: {process.stderr}")
-        
-        # Parse output
-        text = process.stdout.strip()
-        
-        # Clean up common artifacts
-        text = text.replace("[BLANK_AUDIO]", "").strip()
-        
-        return text
-    
+
+        return process.stdout.strip().replace("[BLANK_AUDIO]", "").strip()
+
     def transcribe_audio_array(self, audio, sample_rate: int = 16000) -> str:
-        """
-        Transcribe audio from numpy array.
-        
-        Args:
-            audio: Numpy array of audio samples
-            sample_rate: Sample rate of audio
-        
-        Returns:
-            Transcribed text
-        """
-        import numpy as np
+        """Transcribe a NumPy audio array."""
         import wave
-        
-        # Save to temp file
+
         fd, temp_path = tempfile.mkstemp(suffix=".wav")
         os.close(fd)
-        
+
         try:
-            with wave.open(temp_path, 'wb') as wf:
+            with wave.open(temp_path, "wb") as wf:
                 wf.setnchannels(1)
                 wf.setsampwidth(2)
                 wf.setframerate(sample_rate)
                 wf.writeframes(audio.tobytes())
-            
+
             return self.transcribe(temp_path)
         finally:
             os.unlink(temp_path)
