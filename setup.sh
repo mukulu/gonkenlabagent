@@ -44,7 +44,8 @@ OLLAMA_LOG="${XDG_RUNTIME_DIR:-/tmp}/gonkenlabagent-ollama.log"
 
 WHISPER_DIR="$SCRIPT_DIR/whisper.cpp"
 WHISPER_BIN="$WHISPER_DIR/build/bin/whisper-cli"
-WHISPER_MODEL="$WHISPER_DIR/models/ggml-base.en-q5_0.bin"
+WHISPER_MODEL_NAME="${WHISPER_MODEL_NAME:-base.en-q5_1}"
+WHISPER_MODEL="$WHISPER_DIR/models/ggml-${WHISPER_MODEL_NAME}.bin"
 
 PIPER_VOICE="$SCRIPT_DIR/piper/voices/en_GB-semaine-medium.onnx"
 
@@ -249,33 +250,23 @@ else
 fi
 
 if [ ! -x "$WHISPER_BIN" ]; then
-  info "Building whisper.cpp …"
+  info "Building whisper.cpp CLI …"
   cmake -S "$WHISPER_DIR" -B "$WHISPER_DIR/build"
-  cmake --build "$WHISPER_DIR/build" --config Release -j"$(nproc)"
+  cmake --build "$WHISPER_DIR/build" --config Release --target whisper-cli -j"$(nproc)"
   [ -x "$WHISPER_BIN" ] || fail "Whisper binary was not produced at $WHISPER_BIN"
-  ok "whisper.cpp built successfully"
+  ok "whisper.cpp CLI built successfully"
 else
   ok "whisper.cpp binary already built"
 fi
 
-if [ ! -f "$WHISPER_MODEL" ]; then
-  info "Preparing Whisper base.en q5_0 model …"
-  BASE_MODEL="$WHISPER_DIR/models/ggml-base.en.bin"
-
-  if [ ! -f "$BASE_MODEL" ]; then
-    (cd "$WHISPER_DIR" && bash models/download-ggml-model.sh base.en)
-  fi
-
-  QUANTIZER="$(find "$WHISPER_DIR/build/bin" -maxdepth 1 -type f -perm -111 -iname '*quant*' | head -n 1 || true)"
-  if [ -z "$QUANTIZER" ]; then
-    info "Quantizer not found; rebuilding whisper.cpp tools …"
-    cmake --build "$WHISPER_DIR/build" --config Release -j"$(nproc)"
-    QUANTIZER="$(find "$WHISPER_DIR/build/bin" -maxdepth 1 -type f -perm -111 -iname '*quant*' | head -n 1 || true)"
-  fi
-
-  [ -n "$QUANTIZER" ] || fail "Could not locate whisper.cpp quantizer"
-  "$QUANTIZER" "$BASE_MODEL" "$WHISPER_MODEL" q5_0
-  [ -s "$WHISPER_MODEL" ] || fail "Whisper model was not created"
+# Download an official pre-quantised Whisper model. This is more reliable on
+# Raspberry Pi than building and invoking a local quantizer, and avoids
+# accidentally selecting unrelated binaries such as parakeet-quantize.
+if [ ! -s "$WHISPER_MODEL" ]; then
+  info "Downloading Whisper ${WHISPER_MODEL_NAME} model …"
+  rm -f "$WHISPER_MODEL"
+  (cd "$WHISPER_DIR" && bash models/download-ggml-model.sh "$WHISPER_MODEL_NAME")
+  [ -s "$WHISPER_MODEL" ] || fail "Whisper model was not downloaded to $WHISPER_MODEL"
   ok "Whisper model ready"
 else
   ok "Whisper model already present"
@@ -306,27 +297,46 @@ else
   ok ".env already exists; leaving it unchanged"
 fi
 
-# ── 8. Installation summary ──────────────────────────────────
+# ── 8. Post-install verification ──────────────────────────────
+HARDWARE_STATUS="passed"
+if [ "${GONKEN_SKIP_HARDWARE_TEST:-0}" = "1" ]; then
+  HARDWARE_STATUS="skipped"
+  info "Skipping hardware smoke test because GONKEN_SKIP_HARDWARE_TEST=1"
+else
+  info "Running installation diagnostics …"
+  "$VENV_PYTHON" "$SCRIPT_DIR/scripts/doctor.py" || \
+    fail "Installation diagnostics failed. Review the FAIL entries above."
+
+  info "Running microphone, Whisper, TTS, and speaker smoke test …"
+  "$VENV_PYTHON" "$SCRIPT_DIR/scripts/smoke_test.py" || \
+    fail "Hardware/audio smoke test failed. Check the messages above."
+fi
+
+# ── 9. Installation summary ──────────────────────────────────
 echo ""
 echo -e "${GREEN}════════════════════════════════════════════════════${NC}"
-echo -e "${GREEN}  GonKenLab Agent installation completed${NC}"
+echo -e "${GREEN}  GonKenLab Agent is ready${NC}"
 echo -e "${GREEN}════════════════════════════════════════════════════${NC}"
 echo "  Repository: $SCRIPT_DIR"
 echo "  Python:     $VENV_PYTHON"
 echo "  Ollama:     $OLLAMA_URL"
 echo "  Model:      $OLLAMA_MODEL"
 echo "  Whisper:    $WHISPER_BIN"
-echo "  Audio match defaults: AIRHUG"
+echo "  Whisper model: $WHISPER_MODEL_NAME"
+echo "  Hardware check: $HARDWARE_STATUS"
 echo ""
-echo "  Diagnose installation:"
-echo "    .venv/bin/python scripts/doctor.py"
+if [ "$HARDWARE_STATUS" = "passed" ]; then
+  echo "  Microphone, Whisper, Piper TTS, and speaker checks passed."
+else
+  echo "  Hardware checks were skipped; run .venv/bin/python scripts/smoke_test.py before use."
+fi
 echo ""
-echo "  Test audio pipeline:"
-echo "    .venv/bin/python tests/test_audio_pipeline.py"
-echo ""
-echo "  Start assistant:"
+echo "  Start the assistant with:"
+echo "    cd $SCRIPT_DIR"
 echo "    .venv/bin/python orchestrator.py"
 echo ""
-echo "  Wake word: Hey Jarvis (bundled fallback)."
+echo "  Then say: Hey Jarvis"
+echo ""
+echo "  The current wake word is the bundled Hey Jarvis ONNX model."
 echo "  A trained Hey Gonken model can replace it in a later revision."
 echo ""

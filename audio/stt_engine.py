@@ -12,7 +12,7 @@ DEFAULT_WHISPER_PATH = (
     PROJECT_ROOT / "whisper.cpp" / "build" / "bin" / "whisper-cli"
 )
 DEFAULT_MODEL_PATH = (
-    PROJECT_ROOT / "whisper.cpp" / "models" / "ggml-base.en-q5_0.bin"
+    PROJECT_ROOT / "whisper.cpp" / "models" / "ggml-base.en-q5_1.bin"
 )
 
 

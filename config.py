@@ -41,7 +41,7 @@ class Config:
     )
     whisper_model: str = field(
         default_factory=lambda: _project_path(
-            "whisper.cpp", "models", "ggml-base.en-q5_0.bin"
+            "whisper.cpp", "models", "ggml-base.en-q5_1.bin"
         )
     )
 

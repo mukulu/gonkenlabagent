@@ -104,32 +104,45 @@ https://github.com/user-attachments/assets/66fed292-bbec-45cc-ad6e-ddb9f11b678d
 - Raspberry Pi 5 (4 GB+ RAM recommended)
 - USB microphone
 - USB speaker
-- 800×480 LCD display *(optional — Jansky works headless too)*
+- 800×480 LCD display *(optional — GonKenLab Agent works headless too)*
 - MicroSD card (32 GB+)
 
 ---
 
-## Quick Start (One-Command Install)
+## Quick Start (Fresh Raspberry Pi OS Lite)
 
-> **Prerequisite:** A fresh **Raspberry Pi OS (Bookworm, 64-bit)** installation with internet access.
+> **Prerequisites:** Raspberry Pi OS Lite/64-bit, an internet connection, and the intended USB microphone/speaker connected. The default audio device-name match is `AIRHUG`; other USB devices can be configured later in `.env`.
 
-### 1. Clone the repo
+From a fresh Raspberry Pi terminal, run this **single command**:
 
 ```bash
-git clone https://github.com/mukulu/gonkenlabagent.git
-cd gonkenlabagent
+sudo apt-get update && sudo apt-get install -y curl ca-certificates && curl -fsSL https://raw.githubusercontent.com/mukulu/gonkenlabagent/main/bootstrap.sh | bash
 ```
 
-### 2. Run the install script
+The bootstrap script installs Git if necessary, clones (or safely updates) `~/gonkenlabagent`, and runs the full `setup.sh`. The setup then creates the isolated Python environment, installs the ONNX wake-word stack, starts Ollama, pulls and tests Qwen, builds Whisper.cpp, downloads the pre-quantised Whisper model, installs Piper, checks the microphone and speaker, transcribes a known sample, and plays an audible local TTS confirmation.
+
+When setup finishes successfully, start the assistant with:
 
 ```bash
-chmod +x setup.sh
+cd ~/gonkenlabagent
+.venv/bin/python orchestrator.py
+```
+
+Then say **"Hey Jarvis"**. This is the bundled ONNX wake-word fallback until a custom **Hey Gonken** model is added.
+
+### Existing checkout / developer workflow
+
+If the repository is already cloned:
+
+```bash
+cd ~/gonkenlabagent
+git pull --ff-only
 ./setup.sh
 ```
 
-This single script handles **everything** listed in the [Manual Installation](#manual-installation) section below. It takes ~15-20 minutes on a Pi 5 depending on your internet speed.
+`setup.sh` is safe to rerun and reuses completed downloads/builds. To install without connected audio hardware, set `GONKEN_SKIP_HARDWARE_TEST=1` for that run.
 
-### 3. Add API keys (optional)
+### API keys (optional)
 
 ```bash
 cp .env.example .env
@@ -142,15 +155,20 @@ nano .env          # paste your keys
 | `NEWSAPI_KEY` | [newsapi.org](https://newsapi.org/) (free tier) | News headlines |
 | `MOONSHOT_API_KEY` | [platform.moonshot.ai](https://platform.moonshot.ai/) | Cloud AI for complex questions |
 
-### 4. Verify and run GonKenLab Agent
+### Verify again later
+
+The installer runs diagnostics automatically. They can also be rerun manually:
 
 ```bash
 .venv/bin/python scripts/doctor.py
-.venv/bin/python tests/test_audio_pipeline.py
-.venv/bin/python orchestrator.py
+.venv/bin/python scripts/smoke_test.py
 ```
 
-Say **"Hey Jarvis"** and start talking. This is the bundled openWakeWord fallback until a custom **Hey Gonken** model is added.
+For the longer interactive microphone → Whisper → Piper test:
+
+```bash
+.venv/bin/python tests/test_audio_pipeline.py
+```
 
 ---
 
@@ -182,7 +200,12 @@ python3 -m venv .venv
 ```bash
 .venv/bin/python -m pip install -r requirements.txt
 .venv/bin/python -m pip check
+
+# Linux/Python 3.13: install openWakeWord without its unavailable TFLite dependency.
+.venv/bin/python -m pip install --no-deps openwakeword==0.6.0
 ```
+
+`setup.sh` additionally downloads and validates the ONNX feature/wake-word models required by openWakeWord. The automated installer is therefore preferred over manual installation on Raspberry Pi OS.
 
 ### 4 — Ollama + Qwen 2.5
 
@@ -198,14 +221,14 @@ ollama pull qwen2.5:1.5b
 git clone https://github.com/ggml-org/whisper.cpp.git
 cd whisper.cpp
 cmake -B build
-cmake --build build --config Release
+cmake --build build --config Release --target whisper-cli -j"$(nproc)"
 
-# Download the quantised English model
-bash models/download-ggml-model.sh base.en
-# Quantise it (smaller + faster on Pi)
-./build/bin/quantize models/ggml-base.en.bin models/ggml-base.en-q5_0.bin q5_0
+# Download the official pre-quantised English model directly.
+bash models/download-ggml-model.sh base.en-q5_1
 cd ..
 ```
+
+The installer intentionally downloads `base.en-q5_1` directly instead of searching for or executing a local quantizer. This avoids selecting unrelated build tools such as `parakeet-quantize` and removes an unnecessary local quantisation step.
 
 ### 6 — Piper TTS voice
 
@@ -243,10 +266,12 @@ nano .env   # fill in your keys (all optional)
 gonkenlabagent/
 ├── orchestrator.py              # Main entry point — ties everything together
 ├── config.py                    # Dataclass config, loads .env + config.json
-├── setup.sh                     # One-command install script
+├── bootstrap.sh                 # Fresh-Pi bootstrap: prerequisites → clone/update → setup
+├── setup.sh                     # Idempotent full installation and verification
 ├── requirements.txt             # Python runtime dependencies
 ├── .env.example                 # Template for API keys
 ├── scripts/doctor.py            # Installation and hardware diagnostics
+├── scripts/smoke_test.py        # Mic + Whisper + Piper + speaker post-install test
 │
 ├── audio/
 │   ├── audio_manager.py         # Mic recording (silence detection) + speaker playback
@@ -339,7 +364,7 @@ API keys are loaded from `.env` and are **never** written to `config.json`.
 |---|---|
 | AIRHUG microphone not found | Check `arecord -l` and the Python device list. AIRHUG is the default; override with `GONKEN_MIC_NAME` in `.env` if needed. |
 | AIRHUG speaker not found | Check `aplay -l`. AIRHUG is the default; override with `GONKEN_SPEAKER_NAME` in `.env` if needed. |
-| Whisper not found | Run `which whisper-cpp`. If it's elsewhere, update `whisper_path` in `config/config.json`. |
+| Whisper not found | Rerun `./setup.sh`. The expected binary is `whisper.cpp/build/bin/whisper-cli` and the default model is `whisper.cpp/models/ggml-base.en-q5_1.bin`. |
 | Ollama not running | Run `ollama serve` in another terminal, then `ollama pull qwen2.5:1.5b`. |
 | No display / PyGame crash | Set `"enable_ui": false` in `config/config.json` to run headless. |
 | Weather / News / Cloud AI says "not configured" | Add the matching API key to `.env`. |
