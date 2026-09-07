@@ -36,6 +36,7 @@ VENV_DIR="${GONKEN_VENV_DIR:-$SCRIPT_DIR/.venv}"
 VENV_PYTHON="$VENV_DIR/bin/python"
 REQUIREMENTS_FILE="$SCRIPT_DIR/requirements.txt"
 LEGACY_VENV_DIR="$SCRIPT_DIR/venv313"
+OPENWAKEWORD_VERSION="${OPENWAKEWORD_VERSION:-0.6.0}"
 
 OLLAMA_MODEL="${OLLAMA_MODEL:-qwen2.5:1.5b}"
 OLLAMA_URL="${OLLAMA_URL:-http://127.0.0.1:11434}"
@@ -148,7 +149,65 @@ info "Updating packaging tools inside .venv …"
 # ── 3. Python dependencies ───────────────────────────────────
 info "Installing Python dependencies into .venv …"
 "$VENV_PYTHON" -m pip install -r "$REQUIREMENTS_FILE"
-"$VENV_PYTHON" -m pip check
+
+# openWakeWord 0.6.0 declares tflite-runtime as a Linux dependency even when
+# the application uses ONNX Runtime only. Python 3.13 ARM64 has no compatible
+# tflite-runtime wheel, so install the package itself without dependency
+# resolution and provide its ONNX-side dependencies explicitly above.
+info "Installing openWakeWord ${OPENWAKEWORD_VERSION} in ONNX-only mode …"
+"$VENV_PYTHON" -m pip install --no-deps "openwakeword==${OPENWAKEWORD_VERSION}"
+
+info "Preparing and validating openWakeWord ONNX models …"
+"$VENV_PYTHON" - <<'PY'
+from pathlib import Path
+
+import numpy as np
+import openwakeword
+from openwakeword.model import Model
+from openwakeword.utils import download_file
+
+model_dir = Path(openwakeword.__file__).resolve().parent / "resources" / "models"
+model_dir.mkdir(parents=True, exist_ok=True)
+
+onnx_urls = [
+    openwakeword.FEATURE_MODELS["melspectrogram"]["download_url"].replace(
+        ".tflite", ".onnx"
+    ),
+    openwakeword.FEATURE_MODELS["embedding"]["download_url"].replace(
+        ".tflite", ".onnx"
+    ),
+    openwakeword.MODELS["hey_jarvis"]["download_url"].replace(
+        ".tflite", ".onnx"
+    ),
+]
+
+for url in onnx_urls:
+    destination = model_dir / url.rsplit("/", 1)[-1]
+    if not destination.is_file() or destination.stat().st_size == 0:
+        if destination.exists():
+            destination.unlink()
+        download_file(url, str(model_dir))
+
+required = [
+    model_dir / "melspectrogram.onnx",
+    model_dir / "embedding_model.onnx",
+    model_dir / "hey_jarvis_v0.1.onnx",
+]
+missing = [str(path) for path in required if not path.is_file() or path.stat().st_size == 0]
+if missing:
+    raise RuntimeError("Missing openWakeWord ONNX model files: " + ", ".join(missing))
+
+model = Model(
+    wakeword_models=[str(model_dir / "hey_jarvis_v0.1.onnx")],
+    inference_framework="onnx",
+)
+prediction = model.predict(np.zeros(1280, dtype=np.int16))
+if not isinstance(prediction, dict):
+    raise RuntimeError("openWakeWord ONNX smoke test returned an unexpected result")
+
+print("openWakeWord ONNX smoke test passed")
+PY
+
 ok "Python environment ready ($VENV_DIR)"
 
 # ── 4. Ollama + Qwen ─────────────────────────────────────────
