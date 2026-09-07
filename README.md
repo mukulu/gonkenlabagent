@@ -116,8 +116,8 @@ https://github.com/user-attachments/assets/66fed292-bbec-45cc-ad6e-ddb9f11b678d
 ### 1. Clone the repo
 
 ```bash
-git clone https://github.com/mayukh4/pibot_local_agent.git
-cd pibot_local_agent
+git clone https://github.com/mukulu/gonkenlabagent.git
+cd gonkenlabagent
 ```
 
 ### 2. Run the install script
@@ -149,7 +149,7 @@ source venv313/bin/activate
 python orchestrator.py
 ```
 
-Say **"Hey Jansky"** and start talking.
+Say **"Hey Jarvis"** and start talking. This is the bundled openWakeWord fallback until a custom **Hey Gonken** model is added.
 
 ---
 
@@ -194,6 +194,7 @@ pip install \
 
 ```bash
 curl -fsSL https://ollama.com/install.sh | sh
+sudo systemctl enable --now ollama
 ollama pull qwen2.5:1.5b
 ```
 
@@ -226,7 +227,7 @@ wget -O piper/voices/en_GB-semaine-medium.onnx.json \
 
 ### 7 — Wake word model
 
-The custom **"Hey Jansky"** ONNX model is already in `models/wake_word/`. If you want to train your own, see [openWakeWord docs](https://github.com/dscripka/openWakeWord).
+This repository currently uses openWakeWord’s bundled **"Hey Jarvis"** model as a fallback. A custom **"Hey Gonken"** ONNX model is not yet bundled; it must be trained and tested before changing the actual activation phrase.
 
 ### 8 — API keys
 
@@ -335,7 +336,7 @@ python tests/test_audio_pipeline.py
 
 ## How It Works (Flow)
 
-1. **Wake word** — Jansky continuously listens for "Hey Jansky" via a custom openWakeWord ONNX model running on a background thread.
+1. **Wake word** — the current repository listens for the bundled openWakeWord **"Hey Jarvis"** fallback. A custom **"Hey Gonken"** model is planned as a separate improvement.
 2. **Record** — Once triggered, the mic stream is paused from wake-word duty and handed to the Audio Manager, which records until silence is detected (1.5 s of quiet).
 3. **Transcribe** — The recorded audio (48 kHz) is downsampled to 16 kHz and sent to Whisper.cpp, which returns the text.
 4. **Route** — The Router sends the text to Ollama (Qwen 2.5:1.5b) with tool-calling enabled. If the model returns a structured tool call, that tool runs. Otherwise, keyword-based fallback detection kicks in.
@@ -348,8 +349,8 @@ python tests/test_audio_pipeline.py
 
 | Problem | Fix |
 |---|---|
-| `Mic 'USB PnP Sound Device' not found` | Check `arecord -l`. Update `MIC_NAME` in `audio/audio_manager.py` and `senses/wake_word_detector.py` to match your mic's name. |
-| `Speaker 'UACDemoV1.0' not found` | Check `aplay -l`. Update `SPEAKER_NAME` in `audio/audio_manager.py`. |
+| AIRHUG microphone not found | Check `arecord -l` and the Python device list. AIRHUG is the default; override with `GONKEN_MIC_NAME` in `.env` if needed. |
+| AIRHUG speaker not found | Check `aplay -l`. AIRHUG is the default; override with `GONKEN_SPEAKER_NAME` in `.env` if needed. |
 | Whisper not found | Run `which whisper-cpp`. If it's elsewhere, update `whisper_path` in `config/config.json`. |
 | Ollama not running | Run `ollama serve` in another terminal, then `ollama pull qwen2.5:1.5b`. |
 | No display / PyGame crash | Set `"enable_ui": false` in `config/config.json` to run headless. |

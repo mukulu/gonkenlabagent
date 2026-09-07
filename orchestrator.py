@@ -54,7 +54,9 @@ class Orchestrator:
         print("  - Audio manager")
         self.audio = AudioManager(
             sample_rate=config.target_sample_rate,
-            mic_sample_rate=config.mic_sample_rate
+            mic_sample_rate=config.mic_sample_rate,
+            mic_name=config.mic_name,
+            speaker_name=config.speaker_name
         )
 
         print("  - TTS engine")
@@ -110,7 +112,8 @@ class Orchestrator:
         self.wake_word = WakeWordDetector(
             model_path=config.wake_word_model,
             threshold=config.wake_word_threshold,
-            mic_sample_rate=config.mic_sample_rate
+            mic_sample_rate=config.mic_sample_rate,
+            mic_name=config.mic_name
         )
 
         # UI (optional)
@@ -164,12 +167,16 @@ class Orchestrator:
 
         # Speak startup message BEFORE starting wake word detection
         # (otherwise the speaker saying "Hey Jarvis" triggers the detector)
-        self._speak("Hello! I'm Jansky. Say hey Jansky to get my attention.")
+        self._speak(
+            f"Hello! I'm Jansky. Say {self.config.wake_phrase} to get my attention."
+        )
 
         # Start wake word detection after greeting finishes
         self.wake_word.start(callback=self._on_wake_word)
 
-        print("Jansky is running. Say 'Hey Jansky' to activate.")
+        print(
+            f"Jansky is running. Say '{self.config.wake_phrase}' to activate."
+        )
         print("Press Ctrl+C to exit.")
 
         # Main loop
