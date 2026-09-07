@@ -1,9 +1,18 @@
 # GonKenLab Agent runtime dependencies.
 # Installed by setup.sh into the repository-owned .venv only.
+#
+# openWakeWord 0.6.0 is installed separately by setup.sh with --no-deps.
+# Its PyPI metadata requires tflite-runtime on Linux, but tflite-runtime has
+# no compatible Raspberry Pi ARM64 wheel for Python 3.13. This project uses
+# openWakeWord exclusively through ONNX Runtime, so the ONNX-side dependencies
+# are declared explicitly here.
 httpx>=0.27,<1
 sounddevice>=0.5,<1
 numpy>=1.26,<3
 piper-tts>=1.3,<2
-openwakeword>=0.6,<1
 onnxruntime>=1.19,<2
+tqdm>=4,<5
+scipy>=1.3,<2
+scikit-learn>=1,<2
+requests>=2,<3
 pygame>=2.6,<3

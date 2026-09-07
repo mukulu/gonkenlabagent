@@ -72,6 +72,13 @@ class WakeWordDetector:
         self.mic_sample_rate = mic_sample_rate
         self.gain_target_peak = gain_target_peak
         self.mic_name = mic_name or os.getenv("GONKEN_MIC_NAME", DEFAULT_MIC_NAME)
+        self.inference_framework = inference_framework.lower()
+
+        if self.inference_framework != "onnx":
+            raise ValueError(
+                "GonKenLab Agent configures openWakeWord in ONNX-only mode. "
+                "Use inference_framework='onnx'."
+            )
 
         if self.mic_sample_rate % self.sample_rate != 0:
             raise ValueError(
@@ -86,11 +93,17 @@ class WakeWordDetector:
 
         use_custom = bool(model_path and Path(model_path).exists())
         if use_custom:
-            self.model = Model(wakeword_model_paths=[model_path])
+            self.model = Model(
+                wakeword_models=[model_path],
+                inference_framework=self.inference_framework,
+            )
             self.active_model = Path(model_path).name
         else:
             jarvis_path = _find_bundled_model("hey_jarvis")
-            self.model = Model(wakeword_model_paths=[jarvis_path])
+            self.model = Model(
+                wakeword_models=[jarvis_path],
+                inference_framework=self.inference_framework,
+            )
             self.active_model = "hey_jarvis (bundled fallback)"
             if model_path:
                 print(
