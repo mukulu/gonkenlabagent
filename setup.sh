@@ -44,8 +44,10 @@ OLLAMA_LOG="${XDG_RUNTIME_DIR:-/tmp}/gonkenlabagent-ollama.log"
 
 WHISPER_DIR="$SCRIPT_DIR/whisper.cpp"
 WHISPER_BIN="$WHISPER_DIR/build/bin/whisper-cli"
+WHISPER_REF="${WHISPER_REF:-b4938}"
 WHISPER_MODEL_NAME="${WHISPER_MODEL_NAME:-base.en-q5_1}"
 WHISPER_MODEL="$WHISPER_DIR/models/ggml-${WHISPER_MODEL_NAME}.bin"
+WHISPER_SAMPLE="$WHISPER_DIR/samples/jfk.wav"
 
 PIPER_VOICE="$SCRIPT_DIR/piper/voices/en_GB-semaine-medium.onnx"
 
@@ -110,6 +112,38 @@ create_venv() {
 
   venv_is_valid || \
     fail "Virtual environment was created but pip is unavailable inside it."
+}
+
+whisper_binary_runs() {
+  [ -x "$WHISPER_BIN" ] || return 1
+  timeout 15 "$WHISPER_BIN" -h >/dev/null 2>&1
+}
+
+whisper_static_configured() {
+  [ -f "$WHISPER_DIR/build/CMakeCache.txt" ] || return 1
+  grep -Fxq 'BUILD_SHARED_LIBS:BOOL=OFF' "$WHISPER_DIR/build/CMakeCache.txt"
+}
+
+build_whisper_static() {
+  info "Building a self-contained whisper.cpp CLI …"
+  rm -rf "$WHISPER_DIR/build"
+  cmake -S "$WHISPER_DIR" -B "$WHISPER_DIR/build" \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DBUILD_SHARED_LIBS=OFF \
+    -DWHISPER_BUILD_TESTS=OFF \
+    -DWHISPER_BUILD_SERVER=OFF \
+    -DWHISPER_BUILD_EXAMPLES=ON \
+    -DWHISPER_CURL=OFF
+  cmake --build "$WHISPER_DIR/build" --config Release \
+    --target whisper-cli -j"$(nproc)"
+  [ -x "$WHISPER_BIN" ] || fail "Whisper binary was not produced at $WHISPER_BIN"
+  whisper_static_configured || fail "Whisper build is not configured with BUILD_SHARED_LIBS=OFF"
+  whisper_binary_runs || fail "Whisper binary was built but cannot start"
+  if ldd "$WHISPER_BIN" 2>/dev/null | grep -q 'not found'; then
+    ldd "$WHISPER_BIN" >&2 || true
+    fail "Whisper binary still has unresolved shared-library dependencies"
+  fi
+  ok "whisper.cpp CLI built and runtime-validated"
 }
 
 # ── 1. System packages ───────────────────────────────────────
@@ -249,19 +283,27 @@ else
   ok "whisper.cpp source already present"
 fi
 
-if [ ! -x "$WHISPER_BIN" ]; then
-  info "Building whisper.cpp CLI …"
-  cmake -S "$WHISPER_DIR" -B "$WHISPER_DIR/build"
-  cmake --build "$WHISPER_DIR/build" --config Release --target whisper-cli -j"$(nproc)"
-  [ -x "$WHISPER_BIN" ] || fail "Whisper binary was not produced at $WHISPER_BIN"
-  ok "whisper.cpp CLI built successfully"
+# Pin the dependency to a known release so a future upstream change does not
+# silently break fresh Raspberry Pi installations.
+if ! git -C "$WHISPER_DIR" rev-parse -q --verify "${WHISPER_REF}^{commit}" >/dev/null; then
+  info "Fetching whisper.cpp release ${WHISPER_REF} …"
+  git -C "$WHISPER_DIR" fetch --depth 1 origin \
+    "refs/tags/${WHISPER_REF}:refs/tags/${WHISPER_REF}"
+fi
+git -C "$WHISPER_DIR" checkout --detach -q "$WHISPER_REF"
+
+# A file can exist and still be unusable. In particular, older builds used
+# shared libwhisper/libggml objects that were not on Raspberry Pi's linker path.
+# Repair any such build automatically and use static project libraries.
+if ! whisper_static_configured || ! whisper_binary_runs; then
+  info "Whisper build is missing, stale, or not runnable; rebuilding …"
+  build_whisper_static
 else
-  ok "whisper.cpp binary already built"
+  ok "whisper.cpp binary is self-contained and runnable"
 fi
 
-# Download an official pre-quantised Whisper model. This is more reliable on
-# Raspberry Pi than building and invoking a local quantizer, and avoids
-# accidentally selecting unrelated binaries such as parakeet-quantize.
+# Download an official pre-quantised Whisper model. This avoids local
+# quantisation tools and keeps fresh installs deterministic.
 if [ ! -s "$WHISPER_MODEL" ]; then
   info "Downloading Whisper ${WHISPER_MODEL_NAME} model …"
   rm -f "$WHISPER_MODEL"
@@ -271,6 +313,21 @@ if [ ! -s "$WHISPER_MODEL" ]; then
 else
   ok "Whisper model already present"
 fi
+
+[ -s "$WHISPER_SAMPLE" ] || fail "Whisper validation sample is missing: $WHISPER_SAMPLE"
+info "Running Whisper transcription smoke test …"
+WHISPER_TEST_LOG="$(mktemp)"
+if ! WHISPER_TEST_OUTPUT="$(timeout 120 "$WHISPER_BIN" \
+    -m "$WHISPER_MODEL" -f "$WHISPER_SAMPLE" -l en -t 2 \
+    --no-timestamps -np 2>"$WHISPER_TEST_LOG")"; then
+  cat "$WHISPER_TEST_LOG" >&2 || true
+  rm -f "$WHISPER_TEST_LOG"
+  fail "Whisper could not transcribe its bundled validation sample"
+fi
+rm -f "$WHISPER_TEST_LOG"
+[ -n "${WHISPER_TEST_OUTPUT//[[:space:]]/}" ] || \
+  fail "Whisper validation produced an empty transcription"
+ok "Whisper runtime and transcription validated"
 
 # ── 6. Piper TTS voice ──────────────────────────────────────
 if [ ! -f "$PIPER_VOICE" ]; then
@@ -298,18 +355,18 @@ else
 fi
 
 # ── 8. Post-install verification ──────────────────────────────
-HARDWARE_STATUS="passed"
+info "Running installation diagnostics …"
+"$VENV_PYTHON" "$SCRIPT_DIR/scripts/doctor.py" || \
+  fail "Required software diagnostics failed. Review the FAIL entries above."
+
+HARDWARE_STATUS="checked"
 if [ "${GONKEN_SKIP_HARDWARE_TEST:-0}" = "1" ]; then
   HARDWARE_STATUS="skipped"
-  info "Skipping hardware smoke test because GONKEN_SKIP_HARDWARE_TEST=1"
+  info "Skipping physical audio smoke test because GONKEN_SKIP_HARDWARE_TEST=1"
 else
-  info "Running installation diagnostics …"
-  "$VENV_PYTHON" "$SCRIPT_DIR/scripts/doctor.py" || \
-    fail "Installation diagnostics failed. Review the FAIL entries above."
-
-  info "Running microphone, Whisper, TTS, and speaker smoke test …"
+  info "Running software + available-hardware smoke test …"
   "$VENV_PYTHON" "$SCRIPT_DIR/scripts/smoke_test.py" || \
-    fail "Hardware/audio smoke test failed. Check the messages above."
+    fail "Smoke test failed. Check the messages above."
 fi
 
 # ── 9. Installation summary ──────────────────────────────────
@@ -325,10 +382,10 @@ echo "  Whisper:    $WHISPER_BIN"
 echo "  Whisper model: $WHISPER_MODEL_NAME"
 echo "  Hardware check: $HARDWARE_STATUS"
 echo ""
-if [ "$HARDWARE_STATUS" = "passed" ]; then
-  echo "  Microphone, Whisper, Piper TTS, and speaker checks passed."
-else
+if [ "$HARDWARE_STATUS" = "skipped" ]; then
   echo "  Hardware checks were skipped; run .venv/bin/python scripts/smoke_test.py before use."
+else
+  echo "  Software checks passed. Audio hardware is PASS/WARN as reported above."
 fi
 echo ""
 echo "  Start the assistant with:"

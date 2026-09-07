@@ -16,6 +16,31 @@ DEFAULT_MODEL_PATH = (
 )
 
 
+def _validate_whisper_executable(path: Path, timeout: int = 15) -> None:
+    """Verify that whisper-cli can actually start, not merely that it exists."""
+    if not path.is_file():
+        raise FileNotFoundError(f"Whisper not found at {path}")
+    if not os.access(path, os.X_OK):
+        raise PermissionError(f"Whisper is not executable: {path}")
+
+    try:
+        process = subprocess.run(
+            [str(path), "-h"],
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+        )
+    except subprocess.TimeoutExpired as exc:
+        raise RuntimeError(f"Whisper startup timed out after {timeout}s: {path}") from exc
+
+    if process.returncode != 0:
+        detail = (process.stderr or process.stdout).strip()
+        raise RuntimeError(
+            f"Whisper executable cannot start: {detail or f'exit {process.returncode}'}. "
+            "Run ./setup.sh to repair the whisper.cpp build."
+        )
+
+
 class WhisperSTT:
     """Whisper.cpp speech-to-text engine."""
 
@@ -25,14 +50,10 @@ class WhisperSTT:
         model_path: Optional[str] = None,
         language: str = "en",
         threads: int = 4,
+        timeout: int = 120,
     ):
         requested_whisper = Path(whisper_path) if whisper_path else DEFAULT_WHISPER_PATH
         requested_model = Path(model_path) if model_path else DEFAULT_MODEL_PATH
-
-        self.whisper_path = str(requested_whisper)
-        self.model_path = str(requested_model)
-        self.language = language
-        self.threads = threads
 
         if not requested_whisper.exists():
             alt_paths = [
@@ -41,7 +62,7 @@ class WhisperSTT:
             ]
             for alt in alt_paths:
                 if alt.exists():
-                    self.whisper_path = str(alt)
+                    requested_whisper = alt
                     break
             else:
                 raise FileNotFoundError(f"Whisper not found at {requested_whisper}")
@@ -49,24 +70,39 @@ class WhisperSTT:
         if not requested_model.exists():
             raise FileNotFoundError(f"Model not found at {requested_model}")
 
+        _validate_whisper_executable(requested_whisper)
+
+        self.whisper_path = str(requested_whisper)
+        self.model_path = str(requested_model)
+        self.language = language
+        self.threads = threads
+        self.timeout = timeout
+
     def transcribe(self, audio_path: str) -> str:
         """Transcribe a 16 kHz mono WAV file to text."""
-        process = subprocess.run(
-            [
-                self.whisper_path,
-                "-m", self.model_path,
-                "-f", audio_path,
-                "-l", self.language,
-                "-t", str(self.threads),
-                "--no-timestamps",
-                "-np",
-            ],
-            capture_output=True,
-            text=True,
-        )
+        try:
+            process = subprocess.run(
+                [
+                    self.whisper_path,
+                    "-m", self.model_path,
+                    "-f", audio_path,
+                    "-l", self.language,
+                    "-t", str(self.threads),
+                    "--no-timestamps",
+                    "-np",
+                ],
+                capture_output=True,
+                text=True,
+                timeout=self.timeout,
+            )
+        except subprocess.TimeoutExpired as exc:
+            raise RuntimeError(
+                f"Whisper transcription timed out after {self.timeout}s"
+            ) from exc
 
         if process.returncode != 0:
-            raise RuntimeError(f"Whisper failed: {process.stderr}")
+            detail = (process.stderr or process.stdout).strip()
+            raise RuntimeError(f"Whisper failed: {detail or f'exit {process.returncode}'}")
 
         return process.stdout.strip().replace("[BLANK_AUDIO]", "").strip()
 

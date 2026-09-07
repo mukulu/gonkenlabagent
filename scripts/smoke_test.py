@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""End-to-end post-install smoke test for GonKenLab Agent."""
+"""Post-install software and optional hardware smoke tests."""
 
 from __future__ import annotations
 
@@ -18,27 +18,30 @@ from audio.tts_engine import PiperTTS  # noqa: E402
 from config import Config  # noqa: E402
 
 
-def check_microphone(audio: AudioManager, config: Config) -> None:
-    """Open the configured microphone and read a short frame."""
-    print("[TEST] Opening microphone …")
-    with sd.InputStream(
-        device=audio.mic_device,
-        samplerate=config.mic_sample_rate,
-        channels=1,
-        dtype="int16",
-        blocksize=1024,
-        latency="high",
-    ) as stream:
-        data, _overflowed = stream.read(1024)
+def find_audio_matches(config: Config):
+    try:
+        devices = sd.query_devices()
+    except Exception as exc:
+        print(f"[WARN] Could not enumerate audio devices: {exc}")
+        return [], [], []
 
-    if data is None or len(data) == 0:
-        raise RuntimeError("Microphone opened but returned no samples")
-    print("[PASS] Microphone stream opened and returned audio samples")
+    available = [
+        (i, d["name"], int(d["max_input_channels"]), int(d["max_output_channels"]))
+        for i, d in enumerate(devices)
+    ]
+    mic = [
+        i for i, d in enumerate(devices)
+        if config.mic_name.lower() in d["name"].lower() and d["max_input_channels"] > 0
+    ]
+    speaker = [
+        i for i, d in enumerate(devices)
+        if config.speaker_name.lower() in d["name"].lower() and d["max_output_channels"] > 0
+    ]
+    return mic, speaker, available
 
 
 def check_whisper(config: Config) -> None:
-    """Transcribe the small sample bundled with whisper.cpp."""
-    print("[TEST] Running Whisper transcription …")
+    print("[TEST] Running deterministic Whisper transcription …")
     sample = PROJECT_ROOT / "whisper.cpp" / "samples" / "jfk.wav"
     if not sample.is_file():
         raise FileNotFoundError(f"Whisper sample is missing: {sample}")
@@ -47,6 +50,7 @@ def check_whisper(config: Config) -> None:
         whisper_path=config.whisper_path,
         model_path=config.whisper_model,
         threads=2,
+        timeout=120,
     )
     text = stt.transcribe(str(sample)).strip()
     if not text:
@@ -54,45 +58,79 @@ def check_whisper(config: Config) -> None:
     print(f"[PASS] Whisper transcription: {text[:120]}")
 
 
-def check_tts_and_speaker(audio: AudioManager, config: Config) -> None:
-    """Generate a local TTS message and play it through the configured speaker."""
-    print("[TEST] Synthesizing and playing confirmation message …")
+def synthesize_confirmation(config: Config) -> str:
+    print("[TEST] Synthesizing Piper confirmation …")
     tts = PiperTTS(model_path=config.piper_voice)
     wav_path = tts.synthesize(
         "GonKenLab Agent setup is complete. "
-        "Your microphone and speaker are ready. "
-        "Start the assistant and say Hey Jarvis."
+        "The local speech software is ready."
     )
+    if not Path(wav_path).is_file() or Path(wav_path).stat().st_size == 0:
+        raise RuntimeError("Piper returned an empty output file")
+    print("[PASS] Piper synthesized a non-empty WAV file")
+    return wav_path
+
+
+def check_microphone(device_index: int, config: Config) -> None:
+    print("[TEST] Opening microphone …")
+    with sd.InputStream(
+        device=device_index,
+        samplerate=config.mic_sample_rate,
+        channels=1,
+        dtype="int16",
+        blocksize=1024,
+        latency="high",
+    ) as stream:
+        data, _overflowed = stream.read(1024)
+    if data is None or len(data) == 0:
+        raise RuntimeError("Microphone opened but returned no samples")
+    print("[PASS] Microphone stream opened and returned audio samples")
+
+
+def main() -> int:
+    config = Config.load()
+    print("GonKenLab Agent post-install smoke test")
+    print(f"Repository: {PROJECT_ROOT}")
+
+    # Software tests do not depend on USB audio being connected.
+    check_whisper(config)
+    wav_path = synthesize_confirmation(config)
+
     try:
+        mic_matches, speaker_matches, available = find_audio_matches(config)
+        if not mic_matches or not speaker_matches:
+            print("[WARN] Required software passed, but configured audio hardware is incomplete.")
+            print(f"[WARN] Available audio devices: {available}")
+            print(
+                "[WARN] Connect the USB audio device or set GONKEN_MIC_NAME and "
+                "GONKEN_SPEAKER_NAME in .env, then rerun this test."
+            )
+            return 0
+
+        check_microphone(mic_matches[0], config)
+        audio = AudioManager(
+            sample_rate=config.target_sample_rate,
+            mic_sample_rate=config.mic_sample_rate,
+            mic_name=config.mic_name,
+            speaker_name=config.speaker_name,
+        )
+        print("[TEST] Playing Piper confirmation through configured speaker …")
         audio.play_wav(wav_path)
+        print("[PASS] Speaker playback completed")
     finally:
         try:
             os.unlink(wav_path)
         except FileNotFoundError:
             pass
-    print("[PASS] Piper TTS and speaker playback completed")
-
-
-def main() -> int:
-    config = Config.load()
-    print("GonKenLab Agent hardware/audio smoke test")
-    print(f"Repository: {PROJECT_ROOT}")
-
-    audio = AudioManager(
-        sample_rate=config.target_sample_rate,
-        mic_sample_rate=config.mic_sample_rate,
-        mic_name=config.mic_name,
-        speaker_name=config.speaker_name,
-    )
-
-    check_microphone(audio, config)
-    check_whisper(config)
-    check_tts_and_speaker(audio, config)
 
     print()
-    print("All post-install smoke tests passed.")
+    print("All software and available-hardware smoke tests passed.")
     return 0
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    try:
+        raise SystemExit(main())
+    except Exception as exc:
+        print(f"[FAIL] Smoke test failed: {exc}", file=sys.stderr)
+        raise SystemExit(1)
