@@ -1,6 +1,6 @@
-# PiBot — Voice Assisted local AI agent for Raspberry Pi 5
+# GonKenLab Agent — Local Voice Assistant for Raspberry Pi 5
 
-A fully offline, wake-word-activated voice assistant that runs on a **Raspberry Pi 5**. Simple queries are handled locally by a 1.5 B parameter LLM; complex questions are handed off to a cloud model. Named after [Karl Jansky](https://en.wikipedia.org/wiki/Karl_Guthe_Jansky), the pioneer of radio astronomy.
+GonKenLab Agent is a Raspberry Pi 5 voice assistant built around local speech recognition, a local Qwen model through Ollama, and local Piper speech synthesis. External weather, news, and cloud-AI integrations are optional.
 
 ### Live Demo
 
@@ -33,7 +33,7 @@ https://github.com/user-attachments/assets/66fed292-bbec-45cc-ad6e-ddb9f11b678d
 ┌─────────────────────────────────────────────────────────────────┐
 │                        RASPBERRY PI 5                           │
 │                                                                 │
-│  ┌──────────┐    "Hey Jansky"     ┌──────────────────────────┐  │
+│  ┌──────────┐    "Hey Jarvis"     ┌──────────────────────────┐  │
 │  │ USB Mic  │ ──────────────────► │  Wake Word Detector      │  │
 │  │ (48kHz)  │                     │  (openWakeWord + ONNX)   │  │
 │  └──────────┘                     └───────────┬──────────────┘  │
@@ -85,7 +85,7 @@ https://github.com/user-attachments/assets/66fed292-bbec-45cc-ad6e-ddb9f11b678d
 
 | Feature | How it works | API key needed? |
 |---|---|---|
-| **Wake word** — "Hey Jansky" | Custom openWakeWord ONNX model | No |
+| **Wake word** — "Hey Jarvis" | Bundled openWakeWord fallback; custom Hey Gonken model planned | No |
 | **Local chat** — greetings, identity, simple Q&A | Qwen 2.5:1.5b via Ollama | No |
 | **Time & date** | Python `datetime` | No |
 | **System status** — CPU temp, RAM, uptime, disk | Reads `/proc` and `/sys` | No |
@@ -142,11 +142,12 @@ nano .env          # paste your keys
 | `NEWSAPI_KEY` | [newsapi.org](https://newsapi.org/) (free tier) | News headlines |
 | `MOONSHOT_API_KEY` | [platform.moonshot.ai](https://platform.moonshot.ai/) | Cloud AI for complex questions |
 
-### 4. Run Jansky
+### 4. Verify and run GonKenLab Agent
 
 ```bash
-source venv313/bin/activate
-python orchestrator.py
+.venv/bin/python scripts/doctor.py
+.venv/bin/python tests/test_audio_pipeline.py
+.venv/bin/python orchestrator.py
 ```
 
 Say **"Hey Jarvis"** and start talking. This is the bundled openWakeWord fallback until a custom **Hey Gonken** model is added.
@@ -161,33 +162,26 @@ Use this if you prefer to install step-by-step instead of using `setup.sh`.
 
 ```bash
 sudo apt update && sudo apt install -y \
-  python3.13 python3.13-venv python3.13-dev \
+  python3 python3-venv python3-dev \
   build-essential cmake git curl wget \
   libsdl2-dev libsdl2-mixer-dev libsdl2-ttf-dev \
   portaudio19-dev libasound2-dev \
-  libonnxruntime-dev \
   alsa-utils
 ```
 
 ### 2 — Python virtual environment
 
 ```bash
-python3.13 -m venv venv313
-source venv313/bin/activate
-pip install --upgrade pip
+python3 -m venv .venv
+.venv/bin/python -m ensurepip --upgrade
+.venv/bin/python -m pip install --upgrade pip setuptools wheel
 ```
 
 ### 3 — Python dependencies
 
 ```bash
-pip install \
-  httpx \
-  sounddevice \
-  numpy \
-  piper-tts \
-  openwakeword \
-  onnxruntime \
-  pygame
+.venv/bin/python -m pip install -r requirements.txt
+.venv/bin/python -m pip check
 ```
 
 ### 4 — Ollama + Qwen 2.5
@@ -201,11 +195,10 @@ ollama pull qwen2.5:1.5b
 ### 5 — Whisper.cpp
 
 ```bash
-git clone https://github.com/ggerganov/whisper.cpp.git
+git clone https://github.com/ggml-org/whisper.cpp.git
 cd whisper.cpp
 cmake -B build
 cmake --build build --config Release
-sudo cp build/bin/whisper-cli /usr/local/bin/whisper-cpp
 
 # Download the quantised English model
 bash models/download-ggml-model.sh base.en
@@ -239,8 +232,7 @@ nano .env   # fill in your keys (all optional)
 ### 9 — Run
 
 ```bash
-source venv313/bin/activate
-python orchestrator.py
+.venv/bin/python orchestrator.py
 ```
 
 ---
@@ -248,11 +240,13 @@ python orchestrator.py
 ## Project Structure
 
 ```
-jansky/
+gonkenlabagent/
 ├── orchestrator.py              # Main entry point — ties everything together
 ├── config.py                    # Dataclass config, loads .env + config.json
 ├── setup.sh                     # One-command install script
+├── requirements.txt             # Python runtime dependencies
 ├── .env.example                 # Template for API keys
+├── scripts/doctor.py            # Installation and hardware diagnostics
 │
 ├── audio/
 │   ├── audio_manager.py         # Mic recording (silence detection) + speaker playback
@@ -286,10 +280,6 @@ jansky/
 │   ├── face/                    # PNG face expressions for the UI
 │   └── fillers/                 # Pre-generated filler WAVs ("Thinking...", etc.)
 │
-├── models/
-│   └── wake_word/
-│       └── Hey_Jansky.onnx      # Custom wake word model
-│
 ├── piper/voices/                # Piper TTS voice files (downloaded during setup)
 ├── whisper.cpp/                 # Whisper.cpp source + compiled binary + model
 └── tests/
@@ -311,7 +301,7 @@ All runtime settings live in `config/config.json`. Key values:
 | `mic_sample_rate` | `48000` | Native sample rate of your USB mic |
 | `local_location` | `Kingston, CA` | Default city for weather lookups |
 | `display_width` / `display_height` | `800` / `480` | UI resolution |
-| `enable_ui` | `true` | Set `false` to run headless |
+| `enable_ui` | `false` | Set `true` only when the optional display UI is configured |
 
 API keys are loaded from `.env` and are **never** written to `config.json`.
 
@@ -320,16 +310,14 @@ API keys are loaded from `.env` and are **never** written to `config.json`.
 ## Testing Individual Components
 
 ```bash
-source venv313/bin/activate
-
 # Test the LLM router (requires Ollama running)
-python tests/test_router.py
+.venv/bin/python tests/test_router.py
 
 # Test wake word detection
-python tests/test_wake_word.py
+.venv/bin/python tests/test_wake_word.py
 
 # Test full audio pipeline (mic → STT → TTS → speaker)
-python tests/test_audio_pipeline.py
+.venv/bin/python tests/test_audio_pipeline.py
 ```
 
 ---
