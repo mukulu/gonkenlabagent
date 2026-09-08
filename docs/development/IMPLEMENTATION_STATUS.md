@@ -18,7 +18,7 @@ This file is the authoritative short handoff for a later development session. Ve
 - **M3.1 completed checkpoint:** `checkpoint/m3.1` (created after the tested commit; resolve it with `git rev-list -n 1 checkpoint/m3.1`)
 - **M3.1 clean-checkout test commit:** `29b5143febfea299454f56f05a75be06bffd790c`
 - **M3.2 completed checkpoint:** `checkpoint/m3.2` (created after the tested commit; resolve it with `git rev-list -n 1 checkpoint/m3.2`)
-- **M3.2 clean-checkout test commit:** pending final verification-record commit
+- **M3.2 clean-checkout test commit:** `28ac3dac9ecf591c1845712036d97119377a9f37`
 - **Last verification date:** 2026-09-08 UTC
 - **Target:** Raspberry Pi 5 4GB, Raspberry Pi OS Lite 64-bit
 - **Audit host:** Ubuntu 24.04 x86_64, Python 3.12 (not target hardware)
@@ -169,6 +169,7 @@ The full issue descriptions and evidence are in `REPOSITORY_AUDIT.md`.
 - M3.1 suite: 81 of 81 unit tests and 6 of 6 deterministic integration tests pass, including V-H03/V-H04 privilege cases, exact platform/resource rejections, checkout preservation, local source resolution, private record permissions, and prevention of legacy installer fall-through.
 - A local no-hardlink clone of M3.1 implementation commit `29b5143febfea299454f56f05a75be06bffd790c` passed the same entry point in a fresh standard-library-only virtual environment and remained clean.
 - M3.2 suite: 92 of 92 unit tests and 16 of 16 deterministic integration tests pass, including step-contract validation, private atomic state/event writes and collision allocation, malicious-record rejection, source-ref revalidation, probe-authoritative repair, active/stale/PID-reuse locks, six cooperative interruption boundaries, abrupt-death recovery, and bootstrap routing.
+- A local no-hardlink clone of M3.2 implementation commit `28ac3dac9ecf591c1845712036d97119377a9f37` passed the same entry point in a fresh standard-library-only virtual environment and remained clean.
 
 ## Tests Failing or Blocked
 
