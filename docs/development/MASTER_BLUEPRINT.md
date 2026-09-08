@@ -635,6 +635,11 @@ Each milestone below is a maximum scope, not an instruction to force all its ite
 
 #### M2.1 Package and identity normalization
 
+**Implementation status (2026-09-08):** package/CLI, compatibility boundary,
+identity normalization, extension isolation, inventory, and host validation are
+implemented. The required maintainer project-license decision and unknown-media
+disposition remain BLOCKED; do not begin M2.2 or claim M2.1 complete.
+
 **Files:** `pyproject.toml`, `src/gonken_agent/**`, compatibility `orchestrator.py`, package `__init__` files, prompts, README references.
 
 **Actions:** create installable package and CLI; move modules with `git mv`; remove Jansky/Mayukh behavior; retain temporary wrappers only where tests need transition; set GonKenLab Agent identity in one config path; encode core-versus-extension module boundaries; create a source/assets/dependencies license inventory and obtain a maintainer-approved project/distribution license decision before claiming redistributability.
@@ -1004,7 +1009,14 @@ They are resolved in this revision by removing core power privilege, distinguish
 
 ## 18. Exact next action
 
-Implement M2.1 only: establish the `src/gonken_agent` package skeleton and CLI, normalize the sole GonKenLab Agent identity, keep compatibility wrappers where tests require them, encode core-versus-extension import boundaries, and create the source/assets/dependencies licensing inventory for maintainer decision. Add deterministic unit tests that require no Ollama, network, audio, GPIO, or extension dependency. Update all control documents and commit the coherent work before beginning M2.2.
+Close the M2.1 licensing gate before beginning M2.2. The maintainer must attest
+authority for project source/documentation and either approve a project license
+or explicitly retain no-redistribution status. Then remove/replace or document
+rights for every PNG/WAV listed in `packaging/provenance.toml`, decide how the
+GPL Piper runtime and noncommercial voice/wake artifacts are handled, update
+`LICENSE_PROVENANCE.md`, package metadata, decisions, status, and tests, and
+commit the result. Do not claim a release or advance to M2.2 while this gate is
+open.
 
 ## 19. Primary references
 

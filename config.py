@@ -48,11 +48,11 @@ class Config:
     # Models
     chat_model: str = "qwen2.5:1.5b"
 
-    # Wake word. No custom wake-word model is currently committed to this
-    # repository, so WakeWordDetector falls back to openWakeWord's hey_jarvis.
+    # Legacy compatibility detector only. No accepted custom wake-word model is
+    # committed, and the core package does not advertise a wake phrase.
     wake_word_model: str = ""
     wake_word_threshold: float = 0.5
-    wake_phrase: str = "Hey Jarvis"
+    wake_phrase: str = ""
 
     # Microphone settings
     mic_sample_rate: int = 48000

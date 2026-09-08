@@ -401,3 +401,27 @@ The master-blueprint review must resolve:
 - **Decision:** Blueprint Section 15 maps each C/H finding to a stable planned verification ID and core/extension disposition.
 - **Reason:** A milestone reference alone can create apparent traceability without an executable acceptance test.
 - **Consequence:** Implementation sessions must preserve these IDs in `TEST_MATRIX.md`, replacing planned procedures with exact commands/results as tests are created and run.
+
+## D-047 — Establish a dependency-light package before runtime migration
+
+- **Status:** Accepted
+- **Date:** 2026-09-08
+- **Decision:** `src/gonken_agent` is the installable package boundary. Its public import and CLI use only the Python standard library in M2.1; the inspected prototype remains in `legacy_orchestrator.py` behind an explicit compatibility adapter.
+- **Reason:** Moving the entire hardware/network prototype into the new namespace would make package import depend on unavailable devices and experimental features before their milestones define contracts.
+- **Consequence:** `gonken-agent run` returns unsupported status until a packaged core runtime exists. `orchestrator.py` preserves the old checkout command for migration testing without representing release readiness.
+
+## D-048 — Make absence of redistribution authority executable
+
+- **Status:** Accepted pending maintainer resolution of D-044
+- **Date:** 2026-09-08
+- **Decision:** Package metadata declares neither a license nor runtime dependencies; status reports redistribution false; unknown PNG/WAV media and the legacy runtime are excluded from wheel builds; full-repository ZIPs are not releases.
+- **Reason:** No project `LICENSE` exists, source ownership authority is not attested, 14 media assets have unknown provenance, maintained Piper is GPL-3.0-or-later, and configured voice/wake artifacts include noncommercial terms.
+- **Consequence:** The package/identity work can be tested and committed, but M2.1 and any public release remain blocked until the maintainer records project-license/authority and artifact decisions.
+
+## D-049 — Keep M2.1 host validation dependency-free
+
+- **Status:** Accepted as a transitional testing choice; D-029 remains authoritative for M2.4
+- **Date:** 2026-09-08
+- **Decision:** Use Python `unittest` for M2.1 package-boundary tests because the clean audit host has no pytest and M2.4 owns test-framework dependencies and suite restructuring.
+- **Reason:** Adding or downloading pytest during the package skeleton milestone would violate its standard-library-only validation boundary and prematurely modify dependency profiles.
+- **Consequence:** The 15 tests remain pytest-discoverable in structure if desired, but the recorded M2.1 command is `PYTHONPATH=src python -m unittest discover -s tests/unit -v`.

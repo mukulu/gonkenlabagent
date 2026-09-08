@@ -27,7 +27,7 @@ class UIManager:
         self,
         width: int = 800,
         height: int = 480,
-        assets_path: str = "/home/jansky/jansky/assets/face",
+        assets_path: str = "assets/face",
         fps: int = 30,
         use_framebuffer: bool = True
     ):
@@ -94,7 +94,7 @@ class UIManager:
                 (self.width, self.height),
                 pygame.FULLSCREEN | pygame.HWSURFACE | pygame.DOUBLEBUF
             )
-            pygame.display.set_caption("Jansky")
+            pygame.display.set_caption("GonKenLab Agent")
             print(f"    Display driver: wayland")
         except pygame.error as e:
             print(f"    Wayland display failed: {e}, UI disabled")

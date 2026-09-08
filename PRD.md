@@ -1,4 +1,11 @@
-# Product Requirements Document: Project "Pi-Genius" (Codename: Jansky)
+# Historical Product Requirements Document: Project "Pi-Genius"
+
+> **Historical provenance only.** This document describes an earlier product
+> concept and identity. It is not an active requirement or implementation
+> authority. See `docs/development/MASTER_BLUEPRINT.md` and
+> `docs/development/IMPLEMENTATION_STATUS.md` for the accepted GonKenLab Agent
+> contract and current state. Historical wording below is preserved so later
+> sessions can reconstruct why the architecture changed.
 
 **Version:** 2.0 (Research-Validated)  
 **Last Updated:** February 2025  

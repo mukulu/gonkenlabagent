@@ -1,376 +1,86 @@
-# GonKenLab Agent — Local Voice Assistant for Raspberry Pi 5
+# GonKenLab Agent
 
-GonKenLab Agent is a Raspberry Pi 5 voice assistant built around local speech recognition, a local Qwen model through Ollama, and local Piper speech synthesis. External weather, news, and cloud-AI integrations are optional.
+GonKenLab Agent is being rebuilt as a headless Raspberry Pi 5 4GB appliance
+for local, source-grounded spoken access to a bounded AI-lab corpus. The
+release path will use local Whisper speech recognition, local retrieval,
+Qwen 3.5 2B through loopback-only Ollama, local Piper speech synthesis, and a
+physical push-to-talk control with an explicit recording indicator.
 
-### Live Demo
+This branch is an implementation workstream, not an install-ready release.
+The inspected prototype remains reachable through a compatibility launcher,
+but its installer, runtime, cloud routing, continuous wake detector, and UI are
+not accepted release behavior.
 
-Weather Report:
-https://github.com/user-attachments/assets/6698d96d-14a2-45af-920d-24787662d25a
+## Development authority
 
-Local System Info:
-https://github.com/user-attachments/assets/66fed292-bbec-45cc-ad6e-ddb9f11b678d
+Repository state and Git history are the project handoff. Start with:
 
+- `docs/development/MASTER_BLUEPRINT.md` — accepted engineering contract;
+- `docs/development/IMPLEMENTATION_STATUS.md` — exact completed/current/next state;
+- `docs/development/TEST_MATRIX.md` — commands, environments, and results;
+- `docs/development/DECISIONS.md` — append-only architectural decisions;
+- `docs/development/REPOSITORY_AUDIT.md` — frozen baseline evidence.
 
+`PRD.md` is historical provenance only and is not implementation authority.
 
+## Current package boundary
 
----
-
-## Live Demo
-
-**Weather Report:**
-
-https://github.com/user-attachments/assets/6698d96d-14a2-45af-920d-24787662d25a
-
-**Local System Info:**
-
-https://github.com/user-attachments/assets/66fed292-bbec-45cc-ad6e-ddb9f11b678d
-
----
-
-## System Architecture
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                        RASPBERRY PI 5                           │
-│                                                                 │
-│  ┌──────────┐    "Hey Jarvis"     ┌──────────────────────────┐  │
-│  │ USB Mic  │ ──────────────────► │  Wake Word Detector      │  │
-│  │ (48kHz)  │                     │  (openWakeWord + ONNX)   │  │
-│  └──────────┘                     └───────────┬──────────────┘  │
-│                                               │ wake!           │
-│                                               ▼                 │
-│                                   ┌──────────────────────────┐  │
-│                                   │  Audio Manager           │  │
-│                                   │  Record → Silence detect │  │
-│                                   └───────────┬──────────────┘  │
-│                                               │ raw audio       │
-│                                               ▼                 │
-│                                   ┌──────────────────────────┐  │
-│                                   │  Whisper.cpp (STT)       │  │
-│                                   │  48kHz → 16kHz → text    │  │
-│                                   └───────────┬──────────────┘  │
-│                                               │ text            │
-│                                               ▼                 │
-│  ┌────────────────────────────────────────────────────────────┐  │
-│  │                    LLM Router (Ollama)                     │  │
-│  │                   Qwen 2.5 · 1.5 B                        │  │
-│  │                                                            │  │
-│  │  Simple chat ──► respond directly                          │  │
-│  │  Time/Date   ──► time_tool        (local)                  │  │
-│  │  Weather     ──► weather_tool     (OpenWeatherMap API)     │  │
-│  │  News        ──► news_tool        (NewsAPI)                │  │
-│  │  System      ──► system_tool      (CPU temp, RAM, uptime)  │  │
-│  │  Jokes       ──► joke_tool        (Official Joke API)      │  │
-│  │  Complex     ──► cloud_handoff    (Kimi K2 / Moonshot)     │  │
-│  └────────────────────────────────┬───────────────────────────┘  │
-│                                   │ response text               │
-│                                   ▼                              │
-│                       ┌──────────────────────┐                   │
-│                       │  Piper TTS           │                   │
-│                       │  text → speech (.wav)│                   │
-│                       └──────────┬───────────┘                   │
-│                                  │                               │
-│                 ┌────────────────┼────────────────┐              │
-│                 ▼                                  ▼              │
-│        ┌──────────────┐                  ┌────────────────┐      │
-│        │  USB Speaker │                  │  PyGame Face   │      │
-│        │  (ALSA)      │                  │  (800×480 LCD) │      │
-│        └──────────────┘                  └────────────────┘      │
-└─────────────────────────────────────────────────────────────────┘
-```
-
----
-
-## Features
-
-| Feature | How it works | API key needed? |
-|---|---|---|
-| **Wake word** — "Hey Jarvis" | Bundled openWakeWord fallback; custom Hey Gonken model planned | No |
-| **Local chat** — greetings, identity, simple Q&A | Qwen 2.5:1.5b via Ollama | No |
-| **Time & date** | Python `datetime` | No |
-| **System status** — CPU temp, RAM, uptime, disk | Reads `/proc` and `/sys` | No |
-| **Jokes** | Official Joke API (free, no key) | No |
-| **Weather** | OpenWeatherMap | `OPENWEATHER_API_KEY` |
-| **News headlines** | NewsAPI | `NEWSAPI_KEY` |
-| **Cloud AI answers** — complex / creative queries | Kimi K2 (Moonshot) | `MOONSHOT_API_KEY` |
-| **Animated face UI** | PyGame on Wayland (800×480 LCD) | No |
-| **Natural speech** | Piper TTS (British English voice) | No |
-| **Speech recognition** | Whisper.cpp (quantised base.en model) | No |
-
----
-
-## Hardware Requirements
-
-- Raspberry Pi 5 (4 GB+ RAM recommended)
-- USB microphone
-- USB speaker
-- 800×480 LCD display *(optional — GonKenLab Agent works headless too)*
-- MicroSD card (32 GB+)
-
----
-
-## Quick Start (Fresh Raspberry Pi OS Lite)
-
-> **Prerequisites:** Raspberry Pi OS Lite/64-bit, an internet connection, and the intended USB microphone/speaker connected. The default audio device-name match is `AIRHUG`; other USB devices can be configured later in `.env`.
-
-From a fresh Raspberry Pi terminal, run this **single command**:
+M2.1 introduces a dependency-light `src/gonken_agent` package and CLI. From a
+development checkout:
 
 ```bash
-sudo apt-get update && sudo apt-get install -y curl ca-certificates && curl -fsSL https://raw.githubusercontent.com/mukulu/gonkenlabagent/main/bootstrap.sh | bash
+PYTHONPATH=src python -m gonken_agent version
+PYTHONPATH=src python -m gonken_agent status --json
 ```
 
-The bootstrap script installs Git if necessary, clones (or safely updates) `~/gonkenlabagent`, and runs the full `setup.sh`. The setup then creates the isolated Python environment, installs the ONNX wake-word stack, starts Ollama, pulls and tests Qwen, builds Whisper.cpp, downloads the pre-quantised Whisper model, installs Piper, checks the microphone and speaker, transcribes a known sample, and plays an audible local TTS confirmation.
-
-When setup finishes successfully, start the assistant with:
-
-```bash
-cd ~/gonkenlabagent
-.venv/bin/python orchestrator.py
-```
-
-Then say **"Hey Jarvis"**. This is the bundled ONNX wake-word fallback until a custom **Hey Gonken** model is added.
-
-### Existing checkout / developer workflow
-
-If the repository is already cloned:
-
-```bash
-cd ~/gonkenlabagent
-git pull --ff-only
-./setup.sh
-```
-
-`setup.sh` is safe to rerun and reuses completed downloads/builds. To install without connected audio hardware, set `GONKEN_SKIP_HARDWARE_TEST=1` for that run.
-
-### API keys (optional)
-
-```bash
-cp .env.example .env
-nano .env          # paste your keys
-```
-
-| Key | Where to get it | What you lose without it |
-|---|---|---|
-| `OPENWEATHER_API_KEY` | [openweathermap.org/api](https://openweathermap.org/api) (free tier) | Weather lookups |
-| `NEWSAPI_KEY` | [newsapi.org](https://newsapi.org/) (free tier) | News headlines |
-| `MOONSHOT_API_KEY` | [platform.moonshot.ai](https://platform.moonshot.ai/) | Cloud AI for complex questions |
-
-### Verify again later
-
-The installer runs diagnostics automatically. They can also be rerun manually:
-
-```bash
-.venv/bin/python scripts/doctor.py
-.venv/bin/python scripts/smoke_test.py
-```
-
-For the longer interactive microphone → Whisper → Piper test:
-
-```bash
-.venv/bin/python tests/test_audio_pipeline.py
-```
-
----
-
-## Manual Installation
-
-Use this if you prefer to install step-by-step instead of using `setup.sh`.
-
-### 1 — System packages
-
-```bash
-sudo apt update && sudo apt install -y \
-  python3 python3-venv python3-dev \
-  build-essential cmake git curl wget \
-  libsdl2-dev libsdl2-mixer-dev libsdl2-ttf-dev \
-  portaudio19-dev libasound2-dev \
-  alsa-utils
-```
-
-### 2 — Python virtual environment
-
-```bash
-python3 -m venv .venv
-.venv/bin/python -m ensurepip --upgrade
-.venv/bin/python -m pip install --upgrade pip setuptools wheel
-```
-
-### 3 — Python dependencies
-
-```bash
-.venv/bin/python -m pip install -r requirements.txt
-.venv/bin/python -m pip check
-
-# Linux/Python 3.13: install openWakeWord without its unavailable TFLite dependency.
-.venv/bin/python -m pip install --no-deps openwakeword==0.6.0
-```
-
-`setup.sh` additionally downloads and validates the ONNX feature/wake-word models required by openWakeWord. The automated installer is therefore preferred over manual installation on Raspberry Pi OS.
-
-### 4 — Ollama + Qwen 2.5
-
-```bash
-curl -fsSL https://ollama.com/install.sh | sh
-sudo systemctl enable --now ollama
-ollama pull qwen2.5:1.5b
-```
-
-### 5 — Whisper.cpp
-
-```bash
-git clone https://github.com/ggml-org/whisper.cpp.git
-cd whisper.cpp
-cmake -B build
-cmake --build build --config Release --target whisper-cli -j"$(nproc)"
-
-# Download the official pre-quantised English model directly.
-bash models/download-ggml-model.sh base.en-q5_1
-cd ..
-```
-
-The installer intentionally downloads `base.en-q5_1` directly instead of searching for or executing a local quantizer. This avoids selecting unrelated build tools such as `parakeet-quantize` and removes an unnecessary local quantisation step.
-
-### 6 — Piper TTS voice
-
-```bash
-mkdir -p piper/voices
-# Download British English voice (or pick another from https://rhasspy.github.io/piper-samples/)
-wget -O piper/voices/en_GB-semaine-medium.onnx \
-  https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_GB/semaine/medium/en_GB-semaine-medium.onnx
-wget -O piper/voices/en_GB-semaine-medium.onnx.json \
-  https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_GB/semaine/medium/en_GB-semaine-medium.onnx.json
-```
-
-### 7 — Wake word model
-
-This repository currently uses openWakeWord’s bundled **"Hey Jarvis"** model as a fallback. A custom **"Hey Gonken"** ONNX model is not yet bundled; it must be trained and tested before changing the actual activation phrase.
-
-### 8 — API keys
-
-```bash
-cp .env.example .env
-nano .env   # fill in your keys (all optional)
-```
-
-### 9 — Run
+The package imports without audio, model, GPIO, UI, network, or extension
+dependencies. `gonken-agent run` intentionally refuses to imply that the new
+core runtime exists yet. For migration testing only, the historical source
+command remains:
 
 ```bash
 .venv/bin/python orchestrator.py
 ```
 
----
+That launcher crosses an explicit compatibility boundary and is not evidence
+of release readiness.
 
-## Project Structure
+## Accepted first-release boundary
 
-```
-gonkenlabagent/
-├── orchestrator.py              # Main entry point — ties everything together
-├── config.py                    # Dataclass config, loads .env + config.json
-├── bootstrap.sh                 # Fresh-Pi bootstrap: prerequisites → clone/update → setup
-├── setup.sh                     # Idempotent full installation and verification
-├── requirements.txt             # Python runtime dependencies
-├── .env.example                 # Template for API keys
-├── scripts/doctor.py            # Installation and hardware diagnostics
-├── scripts/smoke_test.py        # Mic + Whisper + Piper + speaker post-install test
-│
-├── audio/
-│   ├── audio_manager.py         # Mic recording (silence detection) + speaker playback
-│   ├── tts_engine.py            # Piper TTS wrapper (text → WAV)
-│   └── stt_engine.py            # Whisper.cpp wrapper (audio → text)
-│
-├── brain/
-│   ├── router.py                # Intent routing — keyword + LLM tool-calling
-│   ├── ollama_client.py         # Ollama HTTP client (chat + streaming)
-│   ├── cloud_client.py          # Kimi K2 / Moonshot HTTP client
-│   ├── tool_definitions.py      # Tool schemas + system prompt for Qwen
-│   └── tools/
-│       ├── time_tool.py         # Current time & date
-│       ├── weather_tool.py      # OpenWeatherMap lookup
-│       ├── news_tool.py         # NewsAPI top headlines
-│       ├── system_tool.py       # CPU temp, RAM, uptime, disk
-│       └── joke_tool.py         # Random joke API
-│
-├── senses/
-│   └── wake_word_detector.py    # openWakeWord listener (threaded)
-│
-├── ui/
-│   └── ui_manager.py            # PyGame animated face (Wayland/framebuffer)
-│
-├── config/
-│   ├── config.json              # Runtime config (paths, thresholds, display)
-│   ├── local_soul.md            # Personality prompt for local LLM
-│   └── cloud_soul.md            # Personality prompt for cloud LLM
-│
-├── assets/
-│   ├── face/                    # PNG face expressions for the UI
-│   └── fillers/                 # Pre-generated filler WAVs ("Thinking...", etc.)
-│
-├── piper/voices/                # Piper TTS voice files (downloaded during setup)
-├── whisper.cpp/                 # Whisper.cpp source + compiled binary + model
-└── tests/
-    ├── test_router.py           # Router / intent detection tests
-    ├── test_wake_word.py        # Wake word detector test
-    └── test_audio_pipeline.py   # End-to-end audio pipeline test
-```
+Required core behavior includes:
 
----
+- Raspberry Pi OS Lite 64-bit on Raspberry Pi 5 4GB;
+- unattended systemd startup without automatic login;
+- USB input/output audio with deterministic selection and degraded recovery;
+- physical push-to-talk and visible recording state;
+- local STT, retrieval, LLM, and TTS processing;
+- source identifiers and explicit abstention for unsupported answers;
+- content-free persistent telemetry and a loopback-only read-only dashboard;
+- idempotent install, upgrade, rollback, recovery, doctor, and uninstall paths.
 
-## Configuration
+Wake word, voice power control, direct LAN dashboard access, and Bluetooth are
+governed extensions. They do not block the core release and remain disabled
+until their independent acceptance gates pass.
 
-All runtime settings live in `config/config.json`. Key values:
+## Testing
 
-| Setting | Default | Description |
-|---|---|---|
-| `chat_model` | `qwen2.5:1.5b` | Ollama model for routing + chat |
-| `wake_word_threshold` | `0.5` | Wake word confidence threshold (0–1) |
-| `mic_sample_rate` | `48000` | Native sample rate of your USB mic |
-| `local_location` | `Kingston, CA` | Default city for weather lookups |
-| `display_width` / `display_height` | `800` / `480` | UI resolution |
-| `enable_ui` | `false` | Set `true` only when the optional display UI is configured |
-
-API keys are loaded from `.env` and are **never** written to `config.json`.
-
----
-
-## Testing Individual Components
+M2.1 host tests require no model, network, audio, GPIO, or optional extension:
 
 ```bash
-# Test the LLM router (requires Ollama running)
-.venv/bin/python tests/test_router.py
-
-# Test wake word detection
-.venv/bin/python tests/test_wake_word.py
-
-# Test full audio pipeline (mic → STT → TTS → speaker)
-.venv/bin/python tests/test_audio_pipeline.py
+PYTHONPATH=src python -m unittest discover -s tests/unit -v
 ```
 
----
+Hardware and installer scripts under `tests/` remain legacy/manual probes until
+M2.4 classifies and restructures them. Results are meaningful only when the
+environment recorded in `docs/development/TEST_MATRIX.md` matches the test tier.
 
-## How It Works (Flow)
+## Licensing and redistribution
 
-1. **Wake word** — the current repository listens for the bundled openWakeWord **"Hey Jarvis"** fallback. A custom **"Hey Gonken"** model is planned as a separate improvement.
-2. **Record** — Once triggered, the mic stream is paused from wake-word duty and handed to the Audio Manager, which records until silence is detected (1.5 s of quiet).
-3. **Transcribe** — The recorded audio (48 kHz) is downsampled to 16 kHz and sent to Whisper.cpp, which returns the text.
-4. **Route** — The Router sends the text to Ollama (Qwen 2.5:1.5b) with tool-calling enabled. If the model returns a structured tool call, that tool runs. Otherwise, keyword-based fallback detection kicks in.
-5. **Respond** — The response text is synthesised to speech by Piper TTS and played through the USB speaker via ALSA.
-6. **UI** — Throughout the flow the PyGame face reflects the current state: idle → listening → thinking → speaking → idle.
+No project license has been approved and no `LICENSE` file exists. Do not infer
+redistribution rights from earlier README text. The bundled face PNGs and
+filler WAVs have unknown provenance and are excluded from the package build.
+See `docs/development/LICENSE_PROVENANCE.md` and
+`packaging/provenance.toml` for the decision-ready inventory.
 
----
-
-## Troubleshooting
-
-| Problem | Fix |
-|---|---|
-| AIRHUG microphone not found | Check `arecord -l` and the Python device list. AIRHUG is the default; override with `GONKEN_MIC_NAME` in `.env` if needed. |
-| AIRHUG speaker not found | Check `aplay -l`. AIRHUG is the default; override with `GONKEN_SPEAKER_NAME` in `.env` if needed. |
-| Whisper not found | Rerun `./setup.sh`. The expected binary is `whisper.cpp/build/bin/whisper-cli` and the default model is `whisper.cpp/models/ggml-base.en-q5_1.bin`. |
-| Ollama not running | Run `ollama serve` in another terminal, then `ollama pull qwen2.5:1.5b`. |
-| No display / PyGame crash | Set `"enable_ui": false` in `config/config.json` to run headless. |
-| Weather / News / Cloud AI says "not configured" | Add the matching API key to `.env`. |
-
----
-
-## License
-
-MIT
+The package and any portable Git checkpoint created during development are
+engineering handoffs, not approved redistributable releases.

@@ -1,0 +1,266 @@
+schema_version = 1
+inventory_date = "2026-09-08"
+project_source_license = "NOASSERTION"
+project_license_status = "pending-maintainer-decision"
+redistribution_approved = false
+wheel_policy = "Only src/gonken_agent Python packages; no repository media or legacy runtime"
+
+[[source_groups]]
+id = "package-source"
+paths = ["src/gonken_agent/**/*.py"]
+origin = "repository contributors; ownership not yet attested"
+license = "NOASSERTION"
+included_in_wheel = true
+redistribution_status = "blocked-pending-project-license"
+
+[[source_groups]]
+id = "legacy-source-and-scripts"
+paths = ["*.py", "audio/**", "brain/**", "senses/**", "ui/**", "scripts/**", "*.sh"]
+origin = "repository contributors; ownership not yet attested"
+license = "NOASSERTION"
+included_in_wheel = false
+redistribution_status = "blocked-pending-project-license"
+
+[[source_groups]]
+id = "documentation"
+paths = ["*.md", "docs/**/*.md"]
+origin = "repository contributors and supplied requirements; ownership not yet attested"
+license = "NOASSERTION"
+included_in_wheel = false
+redistribution_status = "blocked-pending-project-license"
+
+[[assets]]
+path = "assets/face/angry.png"
+kind = "face-png"
+sha256 = "1d0deae897cc2cf2693f9c8348b1e3048416e6a97b8acc125cd6514f3b35e4c3"
+provenance = "unknown"
+license = "NOASSERTION"
+included_in_wheel = false
+
+[[assets]]
+path = "assets/face/cry_sad.png"
+kind = "face-png"
+sha256 = "b8761ecf1b9f1813055363e5f71332086f392e71b6a2462933fa87931245fb46"
+provenance = "unknown"
+license = "NOASSERTION"
+included_in_wheel = false
+
+[[assets]]
+path = "assets/face/emotional.png"
+kind = "face-png"
+sha256 = "d04838a76fc74409334c7a559c0aa7dfaa3ed3784f5febc29d8fd0f057c4debd"
+provenance = "unknown"
+license = "NOASSERTION"
+included_in_wheel = false
+
+[[assets]]
+path = "assets/face/emotional_cry.png"
+kind = "face-png"
+sha256 = "4420f1d341e9cc762c3be15c913536ac9334fade709a5f8fe5a808d2783c2447"
+provenance = "unknown"
+license = "NOASSERTION"
+included_in_wheel = false
+
+[[assets]]
+path = "assets/face/happy.png"
+kind = "face-png"
+sha256 = "039d51ee50d5cc1ad5c617ef0041d0a2dfeca6e4cc950a744053015e42e76dbe"
+provenance = "unknown"
+license = "NOASSERTION"
+included_in_wheel = false
+
+[[assets]]
+path = "assets/face/happy_eye_glistening.png"
+kind = "face-png"
+sha256 = "489cc5cee9786696c669df9cdb66cc7ed861300b5b5ce4b44d4bd7a00ab67834"
+provenance = "unknown"
+license = "NOASSERTION"
+included_in_wheel = false
+
+[[assets]]
+path = "assets/face/irritated.png"
+kind = "face-png"
+sha256 = "fac1f693b3c2b633c254ca16c85f03bcf47f624f89f56bfc927ade9f41209fa2"
+provenance = "unknown"
+license = "NOASSERTION"
+included_in_wheel = false
+
+[[assets]]
+path = "assets/face/thinking.png"
+kind = "face-png"
+sha256 = "1f1dc7c7946b15a868afb5dc02fab12fcb55d636bca58e5b955c14dd042ccb6a"
+provenance = "unknown"
+license = "NOASSERTION"
+included_in_wheel = false
+
+[[assets]]
+path = "assets/face/winking.png"
+kind = "face-png"
+sha256 = "2752eb0f110faffd35ea4214546c6df8ee35c3675c4a7b331136ff807adde0c8"
+provenance = "unknown"
+license = "NOASSERTION"
+included_in_wheel = false
+
+[[assets]]
+path = "assets/fillers/filler_0.wav"
+kind = "filler-wav"
+sha256 = "9f514fc8f682190f11710abee114efc62b95a45cd5d8f35e7026c2a4e73b741b"
+provenance = "unknown"
+license = "NOASSERTION"
+included_in_wheel = false
+
+[[assets]]
+path = "assets/fillers/filler_1.wav"
+kind = "filler-wav"
+sha256 = "507331d0a3c926828be34e7cd4aac890198c2a1628fab2264a01bf81a4625e8e"
+provenance = "unknown"
+license = "NOASSERTION"
+included_in_wheel = false
+
+[[assets]]
+path = "assets/fillers/filler_2.wav"
+kind = "filler-wav"
+sha256 = "989c7d0df444e0661c930c05b72f8227557f5d797288ccbe7ce6c11b038d52c2"
+provenance = "unknown"
+license = "NOASSERTION"
+included_in_wheel = false
+
+[[assets]]
+path = "assets/fillers/filler_3.wav"
+kind = "filler-wav"
+sha256 = "012d1525f98ef082959ba48fe11ceae838033d2b9dfe14b0a5130d14487c354e"
+provenance = "unknown"
+license = "NOASSERTION"
+included_in_wheel = false
+
+[[assets]]
+path = "assets/fillers/filler_4.wav"
+kind = "filler-wav"
+sha256 = "c173d1ffc2a60178cb37cbbcb78000cbc49643bd83b482623ceecc2eaac650e3"
+provenance = "unknown"
+license = "NOASSERTION"
+included_in_wheel = false
+
+[[dependencies]]
+name = "httpx"
+requirement = "httpx>=0.27,<1"
+role = "legacy Ollama/cloud clients"
+license = "UNVERIFIED-M2.3"
+bundled = false
+package_dependency = false
+
+[[dependencies]]
+name = "sounddevice"
+requirement = "sounddevice>=0.5,<1"
+role = "legacy audio I/O"
+license = "UNVERIFIED-M2.3"
+bundled = false
+package_dependency = false
+
+[[dependencies]]
+name = "numpy"
+requirement = "numpy>=1.26,<3"
+role = "legacy audio/model arrays"
+license = "UNVERIFIED-M2.3"
+bundled = false
+package_dependency = false
+
+[[dependencies]]
+name = "piper-tts"
+requirement = "piper-tts>=1.3,<2"
+role = "planned local TTS; integration/distribution design unresolved"
+license = "GPL-3.0-or-later"
+bundled = false
+package_dependency = false
+
+[[dependencies]]
+name = "onnxruntime"
+requirement = "onnxruntime>=1.19,<2"
+role = "legacy wake-model inference"
+license = "UNVERIFIED-M2.3"
+bundled = false
+package_dependency = false
+
+[[dependencies]]
+name = "tqdm"
+requirement = "tqdm>=4,<5"
+role = "openWakeWord transitive runtime"
+license = "UNVERIFIED-M2.3"
+bundled = false
+package_dependency = false
+
+[[dependencies]]
+name = "scipy"
+requirement = "scipy>=1.3,<2"
+role = "legacy audio resampling/openWakeWord runtime"
+license = "UNVERIFIED-M2.3"
+bundled = false
+package_dependency = false
+
+[[dependencies]]
+name = "scikit-learn"
+requirement = "scikit-learn>=1,<2"
+role = "openWakeWord runtime"
+license = "UNVERIFIED-M2.3"
+bundled = false
+package_dependency = false
+
+[[dependencies]]
+name = "requests"
+requirement = "requests>=2,<3"
+role = "legacy external tools"
+license = "UNVERIFIED-M2.3"
+bundled = false
+package_dependency = false
+
+[[dependencies]]
+name = "pygame"
+requirement = "pygame>=2.6,<3"
+role = "legacy optional UI; excluded from planned headless core"
+license = "UNVERIFIED-M2.3"
+bundled = false
+package_dependency = false
+
+[[dependencies]]
+name = "openwakeword"
+requirement = "openwakeword==0.6.0"
+role = "legacy compatibility detector; governed extension X1 only"
+license = "Apache-2.0-code; CC-BY-NC-SA-4.0-pretrained-models"
+bundled = false
+package_dependency = false
+
+[[external_artifacts]]
+name = "Ollama Linux CLI/server"
+role = "planned loopback LLM server"
+license = "MIT"
+distribution = "administrator download with version and checksum; not bundled"
+
+[[external_artifacts]]
+name = "Qwen 3.5 2B Q4_K_M model"
+role = "candidate local chat model; Pi gate pending"
+license = "Apache-2.0"
+distribution = "Ollama-managed download; tag and digest must be recorded"
+
+[[external_artifacts]]
+name = "whisper.cpp"
+role = "planned local STT runtime"
+license = "MIT"
+distribution = "pinned upstream source/release; not bundled"
+
+[[external_artifacts]]
+name = "Whisper model weights"
+role = "planned local STT model"
+license = "MIT"
+distribution = "checksum-verified download; not bundled"
+
+[[external_artifacts]]
+name = "Piper en_GB-semaine-medium voice"
+role = "legacy/configured TTS voice; replacement decision required"
+license = "CC-BY-NC-SA-4.0 dataset/model-card terms"
+distribution = "not bundled; do not redistribute until policy is approved"
+
+[[external_artifacts]]
+name = "openWakeWord bundled hey_jarvis model"
+role = "legacy compatibility only; prohibited from core"
+license = "CC-BY-NC-SA-4.0"
+distribution = "not bundled; remove from release provisioning"
