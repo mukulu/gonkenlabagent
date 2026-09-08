@@ -14,6 +14,7 @@ This file is the authoritative short handoff for a later development session. Ve
 - **M2.2 completed checkpoint:** `checkpoint/m2.2` (resolve its exact commit with `git rev-list -n 1 checkpoint/m2.2`)
 - **M2.3 completed checkpoint:** `checkpoint/m2.3` (resolve its exact commit with `git rev-list -n 1 checkpoint/m2.3`)
 - **M2.4 completed checkpoint:** `checkpoint/m2.4` (created after the tested commit; resolve it with `git rev-list -n 1 checkpoint/m2.4`)
+- **M2.4 clean-checkout test commit:** `d79ac48515db7d613c0ba5a020981a3953fa0b87`
 - **Last verification date:** 2026-09-08 UTC
 - **Target:** Raspberry Pi 5 4GB, Raspberry Pi OS Lite 64-bit
 - **Audit host:** Ubuntu 24.04 x86_64, Python 3.12 (not target hardware)
@@ -136,6 +137,7 @@ The full issue descriptions and evidence are in `REPOSITORY_AUDIT.md`.
 - Isolated offline wheel build/install passes; the installed CLI locates shipped defaults outside the checkout and reports the Qwen 3.5 authority.
 - M2.3 standard-library host suite: 51 of 51 tests pass, including profile boundaries, deterministic lock rendering, exact hashes, blocked-profile behavior, and machine-readable license reporting.
 - M2.4 repository entry point: 63 of 63 unit tests and 3 of 3 deterministic process-integration tests pass (66 total), with automated/manual boundaries enforced by regression tests.
+- A local no-hardlink clone of commit `d79ac48515db7d613c0ba5a020981a3953fa0b87` passed the same entry point in a fresh standard-library-only virtual environment and remained clean.
 - The live Ollama router, microphone/speaker pipeline, and wake detector programs all fail closed with exit 2 before importing optional dependencies unless their explicit opt-in variable is set.
 - Clean x86/Python 3.12 dev-lock and wheel install passes without `--ignore-requires-python`; `pip check` reports no broken requirements.
 - Isolated installed-core import passes with pygame and openWakeWord absent; CLI status remains honestly not runtime-ready.

@@ -281,11 +281,10 @@ or elevated privilege was used by the automated entry point.
 | M2.4-T007 | T0 | Wake-phrase claim | Inspect `tests/hardware/wake_word_manual.py` | PASS | The retained legacy model probe explicitly advertises no accepted spoken phrase; X1 “Hey Gonken” remains disabled. |
 | M2.4-T008 | T1 | Manual/live opt-in guard | Run each manual program without its opt-in environment variable | PASS | Each returns exit 2 before external optional imports or device/service access. |
 | M2.4-T009 | T0/T1 | Repository-root independence | Invoke absolute `scripts/ci.sh` path while the caller is outside the checkout | PASS | The entry point resolves and changes to its own repository root before checking or running suites. |
-| M2.4-T010 | T0/T1 | Clean-checkout repeatability | Local full-history clone at the completed commit; create fresh stdlib-only venv; run `./scripts/ci.sh` | PENDING | Must pass after the commit exists; record the exact commit before tagging M2.4. |
+| M2.4-T010 | T0/T1 | Clean-checkout repeatability | Local no-hardlink full-history clone of `d79ac48515db7d613c0ba5a020981a3953fa0b87`; create fresh stdlib-only venv; run `PYTHON_BIN=<fresh-venv>/bin/python ./scripts/ci.sh`; compare worktree before/after | PASS | All 66 tests and T0 checks pass from committed files; the cloned worktree remains clean. |
 | M2.4-T011 | T1 | Third-party runner | Inspect exact dev lock and D-055 | NOT RUN | Pytest is absent and was not downloaded. The suites remain pytest-discoverable, but M2.4 makes no pytest-execution claim. |
 | M2.4-T012 | T2–T4 | Live router/audio/wake behavior | Opt in with documented variables on a recorded service/hardware environment | NOT RUN | Audit host lacks accepted runtime dependencies, Ollama/model readiness, and Raspberry Pi audio/wake hardware; manual observations cannot count as automated evidence. |
 
-M2.4 is implementation-complete subject to the post-commit clean-checkout row
-above. Its T0/T1 boundary is deterministic and dependency-free; no result
-establishes Pi, service, model, or physical audio readiness. M3.1 is the only
-next authorized work package.
+M2.4 is complete. Its T0/T1 boundary is deterministic and dependency-free; no
+result establishes Pi, service, model, or physical audio readiness. M3.1 is the
+only next authorized work package.
