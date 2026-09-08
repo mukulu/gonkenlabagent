@@ -317,10 +317,10 @@ mutation, internet request, Raspberry Pi, model, audio, or GPIO was used.
 | M3.1-T013 | T1 | End-to-end development preflight | Run `bootstrap.sh --development-host --preflight-only` against a temporary local Git repository | PASS | Process resolves the exact commit and writes the private record without calling network, sudo, setup, or an installer. |
 | M3.1-T014 | T1 | Unsupported-host ordering | Run target mode on the x86 audit host with a logging Git stub | PASS | Exit 78 reports `PREFLIGHT_PLATFORM`; no `ls-remote` call and no staging entry occur. |
 | M3.1-T015 | T1 | M3.2 boundary | Run valid development preflight without `--preflight-only` | PASS | Exit 69 reports `M3_2_UNAVAILABLE` after recording evidence and never invokes `setup.sh` or a nonexistent installer. |
-| M3.1-T016 | T0/T1 | Clean-checkout repeatability | Commit implementation; clone without hardlinks; create fresh stdlib-only venv; run `./scripts/ci.sh`; compare worktree | PENDING | Record the exact implementation commit before creating `checkpoint/m3.1`. |
+| M3.1-T016 | T0/T1 | Clean-checkout repeatability | Clone implementation commit `29b5143febfea299454f56f05a75be06bffd790c` without hardlinks; create a fresh stdlib-only venv; run `PYTHON_BIN=<venv>/bin/python ./scripts/ci.sh`; compare worktree and run `git fsck --full --strict` | PASS | All 87 tests and T0 checks pass from committed files; the cloned worktree remains clean and Git object validation succeeds. |
 | M3.1-T017 | T2/T3 | Physical target and real HTTPS source | Supported freshly imaged Pi 5; target preflight against intended GitHub ref | BLOCKED | No Raspberry Pi target is available. Fixture/host evidence cannot close the target gate. |
 
-M3.1 is implementation-complete subject to the post-commit clean-checkout row.
+M3.1 is complete, including post-commit clean-checkout verification.
 H-03/H-04 are resolved for the preflight boundary but must be revalidated when
 M3.2 introduces privileged mutations. M3.2 is the only next authorized work
 package; this state is deliberately not install-ready.
