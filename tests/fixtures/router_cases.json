@@ -1,0 +1,38 @@
+[
+  {
+    "input": "Hello, how are you?",
+    "model_content": "Hello from the local model.",
+    "expected_tool": "none",
+    "expected_arguments": {}
+  },
+  {
+    "input": "What time is it?",
+    "model_content": "I should use a tool.",
+    "expected_tool": "get_current_time",
+    "expected_arguments": {}
+  },
+  {
+    "input": "What's the weather in Tokyo?",
+    "model_content": "I should use a tool.",
+    "expected_tool": "get_weather",
+    "expected_arguments": {"location": "Tokyo"}
+  },
+  {
+    "input": "Tell me a joke",
+    "model_content": "I should use a tool.",
+    "expected_tool": "get_joke",
+    "expected_arguments": {}
+  },
+  {
+    "input": "Show the system status",
+    "model_content": "I should use a tool.",
+    "expected_tool": "get_system_status",
+    "expected_arguments": {}
+  },
+  {
+    "input": "Explain gradient descent in detail",
+    "model_content": "I cannot answer locally.",
+    "expected_tool": "cloud_handoff",
+    "expected_arguments": {"query": "Explain gradient descent in detail"}
+  }
+]

@@ -1,6 +1,6 @@
 # GonKenLab Agent Implementation Master Blueprint
 
-**Blueprint revision:** 1.4-implementation
+**Blueprint revision:** 1.5-implementation
 
 **Prepared:** 2026-09-08 UTC
 
@@ -10,7 +10,7 @@
 
 **Review state:** adversarial review completed in `BLUEPRINT_ADVERSARIAL_REVIEW.md`; accepted for staged implementation
 
-**Implementation authorization:** M2.3 is complete; M2.4 is the only next authorized work package
+**Implementation authorization:** M2.4 is complete; M3.1 is the only next authorized work package
 
 ## 1. Purpose and authority
 
@@ -589,7 +589,9 @@ Only `READY` prints that the assistant is ready for interaction. Degraded output
 
 `TEST_MATRIX.md` tiers T0–T6 govern evidence. Implementation adds:
 
-- pytest unit tests with no network/model/hardware;
+- pytest-discoverable unit tests with no network/model/hardware; the
+  standard-library runner remains accepted until pytest and its complete graph
+  can be exact/hash-locked and installed from a controlled wheelhouse (D-055);
 - mocked HTTP/audio/GPIO/systemd/subprocess boundaries;
 - deterministic fixture WAVs and corpus fixtures;
 - shell static checks (`bash -n`, ShellCheck when available);
@@ -711,6 +713,18 @@ explicitly blocked and no Pi success is claimed.
 **Validation:** clean x86 dev install; AArch64 resolution probe; Pi venv install; `pip check`; import tests; license report.
 
 #### M2.4 Automated test foundation
+
+**Implementation status (2026-09-08): COMPLETE.** `scripts/ci.sh` is the
+single dependency-free T0/T1 entry point. It runs 63 unit and three deterministic
+process integration tests and cannot discover the opt-in live/manual probes.
+The three former top-level interactive scripts now live under explicit
+integration/manual or hardware boundaries, return exit 2 before importing
+external dependencies unless enabled, and document evidence requirements.
+Fake-client fixtures cover legacy router decisions without HTTP/Ollama; the joke
+expectation now matches `get_joke`, phrase matching rejects substrings, and the
+legacy wake probe advertises no unsupported spoken phrase. D-055 retains
+pytest-compatible naming but does not invent an unverified pytest dependency
+graph. Clean-checkout validation passes; no Pi/runtime readiness is claimed.
 
 **Files:** `tests/unit/**`, `tests/integration/**`, `scripts/ci.sh`, test configuration.
 
@@ -1051,14 +1065,14 @@ They are resolved in this revision by removing core power privilege, distinguish
 
 ## 18. Exact next action
 
-Implement M2.4 only. Establish the automated test foundation without changing
-runtime behavior: classify the current interactive/manual probes, create
-deterministic unit and integration boundaries, add a single repository test
-entry point, and correct the known router/joke and wake-phrase test
-contradictions. No test in the unit tier may require network, Ollama, audio,
-GPIO, pygame, models, or governed extensions. Preserve the M2.3 dependency
-profiles and do not select blocked TTS/wake dependencies. Run T0/T1 from a
-clean checkout, update all control documents, commit, and stop before M3.
+Implement M3.1 only. Build the bootstrap preflight and its command-stub tests:
+resolve root versus invoking sudo user, confirm the exact supported Raspberry
+Pi OS/Trixie/AArch64/Python contract, validate disk/RAM/time/network and required
+commands before mutation, record the requested source/ref, reject conflicting
+tracked/untracked checkout state, and create a safe staging location. Every
+failure must be noninteractive, diagnostic, and occur before privileged project
+mutation. Keep installation separate from runtime, use temporary roots and
+stubs for T0/T1, update all control documents, commit, and stop before M3.2.
 
 ## 19. Primary references
 

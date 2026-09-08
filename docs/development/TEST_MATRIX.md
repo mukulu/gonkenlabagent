@@ -120,8 +120,8 @@ The master blueprint must allocate stable IDs and concrete procedures for at lea
 
 ## 5. Latest test summary
 
-- **T0:** M0 recorded 9 PASS and 4 baseline FAIL findings; M2.1–M2.3 static/package/configuration/dependency-policy checks pass without closing unrelated findings.
-- **T1:** M2.3 expands the dependency-free host suite to 51 passing tests and adds a clean Python 3.12 wheel install/`pip check`; full M2.4 framework remains not started.
+- **T0:** M0 recorded 9 PASS and 4 baseline FAIL findings; M2.1–M2.4 static, package, configuration, dependency-policy, and test-boundary checks pass without closing unrelated findings.
+- **T1:** M2.4 provides one dependency-free entry point with 63 unit and three deterministic process-integration tests passing; live service and hardware probes are excluded and opt-in guarded.
 - **T2:** exact Python 3.13/AArch64 pygame wheel metadata now passes, superseding the old pygame-availability observation; networked resolution and the physical target install remain BLOCKED.
 - **T3–T6:** BLOCKED or NOT RUN as detailed above.
 - **Production readiness:** not established.
@@ -258,4 +258,34 @@ existence/hash evidence was read from the authoritative PyPI release page.
 M2.3 is complete for the maintained package foundation. H-08 is resolved and
 H-06 is controlled for the current exact graph; both must be rechecked whenever
 runtime dependencies are added. H-07 remains open pending networked AArch64
-resolution and a real Pi venv. M2.4 is the only next authorized work package.
+resolution and a real Pi venv. M2.4 followed as the only authorized work package.
+
+## 11. M2.4 automated-test foundation checks
+
+**Starting checkpoint:** `checkpoint/m2.3` / resolve with `git rev-list -n 1 checkpoint/m2.3`
+
+**Date:** 2026-09-08 UTC
+
+**Environment:** Ubuntu 24.04.3 LTS, x86_64, Python 3.12.13. No pytest,
+package-index request, Ollama, model, audio device, GPIO, pygame, openWakeWord,
+or elevated privilege was used by the automated entry point.
+
+| ID | Tier | Check | Command/procedure | Result | Interpretation |
+|---|---|---|---|---|---|
+| M2.4-T001 | T0 | Clean accepted starting checkpoint | `git status --short --branch`; inspect HEAD/tag against `checkpoint/m2.3` | PASS | M2.4 began at committed M2.3 with a clean worktree. |
+| M2.4-T002 | T0 | Legacy probe classification | Inspect removed top-level test paths and replacement locations/names | PASS | Live Ollama belongs to `tests/integration/manual`; microphone/speaker and wake detection belong to `tests/hardware`; none uses a discoverable `test_*.py` name. |
+| M2.4-T003 | T0/T1 | Single default entry point | `./scripts/ci.sh` | PASS | Lock rendering, syntax/data parsing, 63 unit tests, and three deterministic integration tests pass without installing dependencies. |
+| M2.4-T004 | T1 | Optional-boundary isolation | Architecture tests scan automated suites and inspect imports loaded by the fake router path | PASS | Automated tests import no declared external optional module and load no HTTP/Ollama client on the deterministic router path. |
+| M2.4-T005 | T1 | Router fake and fixtures | `tests/unit/test_legacy_router.py` with `tests/fixtures/router_cases.json` and `router_fakes.py` | PASS | Structured tool calls, history bounds, fallback categories, and all fixture routes execute without a service or network. |
+| M2.4-T006 | T1 | Contradiction regression | Joke and word-boundary unit cases | PASS | A joke request maps to `get_joke`; category/phrase fragments inside unrelated words do not trigger tools. |
+| M2.4-T007 | T0 | Wake-phrase claim | Inspect `tests/hardware/wake_word_manual.py` | PASS | The retained legacy model probe explicitly advertises no accepted spoken phrase; X1 “Hey Gonken” remains disabled. |
+| M2.4-T008 | T1 | Manual/live opt-in guard | Run each manual program without its opt-in environment variable | PASS | Each returns exit 2 before external optional imports or device/service access. |
+| M2.4-T009 | T0/T1 | Repository-root independence | Invoke absolute `scripts/ci.sh` path while the caller is outside the checkout | PASS | The entry point resolves and changes to its own repository root before checking or running suites. |
+| M2.4-T010 | T0/T1 | Clean-checkout repeatability | Local full-history clone at the completed commit; create fresh stdlib-only venv; run `./scripts/ci.sh` | PENDING | Must pass after the commit exists; record the exact commit before tagging M2.4. |
+| M2.4-T011 | T1 | Third-party runner | Inspect exact dev lock and D-055 | NOT RUN | Pytest is absent and was not downloaded. The suites remain pytest-discoverable, but M2.4 makes no pytest-execution claim. |
+| M2.4-T012 | T2–T4 | Live router/audio/wake behavior | Opt in with documented variables on a recorded service/hardware environment | NOT RUN | Audit host lacks accepted runtime dependencies, Ollama/model readiness, and Raspberry Pi audio/wake hardware; manual observations cannot count as automated evidence. |
+
+M2.4 is implementation-complete subject to the post-commit clean-checkout row
+above. Its T0/T1 boundary is deterministic and dependency-free; no result
+establishes Pi, service, model, or physical audio readiness. M3.1 is the only
+next authorized work package.
