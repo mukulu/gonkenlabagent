@@ -6,10 +6,11 @@ This file is the authoritative short handoff for a later development session. Ve
 
 - **Working branch:** `dev/bootstrap-rearchitecture`
 - **Inspected application baseline:** `6682360786135136abeb0bd2a17a9d45c6f291e7`
-- **Current control milestone:** M2.1 — Package and identity normalization; licensing gate blocked
-- **Blueprint revision:** 1.1-reviewed
+- **Current control milestone:** M2.2 — Configuration authority and migration
+- **Blueprint revision:** 1.2-implementation
 - **Accepted blueprint checkpoint:** `checkpoint/blueprint` (resolve its exact commit with `git rev-list -n 1 checkpoint/blueprint`)
 - **M2.1 implementation checkpoint:** `checkpoint/m2.1-license-gate` (created after the tested commit; resolve it with `git rev-list -n 1 checkpoint/m2.1-license-gate`)
+- **M2.1 completed checkpoint:** `checkpoint/m2.1` (resolve its exact commit with `git rev-list -n 1 checkpoint/m2.1`)
 - **Last verification date:** 2026-09-08 UTC
 - **Target:** Raspberry Pi 5 4GB, Raspberry Pi OS Lite 64-bit
 - **Audit host:** Ubuntu 24.04 x86_64, Python 3.12 (not target hardware)
@@ -42,14 +43,16 @@ This file is the authoritative short handoff for a later development session. Ve
 - [x] Separated the extension namespace and verified core import without optional dependencies.
 - [x] Created machine-readable source/assets/dependencies provenance with hashes for all 14 tracked media files.
 - [x] Excluded legacy runtime modules and all unknown media from the wheel policy.
-- [x] Added and passed 15 standard-library host tests plus offline wheel-content validation.
+- [x] Added and passed 16 standard-library host tests plus offline wheel-content validation.
+- [x] Closed M2.1 conservatively without inventing a project license: no license is granted and redistribution is prohibited.
+- [x] Quarantined all unknown PNG/WAV media as internal compatibility evidence excluded from packages, releases, and public exports.
+- [x] Restricted GPL/noncommercial Piper voice and wake artifacts to internal legacy evaluation pending a future release-compatible decision.
+- [x] Completed M2.1 and authorized M2.2 as the next bounded work package.
 
 ## In Progress
 
-- M2.1 implementation is complete except its mandatory licensing/provenance governance gate.
-- Maintainer project-license/authority approval was requested but no selection was received.
-- Unknown PNG/WAV rights and Piper/noncommercial-artifact disposition remain unresolved.
-- M2.2 is not authorized while these M2.1 acceptance items are open.
+- No implementation package is currently in progress.
+- M2.2 is the next and only authorized implementation package.
 
 ## Not Started
 
@@ -72,7 +75,7 @@ The full issue descriptions and evidence are in `REPOSITORY_AUDIT.md`.
 
 - C-01: no GonKenLab Agent systemd/boot service.
 - C-02: runtime is not offline by default in routing behavior.
-- C-03: GonKenLab/Jansky/Jarvis identity and activation mismatch.
+- C-03: RESOLVED for active package/user surfaces by M2.1/V-C03. Historical documents and technical legacy detector identifiers remain explicitly isolated.
 - C-04: no custom Gonken wake-word training/artifact/evaluation chain; reassigned to governed extension X1 rather than the core release.
 - C-05: no local grounding/provenance/telemetry implementation.
 - C-06: no evidence for rerun, interruption, reboot, or unattended-readiness claims.
@@ -83,7 +86,7 @@ The full issue descriptions and evidence are in `REPOSITORY_AUDIT.md`.
 
 ### Architecture gates introduced by M1B
 
-- AR-19: inventory is complete, but project-source authority/license and media/artifact disposition remain pending maintainer approval; redistribution is explicitly blocked.
+- AR-19: M2.1 development disposition is resolved through explicit no-redistribution and quarantine policies. A future public release remains blocked until project-source authority/license and media/artifact rights are approved.
 - Qwen 3.5 2B Q4_K_M has not yet passed Raspberry Pi latency/RAM/thermal/quality acceptance.
 - Direct LAN dashboard, wake word, voice power, and Bluetooth remain unimplemented extensions X1–X4.
 
@@ -97,7 +100,7 @@ The full issue descriptions and evidence are in `REPOSITORY_AUDIT.md`.
 - PNG structural/CRC validation for all face assets.
 - WAV header/parameter validation for all filler assets.
 - Targeted history scan found no credible committed secret.
-- M2.1 standard-library host suite: 15 of 15 tests pass with no network, model, audio, GPIO, UI, or extension dependency.
+- M2.1 standard-library host suite: 16 of 16 tests pass with no network, model, audio, GPIO, UI, or extension dependency.
 - Package CLI version/status checks and deliberate unimplemented-runtime exit code pass.
 - Offline local-backend wheel build passes; wheel contains only `gonken_agent` package files and metadata.
 - Active-surface inherited-identity scan passes; historical PRD/audit/decision evidence is intentionally excluded.
@@ -109,8 +112,8 @@ The full issue descriptions and evidence are in `REPOSITORY_AUDIT.md`.
 - Router/wake/smoke scripts under the audit host: dependency/runtime unavailable.
 - All Raspberry Pi ARM64 runtime, audio, GPIO, service, reboot, and failure-injection tests: BLOCKED pending implementation and target hardware.
 - Full installer execution: NOT RUN during documentation-only forensic audit.
-- M2.1 licensing acceptance: BLOCKED pending maintainer source-license/authority decision and unknown-media disposition.
-- Package publication and a public portable Git ZIP: BLOCKED; neither is an approved redistributable release.
+- Package publication, a public repository export, and a public portable Git ZIP: BLOCKED by the deliberate no-redistribution policy.
+- Unknown-media rights and a release-compatible Piper/voice/wake licensing plan remain M9 release blockers, not M2.2 blockers.
 
 Exact commands and interpretations are in `TEST_MATRIX.md`.
 
@@ -141,17 +144,19 @@ Exact commands and interpretations are in `TEST_MATRIX.md`.
 - The inspected runtime is retained as `legacy_orchestrator.py`; `orchestrator.py` is now a narrow compatibility launcher.
 - Package metadata makes no license claim and declares no runtime dependencies until M2.3 verifies profiles/locks.
 - M2.1 host tests use `unittest` so this package-boundary check itself adds no dependency; D-029’s planned pytest architecture remains assigned to M2.4.
+- No project license is granted; continued work is private development and redistribution remains prohibited until a later explicit decision.
+- Unknown PNG/WAV media and noncommercial voice/wake artifacts are quarantined from packages, releases, and public exports.
 
 See `DECISIONS.md` for rationale and status.
 
 ## Next Recommended Action
 
-Close the M2.1 licensing gate. The maintainer must confirm authority for the
-project source/documentation and choose a license or explicitly keep
-redistribution blocked. Then prove rights for or remove/replace all 14 PNG/WAV
-assets, and record the Piper plus noncommercial voice/wake-artifact disposition.
-Update `packaging/provenance.toml`, `LICENSE_PROVENANCE.md`, package metadata,
-control documents, and validation. Do not begin M2.2 until these decisions pass.
+Implement M2.2 only. Create `config/defaults.toml` and the typed package
+configuration authority; implement strict precedence, validation, redacted
+effective-config output, and non-destructive/repeatable migration from legacy
+JSON/`.env`. Reject unknown keys, unsafe paths, unsupported extension enablement,
+and non-loopback core dashboard binds. Add dependency-free table-driven tests,
+update every control document, commit, and stop before M2.3.
 
 ## Session Start Protocol
 

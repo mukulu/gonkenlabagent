@@ -1,8 +1,11 @@
 schema_version = 1
 inventory_date = "2026-09-08"
 project_source_license = "NOASSERTION"
-project_license_status = "pending-maintainer-decision"
+project_license_status = "intentionally-unlicensed-no-redistribution"
 redistribution_approved = false
+redistribution_policy = "prohibited until an explicit future maintainer license decision"
+unknown_media_policy = "quarantined internal compatibility evidence; excluded from packages, releases, and public exports"
+noncommercial_artifact_policy = "legacy internal evaluation only; excluded from core packages, releases, and public exports"
 wheel_policy = "Only src/gonken_agent Python packages; no repository media or legacy runtime"
 
 [[source_groups]]
@@ -11,7 +14,7 @@ paths = ["src/gonken_agent/**/*.py"]
 origin = "repository contributors; ownership not yet attested"
 license = "NOASSERTION"
 included_in_wheel = true
-redistribution_status = "blocked-pending-project-license"
+redistribution_status = "not-permitted-current-policy"
 
 [[source_groups]]
 id = "legacy-source-and-scripts"
@@ -19,7 +22,7 @@ paths = ["*.py", "audio/**", "brain/**", "senses/**", "ui/**", "scripts/**", "*.
 origin = "repository contributors; ownership not yet attested"
 license = "NOASSERTION"
 included_in_wheel = false
-redistribution_status = "blocked-pending-project-license"
+redistribution_status = "not-permitted-current-policy"
 
 [[source_groups]]
 id = "documentation"
@@ -27,7 +30,7 @@ paths = ["*.md", "docs/**/*.md"]
 origin = "repository contributors and supplied requirements; ownership not yet attested"
 license = "NOASSERTION"
 included_in_wheel = false
-redistribution_status = "blocked-pending-project-license"
+redistribution_status = "not-permitted-current-policy"
 
 [[assets]]
 path = "assets/face/angry.png"
@@ -257,10 +260,10 @@ distribution = "checksum-verified download; not bundled"
 name = "Piper en_GB-semaine-medium voice"
 role = "legacy/configured TTS voice; replacement decision required"
 license = "CC-BY-NC-SA-4.0 dataset/model-card terms"
-distribution = "not bundled; do not redistribute until policy is approved"
+distribution = "legacy internal evaluation only; exclude from packages, releases, and public exports"
 
 [[external_artifacts]]
 name = "openWakeWord bundled hey_jarvis model"
 role = "legacy compatibility only; prohibited from core"
 license = "CC-BY-NC-SA-4.0"
-distribution = "not bundled; remove from release provisioning"
+distribution = "legacy internal evaluation only; exclude from release provisioning"

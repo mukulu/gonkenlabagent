@@ -380,7 +380,7 @@ The master-blueprint review must resolve:
 
 ## D-044 — Make licensing an M2.1 governance gate
 
-- **Status:** Accepted gate; exact project license pending maintainer decision
+- **Status:** Accepted release gate; private-development disposition resolved by D-050
 - **Date:** 2026-09-08
 - **Decision:** Build a source/assets/dependencies inventory in M2.1 and obtain explicit maintainer approval for the project/distribution license before claiming a redistributable package.
 - **Reason:** Piper is GPL-3.0-or-later, individual voices vary, and other models/assets have separate terms. M1B should not invent the maintainer's licensing choice.
@@ -412,7 +412,7 @@ The master-blueprint review must resolve:
 
 ## D-048 — Make absence of redistribution authority executable
 
-- **Status:** Accepted pending maintainer resolution of D-044
+- **Status:** Superseded for private development by D-050; retained as gate history
 - **Date:** 2026-09-08
 - **Decision:** Package metadata declares neither a license nor runtime dependencies; status reports redistribution false; unknown PNG/WAV media and the legacy runtime are excluded from wheel builds; full-repository ZIPs are not releases.
 - **Reason:** No project `LICENSE` exists, source ownership authority is not attested, 14 media assets have unknown provenance, maintained Piper is GPL-3.0-or-later, and configured voice/wake artifacts include noncommercial terms.
@@ -424,4 +424,20 @@ The master-blueprint review must resolve:
 - **Date:** 2026-09-08
 - **Decision:** Use Python `unittest` for M2.1 package-boundary tests because the clean audit host has no pytest and M2.4 owns test-framework dependencies and suite restructuring.
 - **Reason:** Adding or downloading pytest during the package skeleton milestone would violate its standard-library-only validation boundary and prematurely modify dependency profiles.
-- **Consequence:** The 15 tests remain pytest-discoverable in structure if desired, but the recorded M2.1 command is `PYTHONPATH=src python -m unittest discover -s tests/unit -v`.
+- **Consequence:** The 16 tests remain pytest-discoverable in structure if desired, but the recorded M2.1 command is `PYTHONPATH=src python -m unittest discover -s tests/unit -v`.
+
+## D-050 — Continue under an explicit no-redistribution policy
+
+- **Status:** Accepted; resolves the M2.1 development branch of D-044/D-048
+- **Date:** 2026-09-08
+- **Decision:** Grant no project license and prohibit redistribution until a future maintainer explicitly attests licensing authority and approves project/documentation terms. Local wheels and full-history ZIPs are private validation/handoff artifacts, never releases.
+- **Reason:** No license selection or ownership attestation was supplied. A conservative prohibition is the only policy that does not invent permission while still allowing private engineering work to continue.
+- **Consequence:** M2.1 can close and M2.2 can proceed, but publication, public repository export, public ZIP handoff, and release claims remain blocked. A future licensing decision must be explicit and cannot be inferred from continued development.
+
+## D-051 — Quarantine unknown and noncommercial artifacts
+
+- **Status:** Accepted
+- **Date:** 2026-09-08
+- **Decision:** Retain the 14 unknown PNG/WAV files only as private legacy compatibility evidence and exclude them from packages, releases, and public exports. Treat the configured CC BY-NC-SA Piper voice and bundled openWakeWord model as internal legacy-evaluation inputs only. Maintained GPL Piper is not a declared core package dependency until a release-compatible integration/licensing decision passes.
+- **Reason:** Hashes establish artifact identity, not provenance or redistribution rights. Removing these inputs from the active package/release boundary preserves implementation evidence without presenting unclear or noncommercial terms as distributable project content.
+- **Consequence:** Tests enforce package exclusion and the machine-readable quarantine policy. A future public release must prove rights or remove/replace media, select compatible voice/wake artifacts, and review whether Git history must be filtered.

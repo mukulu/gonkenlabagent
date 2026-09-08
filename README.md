@@ -76,11 +76,17 @@ environment recorded in `docs/development/TEST_MATRIX.md` matches the test tier.
 
 ## Licensing and redistribution
 
-No project license has been approved and no `LICENSE` file exists. Do not infer
-redistribution rights from earlier README text. The bundled face PNGs and
-filler WAVs have unknown provenance and are excluded from the package build.
+No project license is granted and no `LICENSE` file exists. The current
+maintainer policy deliberately prohibits redistribution until a future explicit
+license decision. Do not infer rights from earlier README text. The tracked face
+PNGs and filler WAVs have unknown provenance and are quarantined as internal
+compatibility evidence; they are excluded from package builds, releases, and
+public exports.
 See `docs/development/LICENSE_PROVENANCE.md` and
 `packaging/provenance.toml` for the decision-ready inventory.
 
 The package and any portable Git checkpoint created during development are
-engineering handoffs, not approved redistributable releases.
+private engineering handoffs, not approved redistributable releases. Maintained
+Piper and noncommercial voice/wake artifacts are likewise excluded from every
+public release path until a compatible, explicitly approved policy replaces
+this one.
