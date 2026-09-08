@@ -49,6 +49,7 @@ def check_whisper(config: Config) -> None:
     stt = WhisperSTT(
         whisper_path=config.whisper_path,
         model_path=config.whisper_model,
+        language=config.language,
         threads=2,
         timeout=120,
     )
@@ -102,8 +103,9 @@ def main() -> int:
             print("[WARN] Required software passed, but configured audio hardware is incomplete.")
             print(f"[WARN] Available audio devices: {available}")
             print(
-                "[WARN] Connect the USB audio device or set GONKEN_MIC_NAME and "
-                "GONKEN_SPEAKER_NAME in .env, then rerun this test."
+                "[WARN] Connect the USB audio device or set "
+                "GONKEN_AUDIO_INPUT_MATCH and GONKEN_AUDIO_OUTPUT_MATCH, "
+                "then rerun this test."
             )
             return 0
 

@@ -16,7 +16,15 @@ from brain.router import Router, ToolType
 def test_router():
     """Test routing decisions."""
     
-    client = OllamaClient(model="qwen2.5:1.5b")
+    from config import Config
+
+    config = Config.load()
+    client = OllamaClient(
+        base_url=config.ollama_base_url,
+        model=config.chat_model,
+        max_output_tokens=config.max_output_tokens,
+        keep_alive=config.keep_alive,
+    )
     
     if not client.is_available():
         print("✗ Ollama not running!")

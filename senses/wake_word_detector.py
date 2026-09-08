@@ -1,6 +1,5 @@
 """Wake word detection using openWakeWord."""
 
-import os
 from pathlib import Path
 from queue import Empty, Queue
 from threading import Event, Thread
@@ -15,9 +14,6 @@ try:
     OPENWAKEWORD_AVAILABLE = True
 except ImportError:
     OPENWAKEWORD_AVAILABLE = False
-
-
-DEFAULT_MIC_NAME = os.getenv("GONKEN_MIC_NAME", "AIRHUG")
 
 
 def _find_mic_device(name_substring: str) -> int:
@@ -54,13 +50,13 @@ class WakeWordDetector:
 
     def __init__(
         self,
-        model_path: str = "",
-        threshold: float = 0.5,
-        sample_rate: int = 16000,
-        mic_sample_rate: int = 48000,
+        model_path: str,
+        threshold: float,
+        sample_rate: int,
+        mic_sample_rate: int,
+        mic_name: str,
         inference_framework: str = "onnx",
         gain_target_peak: float = 0.9,
-        mic_name: Optional[str] = None,
     ):
         if not OPENWAKEWORD_AVAILABLE:
             raise RuntimeError(
@@ -71,7 +67,7 @@ class WakeWordDetector:
         self.sample_rate = sample_rate
         self.mic_sample_rate = mic_sample_rate
         self.gain_target_peak = gain_target_peak
-        self.mic_name = mic_name or os.getenv("GONKEN_MIC_NAME", DEFAULT_MIC_NAME)
+        self.mic_name = mic_name
         self.inference_framework = inference_framework.lower()
 
         if self.inference_framework != "onnx":

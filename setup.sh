@@ -38,18 +38,12 @@ REQUIREMENTS_FILE="$SCRIPT_DIR/requirements.txt"
 LEGACY_VENV_DIR="$SCRIPT_DIR/venv313"
 OPENWAKEWORD_VERSION="${OPENWAKEWORD_VERSION:-0.6.0}"
 
-OLLAMA_MODEL="${OLLAMA_MODEL:-qwen2.5:1.5b}"
-OLLAMA_URL="${OLLAMA_URL:-http://127.0.0.1:11434}"
 OLLAMA_LOG="${XDG_RUNTIME_DIR:-/tmp}/gonkenlabagent-ollama.log"
 
 WHISPER_DIR="$SCRIPT_DIR/whisper.cpp"
 WHISPER_BIN="$WHISPER_DIR/build/bin/whisper-cli"
 WHISPER_REF="${WHISPER_REF:-b4938}"
-WHISPER_MODEL_NAME="${WHISPER_MODEL_NAME:-base.en-q5_1}"
-WHISPER_MODEL="$WHISPER_DIR/models/ggml-${WHISPER_MODEL_NAME}.bin"
 WHISPER_SAMPLE="$WHISPER_DIR/samples/jfk.wav"
-
-PIPER_VOICE="$SCRIPT_DIR/piper/voices/en_GB-semaine-medium.onnx"
 
 ollama_ready() {
   curl -fsS "$OLLAMA_URL/api/version" >/dev/null 2>&1
@@ -159,6 +153,39 @@ ok "System packages installed"
 
 command -v "$PYTHON_BIN" >/dev/null 2>&1 || \
   fail "$PYTHON_BIN was not found after package installation"
+
+# The same typed authority serves installer, runtime, CLI, and doctor. Legacy
+# OLLAMA_MODEL/OLLAMA_URL/WHISPER_MODEL_NAME overrides are intentionally gone;
+# use site TOML or the documented GONKEN_<SECTION>_<FIELD> variables.
+EFFECTIVE_CONFIG_JSON="$(
+  PYTHONPATH="$SCRIPT_DIR/src" "$PYTHON_BIN" -m gonken_agent \
+    config show --effective --json
+)" || fail "Effective configuration is invalid"
+
+config_value() {
+  "$PYTHON_BIN" -c \
+    'import json, sys
+node = json.load(sys.stdin)["config"]
+for part in sys.argv[1].split("."):
+    node = node[part]
+print(node)' "$1" <<<"$EFFECTIVE_CONFIG_JSON"
+}
+
+OLLAMA_MODEL="$(config_value llm.model)"
+OLLAMA_URL="$(config_value llm.base_url)"
+# Ollama CLI honors OLLAMA_HOST; this keeps list/pull/run on the validated URL.
+export OLLAMA_HOST="$OLLAMA_URL"
+WHISPER_MODEL_NAME="$(config_value stt.model)"
+WHISPER_MODEL="$WHISPER_DIR/models/ggml-${WHISPER_MODEL_NAME}.bin"
+ASSISTANT_LANGUAGE="$(config_value assistant.language)"
+PIPER_VOICE_NAME="$(config_value tts.voice)"
+PIPER_VOICE="$SCRIPT_DIR/piper/voices/${PIPER_VOICE_NAME}.onnx"
+PIPER_LOCALE="${PIPER_VOICE_NAME%%-*}"
+PIPER_LANGUAGE="${PIPER_LOCALE%%_*}"
+PIPER_VOICE_VARIANT="${PIPER_VOICE_NAME#*-}"
+PIPER_SPEAKER="${PIPER_VOICE_VARIANT%-*}"
+PIPER_QUALITY="${PIPER_VOICE_VARIANT##*-}"
+PIPER_URL_BASE="https://huggingface.co/rhasspy/piper-voices/resolve/main/${PIPER_LANGUAGE}/${PIPER_LOCALE}/${PIPER_SPEAKER}/${PIPER_QUALITY}/${PIPER_VOICE_NAME}.onnx"
 
 if [ -d "$LEGACY_VENV_DIR" ] && [ "$LEGACY_VENV_DIR" != "$VENV_DIR" ]; then
   info "Legacy venv313 detected; it is ignored. .venv is the canonical environment."
@@ -318,7 +345,7 @@ fi
 info "Running Whisper transcription smoke test …"
 WHISPER_TEST_LOG="$(mktemp)"
 if ! WHISPER_TEST_OUTPUT="$(timeout 120 "$WHISPER_BIN" \
-    -m "$WHISPER_MODEL" -f "$WHISPER_SAMPLE" -l en -t 2 \
+    -m "$WHISPER_MODEL" -f "$WHISPER_SAMPLE" -l "$ASSISTANT_LANGUAGE" -t 2 \
     --no-timestamps -np 2>"$WHISPER_TEST_LOG")"; then
   cat "$WHISPER_TEST_LOG" >&2 || true
   rm -f "$WHISPER_TEST_LOG"
@@ -333,10 +360,8 @@ ok "Whisper runtime and transcription validated"
 if [ ! -f "$PIPER_VOICE" ]; then
   info "Downloading Piper TTS voice …"
   mkdir -p "$(dirname "$PIPER_VOICE")"
-  wget -q -O "$PIPER_VOICE" \
-    https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_GB/semaine/medium/en_GB-semaine-medium.onnx
-  wget -q -O "${PIPER_VOICE}.json" \
-    https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_GB/semaine/medium/en_GB-semaine-medium.onnx.json
+  wget -q -O "$PIPER_VOICE" "$PIPER_URL_BASE"
+  wget -q -O "${PIPER_VOICE}.json" "${PIPER_URL_BASE}.json"
   ok "Piper voice downloaded"
 else
   ok "Piper voice already present"
@@ -345,13 +370,10 @@ fi
 [ -s "$PIPER_VOICE" ] || fail "Piper voice file is missing or empty: $PIPER_VOICE"
 [ -s "${PIPER_VOICE}.json" ] || fail "Piper voice config is missing or empty: ${PIPER_VOICE}.json"
 
-# ── 7. Local environment file ────────────────────────────────
-if [ ! -f "$SCRIPT_DIR/.env" ]; then
-  cp "$SCRIPT_DIR/.env.example" "$SCRIPT_DIR/.env"
-  chmod 600 "$SCRIPT_DIR/.env"
-  info "Created .env from template (API keys remain optional)"
-else
-  ok ".env already exists; leaving it unchanged"
+# ── 7. Legacy configuration notice ───────────────────────────
+if [ -f "$SCRIPT_DIR/.env" ]; then
+  info ".env is a migration input and is not loaded by normal runtime"
+  info "Migrate explicitly with: gonken-agent config migrate --output <site.toml>"
 fi
 
 # ── 8. Post-install verification ──────────────────────────────

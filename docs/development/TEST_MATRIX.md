@@ -120,8 +120,8 @@ The master blueprint must allocate stable IDs and concrete procedures for at lea
 
 ## 5. Latest test summary
 
-- **T0:** M0 recorded 9 PASS and 4 baseline FAIL findings; M2.1 package/identity/inventory/governance checks pass without closing unrelated findings.
-- **T1:** M2.1 adds 16 passing dependency-free host tests; full M2.4 framework remains not started.
+- **T0:** M0 recorded 9 PASS and 4 baseline FAIL findings; M2.1 and M2.2 static/package/configuration checks pass without closing unrelated findings.
+- **T1:** M2.2 expands the dependency-free host suite to 42 passing tests; full M2.4 framework remains not started.
 - **T2:** one limited dependency probe FAIL/risk; full target install NOT RUN.
 - **T3–T6:** BLOCKED or NOT RUN as detailed above.
 - **Production readiness:** not established.
@@ -197,3 +197,33 @@ M2.1 is complete. All M2.1 implementation and governance checks pass under the
 explicit no-redistribution policy. Public-release licensing/provenance remains
 a later blocking gate; it does not authorize weakened package boundaries during
 M2.2.
+
+## 9. M2.2 configuration-authority and migration checks
+
+**Starting checkpoint:** `checkpoint/m2.1` / resolve with `git rev-list -n 1 checkpoint/m2.1`
+
+**Date:** 2026-09-08 UTC
+
+**Environment:** Ubuntu 24.04.3 LTS, x86_64, Python 3.12.13; no Pi hardware,
+Ollama, audio, GPIO, network request, or extension runtime used. The wheel
+install used `--ignore-requires-python` only to verify packaging mechanics on
+the audit host; it is not Python 3.13 target evidence.
+
+| ID | Tier | Check | Command/procedure | Result | Interpretation |
+|---|---|---|---|---|---|
+| M2.2-T001 | T0 | Clean accepted starting checkpoint | `git status --short --branch`; inspect HEAD/tag against `checkpoint/m2.1` | PASS | M2.2 began at the committed M2.1 boundary with a clean worktree. |
+| M2.2-T002 | T1 | Full dependency-free host suite | `PYTHONPATH=src python -m unittest discover -s tests/unit -v` | PASS | 42/42 tests pass without live services, hardware, optional dependencies, or network. |
+| M2.2-T003 / V-H01 | T1 | Every-field authority and precedence | Table-driven defaults/site/environment/CLI coverage in `test_m2_2_config.py` | PASS | Every schema leaf is typed and source-attributed at all four layers; differing model values prove the required order. |
+| M2.2-T004 | T1 | Strict schema and value rejection | Invalid/unknown/type/enum/bounds/duration/model/path/GPIO/audio/privacy cases | PASS | Invalid configuration fails with `ConfigError`; unknown keys are not silently ignored. |
+| M2.2-T005 | T1 | Offline and extension boundaries | Remote LLM, non-loopback dashboard, wake enablement, and voice-power enablement cases | PASS | Offline core cannot be configured onto remote endpoints or prematurely enable X1/X2. |
+| M2.2-T006 | T1 | Redacted effective output and source attribution | Human and JSON CLI tests with one-shot override | PASS | Filesystem values and source file paths are not disclosed; source category/env/CLI identity remains visible. |
+| M2.2-T007 | T1 | Legacy migration convergence | Migrate repository JSON plus `.env.example` twice; compare inputs/output/backups/modes | PASS | Inputs remain byte-identical; second run does not rewrite output or duplicate backups; output is `0600`, backup directory/files are `0700`/`0600`. |
+| M2.2-T008 | T1 | Migration failure paths | Unknown keys, unsafe relative path, enabled UI, populated external credential, and differing destination | PASS | Invalid/unsupported input creates no output; an administrator-owned differing output remains byte-identical. |
+| M2.2-T009 / V-H02 | T0/T1 | Consumer convergence | Source assertions plus compatibility-adapter test; inspect setup/doctor/client construction and `OLLAMA_HOST` export | PASS | Installer readiness/CLI, doctor, Ollama client, and Ollama CLI receive the same validated endpoint; runtime/test model values have no active fallback. |
+| M2.2-T010 | T0 | Static syntax and whitespace | `bash -n bootstrap.sh setup.sh`; `compileall`; TOML/JSON parse; `git diff --check` | PASS | Changed shell, Python, TOML, JSON, and patch whitespace validate on the host. |
+| M2.2-T011 | T0 | Offline wheel build and installed defaults | Build with local `setuptools.build_meta`; inspect wheel; install with `PIP_NO_INDEX=1 --no-deps --ignore-requires-python`; run installed CLI outside checkout | PASS | Wheel includes package code plus `share/gonken-agent/defaults.toml`; installed CLI locates the shipped Qwen 3.5 defaults without source checkout or network. |
+| M2.2-T012 | T2–T6 | Pi/configuration integration | Target Python, installer, service, audio, GPIO, runtime, reboot, and failure injection | BLOCKED | M2.2 proves host configuration contracts only; target/hardware claims remain assigned to later milestones. |
+
+M2.2 is complete. H-01 and H-02 are resolved for active configuration
+consumers. The historical JSON retains its old value solely as tested migration
+input; it is not a runtime layer. M2.3 is the only next authorized work package.

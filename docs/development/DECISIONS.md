@@ -441,3 +441,19 @@ The master-blueprint review must resolve:
 - **Decision:** Retain the 14 unknown PNG/WAV files only as private legacy compatibility evidence and exclude them from packages, releases, and public exports. Treat the configured CC BY-NC-SA Piper voice and bundled openWakeWord model as internal legacy-evaluation inputs only. Maintained GPL Piper is not a declared core package dependency until a release-compatible integration/licensing decision passes.
 - **Reason:** Hashes establish artifact identity, not provenance or redistribution rights. Removing these inputs from the active package/release boundary preserves implementation evidence without presenting unclear or noncommercial terms as distributable project content.
 - **Consequence:** Tests enforce package exclusion and the machine-readable quarantine policy. A future public release must prove rights or remove/replace media, select compatible voice/wake artifacts, and review whether Git history must be filtered.
+
+## D-052 — Make one shipped TOML the executable configuration authority
+
+- **Status:** Accepted
+- **Date:** 2026-09-08
+- **Decision:** `config/defaults.toml` is the sole source-controlled default-value artifact and is installed as wheel data. A typed standard-library loader applies complete defaults, partial site TOML, explicit mapped `GONKEN_<SECTION>_<FIELD>` variables, and one-shot CLI overrides in that order. Installer, doctor, compatibility runtime, and component construction consume that authority instead of defining fallback model, endpoint, audio, or artifact values.
+- **Reason:** H-01/H-02 were caused by independently reasonable defaults that could silently diverge. Typed shape/value validation and source attribution turn equality into an executable contract.
+- **Consequence:** Unknown TOML/CLI keys, invalid types, non-loopback endpoints/binds, unsafe path forms, conflicting GPIO/audio settings, content-persistent privacy settings, and enabled unaccepted extensions fail configuration readiness. Unrelated installer `GONKEN_*` variables are outside the runtime map and ignored.
+
+## D-053 — Treat legacy configuration as a guarded import, never a live layer
+
+- **Status:** Accepted
+- **Date:** 2026-09-08
+- **Decision:** Legacy `config/config.json` and `.env` are read only by the explicit migration command. Migration validates the complete prospective configuration before writing, uses same-filesystem atomic replacement for a new destination, refuses a different existing destination, preserves inputs, and stores one timestamp/hash-addressed backup per unchanged input with directory/file modes `0700`/`0600`. Populated obsolete cloud credentials and enabled legacy UI/streaming options fail rather than leaking into offline core.
+- **Reason:** Loading legacy files alongside site/environment values would preserve precedence ambiguity, while rewriting them in place would make failed or repeated migrations destructive.
+- **Consequence:** Repeat migration converges without output or backup churn. Normal runtime never mutates site configuration, effective output redacts paths, and a maintainer must explicitly handle unsupported legacy features rather than having them silently re-enabled.

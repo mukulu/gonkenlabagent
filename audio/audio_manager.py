@@ -1,6 +1,5 @@
 """Audio manager for microphone input and speaker output."""
 
-import os
 import subprocess
 import wave
 from threading import Lock
@@ -8,10 +7,6 @@ from typing import Optional
 
 import numpy as np
 import sounddevice as sd
-
-
-DEFAULT_MIC_NAME = os.getenv("GONKEN_MIC_NAME", "AIRHUG")
-DEFAULT_SPEAKER_NAME = os.getenv("GONKEN_SPEAKER_NAME", "AIRHUG")
 
 
 def _available_devices():
@@ -71,19 +66,22 @@ class AudioManager:
 
     def __init__(
         self,
-        sample_rate: int = 16000,
-        mic_sample_rate: int = 48000,
+        sample_rate: int,
+        mic_sample_rate: int,
+        mic_name: str,
+        speaker_name: str,
         channels: int = 1,
         dtype: str = "int16",
-        mic_name: Optional[str] = None,
-        speaker_name: Optional[str] = None,
     ):
         self.sample_rate = sample_rate
         self.mic_sample_rate = mic_sample_rate
+        if sample_rate <= 0 or mic_sample_rate % sample_rate:
+            raise ValueError("mic_sample_rate must be divisible by sample_rate")
+        self.downsample_factor = mic_sample_rate // sample_rate
         self.channels = channels
         self.dtype = dtype
-        self.mic_name = mic_name or os.getenv("GONKEN_MIC_NAME", DEFAULT_MIC_NAME)
-        self.speaker_name = speaker_name or os.getenv("GONKEN_SPEAKER_NAME", DEFAULT_SPEAKER_NAME)
+        self.mic_name = mic_name
+        self.speaker_name = speaker_name
         self.is_muted = False
         self._mute_lock = Lock()
         self._recording = False
@@ -190,15 +188,7 @@ class AudioManager:
         raw_audio = np.concatenate(self._audio_buffer, axis=0).flatten()
         normalized = self._normalize(raw_audio)
 
-        # The current pipeline is designed for the AIRHUG at 48 kHz and
-        # Whisper at 16 kHz. Fail clearly rather than silently resampling wrong.
-        if self.mic_sample_rate != self.sample_rate * 3:
-            raise RuntimeError(
-                "Audio pipeline expects mic_sample_rate to be exactly 3x "
-                f"sample_rate; got {self.mic_sample_rate} and {self.sample_rate}."
-            )
-
-        return normalized[::3]
+        return normalized[:: self.downsample_factor]
 
     def save_to_wav(self, audio: np.ndarray, filepath: str):
         """Save an audio array as a mono 16-bit WAV file."""
@@ -209,7 +199,7 @@ class AudioManager:
             wf.writeframes(audio.tobytes())
 
     def play_wav(self, filepath: str):
-        """Play a WAV file through the configured AIRHUG/USB speaker."""
+        """Play a WAV file through the configured USB speaker."""
         self.mute()
         try:
             subprocess.run(

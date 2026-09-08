@@ -14,22 +14,16 @@ except ImportError:
     PIPER_AVAILABLE = False
 
 
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_MODEL_PATH = (
-    PROJECT_ROOT / "piper" / "voices" / "en_GB-semaine-medium.onnx"
-)
-
-
 class PiperTTS:
     """Piper TTS engine wrapper using the piper-tts Python package."""
 
     def __init__(
         self,
-        model_path: Optional[str] = None,
+        model_path: str,
         speaking_rate: float = 1.0,
         speaker_id: int = 0,
     ):
-        resolved_model = Path(model_path) if model_path else DEFAULT_MODEL_PATH
+        resolved_model = Path(model_path)
         self.model_path = str(resolved_model)
         self.speaking_rate = speaking_rate
         self.speaker_id = speaker_id

@@ -65,12 +65,19 @@ class Orchestrator:
         print("  - STT engine")
         self.stt = WhisperSTT(
             whisper_path=config.whisper_path,
-            model_path=config.whisper_model
+            model_path=config.whisper_model,
+            language=config.language,
+            threads=config.stt_threads,
         )
 
         # Brain
         print("  - Ollama client")
-        self.ollama = OllamaClient(model=config.chat_model)
+        self.ollama = OllamaClient(
+            base_url=config.ollama_base_url,
+            model=config.chat_model,
+            max_output_tokens=config.max_output_tokens,
+            keep_alive=config.keep_alive,
+        )
 
         print("  - Router")
         self.router = Router(self.ollama)
