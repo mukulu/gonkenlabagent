@@ -4,7 +4,7 @@
   "speaker_name": "AIRHUG",
   "wake_word_model": "",
   "wake_word_threshold": 0.5,
-  "wake_phrase": "Hey Jarvis",
+  "wake_phrase": "",
   "mic_sample_rate": 48000,
   "target_sample_rate": 16000,
   "display_width": 800,

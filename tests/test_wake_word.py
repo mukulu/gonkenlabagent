@@ -29,7 +29,7 @@ def test_wake_word():
     
     # Test listening (interactive)
     print("\nStarting interactive test...")
-    print("Say 'Hey Jansky' to test detection.")
+    print("Speak the phrase configured for this legacy detector.")
     print("Press Ctrl+C to stop.\n")
     
     detected = False

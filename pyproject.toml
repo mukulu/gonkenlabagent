@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gonkenlab-agent"
+version = "0.1.0.dev1"
+description = "Local, source-grounded Raspberry Pi AI-lab assistant"
+readme = "README.md"
+requires-python = ">=3.13,<3.14"
+dependencies = []
+
+# Deliberately no project.license field: the maintainer has not approved a
+# project/distribution license. See docs/development/LICENSE_PROVENANCE.md.
+
+[project.scripts]
+gonken-agent = "gonken_agent.cli:entrypoint"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+include-package-data = false
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["gonken_agent", "gonken_agent.*"]

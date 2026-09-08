@@ -120,8 +120,8 @@ The master blueprint must allocate stable IDs and concrete procedures for at lea
 
 ## 5. Latest test summary
 
-- **T0:** 9 PASS, 4 FAIL findings.
-- **T1:** no real unit suite exists yet.
+- **T0:** M0 recorded 9 PASS and 4 baseline FAIL findings; M2.1 adds passing package/identity/inventory checks without closing unrelated findings.
+- **T1:** M2.1 adds 15 passing dependency-free host tests; full M2.4 framework remains not started.
 - **T2:** one limited dependency probe FAIL/risk; full target install NOT RUN.
 - **T3–T6:** BLOCKED or NOT RUN as detailed above.
 - **Production readiness:** not established.
@@ -168,3 +168,30 @@ The master blueprint must allocate stable IDs and concrete procedures for at lea
 | M1B-T012 | T2–T6 | Target behavior | Hardware/install/runtime suites | BLOCKED | M1B changes no runtime code; prior target blockers remain. |
 
 Planned V-C/V-H/V-X identifiers are defined in `MASTER_BLUEPRINT.md` Section 15. They become executable test-matrix rows when their implementing milestone creates the test; a planned identifier is not a passing result.
+
+## 8. M2.1 package/identity/provenance checks
+
+**Starting checkpoint:** `checkpoint/blueprint` / commit `f92f6a1`
+
+**Date:** 2026-09-08 UTC
+
+**Environment:** Ubuntu 24.04.3 LTS, x86_64, Python 3.12.13; no Pi hardware, Ollama, audio, GPIO, network request, or extension runtime used
+
+| ID | Tier | Check | Command/procedure | Result | Interpretation |
+|---|---|---|---|---|---|
+| M2.1-T001 | T0 | Clean accepted starting checkpoint | `git status --short --branch`; `git log -1 --decorate --oneline`; compare `checkpoint/blueprint` | PASS | Work began at the reviewed M1B commit with a clean tree. |
+| M2.1-T002 | T1 | Package, CLI, identity, boundary, and provenance unit suite | `PYTHONPATH=src python -m unittest discover -s tests/unit -v` | PASS | 15/15 deterministic tests pass on the recorded host. |
+| M2.1-T003 | T1 | Core import without optional dependencies | Isolated `python -I` subprocess inside M2.1 suite; inspect `sys.modules` | PASS | Package import loads none of the declared audio/model/network/UI/GPIO/extension roots. |
+| M2.1-T004 / V-C03 | T0 | Sole active product identity | M2.1 active-surface scan plus `rg`; exclude explicitly historical `PRD.md` and immutable development evidence | PASS | Inherited personal/product names and the old spoken activation phrase are absent from active surfaces; technical `hey_jarvis` identifiers remain only in compatibility provisioning/detector evidence. |
+| M2.1-T005 | T0 | TOML, JSON, Bash, whitespace, and Python syntax | Parse both TOML files with `tomllib`; `python -m json.tool`; `bash -n`; `compileall`; `git diff --check` | PASS | New metadata/inventory and changed source parse cleanly on the host. |
+| M2.1-T006 | T1 | CLI success paths | `PYTHONPATH=src python -m gonken_agent version`; `... status --json` | PASS | Version and honest machine-readable status return exit 0. |
+| M2.1-T007 | T1 | CLI refuses nonexistent packaged runtime | `PYTHONPATH=src python -m gonken_agent run`; assert exit 3 | PASS | CLI does not turn package installation into a false runtime-readiness claim. |
+| M2.1-T008 | T0 | Offline wheel contents | Copy working tree to `mktemp`; call installed `setuptools.build_meta.build_wheel`; inspect ZIP members | PASS | Wheel contains only six `gonken_agent` Python files plus metadata; no legacy modules or repository assets. |
+| M2.1-T009 | T0 | Media provenance completeness/integrity | Compare every file below `assets/` with `packaging/provenance.toml`; recompute SHA-256 | PASS | All 14 media files are individually inventoried and hash-matched; all remain `NOASSERTION`/unknown and excluded from wheel. |
+| M2.1-T010 | T0 | Dependency inventory coverage | Compare non-comment `requirements.txt` names plus separately installed openWakeWord against inventory | PASS | Every current legacy requirement is recorded; no dependency is declared in the new core package yet. |
+| M2.1-T011 | T0 governance | Project/distribution license approval | Maintainer selection and authority attestation | BLOCKED | No selection was received; source remains `NOASSERTION` and redistribution remains false. |
+| M2.1-T012 | T0 governance | Unknown media disposition | Provenance/license proof or removal/replacement for each PNG/WAV | BLOCKED | Hashing proves identity, not ownership or permission. Full Git ZIP/publication is not approved. |
+| M2.1-T013 | T2–T6 | Legacy runtime/hardware/install behavior | Existing installer, Ollama, audio, wake, Pi, service suites | NOT RUN | Outside M2.1; compatibility retention is not acceptance evidence. |
+
+M2.1 implementation validation is green, but the milestone is not closed because
+M2.1-T011 and M2.1-T012 are governance acceptance blockers. M2.2 must not begin.

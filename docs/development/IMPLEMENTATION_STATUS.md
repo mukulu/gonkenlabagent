@@ -6,9 +6,10 @@ This file is the authoritative short handoff for a later development session. Ve
 
 - **Working branch:** `dev/bootstrap-rearchitecture`
 - **Inspected application baseline:** `6682360786135136abeb0bd2a17a9d45c6f291e7`
-- **Current control milestone:** M2 — Packaging, identity, configuration, and test foundation
+- **Current control milestone:** M2.1 — Package and identity normalization; licensing gate blocked
 - **Blueprint revision:** 1.1-reviewed
 - **Accepted blueprint checkpoint:** `checkpoint/blueprint` (resolve its exact commit with `git rev-list -n 1 checkpoint/blueprint`)
+- **M2.1 implementation checkpoint:** `checkpoint/m2.1-license-gate` (created after the tested commit; resolve it with `git rev-list -n 1 checkpoint/m2.1-license-gate`)
 - **Last verification date:** 2026-09-08 UTC
 - **Target:** Raspberry Pi 5 4GB, Raspberry Pi OS Lite 64-bit
 - **Audit host:** Ubuntu 24.04 x86_64, Python 3.12 (not target hardware)
@@ -35,14 +36,23 @@ This file is the authoritative short handoff for a later development session. Ve
 - [x] Added planned verification IDs for every Critical and High audit finding.
 - [x] Committed M1B as `docs: harden blueprint after architecture review` and tagged it `checkpoint/blueprint`.
 - [x] Preserved M1B as documentation-only; no runtime code was changed.
+- [x] Created the dependency-light `src/gonken_agent` package and `gonken-agent` CLI.
+- [x] Moved the inspected orchestrator behind a narrow, explicit source-compatibility adapter.
+- [x] Centralized package identity and removed inherited personal/product identity from active prompts, speech, UI, tests, and current user documentation.
+- [x] Separated the extension namespace and verified core import without optional dependencies.
+- [x] Created machine-readable source/assets/dependencies provenance with hashes for all 14 tracked media files.
+- [x] Excluded legacy runtime modules and all unknown media from the wheel policy.
+- [x] Added and passed 15 standard-library host tests plus offline wheel-content validation.
 
 ## In Progress
 
-- No code milestone is in progress. M2.1 is the next and only currently authorized implementation package.
+- M2.1 implementation is complete except its mandatory licensing/provenance governance gate.
+- Maintainer project-license/authority approval was requested but no selection was received.
+- Unknown PNG/WAV rights and Piper/noncommercial-artifact disposition remain unresolved.
+- M2.2 is not authorized while these M2.1 acceptance items are open.
 
 ## Not Started
 
-- [ ] M2.1 — Package skeleton, CLI, sole identity, extension boundaries, and licensing/provenance inventory.
 - [ ] M2.2 — Configuration authority and migration.
 - [ ] M2.3 — Dependency profiles and locks.
 - [ ] M2.4 — Automated test foundation.
@@ -73,7 +83,7 @@ The full issue descriptions and evidence are in `REPOSITORY_AUDIT.md`.
 
 ### Architecture gates introduced by M1B
 
-- AR-19: project/distribution license decision remains pending maintainer approval; M2.1 must first create the complete inventory.
+- AR-19: inventory is complete, but project-source authority/license and media/artifact disposition remain pending maintainer approval; redistribution is explicitly blocked.
 - Qwen 3.5 2B Q4_K_M has not yet passed Raspberry Pi latency/RAM/thermal/quality acceptance.
 - Direct LAN dashboard, wake word, voice power, and Bluetooth remain unimplemented extensions X1–X4.
 
@@ -87,6 +97,11 @@ The full issue descriptions and evidence are in `REPOSITORY_AUDIT.md`.
 - PNG structural/CRC validation for all face assets.
 - WAV header/parameter validation for all filler assets.
 - Targeted history scan found no credible committed secret.
+- M2.1 standard-library host suite: 15 of 15 tests pass with no network, model, audio, GPIO, UI, or extension dependency.
+- Package CLI version/status checks and deliberate unimplemented-runtime exit code pass.
+- Offline local-backend wheel build passes; wheel contains only `gonken_agent` package files and metadata.
+- Active-surface inherited-identity scan passes; historical PRD/audit/decision evidence is intentionally excluded.
+- Provenance hash/coverage checks pass for every tracked PNG/WAV and every legacy Python requirement.
 
 ## Tests Failing or Blocked
 
@@ -94,6 +109,8 @@ The full issue descriptions and evidence are in `REPOSITORY_AUDIT.md`.
 - Router/wake/smoke scripts under the audit host: dependency/runtime unavailable.
 - All Raspberry Pi ARM64 runtime, audio, GPIO, service, reboot, and failure-injection tests: BLOCKED pending implementation and target hardware.
 - Full installer execution: NOT RUN during documentation-only forensic audit.
+- M2.1 licensing acceptance: BLOCKED pending maintainer source-license/authority decision and unknown-media disposition.
+- Package publication and a public portable Git ZIP: BLOCKED; neither is an approved redistributable release.
 
 Exact commands and interpretations are in `TEST_MATRIX.md`.
 
@@ -120,12 +137,21 @@ Exact commands and interpretations are in `TEST_MATRIX.md`.
 - APT/Ollama provisioning is convergent and repairable, not transactionally rolled back; atomic rollback applies to project-owned activation.
 - Power-loss recovery uses a root-owned activation journal and pre-start reconciliation.
 - Persistent telemetry is content-free; optional dashboard interaction content is transient memory only.
+- The active Python package imports only the standard library; optional features live behind an extension namespace and separate future profiles.
+- The inspected runtime is retained as `legacy_orchestrator.py`; `orchestrator.py` is now a narrow compatibility launcher.
+- Package metadata makes no license claim and declares no runtime dependencies until M2.3 verifies profiles/locks.
+- M2.1 host tests use `unittest` so this package-boundary check itself adds no dependency; D-029’s planned pytest architecture remains assigned to M2.4.
 
 See `DECISIONS.md` for rationale and status.
 
 ## Next Recommended Action
 
-Implement M2.1 only. Create the `src/gonken_agent` package skeleton and CLI; normalize the sole GonKenLab Agent identity; retain narrow compatibility wrappers where tests require them; enforce that core imports work without extension dependencies; and add a complete source/assets/dependencies licensing and provenance inventory for maintainer decision. Add deterministic unit tests requiring no Ollama, network, audio, GPIO, or extension dependency. Update all control documents and commit the coherent M2.1 result before beginning M2.2.
+Close the M2.1 licensing gate. The maintainer must confirm authority for the
+project source/documentation and choose a license or explicitly keep
+redistribution blocked. Then prove rights for or remove/replace all 14 PNG/WAV
+assets, and record the Piper plus noncommercial voice/wake-artifact disposition.
+Update `packaging/provenance.toml`, `LICENSE_PROVENANCE.md`, package metadata,
+control documents, and validation. Do not begin M2.2 until these decisions pass.
 
 ## Session Start Protocol
 
