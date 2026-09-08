@@ -82,8 +82,8 @@ and dependency-change procedures.
 
 ## Bootstrap status
 
-M3.1 replaces the unsafe legacy bootstrap fall-through with a mutation-free
-preflight boundary. From a complete checkout, the current command is:
+M3.2 adds a resumable, postcondition-driven step engine behind the M3.1
+preflight boundary. To validate prerequisites only, run:
 
 ```bash
 ./bootstrap.sh --preflight-only \
@@ -93,9 +93,10 @@ preflight boundary. From a complete checkout, the current command is:
 
 It validates the supported Pi/OS/Python/systemd contract, resources, clock,
 administrator access, checkout cleanliness, and the advertised source ref
-before writing a private staging record. It does not install the application.
-Without `--preflight-only`, it deliberately stops with `M3_2_UNAVAILABLE`
-instead of invoking the retained `setup.sh`. See
+before writing a private staging record. Without `--preflight-only`, it now
+revalidates that record, exercises only the bounded M3.2 state-engine markers,
+and deliberately stops with `M3_3_UNAVAILABLE`. It never invokes the retained
+`setup.sh` and still does not install the application. See
 `docs/development/ONBOARDING_DRAFT.md` for the exact temporary boundary.
 
 ## Accepted first-release boundary
@@ -117,7 +118,7 @@ until their independent acceptance gates pass.
 
 ## Testing
 
-M3.1 retains one default T0/T1 entry point. It requires no model, network,
+M3.2 retains one default T0/T1 entry point. It requires no model, network,
 Ollama, audio, GPIO, pygame, root access, or governed extension:
 
 ```bash

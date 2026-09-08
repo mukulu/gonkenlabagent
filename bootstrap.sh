@@ -97,7 +97,7 @@ if [[ -n "$EXISTING_CHECKOUT" ]]; then
   gonken_validate_absolute_path "$EXISTING_CHECKOUT" "existing checkout" || exit 78
 fi
 
-required_commands=(awk chmod date df getconf git id ls mktemp mv python3 rm rmdir sha256sum uname)
+required_commands=(awk chmod date df getconf git id ls mktemp mv python3 rm rmdir sha256sum stat uname)
 if [[ "$PLATFORM_MODE" == "target" ]]; then
   required_commands+=(apt-get systemctl tr)
 fi
@@ -213,8 +213,5 @@ if ((PREFLIGHT_ONLY == 1)); then
   exit 0
 fi
 
-gonken_error \
-  "M3_2_UNAVAILABLE" \
-  "preflight passed, but the resumable installer is not implemented" \
-  "retain this staging manifest and continue only after checkpoint/m3.2" || true
-exit 69
+exec "$SCRIPT_DIR/scripts/install.sh" \
+  --source-record "$GONKEN_STAGING_DIR/source.record"

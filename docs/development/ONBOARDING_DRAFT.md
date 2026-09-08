@@ -1,10 +1,11 @@
 # GonKenLab Agent onboarding draft
 
-**State:** M3.1 preflight only; not an installation guide
+**State:** M3.2 preflight and state-engine boundary; not an installation guide
 
 This draft records the intended clean-device path while provisioning is built.
-At the current checkpoint, `bootstrap.sh` validates prerequisites and writes a
-private source manifest. It deliberately does not install packages, clone code,
+At the current checkpoint, `bootstrap.sh` validates prerequisites, writes a
+private source manifest, and routes a normal invocation through the M3.2 step
+engine. It deliberately does not install packages, clone code, build a release,
 run `setup.sh`, configure services, or claim that the assistant is ready.
 
 ## Supported target
@@ -50,8 +51,12 @@ Errors have stable `code=...`, `message=...`, and `remediation=...` fields. A
 failed preflight performs no package, service, checkout, configuration, or
 installed-release mutation. Correct the reported condition and rerun.
 
-If `--preflight-only` is omitted at M3.1, successful preflight ends with
-`M3_2_UNAVAILABLE`. This is deliberate: the repository refuses to route a clean
-installation through the retained, unaccepted `setup.sh` prototype. M3.2 must
-provide the resumable installer before this document can become a user-facing
+If `--preflight-only` is omitted at M3.2, the installer independently
+revalidates the source record and remote commit, runs only its validation and
+engine-contract marker steps, and then ends with `M3_3_UNAVAILABLE`. This is
+deliberate: the repository refuses to route a clean installation through the
+retained, unaccepted `setup.sh` prototype or to claim that engine mechanics are
+an installed application. See `INSTALL_STATE_SCHEMA.md` for the exact state,
+event, lock, rerun, interruption, and exit-code contracts. M3.3 must implement
+the immutable application release before this draft can become a user-facing
 installation guide.
