@@ -6,9 +6,9 @@ This file is the authoritative short handoff for a later development session. Ve
 
 - **Working branch:** `dev/bootstrap-rearchitecture`
 - **Inspected application baseline:** `6682360786135136abeb0bd2a17a9d45c6f291e7`
-- **Current control milestone:** M1 — Master blueprint and adversarial review
-- **Blueprint revision:** 1.0-draft
-- **Current draft checkpoint:** `checkpoint/blueprint-draft` (resolve its exact commit with `git rev-list -n 1 checkpoint/blueprint-draft`)
+- **Current control milestone:** M2 — Packaging, identity, configuration, and test foundation
+- **Blueprint revision:** 1.1-reviewed
+- **Accepted blueprint checkpoint:** `checkpoint/blueprint` (resolve its exact commit with `git rev-list -n 1 checkpoint/blueprint`)
 - **Last verification date:** 2026-09-08 UTC
 - **Target:** Raspberry Pi 5 4GB, Raspberry Pi OS Lite 64-bit
 - **Audit host:** Ubuntu 24.04 x86_64, Python 3.12 (not target hardware)
@@ -29,14 +29,23 @@ This file is the authoritative short handoff for a later development session. Ve
 - [x] Resolved the audit’s deferred architecture questions at accepted, provisional, or explicitly deferred status.
 - [x] Preserved M1A as documentation-only; no runtime code was changed.
 - [x] Committed M1A as `docs: add implementation master blueprint` and tagged it `checkpoint/blueprint-draft`.
+- [x] Completed all 18 mandatory M1B attack questions and recorded dispositions in `BLUEPRINT_ADVERSARIAL_REVIEW.md`.
+- [x] Resolved all Critical M1B findings through scope, privilege, transaction, and interruption-recovery changes.
+- [x] Revised the implementation contract to `MASTER_BLUEPRINT.md` revision 1.1-reviewed.
+- [x] Added planned verification IDs for every Critical and High audit finding.
+- [x] Committed M1B as `docs: harden blueprint after architecture review` and tagged it `checkpoint/blueprint`.
+- [x] Preserved M1B as documentation-only; no runtime code was changed.
 
 ## In Progress
 
-- [ ] M1B — adversarial architecture review of blueprint revision 1.0-draft.
+- No code milestone is in progress. M2.1 is the next and only currently authorized implementation package.
 
 ## Not Started
 
-- [ ] M2 — Packaging/configuration/state foundation.
+- [ ] M2.1 — Package skeleton, CLI, sole identity, extension boundaries, and licensing/provenance inventory.
+- [ ] M2.2 — Configuration authority and migration.
+- [ ] M2.3 — Dependency profiles and locks.
+- [ ] M2.4 — Automated test foundation.
 - [ ] M3 — Idempotent provisioning.
 - [ ] M4 — Runtime reliability.
 - [ ] M5 — Interaction and privacy modes.
@@ -54,13 +63,19 @@ The full issue descriptions and evidence are in `REPOSITORY_AUDIT.md`.
 - C-01: no GonKenLab Agent systemd/boot service.
 - C-02: runtime is not offline by default in routing behavior.
 - C-03: GonKenLab/Jansky/Jarvis identity and activation mismatch.
-- C-04: no custom Gonken wake-word training/artifact/evaluation chain.
+- C-04: no custom Gonken wake-word training/artifact/evaluation chain; reassigned to governed extension X1 rather than the core release.
 - C-05: no local grounding/provenance/telemetry implementation.
 - C-06: no evidence for rerun, interruption, reboot, or unattended-readiness claims.
 
 ### High
 
 - H-01 through H-18 are open; see the audit.
+
+### Architecture gates introduced by M1B
+
+- AR-19: project/distribution license decision remains pending maintainer approval; M2.1 must first create the complete inventory.
+- Qwen 3.5 2B Q4_K_M has not yet passed Raspberry Pi latency/RAM/thermal/quality acceptance.
+- Direct LAN dashboard, wake word, voice power, and Bluetooth remain unimplemented extensions X1–X4.
 
 ## Tests Passing
 
@@ -98,12 +113,19 @@ Exact commands and interpretations are in `TEST_MATRIX.md`.
 - Local grounding, provenance, content-free telemetry, and a read-only dashboard are release scope.
 - USB audio is the supported release path; Bluetooth is experimental until separately accepted.
 - Installed runtime will use a dedicated non-login service account and will not own application code.
+- The core release is push-to-talk, USB-audio, loopback-dashboard, and has no host-power privilege.
+- Wake word, voice power, direct LAN dashboard, and Bluetooth are governed extensions and do not block core release.
+- Installed releases use `/usr/local/lib/gonken-agent`; configuration uses `/etc/gonken-agent`; state uses `/var/lib/gonken-agent`; the corpus uses `/srv/gonken-agent/corpus`.
+- The service uses `Type=exec` without a core watchdog; health/readiness remains application-level.
+- APT/Ollama provisioning is convergent and repairable, not transactionally rolled back; atomic rollback applies to project-owned activation.
+- Power-loss recovery uses a root-owned activation journal and pre-start reconciliation.
+- Persistent telemetry is content-free; optional dashboard interaction content is transient memory only.
 
 See `DECISIONS.md` for rationale and status.
 
 ## Next Recommended Action
 
-Perform M1B against `MASTER_BLUEPRINT.md` revision 1.0-draft. Attack its platform, filesystem, rollback, Ollama, wake-word, privacy-indicator, power-control, systemd, dashboard, offline-verification, APT/interruption, corpus, and scope assumptions. Incorporate accepted findings as revision 1.1-reviewed, commit `docs: harden blueprint after architecture review`, then tag `checkpoint/blueprint`. Do not implement M2 code during that review.
+Implement M2.1 only. Create the `src/gonken_agent` package skeleton and CLI; normalize the sole GonKenLab Agent identity; retain narrow compatibility wrappers where tests require them; enforce that core imports work without extension dependencies; and add a complete source/assets/dependencies licensing and provenance inventory for maintainer decision. Add deterministic unit tests requiring no Ollama, network, audio, GPIO, or extension dependency. Update all control documents and commit the coherent M2.1 result before beginning M2.2.
 
 ## Session Start Protocol
 
