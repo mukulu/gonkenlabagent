@@ -1,0 +1,98 @@
+schema_version = 1
+verified_at = "2026-09-08"
+target_os = "Raspberry Pi OS Lite 64-bit (Debian Trixie)"
+target_python = "CPython 3.13"
+target_arch = "aarch64"
+index_url = "https://pypi.org/simple"
+
+# These profiles describe the maintained package foundation at M2.3. They do
+# not claim that the voice runtime exists: gonken-agent run still fails closed.
+[[profiles]]
+id = "core-pi-trixie-py313"
+kind = "headless-core"
+status = "installable"
+python = "3.13"
+platform = "manylinux_2_28_aarch64"
+lock = "requirements/pi-trixie-py313.lock"
+scope = "Maintained package foundation only; runtime migration begins after M2.3."
+dependencies = []
+
+[[profiles]]
+id = "dev-py312"
+kind = "development-test"
+status = "installable"
+python = "3.12"
+platform = "manylinux_2_17_x86_64"
+lock = "requirements/dev-py312.lock"
+scope = "Current unittest/static-validation toolchain; all tools are standard-library or host-provided."
+dependencies = []
+
+[[profiles]]
+id = "ui-pi-trixie-py313"
+kind = "optional-ui"
+status = "installable"
+python = "3.13"
+platform = "manylinux_2_17_aarch64"
+lock = "requirements/ui-pi-trixie-py313.lock"
+scope = "Optional legacy display evaluation only; excluded from headless core."
+
+[[profiles.dependencies]]
+name = "pygame"
+version = "2.6.1"
+license = "LGPL-2.1-or-later"
+source = "https://pypi.org/project/pygame/2.6.1/"
+
+[[profiles.dependencies.artifacts]]
+filename = "pygame-2.6.1-cp313-cp313-manylinux_2_17_aarch64.manylinux2014_aarch64.whl"
+sha256 = "27eb17e3dc9640e4b4683074f1890e2e879827447770470c2aba9f125f74510b"
+
+[[profiles]]
+id = "ui-dev-py312"
+kind = "optional-ui"
+status = "installable"
+python = "3.12"
+platform = "manylinux_2_17_x86_64"
+lock = "requirements/ui-dev-py312.lock"
+scope = "Host-side import evaluation for the optional UI dependency only."
+
+[[profiles.dependencies]]
+name = "pygame"
+version = "2.6.1"
+license = "LGPL-2.1-or-later"
+source = "https://pypi.org/project/pygame/2.6.1/"
+
+[[profiles.dependencies.artifacts]]
+filename = "pygame-2.6.1-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl"
+sha256 = "1206125f14cae22c44565c9d333607f1d9f59487b1f1432945dfc809aeaa3e88"
+
+[[blocked_profiles]]
+id = "x1-wake-pi-trixie-py313"
+kind = "governed-extension"
+status = "blocked"
+candidate = "openwakeword==0.6.0"
+source = "https://pypi.org/project/openwakeword/0.6.0/"
+blockers = [
+  "Linux metadata installs tflite-runtime even for an ONNX-only consumer.",
+  "The prior --no-deps workaround is not an accepted production resolution.",
+  "Bundled pretrained models are CC-BY-NC-SA-4.0 and prohibited from release provisioning.",
+  "A custom Gonken model, model card, license, and on-Pi inference evidence do not exist.",
+]
+next_gate = "Run the X1 backend/licensing/Python 3.13/AArch64 spike before creating a lock."
+
+[[blocked_profiles]]
+id = "core-voice-runtime-pi-trixie-py313"
+kind = "future-core-runtime"
+status = "blocked"
+candidate = "piper-tts"
+source = "https://pypi.org/project/piper-tts/"
+blockers = [
+  "The maintained piper-tts package is GPL-3.0-or-later and integration policy is unresolved.",
+  "The configured legacy voice has noncommercial terms and is quarantined.",
+  "The maintained runtime has not yet been migrated into src/gonken_agent.",
+]
+next_gate = "Select and validate a release-compatible TTS package/voice during runtime implementation."
+
+[[rejected_inputs]]
+path = "requirements/legacy-prototype.in"
+status = "not-accepted"
+reason = "Unpinned compatibility evidence consumed only by the explicitly non-release setup.sh prototype."

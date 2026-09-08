@@ -23,10 +23,10 @@ Repository state and Git history are the project handoff. Start with:
 
 `PRD.md` is historical provenance only and is not implementation authority.
 
-## Current package and configuration boundary
+## Current package, configuration, and dependency boundary
 
-M2.2 provides a dependency-light package/CLI and a typed configuration
-authority. From a development checkout:
+M2.3 provides a dependency-light package/CLI, typed configuration authority,
+and fail-closed dependency profiles. From a development checkout:
 
 ```bash
 PYTHONPATH=src python -m gonken_agent version
@@ -65,6 +65,21 @@ PYTHONPATH=src python -m gonken_agent config migrate \
 Migration refuses to overwrite different output, keeps restricted timestamped
 backups, and produces the same output when repeated with unchanged inputs.
 
+Accepted dependency locks and their machine-readable authority live under
+`requirements/`. The maintained headless core and current test profile have
+exactly zero third-party dependencies. Pygame is an exact/hash-locked optional
+UI extra and is not installed by core. Wake-word and TTS profiles are blocked
+until their Python 3.13/AArch64 and licensing gates pass; the old broad ranges
+survive only as explicitly unaccepted compatibility input for `setup.sh`.
+
+```bash
+python scripts/dependencies.py render --check
+python scripts/dependencies.py report
+```
+
+See `requirements/README.md` for clean-host installation, target resolution,
+and dependency-change procedures.
+
 ## Accepted first-release boundary
 
 Required core behavior includes:
@@ -84,7 +99,7 @@ until their independent acceptance gates pass.
 
 ## Testing
 
-M2.2 host tests require no model, network, audio, GPIO, or optional extension:
+M2.3 host tests require no model, network, audio, GPIO, or optional extension:
 
 ```bash
 PYTHONPATH=src python -m unittest discover -s tests/unit -v

@@ -6,12 +6,13 @@ This file is the authoritative short handoff for a later development session. Ve
 
 - **Working branch:** `dev/bootstrap-rearchitecture`
 - **Inspected application baseline:** `6682360786135136abeb0bd2a17a9d45c6f291e7`
-- **Current control milestone:** M2.3 — Dependency profiles and locks
-- **Blueprint revision:** 1.3-implementation
+- **Current control milestone:** M2.4 — Automated test foundation
+- **Blueprint revision:** 1.4-implementation
 - **Accepted blueprint checkpoint:** `checkpoint/blueprint` (resolve its exact commit with `git rev-list -n 1 checkpoint/blueprint`)
 - **M2.1 implementation checkpoint:** `checkpoint/m2.1-license-gate` (created after the tested commit; resolve it with `git rev-list -n 1 checkpoint/m2.1-license-gate`)
 - **M2.1 completed checkpoint:** `checkpoint/m2.1` (resolve its exact commit with `git rev-list -n 1 checkpoint/m2.1`)
 - **M2.2 completed checkpoint:** `checkpoint/m2.2` (resolve its exact commit with `git rev-list -n 1 checkpoint/m2.2`)
+- **M2.3 completed checkpoint:** `checkpoint/m2.3` (resolve its exact commit with `git rev-list -n 1 checkpoint/m2.3`)
 - **Last verification date:** 2026-09-08 UTC
 - **Target:** Raspberry Pi 5 4GB, Raspberry Pi OS Lite 64-bit
 - **Audit host:** Ubuntu 24.04 x86_64, Python 3.12 (not target hardware)
@@ -57,16 +58,23 @@ This file is the authoritative short handoff for a later development session. Ve
 - [x] Routed installer, doctor, compatibility runtime, and legacy component construction through the same model, endpoint, audio, and path authority.
 - [x] Passed 42 dependency-free host tests and an isolated offline wheel install that located its shipped defaults.
 - [x] Completed M2.2 and authorized M2.3 as the next bounded work package.
+- [x] Added a machine-readable dependency authority and four deterministic, hash-enforcing, wheel-only locks.
+- [x] Kept the maintained core/dev profiles exactly dependency-free and separated pygame into optional UI locks for host and target.
+- [x] Removed root `requirements.txt`, quarantined its remaining ranges as unaccepted legacy input, and removed mandatory pygame from legacy setup/doctor behavior.
+- [x] Kept openWakeWord and Piper/TTS out of accepted locks with explicit blocking evidence and next gates.
+- [x] Verified the selected pygame 2.6.1 CPython 3.13/AArch64 wheel filename and PyPI SHA-256 without claiming a download or Pi install.
+- [x] Passed 51 dependency-free host tests, deterministic lock verification, license reporting, an isolated clean wheel install, `pip check`, and core import with pygame/openWakeWord absent.
+- [x] Completed M2.3 and authorized M2.4 as the next bounded work package.
 
 ## In Progress
 
 - No implementation package is currently in progress.
-- M2.3 is the next and only authorized implementation package.
+- M2.4 is the next and only authorized implementation package.
 
 ## Not Started
 
 - [x] M2.2 — Configuration authority and migration.
-- [ ] M2.3 — Dependency profiles and locks.
+- [x] M2.3 — Dependency profiles and locks.
 - [ ] M2.4 — Automated test foundation.
 - [ ] M3 — Idempotent provisioning.
 - [ ] M4 — Runtime reliability.
@@ -91,7 +99,7 @@ The full issue descriptions and evidence are in `REPOSITORY_AUDIT.md`.
 
 ### High
 
-- H-01 (model authority) and H-02 (Ollama endpoint convergence) are resolved on active paths by M2.2; H-03 through H-18 remain open.
+- H-01/H-02 are resolved on active paths by M2.2. H-08 is resolved for the maintained package by M2.3. H-06 is resolved for the package foundation but reopens for every future runtime dependency addition; H-07 remains open until a real Python 3.13/AArch64 download and Pi venv pass. H-03 through H-05 and H-09 through H-18 remain open.
 
 ### Architecture gates introduced by M1B
 
@@ -117,15 +125,20 @@ The full issue descriptions and evidence are in `REPOSITORY_AUDIT.md`.
 - M2.2 standard-library host suite: 42 of 42 tests pass, including every-field source/precedence coverage, invalid values, privacy redaction, and migration failure paths.
 - Installer, doctor, compatibility runtime, and Ollama CLI/client configuration-convergence checks pass without invoking hardware or network.
 - Isolated offline wheel build/install passes; the installed CLI locates shipped defaults outside the checkout and reports the Qwen 3.5 authority.
+- M2.3 standard-library host suite: 51 of 51 tests pass, including profile boundaries, deterministic lock rendering, exact hashes, blocked-profile behavior, and machine-readable license reporting.
+- Clean x86/Python 3.12 dev-lock and wheel install passes without `--ignore-requires-python`; `pip check` reports no broken requirements.
+- Isolated installed-core import passes with pygame and openWakeWord absent; CLI status remains honestly not runtime-ready.
+- PyPI metadata verification passes for the exact pygame 2.6.1 CPython 3.13/AArch64 wheel filename and recorded SHA-256.
 
 ## Tests Failing or Blocked
 
 - Doctor under the audit host: expected FAIL because the repository has not been provisioned there.
 - Router/wake/smoke scripts under the audit host: dependency/runtime unavailable.
 - All Raspberry Pi ARM64 runtime, audio, GPIO, service, reboot, and failure-injection tests: BLOCKED pending implementation and target hardware.
-- Full installer execution: NOT RUN during documentation-only forensic audit.
+- Networked AArch64 `pip download`, optional-UI installation/import, and the physical Pi Python 3.13 venv install: BLOCKED because this environment cannot reach the package index and has no Pi. Metadata verification is not promoted to install evidence.
+- The retained full prototype installer has not been rerun and is not an accepted installer; M3 owns its replacement.
 - Package publication, a public repository export, and a public portable Git ZIP: BLOCKED by the deliberate no-redistribution policy.
-- Unknown-media rights and a release-compatible Piper/voice/wake licensing plan remain M9 release blockers, not M2.2 blockers.
+- Unknown-media rights and a release-compatible Piper/voice/wake licensing plan remain release/runtime blockers, not grounds for inventing M2.3 locks.
 
 Exact commands and interpretations are in `TEST_MATRIX.md`.
 
@@ -154,7 +167,9 @@ Exact commands and interpretations are in `TEST_MATRIX.md`.
 - Persistent telemetry is content-free; optional dashboard interaction content is transient memory only.
 - The active Python package imports only the standard library; optional features live behind an extension namespace and separate future profiles.
 - The inspected runtime is retained as `legacy_orchestrator.py`; `orchestrator.py` is now a narrow compatibility launcher.
-- Package metadata makes no license claim and declares no runtime dependencies until M2.3 verifies profiles/locks.
+- Package metadata makes no license claim; the maintained headless core remains dependency-free until runtime dependencies are selected and verified.
+- Exact locks are generated from `requirements/profiles.toml`; all accepted locks require hashes and wheels, while blocked profiles deliberately have no lock.
+- Python 3.12 is a supported host-development interpreter; the production target remains Python 3.13 on Trixie/AArch64.
 - M2.1 host tests use `unittest` so this package-boundary check itself adds no dependency; D-029’s planned pytest architecture remains assigned to M2.4.
 - No project license is granted; continued work is private development and redistribution remains prohibited until a later explicit decision.
 - Unknown PNG/WAV media and noncommercial voice/wake artifacts are quarantined from packages, releases, and public exports.
@@ -166,12 +181,12 @@ See `DECISIONS.md` for rationale and status.
 
 ## Next Recommended Action
 
-Implement M2.3 only. Create the headless-core, development/test, optional-UI,
-and governed-extension dependency profiles and exact lock artifacts. Verify
-Python 3.13/AArch64 resolution for the declared Raspberry Pi OS target, keep
-pygame and openWakeWord out of core, replace broad requirements in accepted
-install paths, document deterministic lock generation, add validation, update
-every control document, commit, and stop before M2.4.
+Implement M2.4 only. Classify the legacy interactive/manual probes, establish
+deterministic unit and integration boundaries, add one repository test entry
+point, and correct the known router/joke and wake-phrase test contradictions.
+Keep T0/T1 independent of network, models, Ollama, audio, GPIO, pygame, and
+governed extensions. Preserve M2.3 locks and blocked profiles, update every
+control document, commit, and stop before M3.
 
 ## Session Start Protocol
 

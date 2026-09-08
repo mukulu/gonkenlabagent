@@ -7,8 +7,16 @@ name = "gonkenlab-agent"
 version = "0.1.0.dev1"
 description = "Local, source-grounded Raspberry Pi AI-lab assistant"
 readme = "README.md"
-requires-python = ">=3.13,<3.14"
+# Production is locked to CPython 3.13 on Trixie. Python 3.12 remains an
+# explicit host-development target so clean x86 validation does not need to
+# bypass package metadata.
+requires-python = ">=3.12,<3.14"
 dependencies = []
+
+[project.optional-dependencies]
+# Optional display support is deliberately outside the headless core. Accepted
+# installs consume the matching hash-locked profile under requirements/.
+ui = ["pygame==2.6.1"]
 
 # Deliberately no project.license field: D-050 grants no project license and
 # prohibits redistribution. See docs/development/LICENSE_PROVENANCE.md.

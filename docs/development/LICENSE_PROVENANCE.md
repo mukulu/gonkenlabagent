@@ -1,6 +1,6 @@
 # GonKenLab Agent License and Provenance Inventory
 
-**Inventory revision:** 1.1
+**Inventory revision:** 1.2
 
 **Date checked:** 2026-09-08 UTC
 
@@ -20,9 +20,10 @@ ended with an unsupported “MIT” label; that label was removed and is not a
 license grant.
 
 M2.1 therefore closes under an intentionally unlicensed, no-redistribution
-policy. `pyproject.toml` has no license declaration, its core dependency list is
-empty, and the wheel policy excludes the legacy runtime and every tracked media
-asset. A local build is validation evidence only.
+policy. M2.3 keeps `pyproject.toml`'s core dependency list empty, exposes pygame
+only as an optional extra, and keeps the wheel policy excluding the legacy
+runtime and every tracked media asset. A local build is validation evidence
+only.
 
 ## Repository-owned material
 
@@ -52,6 +53,7 @@ and use a separately reviewed history-filtered release process where necessary.
 | Qwen 3.5 2B / Ollama quantization | Apache-2.0 | Download separately; record tag, digest, license, and Pi acceptance |
 | openWakeWord code | Apache-2.0 | Extension X1 only; absent from core dependencies |
 | openWakeWord bundled pretrained models | CC BY-NC-SA 4.0 | Legacy internal evaluation only; excluded from core and release provisioning |
+| `pygame` 2.6.1 | LGPL-2.1-or-later; PyPI publishes exact CPython 3.12/x86_64 and CPython 3.13/AArch64 wheels | Optional UI profile only; absent from headless core and no tracked media is bundled through it |
 
 Primary evidence:
 
@@ -63,11 +65,21 @@ Primary evidence:
 - <https://github.com/ollama/ollama/blob/main/LICENSE>
 - <https://ollama.com/library/qwen3.5:2b-q4_K_M>
 - <https://github.com/dscripka/openWakeWord>
+- <https://pypi.org/project/pygame/2.6.1/>
 
-This is an engineering inventory, not legal advice. M2.3 must verify the exact
-license expression, notice obligations, ARM/Python compatibility, version, and
-hash of every selected dependency and artifact rather than relying on package
+This is an engineering inventory, not legal advice. M2.3 records the exact
+version, wheel filenames, PyPI SHA-256 values, and license expression for its
+only selected third-party package, optional pygame. Core and development locks
+are exactly empty because the maintained runtime is not implemented. Future
+dependency selection must still verify notice obligations, transitive metadata,
+ARM/Python compatibility, versions, and hashes rather than relying on package
 names or repository-level labels alone.
+
+The blocked wake profile has no lock: openWakeWord 0.6.0 asks pip to install
+both ONNX Runtime and `tflite-runtime` on Linux, while the legacy installer
+bypasses dependency metadata with `--no-deps`. That workaround is explicitly
+unaccepted. The future TTS profile likewise has no lock until the GPL package
+integration and a release-compatible voice are selected and tested.
 
 ## M2.1 disposition and future release gate
 

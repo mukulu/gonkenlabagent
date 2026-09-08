@@ -1,0 +1,16 @@
+# UNACCEPTED COMPATIBILITY INPUT — not a lock and not a release install path.
+# setup.sh consumes this only for the explicitly non-release legacy source
+# runtime. M3 replaces that installer. Never derive release claims from it.
+httpx>=0.27,<1
+sounddevice>=0.5,<1
+numpy>=1.26,<3
+piper-tts>=1.3,<2
+onnxruntime>=1.19,<2
+tqdm>=4,<5
+scipy>=1.3,<2
+scikit-learn>=1,<2
+requests>=2,<3
+
+# pygame is deliberately absent. Use the separate optional UI lock only for a
+# governed private evaluation. openWakeWord remains an unaccepted setup.sh
+# workaround until extension X1 passes its spike.

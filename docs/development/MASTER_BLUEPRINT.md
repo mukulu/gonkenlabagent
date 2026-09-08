@@ -1,6 +1,6 @@
 # GonKenLab Agent Implementation Master Blueprint
 
-**Blueprint revision:** 1.3-implementation
+**Blueprint revision:** 1.4-implementation
 
 **Prepared:** 2026-09-08 UTC
 
@@ -10,7 +10,7 @@
 
 **Review state:** adversarial review completed in `BLUEPRINT_ADVERSARIAL_REVIEW.md`; accepted for staged implementation
 
-**Implementation authorization:** M2.2 is complete; M2.3 is the only next authorized work package
+**Implementation authorization:** M2.3 is complete; M2.4 is the only next authorized work package
 
 ## 1. Purpose and authority
 
@@ -689,6 +689,19 @@ install pass; Pi behavior remains unclaimed.
 
 #### M2.3 Dependency profiles and locks
 
+**Implementation status (2026-09-08): COMPLETE for the maintained package
+foundation.** A machine-readable profile authority now renders four exact,
+hash-enforcing, wheel-only locks: empty headless-core and standard-library
+development locks plus separate pygame UI locks for Python 3.12/x86_64 and
+Python 3.13/AArch64. The legacy broad input is quarantined outside every
+accepted path. Wake and TTS profiles fail closed without locks because their
+backend/license/runtime gates remain unresolved. Fifty-one host tests, an
+isolated wheel install, `pip check`, core import with pygame/openWakeWord
+absent, deterministic lock verification, and a license report pass. Upstream
+metadata proves the selected UI wheel identity/hash for the target, but no
+networked cross-download or physical Pi venv was available; those remain
+explicitly blocked and no Pi success is claimed.
+
 **Files:** `pyproject.toml`, `requirements/*.lock`, dependency-generation documentation.
 
 **Actions:** split headless core, post-spike extension, optional UI, and dev/test profiles; pin/hashes for Trixie/Python 3.13; keep openWakeWord absent from core; remove mandatory pygame.
@@ -1038,14 +1051,14 @@ They are resolved in this revision by removing core power privilege, distinguish
 
 ## 18. Exact next action
 
-Implement M2.3 only. Define dependency profiles and exact lock artifacts for
-the headless core, development/test tooling, optional UI, and governed
-extensions. Resolve and document Python 3.13/AArch64 availability on the
-declared Raspberry Pi OS target; keep pygame and openWakeWord out of core,
-remove the legacy broad `requirements.txt` from every accepted install path,
-add reproducible lock-generation/verification commands, run clean x86 and
-AArch64 resolution checks that do not claim Pi hardware success, update all
-control documents, commit, and stop before M2.4.
+Implement M2.4 only. Establish the automated test foundation without changing
+runtime behavior: classify the current interactive/manual probes, create
+deterministic unit and integration boundaries, add a single repository test
+entry point, and correct the known router/joke and wake-phrase test
+contradictions. No test in the unit tier may require network, Ollama, audio,
+GPIO, pygame, models, or governed extensions. Preserve the M2.3 dependency
+profiles and do not select blocked TTS/wake dependencies. Run T0/T1 from a
+clean checkout, update all control documents, commit, and stop before M3.
 
 ## 19. Primary references
 

@@ -1,5 +1,6 @@
 schema_version = 1
 inventory_date = "2026-09-08"
+dependency_profile_authority = "requirements/profiles.toml"
 project_source_license = "NOASSERTION"
 project_license_status = "intentionally-unlicensed-no-redistribution"
 redistribution_approved = false
@@ -218,11 +219,13 @@ package_dependency = false
 
 [[dependencies]]
 name = "pygame"
-requirement = "pygame>=2.6,<3"
+requirement = "pygame==2.6.1"
 role = "legacy optional UI; excluded from planned headless core"
-license = "UNVERIFIED-M2.3"
+license = "LGPL-2.1-or-later"
+source = "https://pypi.org/project/pygame/2.6.1/"
+profile_status = "accepted-optional-only"
 bundled = false
-package_dependency = false
+package_dependency = true
 
 [[dependencies]]
 name = "openwakeword"
