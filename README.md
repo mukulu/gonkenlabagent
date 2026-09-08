@@ -80,6 +80,24 @@ python scripts/dependencies.py report
 See `requirements/README.md` for clean-host installation, target resolution,
 and dependency-change procedures.
 
+## Bootstrap status
+
+M3.1 replaces the unsafe legacy bootstrap fall-through with a mutation-free
+preflight boundary. From a complete checkout, the current command is:
+
+```bash
+./bootstrap.sh --preflight-only \
+  --source-url https://github.com/mukulu/gonkenlabagent.git \
+  --ref main
+```
+
+It validates the supported Pi/OS/Python/systemd contract, resources, clock,
+administrator access, checkout cleanliness, and the advertised source ref
+before writing a private staging record. It does not install the application.
+Without `--preflight-only`, it deliberately stops with `M3_2_UNAVAILABLE`
+instead of invoking the retained `setup.sh`. See
+`docs/development/ONBOARDING_DRAFT.md` for the exact temporary boundary.
+
 ## Accepted first-release boundary
 
 Required core behavior includes:
@@ -99,7 +117,7 @@ until their independent acceptance gates pass.
 
 ## Testing
 
-M2.4 provides one default T0/T1 entry point. It requires no model, network,
+M3.1 retains one default T0/T1 entry point. It requires no model, network,
 Ollama, audio, GPIO, pygame, root access, or governed extension:
 
 ```bash

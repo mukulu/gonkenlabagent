@@ -1,65 +1,220 @@
 #!/usr/bin/env bash
-# Bootstrap a fresh Raspberry Pi OS installation into a runnable GonKenLab Agent.
-# Intended for use from a terminal with internet access.
+# GonKenLab Agent bootstrap preflight (M3.1).
+#
+# This milestone validates the host and requested source without installing
+# packages or invoking the retained prototype setup.sh. M3.2 will add the
+# resumable installation engine behind this boundary.
 
 set -Eeuo pipefail
 
-REPO_URL="${GONKEN_REPO_URL:-https://github.com/mukulu/gonkenlabagent.git}"
-BRANCH="${GONKEN_BRANCH:-main}"
-INSTALL_DIR="${GONKEN_INSTALL_DIR:-$HOME/gonkenlabagent}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+COMMON_LIBRARY="$SCRIPT_DIR/scripts/lib/common.sh"
 
-fail() {
-  echo "[ERROR] $*" >&2
-  exit 1
+if [[ ! -r "$COMMON_LIBRARY" ]]; then
+  printf '%s\n' \
+    '[ERROR] code=BOOTSTRAP_LAYOUT message=missing scripts/lib/common.sh remediation=run bootstrap.sh from a complete GonKenLab Agent checkout' \
+    >&2
+  exit 66
+fi
+
+# shellcheck source=scripts/lib/common.sh
+source "$COMMON_LIBRARY"
+
+SOURCE_URL="https://github.com/mukulu/gonkenlabagent.git"
+SOURCE_REF="main"
+PREFLIGHT_ONLY=0
+PLATFORM_MODE="target"
+STAGING_PARENT="/var/tmp"
+EXISTING_CHECKOUT=""
+EXISTING_CHECKOUT_EXPLICIT=0
+
+usage() {
+  cat <<'EOF'
+Usage: ./bootstrap.sh [OPTIONS]
+
+M3.1 performs preflight only; it does not install GonKenLab Agent.
+
+Options:
+  --preflight-only          Return success after writing the source manifest.
+  --development-host       Validate the documented Linux development-host
+                           contract instead of Raspberry Pi production target.
+  --source-url URL         HTTPS Git source (file:// allowed only for
+                           --development-host validation).
+  --ref REF                Advertised remote branch or tag (default: main).
+  --existing-checkout PATH Validate an existing/empty absolute checkout path.
+  --staging-parent PATH    Existing absolute staging parent (default: /var/tmp).
+  -h, --help               Show this help.
+EOF
 }
 
-if [ "$(id -u)" -eq 0 ]; then
-  SUDO=""
-else
-  command -v sudo >/dev/null 2>&1 || fail "sudo is required on Raspberry Pi OS."
-  SUDO="sudo"
-fi
-
-command -v apt-get >/dev/null 2>&1 || \
-  fail "This bootstrap script expects Raspberry Pi OS/Debian with apt-get."
-
-missing_packages=()
-command -v git >/dev/null 2>&1 || missing_packages+=(git)
-command -v curl >/dev/null 2>&1 || missing_packages+=(curl)
-command -v ca-certificates >/dev/null 2>&1 || true
-
-if [ "${#missing_packages[@]}" -gt 0 ] || [ ! -f /etc/ssl/certs/ca-certificates.crt ]; then
-  echo "[INFO] Installing bootstrap requirements …"
-  $SUDO apt-get update
-  $SUDO apt-get install -y git curl ca-certificates
-fi
-
-if [ -d "$INSTALL_DIR/.git" ]; then
-  echo "[INFO] Existing GonKenLab Agent checkout found at $INSTALL_DIR"
-
-  if ! git -C "$INSTALL_DIR" diff --quiet \
-      || ! git -C "$INSTALL_DIR" diff --cached --quiet; then
-    fail "The existing checkout has uncommitted changes. Commit or stash them before bootstrapping."
-  fi
-
-  origin_url="$(git -C "$INSTALL_DIR" remote get-url origin 2>/dev/null || true)"
-  case "$origin_url" in
-    *mukulu/gonkenlabagent*) ;;
-    *) fail "Existing checkout has an unexpected origin: ${origin_url:-none}" ;;
+while (($#)); do
+  case "$1" in
+    --preflight-only)
+      PREFLIGHT_ONLY=1
+      shift
+      ;;
+    --development-host)
+      PLATFORM_MODE="development"
+      shift
+      ;;
+    --source-url|--ref|--existing-checkout|--staging-parent)
+      option="$1"
+      (($# >= 2)) || {
+        usage >&2
+        gonken_error "USAGE" "$option requires a value" "provide a non-empty value"
+        exit 64
+      }
+      value="$2"
+      case "$option" in
+        --source-url) SOURCE_URL="$value" ;;
+        --ref) SOURCE_REF="$value" ;;
+        --existing-checkout)
+          EXISTING_CHECKOUT="$value"
+          EXISTING_CHECKOUT_EXPLICIT=1
+          ;;
+        --staging-parent) STAGING_PARENT="$value" ;;
+      esac
+      shift 2
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      usage >&2
+      gonken_error "USAGE" "unknown option: $1" "run ./bootstrap.sh --help"
+      exit 64
+      ;;
   esac
+done
 
-  git -C "$INSTALL_DIR" fetch origin "$BRANCH"
-  git -C "$INSTALL_DIR" switch "$BRANCH" 2>/dev/null \
-    || git -C "$INSTALL_DIR" switch -c "$BRANCH" --track "origin/$BRANCH"
-  git -C "$INSTALL_DIR" pull --ff-only origin "$BRANCH"
-elif [ -e "$INSTALL_DIR" ] && [ -n "$(ls -A "$INSTALL_DIR" 2>/dev/null || true)" ]; then
-  fail "$INSTALL_DIR already exists and is not an empty GonKenLab Agent checkout."
-else
-  echo "[INFO] Cloning GonKenLab Agent into $INSTALL_DIR …"
-  git clone --branch "$BRANCH" --single-branch "$REPO_URL" "$INSTALL_DIR"
+if ((EXISTING_CHECKOUT_EXPLICIT == 0)) && [[ -d "$SCRIPT_DIR/.git" ]]; then
+  EXISTING_CHECKOUT="$SCRIPT_DIR"
 fi
 
-chmod +x "$INSTALL_DIR/setup.sh"
+gonken_validate_absolute_path "$STAGING_PARENT" "staging parent" || exit 78
+if [[ -n "$EXISTING_CHECKOUT" ]]; then
+  gonken_validate_absolute_path "$EXISTING_CHECKOUT" "existing checkout" || exit 78
+fi
 
-echo "[INFO] Starting full GonKenLab Agent setup …"
-exec "$INSTALL_DIR/setup.sh"
+required_commands=(awk chmod date df getconf git id ls mktemp mv python3 rm rmdir sha256sum uname)
+if [[ "$PLATFORM_MODE" == "target" ]]; then
+  required_commands+=(apt-get systemctl tr)
+fi
+gonken_require_commands "${required_commands[@]}" || exit 69
+gonken_validate_source_request "$SOURCE_URL" "$SOURCE_REF" "$PLATFORM_MODE" || exit 78
+gonken_validate_staging_parent "$STAGING_PARENT" || exit 78
+
+kernel_name="$(uname -s)" || {
+  gonken_error "PREFLIGHT_PLATFORM" "uname failed" "repair the base operating system"
+  exit 78
+}
+architecture="$(uname -m)" || {
+  gonken_error "PREFLIGHT_PLATFORM" "architecture probe failed" "repair the base operating system"
+  exit 78
+}
+userspace_bits="$(getconf LONG_BIT)" || {
+  gonken_error "PREFLIGHT_PLATFORM" "userspace-width probe failed" "install a supported 64-bit operating system"
+  exit 78
+}
+python_version="$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}")')" || {
+  gonken_error "PREFLIGHT_PLATFORM" "python3 version probe failed" "install the distribution python3 package"
+  exit 78
+}
+
+if [[ "$PLATFORM_MODE" == "target" ]]; then
+  pid1_name="$(tr -d '\000\r\n' </proc/1/comm 2>/dev/null || true)"
+  pi_model="$(tr -d '\000\r\n' </proc/device-tree/model 2>/dev/null || true)"
+  rpi_issue=""
+  if [[ -r /etc/rpi-issue ]]; then
+    IFS= read -r rpi_issue </etc/rpi-issue || true
+  fi
+  gonken_validate_target_platform \
+    /etc/os-release "$kernel_name" "$architecture" "$userspace_bits" \
+    "$python_version" "$pid1_name" "$pi_model" "$rpi_issue" || exit 78
+  os_id="$(gonken_read_os_field /etc/os-release ID)"
+  os_version_id="$(gonken_read_os_field /etc/os-release VERSION_ID)"
+  os_codename="$(gonken_read_os_field /etc/os-release VERSION_CODENAME)"
+  os_build_id="$(gonken_read_os_field /etc/os-release BUILD_ID)" || os_build_id="not-reported"
+  os_release_sha256="$(sha256sum /etc/os-release | awk '{print $1}')"
+  pi_issue_sha256="$(sha256sum /etc/rpi-issue | awk '{print $1}')"
+  systemd_version="$(systemctl --version | awk 'NR == 1 {print $2; exit}')"
+  [[ "$systemd_version" =~ ^[0-9]+$ ]] || {
+    gonken_error "PREFLIGHT_INIT" "cannot determine systemd version" "repair the systemd installation"
+    exit 78
+  }
+else
+  gonken_validate_development_platform \
+    "$kernel_name" "$architecture" "$userspace_bits" "$python_version" || exit 78
+  pid1_name="not-required"
+  pi_model="development-host"
+  rpi_issue="not-applicable"
+  os_id="development"
+  os_version_id="not-applicable"
+  os_codename="not-applicable"
+  os_build_id="not-applicable"
+  os_release_sha256="not-applicable"
+  pi_issue_sha256="not-applicable"
+  systemd_version="not-required"
+fi
+
+free_kib="$(df -Pk "$STAGING_PARENT" | awk 'END {print $4}')" || {
+  gonken_error "PREFLIGHT_DISK" "free-space probe failed" "check the staging filesystem"
+  exit 78
+}
+memory_kib="$(awk '/^MemTotal:/ {print $2; exit}' /proc/meminfo)" || {
+  gonken_error "PREFLIGHT_RAM" "memory probe failed" "check /proc/meminfo"
+  exit 78
+}
+clock_epoch="$(date +%s)" || {
+  gonken_error "PREFLIGHT_TIME" "clock probe failed" "repair the system clock"
+  exit 78
+}
+gonken_validate_resources \
+  "$free_kib" "$memory_kib" "$clock_epoch" "$PLATFORM_MODE" || exit 78
+
+# Sudo validation intentionally happens once, after quick local platform and
+# resource rejection but before checkout inspection or remote source access.
+gonken_establish_privilege || exit 77
+gonken_validate_existing_checkout "$EXISTING_CHECKOUT" "$SOURCE_URL" || exit 78
+gonken_resolve_remote_ref "$SOURCE_URL" "$SOURCE_REF" || exit 69
+
+gonken_create_staging "$STAGING_PARENT" \
+  'format=gonken-bootstrap-source-v1' \
+  "source_url=$SOURCE_URL" \
+  "requested_ref=$SOURCE_REF" \
+  "resolved_commit=$GONKEN_RESOLVED_COMMIT" \
+  "platform_mode=$PLATFORM_MODE" \
+  "invoking_user=$GONKEN_INVOKING_USER" \
+  "kernel_name=$kernel_name" \
+  "architecture=$architecture" \
+  "userspace_bits=$userspace_bits" \
+  "python_version=$python_version" \
+  "os_id=$os_id" \
+  "os_version_id=$os_version_id" \
+  "os_codename=$os_codename" \
+  "os_build_id=$os_build_id" \
+  "os_release_sha256=$os_release_sha256" \
+  "pi_issue_sha256=$pi_issue_sha256" \
+  "rpi_image_reference=$rpi_issue" \
+  "pi_model=$pi_model" \
+  "pid1=$pid1_name" \
+  "systemd_version=$systemd_version" \
+  "free_kib=$free_kib" \
+  "memory_kib=$memory_kib" \
+  "observed_epoch=$clock_epoch" \
+  "existing_checkout=$EXISTING_CHECKOUT" || exit 73
+
+printf '[OK] code=PREFLIGHT_COMPLETE staging=%s\n' "$GONKEN_STAGING_DIR"
+printf '[OK] source_commit=%s privilege_mode=%s platform_mode=%s\n' \
+  "$GONKEN_RESOLVED_COMMIT" "$GONKEN_PRIVILEGE_MODE" "$PLATFORM_MODE"
+
+if ((PREFLIGHT_ONLY == 1)); then
+  exit 0
+fi
+
+gonken_error \
+  "M3_2_UNAVAILABLE" \
+  "preflight passed, but the resumable installer is not implemented" \
+  "retain this staging manifest and continue only after checkpoint/m3.2" || true
+exit 69

@@ -15,7 +15,7 @@ echo "[T0] dependency lock drift"
 "$PYTHON_BIN" "$SCRIPT_DIR/dependencies.py" render --check
 
 echo "[T0] source/config syntax"
-bash -n bootstrap.sh setup.sh scripts/ci.sh
+bash -n bootstrap.sh setup.sh scripts/ci.sh scripts/lib/common.sh
 "$PYTHON_BIN" -m compileall -q \
   src tests/unit tests/integration tests/hardware scripts \
   config.py orchestrator.py legacy_orchestrator.py audio brain senses ui

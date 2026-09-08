@@ -120,8 +120,8 @@ The master blueprint must allocate stable IDs and concrete procedures for at lea
 
 ## 5. Latest test summary
 
-- **T0:** M0 recorded 9 PASS and 4 baseline FAIL findings; M2.1–M2.4 static, package, configuration, dependency-policy, and test-boundary checks pass without closing unrelated findings.
-- **T1:** M2.4 provides one dependency-free entry point with 63 unit and three deterministic process-integration tests passing; live service and hardware probes are excluded and opt-in guarded.
+- **T0:** M0 recorded 9 PASS and 4 baseline FAIL findings; M2.1–M3.1 static, package, configuration, dependency-policy, test-boundary, and bootstrap-admission checks pass without closing unrelated findings.
+- **T1:** M3.1 expands the dependency-free entry point to 81 unit and six deterministic process-integration tests; all remote source behavior uses command stubs or local Git fixtures.
 - **T2:** exact Python 3.13/AArch64 pygame wheel metadata now passes, superseding the old pygame-availability observation; networked resolution and the physical target install remain BLOCKED.
 - **T3–T6:** BLOCKED or NOT RUN as detailed above.
 - **Production readiness:** not established.
@@ -288,3 +288,39 @@ or elevated privilege was used by the automated entry point.
 M2.4 is complete. Its T0/T1 boundary is deterministic and dependency-free; no
 result establishes Pi, service, model, or physical audio readiness. M3.1 is the
 only next authorized work package.
+
+## 12. M3.1 bootstrap-preflight checks
+
+**Starting checkpoint:** `checkpoint/m2.4` / `7ecb420ccde1bd4a0d177ea49421d8e7266aedb4`
+
+**Date:** 2026-09-08 UTC
+
+**Environment:** Ubuntu 24.04.3 LTS, x86_64, Python 3.12.13. Production-target
+facts are deterministic fixtures; source success uses local `file://` Git only
+under explicit development mode. No package/service/configuration/install-tree
+mutation, internet request, Raspberry Pi, model, audio, or GPIO was used.
+
+| ID | Tier | Check | Command/procedure | Result | Interpretation |
+|---|---|---|---|---|---|
+| M3.1-T001 | T0 | Clean accepted starting checkpoint | Compare clean HEAD with `checkpoint/m2.4` before edits | PASS | M3.1 began at the committed/tagged M2.4 boundary. |
+| M3.1-T002 | T0/T1 | Full deterministic repository entry point | `./scripts/ci.sh` | PASS | Bash/data/source checks, 81 unit tests, and six deterministic integration tests pass without network or optional dependencies. |
+| M3.1-T003 / V-H03 | T1 | Root and sudo-user matrix | PATH-stub `id`/`sudo` tests for direct root, root reached through sudo, non-root, missing sudo, and rejected credentials | PASS | Direct root does not require sudo; sudo-root records the non-root invoker; non-root validates once; unavailable/rejected sudo fails diagnostically. |
+| M3.1-T004 / V-H04 | T1 | Privilege lifetime and ordering | Count stubbed `sudo -v`; inspect process failure ordering | PASS | Exactly one interactive credential validation occurs before remote access; subsequent planned privilege prefix is `sudo -n`; rejected hosts create no staging or installed mutation. |
+| M3.1-T005 | T1 | Production platform contract | Fixture matrix for Debian 13/Trixie, AArch64, 64-bit userspace, Python 3.13 patch, systemd PID 1, Pi 5 model, and Raspberry Pi image reference | PASS | Exact supported facts pass; each unsupported OS/arch/Python/init/board/image variant fails with a structured code. This is not physical-Pi evidence. |
+| M3.1-T006 | T1 | Development-host separation | Validate Linux x86_64/AArch64, 64-bit, Python 3.12/3.13; reject other host contract | PASS | Host mode is explicit and cannot be mistaken for the production target. |
+| M3.1-T007 | T1 | Disk, RAM, and clock gates | Boundary values through `gonken_validate_resources` | PASS | Less than 8 GiB staging space, insufficient mode-specific RAM, and pre-2025 clock each fail independently before remote access/staging. Thresholds remain provisional pending Pi measurement. |
+| M3.1-T008 | T1 | Required commands | Invoke command inventory with a deliberately missing command | PASS | Missing tools produce `PREFLIGHT_COMMAND` and remediation rather than a late shell failure. |
+| M3.1-T009 | T1 | Source request safety | Reject credential-bearing/invalid HTTPS, traversal ref, production `file://`, and divergent same-name branch/tag; resolve an advertised local development ref | PASS | Target source is credential-free HTTPS; branch/tag names are validated and unambiguous; successful resolution records exactly one full commit. |
+| M3.1-T010 | T1 | Network/ref failure | Stub `git ls-remote` failure | PASS | Unreachable source or absent ref produces `PREFLIGHT_NETWORK` without staging or a false success. |
+| M3.1-T011 | T1 | Existing checkout preservation | Temporary Git/file fixtures for clean, tracked dirty, staged dirty, untracked, wrong origin, empty, absent, and non-Git content | PASS | Only clean expected-origin or empty/absent states pass; rejected content remains byte-identical. |
+| M3.1-T012 | T1 | Private facts record | Create temporary staging and inspect contents/modes | PASS | Staging is mode 700; `source.record` is mode 600 and contains source commit and observed facts. It is line data, never shell-sourced. |
+| M3.1-T013 | T1 | End-to-end development preflight | Run `bootstrap.sh --development-host --preflight-only` against a temporary local Git repository | PASS | Process resolves the exact commit and writes the private record without calling network, sudo, setup, or an installer. |
+| M3.1-T014 | T1 | Unsupported-host ordering | Run target mode on the x86 audit host with a logging Git stub | PASS | Exit 78 reports `PREFLIGHT_PLATFORM`; no `ls-remote` call and no staging entry occur. |
+| M3.1-T015 | T1 | M3.2 boundary | Run valid development preflight without `--preflight-only` | PASS | Exit 69 reports `M3_2_UNAVAILABLE` after recording evidence and never invokes `setup.sh` or a nonexistent installer. |
+| M3.1-T016 | T0/T1 | Clean-checkout repeatability | Commit implementation; clone without hardlinks; create fresh stdlib-only venv; run `./scripts/ci.sh`; compare worktree | PENDING | Record the exact implementation commit before creating `checkpoint/m3.1`. |
+| M3.1-T017 | T2/T3 | Physical target and real HTTPS source | Supported freshly imaged Pi 5; target preflight against intended GitHub ref | BLOCKED | No Raspberry Pi target is available. Fixture/host evidence cannot close the target gate. |
+
+M3.1 is implementation-complete subject to the post-commit clean-checkout row.
+H-03/H-04 are resolved for the preflight boundary but must be revalidated when
+M3.2 introduces privileged mutations. M3.2 is the only next authorized work
+package; this state is deliberately not install-ready.

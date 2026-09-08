@@ -1,6 +1,6 @@
 # GonKenLab Agent Implementation Master Blueprint
 
-**Blueprint revision:** 1.5-implementation
+**Blueprint revision:** 1.6-implementation
 
 **Prepared:** 2026-09-08 UTC
 
@@ -10,7 +10,7 @@
 
 **Review state:** adversarial review completed in `BLUEPRINT_ADVERSARIAL_REVIEW.md`; accepted for staged implementation
 
-**Implementation authorization:** M2.4 is complete; M3.1 is the only next authorized work package
+**Implementation authorization:** M3.1 is complete; M3.2 is the only next authorized work package
 
 ## 1. Purpose and authority
 
@@ -540,6 +540,12 @@ The Ollama drop-in binds loopback, enables `OLLAMA_NO_CLOUD=1`, constrains paral
 7. invokes `scripts/install.sh --source <verified-tree>`;
 8. never enables autologin.
 
+M3.1 implements the admission boundary for items 1, 2, 5, and 6 and writes a
+private, non-sourceable facts record only after every check passes. Items 3, 4,
+and 7 require the M3.2 step engine and are deliberately unavailable before
+that milestone; the current bootstrap never falls through to legacy
+`setup.sh`. D-056 records this staged contract.
+
 The README supports two onboarding paths:
 
 - Raspberry Pi Imager on another computer with hostname, user, network, and SSH preconfigured;
@@ -739,6 +745,19 @@ graph. Clean-checkout validation passes; no Pi/runtime readiness is claimed.
 ### M3 — Idempotent provisioning and artifact lifecycle
 
 #### M3.1 Bootstrap preflight
+
+**Implementation status (2026-09-08): COMPLETE.** `bootstrap.sh` and
+`scripts/lib/common.sh` now validate the exact target or an explicit bounded
+development host, minimum disk/RAM, plausible TLS time, required commands,
+direct-root/sudo-root/non-root identity, one sudo credential check, existing
+tracked/staged/untracked state and origin, and a unique advertised source
+branch/tag. Only success creates a mode-700 staging directory and mode-600
+non-sourceable record containing the resolved commit and observed platform,
+image, interpreter, init, and resource evidence. Default execution stops at
+`M3_2_UNAVAILABLE`; it cannot invoke the prototype installer. Eighty-one unit
+and six deterministic integration tests pass on the audit host. Physical Pi
+and real remote-source validation remain blocked and are not inferred from
+fixtures.
 
 **Files:** `bootstrap.sh`, `scripts/lib/common.sh`, preflight tests, onboarding draft.
 
@@ -1065,14 +1084,15 @@ They are resolved in this revision by removing core power privilege, distinguish
 
 ## 18. Exact next action
 
-Implement M3.1 only. Build the bootstrap preflight and its command-stub tests:
-resolve root versus invoking sudo user, confirm the exact supported Raspberry
-Pi OS/Trixie/AArch64/Python contract, validate disk/RAM/time/network and required
-commands before mutation, record the requested source/ref, reject conflicting
-tracked/untracked checkout state, and create a safe staging location. Every
-failure must be noninteractive, diagnostic, and occur before privileged project
-mutation. Keep installation separate from runtime, use temporary roots and
-stubs for T0/T1, update all control documents, commit, and stop before M3.2.
+Implement M3.2 only. Add `scripts/install.sh` and the stable step/state engine:
+each step must declare an ID/version, precondition, planned mutations,
+idempotent action, real postcondition, rerun behavior, and rollback implication.
+Write logs and advisory state atomically, but never trust state over probes.
+Use temporary roots and command stubs to interrupt before/during/after every
+fake step, prove rerun convergence, repair false-complete state, and preserve
+actionable exit codes and cleanup traps. Consume and revalidate the M3.1 source
+record without sourcing it as shell. Do not provision real application
+releases, Ollama, Whisper, Piper, services, or hardware and stop before M3.3.
 
 ## 19. Primary references
 

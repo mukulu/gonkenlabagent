@@ -6,8 +6,8 @@ This file is the authoritative short handoff for a later development session. Ve
 
 - **Working branch:** `dev/bootstrap-rearchitecture`
 - **Inspected application baseline:** `6682360786135136abeb0bd2a17a9d45c6f291e7`
-- **Current control milestone:** M3.1 — Bootstrap preflight
-- **Blueprint revision:** 1.5-implementation
+- **Current control milestone:** M3.2 — Step engine and install state
+- **Blueprint revision:** 1.6-implementation
 - **Accepted blueprint checkpoint:** `checkpoint/blueprint` (resolve its exact commit with `git rev-list -n 1 checkpoint/blueprint`)
 - **M2.1 implementation checkpoint:** `checkpoint/m2.1-license-gate` (created after the tested commit; resolve it with `git rev-list -n 1 checkpoint/m2.1-license-gate`)
 - **M2.1 completed checkpoint:** `checkpoint/m2.1` (resolve its exact commit with `git rev-list -n 1 checkpoint/m2.1`)
@@ -15,6 +15,7 @@ This file is the authoritative short handoff for a later development session. Ve
 - **M2.3 completed checkpoint:** `checkpoint/m2.3` (resolve its exact commit with `git rev-list -n 1 checkpoint/m2.3`)
 - **M2.4 completed checkpoint:** `checkpoint/m2.4` (created after the tested commit; resolve it with `git rev-list -n 1 checkpoint/m2.4`)
 - **M2.4 clean-checkout test commit:** `d79ac48515db7d613c0ba5a020981a3953fa0b87`
+- **M3.1 completed checkpoint:** `checkpoint/m3.1` (created after the tested commit; resolve it with `git rev-list -n 1 checkpoint/m3.1`)
 - **Last verification date:** 2026-09-08 UTC
 - **Target:** Raspberry Pi 5 4GB, Raspberry Pi OS Lite 64-bit
 - **Audit host:** Ubuntu 24.04 x86_64, Python 3.12 (not target hardware)
@@ -75,18 +76,29 @@ This file is the authoritative short handoff for a later development session. Ve
 - [x] Passed 63 unit tests and three deterministic integration tests from the repository entry point.
 - [x] Recorded D-055: retain pytest-discoverable structure while the exact empty dev profile uses `unittest`; do not claim an unavailable pytest execution.
 - [x] Completed M2.4 and authorized M3.1 as the next bounded work package.
+- [x] Replaced the legacy bootstrap fall-through with a fail-closed M3.1 preflight that never invokes `setup.sh` or mutates packages, services, configuration, checkout content, or installed releases.
+- [x] Enforced the exact Raspberry Pi 5 / official Raspberry Pi OS Trixie / AArch64 / 64-bit / Python 3.13 / systemd production contract and a separate explicit Linux Python 3.12/3.13 development-host contract.
+- [x] Added disk, RAM, plausible TLS-time, required-command, source-protocol, unique advertised-ref, and exact resolved-commit validation.
+- [x] Added direct-root, sudo-root invoking-user, non-root one-time sudo validation, sudo-unavailable, and sudo-failure boundaries without assuming `sudo` exists for direct root.
+- [x] Reject tracked, staged, and untracked changes, unexpected origins, symlink checkout paths, and nonempty non-Git paths before remote source access.
+- [x] Create staging only after success, with mode 700 and a mode-600 non-sourceable record of source, image/platform fingerprints, interpreter/init versions, resources, time, and invoking identity.
+- [x] Added the M3.1 onboarding draft and D-056; default bootstrap execution stops explicitly at `M3_2_UNAVAILABLE` until the resumable installer exists.
+- [x] Passed 81 dependency-free unit tests and six deterministic process-integration tests (87 total), including local-only Git ref resolution and failure-ordering checks.
+- [x] Completed M3.1 and authorized M3.2 as the next bounded work package.
 
 ## In Progress
 
 - No implementation package is currently in progress.
-- M3.1 is the next and only authorized implementation package.
+- M3.2 is the next and only authorized implementation package.
 
 ## Not Started
 
 - [x] M2.2 — Configuration authority and migration.
 - [x] M2.3 — Dependency profiles and locks.
 - [x] M2.4 — Automated test foundation.
-- [ ] M3 — Idempotent provisioning.
+- [x] M3.1 — Bootstrap preflight.
+- [ ] M3.2 — Step engine and install state.
+- [ ] M3.3–M3.6 — Immutable release and dependency/model provisioning.
 - [ ] M4 — Runtime reliability.
 - [ ] M5 — Interaction and privacy modes.
 - [ ] M6 — Headless service and privileged operations.
@@ -109,7 +121,7 @@ The full issue descriptions and evidence are in `REPOSITORY_AUDIT.md`.
 
 ### High
 
-- H-01/H-02 are resolved on active paths by M2.2. H-08 is resolved for the maintained package by M2.3. H-06 is resolved for the package foundation but reopens for every future runtime dependency addition; H-07 remains open until a real Python 3.13/AArch64 download and Pi venv pass. H-03 through H-05 and H-09 through H-18 remain open.
+- H-01/H-02 are resolved on active paths by M2.2. H-03/H-04 are resolved at the M3.1 preflight boundary and must be revalidated when M3.2 adds mutations. H-08 is resolved for the maintained package by M2.3. H-06 is resolved for the package foundation but reopens for every future runtime dependency addition; H-07 remains open until a real Python 3.13/AArch64 download and Pi venv pass. H-05 and H-09 through H-18 remain open.
 
 ### Architecture gates introduced by M1B
 
@@ -142,6 +154,7 @@ The full issue descriptions and evidence are in `REPOSITORY_AUDIT.md`.
 - Clean x86/Python 3.12 dev-lock and wheel install passes without `--ignore-requires-python`; `pip check` reports no broken requirements.
 - Isolated installed-core import passes with pygame and openWakeWord absent; CLI status remains honestly not runtime-ready.
 - PyPI metadata verification passes for the exact pygame 2.6.1 CPython 3.13/AArch64 wheel filename and recorded SHA-256.
+- M3.1 suite: 81 of 81 unit tests and 6 of 6 deterministic integration tests pass, including V-H03/V-H04 privilege cases, exact platform/resource rejections, checkout preservation, local source resolution, private record permissions, and prevention of legacy installer fall-through.
 
 ## Tests Failing or Blocked
 
@@ -150,6 +163,8 @@ The full issue descriptions and evidence are in `REPOSITORY_AUDIT.md`.
 - All Raspberry Pi ARM64 runtime, audio, GPIO, service, reboot, and failure-injection tests: BLOCKED pending implementation and target hardware.
 - Networked AArch64 `pip download`, optional-UI installation/import, and the physical Pi Python 3.13 venv install: BLOCKED because this environment cannot reach the package index and has no Pi. Metadata verification is not promoted to install evidence.
 - The retained full prototype installer has not been rerun and is not an accepted installer; M3 owns its replacement.
+- Physical Raspberry Pi M3.1 preflight and a real target-to-GitHub HTTPS/ref probe remain BLOCKED; fixture and development-host success are not promoted to T2/T3 evidence.
+- `bootstrap.sh` is intentionally preflight-only until M3.2; this checkpoint is not install-ready.
 - Package publication, a public repository export, and a public portable Git ZIP: BLOCKED by the deliberate no-redistribution policy.
 - Unknown-media rights and a release-compatible Piper/voice/wake licensing plan remain release/runtime blockers, not grounds for inventing M2.3 locks.
 
@@ -190,18 +205,21 @@ Exact commands and interpretations are in `TEST_MATRIX.md`.
 - `config/defaults.toml` is the only active default-value authority; legacy JSON and `.env` are never loaded by normal runtime.
 - Site configuration is read-only to normal runtime; migration refuses to replace a differing destination.
 - Effective-config output redacts filesystem paths and reports only source category/environment/CLI identifiers.
+- Bootstrap preflight is the sole accepted admission boundary: target facts and source identity fail closed, its record is never shell-sourced, and the retained prototype installer cannot be reached from it.
+- Initial 8 GiB free-space and approximately 3.5 GiB target-memory thresholds are conservative admission gates pending physical-Pi recalibration, not performance claims.
 
 See `DECISIONS.md` for rationale and status.
 
 ## Next Recommended Action
 
-Implement M3.1 only. Build the bootstrap preflight and command-stub tests:
-resolve root versus the invoking sudo user; verify the exact supported Raspberry
-Pi OS/Trixie/AArch64/Python contract; validate disk, RAM, time, network, and
-required commands before mutation; record the requested source/ref; reject
-conflicting tracked or untracked checkout state; and create a safe staging
-location. All failures must be noninteractive, diagnostic, and occur before
-privileged project mutation. Stop before M3.2.
+Implement M3.2 only. Add `scripts/install.sh` and the stable step/state engine.
+Each step must declare an ID/version, precondition, planned mutations,
+idempotent action, actual postcondition, rerun behavior, and rollback
+implication. Atomically write logs/advisory state while treating probes as the
+authority. Revalidate—never source—the M3.1 record. Use temporary roots and
+stubs to interrupt every fake-step boundary, prove convergence and repair of
+false-complete state, and preserve actionable failures. Do not install real
+releases, dependencies, models, services, or hardware; stop before M3.3.
 
 ## Session Start Protocol
 
