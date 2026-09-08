@@ -120,8 +120,8 @@ The master blueprint must allocate stable IDs and concrete procedures for at lea
 
 ## 5. Latest test summary
 
-- **T0:** M0 recorded 9 PASS and 4 baseline FAIL findings; M2.1–M3.1 static, package, configuration, dependency-policy, test-boundary, and bootstrap-admission checks pass without closing unrelated findings.
-- **T1:** M3.1 expands the dependency-free entry point to 81 unit and six deterministic process-integration tests; all remote source behavior uses command stubs or local Git fixtures.
+- **T0:** M0 recorded 9 PASS and 4 baseline FAIL findings; M2.1–M3.2 static, package, configuration, dependency-policy, test-boundary, bootstrap-admission, and install-engine checks pass without closing unrelated findings.
+- **T1:** M3.2 expands the dependency-free entry point to 92 unit and 16 deterministic process-integration tests; all remote source behavior uses command stubs or local Git fixtures.
 - **T2:** exact Python 3.13/AArch64 pygame wheel metadata now passes, superseding the old pygame-availability observation; networked resolution and the physical target install remain BLOCKED.
 - **T3–T6:** BLOCKED or NOT RUN as detailed above.
 - **Production readiness:** not established.
@@ -321,6 +321,40 @@ mutation, internet request, Raspberry Pi, model, audio, or GPIO was used.
 | M3.1-T017 | T2/T3 | Physical target and real HTTPS source | Supported freshly imaged Pi 5; target preflight against intended GitHub ref | BLOCKED | No Raspberry Pi target is available. Fixture/host evidence cannot close the target gate. |
 
 M3.1 is complete, including post-commit clean-checkout verification.
-H-03/H-04 are resolved for the preflight boundary but must be revalidated when
-M3.2 introduces privileged mutations. M3.2 is the only next authorized work
-package; this state is deliberately not install-ready.
+H-03/H-04 are resolved for the preflight boundary. M3.2 was the next authorized
+package at that checkpoint; D-057 subsequently kept it control-only and moved
+the first real source/release mutation to M3.3. The M3.1 state was deliberately
+not install-ready.
+
+## 13. M3.2 step-engine and install-state checks
+
+**Starting checkpoint:** `checkpoint/m3.1` / `2ed709fb7bc423d0a0b9c48661df3a152049dbf7`
+
+**Date:** 2026-09-08 UTC
+
+**Environment:** Ubuntu 24.04.3 LTS, x86_64, Python 3.12.13. Source-ref
+success uses local `file://` Git only under development mode. No package,
+release, virtual environment, service, model, network request, Raspberry Pi,
+audio device, or GPIO was used.
+
+| ID | Tier | Check | Command/procedure | Result | Interpretation |
+|---|---|---|---|---|---|
+| M3.2-T001 | T0 | Clean accepted starting checkpoint | Compare clean HEAD with `checkpoint/m3.1` before edits | PASS | M3.2 began at the committed/tagged M3.1 boundary. |
+| M3.2-T002 | T0/T1 | Full deterministic repository entry point | `./scripts/ci.sh` | PASS | Bash/data/source checks, 92 unit tests, and 16 deterministic integration tests pass without network or optional dependencies. |
+| M3.2-T003 | T1 | Complete stable step definition | Register valid/invalid/duplicate step IDs, versions, functions, and metadata | PASS | A step cannot execute unless it declares all eight contract elements; malformed or duplicate definitions fail with exit 64. |
+| M3.2-T004 | T0/T1 | Atomic private state and append-only events | Inspect directory/file modes, temporary cleanup, symlink rejection, byte snapshots, and consecutive event sets | PASS | Records use private same-directory rename; satisfied artifacts/current state remain byte-identical; later runs append collision-safe event evidence without changing earlier events. |
+| M3.2-T005 | T1 | Source record is data | Supply malformed, unknown, duplicate, permissive, and command-substitution values | PASS | Input is parsed line by line and never evaluated; invalid input fails before installer-state creation. |
+| M3.2-T006 | T1 | Independent source/host revalidation | Recheck recorded development facts and advance the advertised local ref | PASS | A moved ref returns `INSTALL_SOURCE_CHANGED` before state mutation; successful runs remain bound to the recorded commit. |
+| M3.2-T007 / V-H10 | T1 | Probe authority over advisory state | Corrupt a real marker while retaining `complete`; remove state while retaining a valid marker | PASS | Failed postconditions trigger repair; passing postconditions reconstruct advisory state without replaying action. Generic state correctness is controlled, not the future activation boundary. |
+| M3.2-T008 | T1 | Failure-code preservation | Force precondition, action, and post-action postcondition failures | PASS | Precondition/action codes are preserved and a missing postcondition after a successful action maps to stable exit 74. |
+| M3.2-T009 | T1 | Exclusive invocation and PID reuse | Construct live, stale, and same-PID/different-start lock records | PASS | A true live owner is retained and rejected; dead/prior-identity ownership is recovered; corrupt ambiguity requires manual inspection. |
+| M3.2-T010 | T1/T6 fixture | Cooperative interruption matrix | Inject TERM before/during/after each of fake steps `alpha` and `beta`, then rerun | PASS | All six cases record `interrupted`, remove tracked temporaries/owned locks, and converge to both verified postconditions on rerun. |
+| M3.2-T011 | T1/T6 fixture | Abrupt-death recovery | Inject KILL during `alpha`, inspect `running`/partial/stale lock, then rerun | PASS | Untrappable death leaves observable partial state; identity-bound stale-lock recovery and idempotent action converge without a false completion. |
+| M3.2-T012 | T1 | Bootstrap routing and milestone stop | Run valid development bootstrap normally and with `--preflight-only` | PASS | Preflight-only remains non-mutating; default invokes the engine, proves its two markers, exits `M3_3_UNAVAILABLE`, and never reaches legacy setup. |
+| M3.2-T013 | T0/T1 | Clean-checkout repeatability | No-hardlink clone of the implementation commit; fresh stdlib-only venv; `PYTHON_BIN=<venv>/bin/python ./scripts/ci.sh`; cleanliness and `git fsck --full --strict` | PENDING | Run after the implementation commit, then record the exact tested commit in this row and `IMPLEMENTATION_STATUS.md`. |
+| M3.2-T014 | T2/T3/T6 | Physical target, real source, and power loss | Supported freshly imaged Pi 5; HTTPS source; controlled power interruption and storage inspection | BLOCKED | No Raspberry Pi target is available. Fake TERM/KILL coverage cannot establish filesystem durability, target behavior, or real power-loss recovery. |
+
+M3.2 is complete at the host control-engine boundary. It performs no
+privileged or installed-system mutation, so success is not installation
+evidence. M3.3 is the only next authorized work package and must revalidate
+H-03/H-04/H-10 at immutable candidate, journal, and atomic-switch boundaries.

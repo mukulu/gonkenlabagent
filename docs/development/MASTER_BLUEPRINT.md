@@ -1,6 +1,6 @@
 # GonKenLab Agent Implementation Master Blueprint
 
-**Blueprint revision:** 1.6-implementation
+**Blueprint revision:** 1.7-implementation
 
 **Prepared:** 2026-09-08 UTC
 
@@ -10,7 +10,7 @@
 
 **Review state:** adversarial review completed in `BLUEPRINT_ADVERSARIAL_REVIEW.md`; accepted for staged implementation
 
-**Implementation authorization:** M3.1 is complete; M3.2 is the only next authorized work package
+**Implementation authorization:** M3.2 is complete; M3.3 is the only next authorized work package
 
 ## 1. Purpose and authority
 
@@ -541,10 +541,13 @@ The Ollama drop-in binds loopback, enables `OLLAMA_NO_CLOUD=1`, constrains paral
 8. never enables autologin.
 
 M3.1 implements the admission boundary for items 1, 2, 5, and 6 and writes a
-private, non-sourceable facts record only after every check passes. Items 3, 4,
-and 7 require the M3.2 step engine and are deliberately unavailable before
-that milestone; the current bootstrap never falls through to legacy
-`setup.sh`. D-056 records this staged contract.
+private, non-sourceable facts record only after every check passes. M3.2
+implements item 7 as a bounded engine handoff: it revalidates the record and
+resolved source, writes only private engine evidence, and stops at
+`M3_3_UNAVAILABLE`. Items 3 and 4 remain deliberately unavailable until M3.3
+can bind source acquisition to an immutable candidate-release contract; the
+current bootstrap never falls through to legacy `setup.sh`. D-056 and D-057
+record this staged contract.
 
 The README supports two onboarding paths:
 
@@ -766,6 +769,19 @@ fixtures.
 **Validation:** command-stub tests for root, sudo user, no sudo, unsupported OS/arch, no network, low disk, existing checkout states.
 
 #### M3.2 Step engine and install state
+
+**Implementation status (2026-09-08): COMPLETE.** `scripts/install.sh` and
+`scripts/lib/install_engine.sh` implement the stable eight-field step contract,
+strict non-evaluating M3.1 record parsing and independent host/ref
+revalidation, authoritative postcondition probes, private same-directory
+atomic state/event records, exclusive boot/PID/start-identity locking, stale
+lock recovery, cooperative cleanup traps, and opt-in test-only interruption
+points. Bootstrap now routes through the engine and stops at
+`M3_3_UNAVAILABLE`; no real provisioning occurs. Ninety-two unit tests and 16
+deterministic integration tests pass on the audit host, including all
+before/during/after boundaries for two fake steps and abrupt-kill recovery.
+Physical target and power-loss evidence remain blocked and are not inferred
+from host processes.
 
 **Files:** `scripts/install.sh`, shell library, install-state schema/tests.
 
@@ -1084,15 +1100,18 @@ They are resolved in this revision by removing core power privilege, distinguish
 
 ## 18. Exact next action
 
-Implement M3.2 only. Add `scripts/install.sh` and the stable step/state engine:
-each step must declare an ID/version, precondition, planned mutations,
-idempotent action, real postcondition, rerun behavior, and rollback implication.
-Write logs and advisory state atomically, but never trust state over probes.
-Use temporary roots and command stubs to interrupt before/during/after every
-fake step, prove rerun convergence, repair false-complete state, and preserve
-actionable exit codes and cleanup traps. Consume and revalidate the M3.1 source
-record without sourcing it as shell. Do not provision real application
-releases, Ollama, Whisper, Piper, services, or hardware and stop before M3.3.
+Implement M3.3 only. Extend the accepted M3.2 protocol with verified source
+acquisition and immutable candidate releases under temporary roots before any
+target mutation. Bind the candidate to the recorded source commit; create its
+release-local virtual environment; install only the applicable exact/hash
+locks; validate CLI/import/smoke postconditions; measure staging/release space;
+and introduce the separate prepared/switched/post-verified/rolled-back
+activation journal and reconciliation command. Interrupt before/during/after
+candidate finalization, journal replacement, atomic `current` switch, and
+post-switch validation; prove that failure never promotes a bad candidate and
+that rerun either completes a valid pending activation or restores the prior
+validated release. Do not install Ollama, Whisper, Piper, systemd services, or
+hardware rules and stop before M3.4.
 
 ## 19. Primary references
 

@@ -6,8 +6,8 @@ This file is the authoritative short handoff for a later development session. Ve
 
 - **Working branch:** `dev/bootstrap-rearchitecture`
 - **Inspected application baseline:** `6682360786135136abeb0bd2a17a9d45c6f291e7`
-- **Current control milestone:** M3.2 — Step engine and install state
-- **Blueprint revision:** 1.6-implementation
+- **Current control milestone:** M3.3 — Immutable release and activation journal
+- **Blueprint revision:** 1.7-implementation
 - **Accepted blueprint checkpoint:** `checkpoint/blueprint` (resolve its exact commit with `git rev-list -n 1 checkpoint/blueprint`)
 - **M2.1 implementation checkpoint:** `checkpoint/m2.1-license-gate` (created after the tested commit; resolve it with `git rev-list -n 1 checkpoint/m2.1-license-gate`)
 - **M2.1 completed checkpoint:** `checkpoint/m2.1` (resolve its exact commit with `git rev-list -n 1 checkpoint/m2.1`)
@@ -17,6 +17,8 @@ This file is the authoritative short handoff for a later development session. Ve
 - **M2.4 clean-checkout test commit:** `d79ac48515db7d613c0ba5a020981a3953fa0b87`
 - **M3.1 completed checkpoint:** `checkpoint/m3.1` (created after the tested commit; resolve it with `git rev-list -n 1 checkpoint/m3.1`)
 - **M3.1 clean-checkout test commit:** `29b5143febfea299454f56f05a75be06bffd790c`
+- **M3.2 completed checkpoint:** `checkpoint/m3.2` (created after the tested commit; resolve it with `git rev-list -n 1 checkpoint/m3.2`)
+- **M3.2 clean-checkout test commit:** pending final verification-record commit
 - **Last verification date:** 2026-09-08 UTC
 - **Target:** Raspberry Pi 5 4GB, Raspberry Pi OS Lite 64-bit
 - **Audit host:** Ubuntu 24.04 x86_64, Python 3.12 (not target hardware)
@@ -86,11 +88,19 @@ This file is the authoritative short handoff for a later development session. Ve
 - [x] Added the M3.1 onboarding draft and D-056; default bootstrap execution stops explicitly at `M3_2_UNAVAILABLE` until the resumable installer exists.
 - [x] Passed 81 dependency-free unit tests and six deterministic process-integration tests (87 total), including local-only Git ref resolution and failure-ordering checks.
 - [x] Completed M3.1 and authorized M3.2 as the next bounded work package.
+- [x] Added the stable, versioned install-step contract with explicit precondition, planned mutations, idempotent action, real postcondition, rerun behavior, and rollback implication.
+- [x] Made probes authoritative over advisory state: false-complete records trigger repair, while satisfied probes reconstruct missing state without replaying actions.
+- [x] Added same-directory atomic private state and immutable event records, collision-safe run IDs, cooperative temporary cleanup, and exclusive boot/PID/process-start lock ownership with conservative procfs fallback.
+- [x] Parse and independently revalidate the complete M3.1 source record without shell evaluation; moved refs and changed host/resource facts fail before installer-state mutation.
+- [x] Added controlled TERM/KILL interruption coverage at every boundary of two fake steps and proved stale-lock/partial-output convergence on rerun.
+- [x] Routed default bootstrap into the M3.2 engine while preserving an explicit `M3_3_UNAVAILABLE` stop before any real provisioning.
+- [x] Passed 92 dependency-free unit tests and 16 deterministic process-integration tests (108 total) on the audit host.
+- [x] Completed M3.2 and authorized M3.3 as the next bounded work package.
 
 ## In Progress
 
 - No implementation package is currently in progress.
-- M3.2 is the next and only authorized implementation package.
+- M3.3 is the next and only authorized implementation package.
 
 ## Not Started
 
@@ -98,8 +108,9 @@ This file is the authoritative short handoff for a later development session. Ve
 - [x] M2.3 — Dependency profiles and locks.
 - [x] M2.4 — Automated test foundation.
 - [x] M3.1 — Bootstrap preflight.
-- [ ] M3.2 — Step engine and install state.
-- [ ] M3.3–M3.6 — Immutable release and dependency/model provisioning.
+- [x] M3.2 — Step engine and install state.
+- [ ] M3.3 — Immutable release and activation journal.
+- [ ] M3.4–M3.6 — Dependency and model provisioning.
 - [ ] M4 — Runtime reliability.
 - [ ] M5 — Interaction and privacy modes.
 - [ ] M6 — Headless service and privileged operations.
@@ -118,11 +129,11 @@ The full issue descriptions and evidence are in `REPOSITORY_AUDIT.md`.
 - C-03: RESOLVED for active package/user surfaces by M2.1/V-C03. Historical documents and technical legacy detector identifiers remain explicitly isolated.
 - C-04: no custom Gonken wake-word training/artifact/evaluation chain; reassigned to governed extension X1 rather than the core release.
 - C-05: no local grounding/provenance/telemetry implementation.
-- C-06: no evidence for rerun, interruption, reboot, or unattended-readiness claims.
+- C-06: M3.2 provides deterministic control-engine rerun/interruption evidence only; real install, reboot, power-loss, and unattended-readiness evidence remain open.
 
 ### High
 
-- H-01/H-02 are resolved on active paths by M2.2. H-03/H-04 are resolved at the M3.1 preflight boundary and must be revalidated when M3.2 adds mutations. H-08 is resolved for the maintained package by M2.3. H-06 is resolved for the package foundation but reopens for every future runtime dependency addition; H-07 remains open until a real Python 3.13/AArch64 download and Pi venv pass. H-05 and H-09 through H-18 remain open.
+- H-01/H-02 are resolved on active paths by M2.2. H-03/H-04 remain resolved at the admission boundary because M3.2 performs no privileged mutation; revalidate them when M3.3 first mutates installed state. H-10 is controlled for generic step state/locking but remains open at the real release journal/switch boundary. H-08 is resolved for the maintained package by M2.3. H-06 is resolved for the package foundation but reopens for every future runtime dependency addition; H-07 remains open until a real Python 3.13/AArch64 download and Pi venv pass. H-05 and H-09 through H-18 remain open.
 
 ### Architecture gates introduced by M1B
 
@@ -157,16 +168,17 @@ The full issue descriptions and evidence are in `REPOSITORY_AUDIT.md`.
 - PyPI metadata verification passes for the exact pygame 2.6.1 CPython 3.13/AArch64 wheel filename and recorded SHA-256.
 - M3.1 suite: 81 of 81 unit tests and 6 of 6 deterministic integration tests pass, including V-H03/V-H04 privilege cases, exact platform/resource rejections, checkout preservation, local source resolution, private record permissions, and prevention of legacy installer fall-through.
 - A local no-hardlink clone of M3.1 implementation commit `29b5143febfea299454f56f05a75be06bffd790c` passed the same entry point in a fresh standard-library-only virtual environment and remained clean.
+- M3.2 suite: 92 of 92 unit tests and 16 of 16 deterministic integration tests pass, including step-contract validation, private atomic state/event writes and collision allocation, malicious-record rejection, source-ref revalidation, probe-authoritative repair, active/stale/PID-reuse locks, six cooperative interruption boundaries, abrupt-death recovery, and bootstrap routing.
 
 ## Tests Failing or Blocked
 
 - Doctor under the audit host: expected FAIL because the repository has not been provisioned there.
 - Live router and physical audio/wake manual programs: NOT RUN because their services, dependencies, devices, and recorded-environment evidence are unavailable on the audit host.
-- All Raspberry Pi ARM64 runtime, audio, GPIO, service, reboot, and failure-injection tests: BLOCKED pending implementation and target hardware.
+- All Raspberry Pi ARM64 runtime, audio, GPIO, service, reboot, physical power-loss, and real-install failure-injection tests: BLOCKED pending implementation and target hardware. M3.2 fake-step interruption coverage is T1 evidence only.
 - Networked AArch64 `pip download`, optional-UI installation/import, and the physical Pi Python 3.13 venv install: BLOCKED because this environment cannot reach the package index and has no Pi. Metadata verification is not promoted to install evidence.
 - The retained full prototype installer has not been rerun and is not an accepted installer; M3 owns its replacement.
 - Physical Raspberry Pi M3.1 preflight and a real target-to-GitHub HTTPS/ref probe remain BLOCKED; fixture and development-host success are not promoted to T2/T3 evidence.
-- `bootstrap.sh` is intentionally preflight-only until M3.2; this checkpoint is not install-ready.
+- `bootstrap.sh` now invokes the M3.2 control engine but deliberately stops at `M3_3_UNAVAILABLE`; this checkpoint is not install-ready.
 - Package publication, a public repository export, and a public portable Git ZIP: BLOCKED by the deliberate no-redistribution policy.
 - Unknown-media rights and a release-compatible Piper/voice/wake licensing plan remain release/runtime blockers, not grounds for inventing M2.3 locks.
 
@@ -209,19 +221,22 @@ Exact commands and interpretations are in `TEST_MATRIX.md`.
 - Effective-config output redacts filesystem paths and reports only source category/environment/CLI identifiers.
 - Bootstrap preflight is the sole accepted admission boundary: target facts and source identity fail closed, its record is never shell-sourced, and the retained prototype installer cannot be reached from it.
 - Initial 8 GiB free-space and approximately 3.5 GiB target-memory thresholds are conservative admission gates pending physical-Pi recalibration, not performance claims.
+- Installer step state is advisory; current postcondition probes alone determine whether an action is skipped or repaired.
+- M3.2 state/events are private atomic records, and lock ownership is bound to Linux boot ID, PID, and process start identity where procfs exposes it.
+- Verified source acquisition moves to M3.3 so it can create an immutable candidate directly; M3.2 success never means the application is installed.
 
 See `DECISIONS.md` for rationale and status.
 
 ## Next Recommended Action
 
-Implement M3.2 only. Add `scripts/install.sh` and the stable step/state engine.
-Each step must declare an ID/version, precondition, planned mutations,
-idempotent action, actual postcondition, rerun behavior, and rollback
-implication. Atomically write logs/advisory state while treating probes as the
-authority. Revalidate—never source—the M3.1 record. Use temporary roots and
-stubs to interrupt every fake-step boundary, prove convergence and repair of
-false-complete state, and preserve actionable failures. Do not install real
-releases, dependencies, models, services, or hardware; stop before M3.3.
+Implement M3.3 only. Reuse the accepted M3.2 protocol to acquire the exact
+recorded commit into an immutable candidate, build its release-local virtual
+environment from applicable exact/hash locks, and add the separate durable
+activation journal with prepared/switched/post-verified/rolled-back states.
+Interrupt candidate finalization, journal replacement, the atomic `current`
+switch, and post-switch validation; prove a bad candidate is never promoted and
+rerun completes or restores a prior validated release. Do not install Ollama,
+Whisper, Piper, systemd services, or hardware rules; stop before M3.4.
 
 ## Session Start Protocol
 

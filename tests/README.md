@@ -28,3 +28,9 @@ Manual results do not become regression evidence merely because a script exits
 zero. Record the environment and relevant tier in the test matrix. Raspberry
 Pi, reboot/recovery, and failure-injection suites will be added by the
 milestones that implement those boundaries.
+
+M3.2 adds deterministic process failure injection through the tracked install
+engine harness. `GONKEN_ENABLE_TEST_FAILURES=1` is required before its
+before/during/after TERM or KILL controls become active; production installer
+steps never set that gate. These tests establish host control-flow recovery,
+not Raspberry Pi storage durability or physical power-loss behavior.
