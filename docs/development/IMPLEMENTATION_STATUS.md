@@ -16,6 +16,7 @@ This file is the authoritative short handoff for a later development session. Ve
 - **M2.4 completed checkpoint:** `checkpoint/m2.4` (created after the tested commit; resolve it with `git rev-list -n 1 checkpoint/m2.4`)
 - **M2.4 clean-checkout test commit:** `d79ac48515db7d613c0ba5a020981a3953fa0b87`
 - **M3.1 completed checkpoint:** `checkpoint/m3.1` (created after the tested commit; resolve it with `git rev-list -n 1 checkpoint/m3.1`)
+- **M3.1 clean-checkout test commit:** `29b5143febfea299454f56f05a75be06bffd790c`
 - **Last verification date:** 2026-09-08 UTC
 - **Target:** Raspberry Pi 5 4GB, Raspberry Pi OS Lite 64-bit
 - **Audit host:** Ubuntu 24.04 x86_64, Python 3.12 (not target hardware)
@@ -155,6 +156,7 @@ The full issue descriptions and evidence are in `REPOSITORY_AUDIT.md`.
 - Isolated installed-core import passes with pygame and openWakeWord absent; CLI status remains honestly not runtime-ready.
 - PyPI metadata verification passes for the exact pygame 2.6.1 CPython 3.13/AArch64 wheel filename and recorded SHA-256.
 - M3.1 suite: 81 of 81 unit tests and 6 of 6 deterministic integration tests pass, including V-H03/V-H04 privilege cases, exact platform/resource rejections, checkout preservation, local source resolution, private record permissions, and prevention of legacy installer fall-through.
+- A local no-hardlink clone of M3.1 implementation commit `29b5143febfea299454f56f05a75be06bffd790c` passed the same entry point in a fresh standard-library-only virtual environment and remained clean.
 
 ## Tests Failing or Blocked
 
