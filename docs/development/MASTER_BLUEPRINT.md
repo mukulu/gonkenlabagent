@@ -1,6 +1,6 @@
 # GonKenLab Agent Implementation Master Blueprint
 
-**Blueprint revision:** 1.1-reviewed
+**Blueprint revision:** 1.2-implementation
 
 **Prepared:** 2026-09-08 UTC
 
@@ -10,7 +10,7 @@
 
 **Review state:** adversarial review completed in `BLUEPRINT_ADVERSARIAL_REVIEW.md`; accepted for staged implementation
 
-**Implementation authorization:** M2.1 is authorized; later work remains bound to milestone prerequisites and acceptance evidence
+**Implementation authorization:** M2.1 is complete under a no-redistribution policy; M2.2 is the only next authorized work package
 
 ## 1. Purpose and authority
 
@@ -366,6 +366,12 @@ Whisper source is pinned to an immutable commit corresponding to the accepted re
 
 Before redistribution, record licenses/provenance for source code, face PNGs, filler WAVs, Piper package and voice, Whisper model, Qwen model, and every extension artifact/data source. Current maintained Piper is GPL-3.0-or-later and individual voice licenses vary; M2.1 must therefore create the inventory and record a maintainer-approved project/distribution license decision before a redistributable package is claimed. An artifact with unclear or incompatible redistribution rights is excluded or downloaded separately under an accepted policy. README cannot claim MIT coverage over third-party assets without qualification.
 
+M2.1 closes for continued private development through D-050/D-051: no project
+license is granted, redistribution is prohibited, unknown media is quarantined,
+and noncommercial artifacts are legacy internal-evaluation inputs only. This
+does not satisfy the future release license gate; it prevents a false release
+claim while allowing configuration work to proceed.
+
 ## 9. Runtime architecture
 
 ### 9.1 State machine
@@ -635,10 +641,12 @@ Each milestone below is a maximum scope, not an instruction to force all its ite
 
 #### M2.1 Package and identity normalization
 
-**Implementation status (2026-09-08):** package/CLI, compatibility boundary,
-identity normalization, extension isolation, inventory, and host validation are
-implemented. The required maintainer project-license decision and unknown-media
-disposition remain BLOCKED; do not begin M2.2 or claim M2.1 complete.
+**Implementation status (2026-09-08): COMPLETE.** Package/CLI, compatibility
+boundary, identity normalization, extension isolation, inventory, and host
+validation are implemented. The project deliberately grants no license and
+prohibits redistribution; unknown media and noncommercial artifacts are
+quarantined from packages/releases/public exports. Release licensing remains a
+later blocker, but M2.2 may proceed.
 
 **Files:** `pyproject.toml`, `src/gonken_agent/**`, compatibility `orchestrator.py`, package `__init__` files, prompts, README references.
 
@@ -1005,18 +1013,19 @@ All 18 mandatory attack questions were adjudicated in `BLUEPRINT_ADVERSARIAL_REV
 - undefined power-loss behavior around activation;
 - combined core/experimental scope.
 
-They are resolved in this revision by removing core power privilege, distinguishing convergent provisioning from project-atomic activation, specifying a durable activation journal/pre-start reconciliation contract, and separating X1–X4 from core release gates. No Critical M1B issue remains open. AR-19 licensing remains a High release gate assigned to M2.1; it requires an explicit maintainer-approved decision rather than an invented M1B license choice.
+They are resolved in this revision by removing core power privilege, distinguishing convergent provisioning from project-atomic activation, specifying a durable activation journal/pre-start reconciliation contract, and separating X1–X4 from core release gates. No Critical M1B issue remains open. AR-19 remains a High release gate: M2.1 resolved its development disposition through an explicit no-redistribution policy, but a future public release still requires maintainer-approved licensing and provenance.
 
 ## 18. Exact next action
 
-Close the M2.1 licensing gate before beginning M2.2. The maintainer must attest
-authority for project source/documentation and either approve a project license
-or explicitly retain no-redistribution status. Then remove/replace or document
-rights for every PNG/WAV listed in `packaging/provenance.toml`, decide how the
-GPL Piper runtime and noncommercial voice/wake artifacts are handled, update
-`LICENSE_PROVENANCE.md`, package metadata, decisions, status, and tests, and
-commit the result. Do not claim a release or advance to M2.2 while this gate is
-open.
+Implement M2.2 only. Add `config/defaults.toml` and a typed
+`src/gonken_agent/config.py` authority with strict schema validation and the
+documented defaults → site TOML → `GONKEN_*` environment → one-shot CLI
+precedence. Add redacted human/JSON effective-config output, deterministic
+legacy JSON/`.env` migration without destructive rewrite, safe path handling,
+and rejection of unknown keys, unsupported extensions, and non-loopback core
+dashboard binds. Add table-driven dependency-free tests for every field,
+precedence, invalid input, redaction, and repeat migration; update all control
+documents and commit before M2.3.
 
 ## 19. Primary references
 

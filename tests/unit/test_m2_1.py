@@ -118,6 +118,8 @@ class CliTests(unittest.TestCase):
         self.assertEqual(payload["product"], "GonKenLab Agent")
         self.assertIs(payload["core_runtime_ready"], False)
         self.assertIs(payload["redistribution_approved"], False)
+        self.assertEqual(payload["redistribution_policy"], "prohibited")
+        self.assertEqual(payload["package_foundation"], "complete")
         self.assertEqual(set(payload["extensions"].values()), {"disabled"})
 
     def test_packaged_run_refuses_to_claim_runtime_readiness(self) -> None:
@@ -215,6 +217,11 @@ class ProvenanceTests(unittest.TestCase):
             self.assertEqual(record["provenance"], "unknown")
             self.assertEqual(record["license"], "NOASSERTION")
 
+        self.assertIn(
+            "quarantined internal compatibility evidence",
+            inventory["unknown_media_policy"],
+        )
+
     def test_every_legacy_requirement_is_inventory_tracked(self) -> None:
         requirements = {
             re.split(r"[<>=!~\[]", line, maxsplit=1)[0].strip().lower()
@@ -235,9 +242,26 @@ class ProvenanceTests(unittest.TestCase):
         project = load_toml(ROOT / "pyproject.toml")["project"]
 
         self.assertEqual(inventory["project_source_license"], "NOASSERTION")
+        self.assertEqual(
+            inventory["project_license_status"],
+            "intentionally-unlicensed-no-redistribution",
+        )
         self.assertIs(inventory["redistribution_approved"], False)
+        self.assertTrue(inventory["redistribution_policy"].startswith("prohibited"))
         self.assertNotIn("license", project)
         self.assertEqual(project["dependencies"], [])
+
+    def test_no_redistribution_policy_is_consistent_across_surfaces(self) -> None:
+        status = cli._status()
+        readme = (ROOT / "README.md").read_text(encoding="utf-8").lower()
+        provenance = (ROOT / "docs/development/LICENSE_PROVENANCE.md").read_text(
+            encoding="utf-8"
+        ).lower()
+
+        self.assertIs(status["redistribution_approved"], False)
+        self.assertEqual(status["redistribution_policy"], "prohibited")
+        self.assertIn("prohibits redistribution", readme)
+        self.assertIn("no redistribution", provenance)
 
 
 if __name__ == "__main__":

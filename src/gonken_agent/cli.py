@@ -20,9 +20,10 @@ def _status() -> dict[str, object]:
         "product": IDENTITY.product_name,
         "package": IDENTITY.package_name,
         "version": __version__,
-        "milestone": "M2.1",
+        "package_foundation": "complete",
         "core_runtime_ready": False,
         "redistribution_approved": False,
+        "redistribution_policy": "prohibited",
         "extensions": {
             "wake_word": "disabled",
             "voice_power": "disabled",
@@ -77,7 +78,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         else:
             print(f"{status['product']} {status['version']}")
             print("Core runtime: not yet implemented through the package boundary")
-            print("Redistribution: not approved; licensing decision pending")
+            print("Redistribution: prohibited; no project license is granted")
             print("Extensions: disabled")
         return 0
     if args.command == "run":
