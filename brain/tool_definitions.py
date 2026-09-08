@@ -1,5 +1,5 @@
 """
-Tool definitions for Qwen2.5 function calling.
+Tool definitions for the legacy local-model function-calling path.
 """
 
 TOOLS = [

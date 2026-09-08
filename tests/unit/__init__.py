@@ -1,1 +1,1 @@
-"""Dependency-free host tests for the package migration."""
+"""Dependency-free deterministic host unit tests."""

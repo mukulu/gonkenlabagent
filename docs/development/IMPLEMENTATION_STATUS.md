@@ -6,13 +6,14 @@ This file is the authoritative short handoff for a later development session. Ve
 
 - **Working branch:** `dev/bootstrap-rearchitecture`
 - **Inspected application baseline:** `6682360786135136abeb0bd2a17a9d45c6f291e7`
-- **Current control milestone:** M2.4 — Automated test foundation
-- **Blueprint revision:** 1.4-implementation
+- **Current control milestone:** M3.1 — Bootstrap preflight
+- **Blueprint revision:** 1.5-implementation
 - **Accepted blueprint checkpoint:** `checkpoint/blueprint` (resolve its exact commit with `git rev-list -n 1 checkpoint/blueprint`)
 - **M2.1 implementation checkpoint:** `checkpoint/m2.1-license-gate` (created after the tested commit; resolve it with `git rev-list -n 1 checkpoint/m2.1-license-gate`)
 - **M2.1 completed checkpoint:** `checkpoint/m2.1` (resolve its exact commit with `git rev-list -n 1 checkpoint/m2.1`)
 - **M2.2 completed checkpoint:** `checkpoint/m2.2` (resolve its exact commit with `git rev-list -n 1 checkpoint/m2.2`)
 - **M2.3 completed checkpoint:** `checkpoint/m2.3` (resolve its exact commit with `git rev-list -n 1 checkpoint/m2.3`)
+- **M2.4 completed checkpoint:** `checkpoint/m2.4` (created after the tested commit; resolve it with `git rev-list -n 1 checkpoint/m2.4`)
 - **Last verification date:** 2026-09-08 UTC
 - **Target:** Raspberry Pi 5 4GB, Raspberry Pi OS Lite 64-bit
 - **Audit host:** Ubuntu 24.04 x86_64, Python 3.12 (not target hardware)
@@ -65,17 +66,25 @@ This file is the authoritative short handoff for a later development session. Ve
 - [x] Verified the selected pygame 2.6.1 CPython 3.13/AArch64 wheel filename and PyPI SHA-256 without claiming a download or Pi install.
 - [x] Passed 51 dependency-free host tests, deterministic lock verification, license reporting, an isolated clean wheel install, `pip check`, and core import with pygame/openWakeWord absent.
 - [x] Completed M2.3 and authorized M2.4 as the next bounded work package.
+- [x] Reclassified all three inherited interactive probes into explicit live-integration or physical-hardware programs outside automated discovery.
+- [x] Added `scripts/ci.sh` as the single dependency-free T0/T1 entry point; it installs nothing and initiates no network, Ollama, model, audio, GPIO, or privilege operation.
+- [x] Added deterministic fake-client and JSON fixtures for legacy router behavior and process-boundary integration coverage for the maintained CLI.
+- [x] Corrected the joke-route expectation to `get_joke`, made phrase matching reject substrings, and removed the unsupported spoken wake-phrase claim from the manual probe.
+- [x] Added opt-in guards that exit 2 before optional imports when manual/live programs are invoked unintentionally.
+- [x] Passed 63 unit tests and three deterministic integration tests from the repository entry point.
+- [x] Recorded D-055: retain pytest-discoverable structure while the exact empty dev profile uses `unittest`; do not claim an unavailable pytest execution.
+- [x] Completed M2.4 and authorized M3.1 as the next bounded work package.
 
 ## In Progress
 
 - No implementation package is currently in progress.
-- M2.4 is the next and only authorized implementation package.
+- M3.1 is the next and only authorized implementation package.
 
 ## Not Started
 
 - [x] M2.2 — Configuration authority and migration.
 - [x] M2.3 — Dependency profiles and locks.
-- [ ] M2.4 — Automated test foundation.
+- [x] M2.4 — Automated test foundation.
 - [ ] M3 — Idempotent provisioning.
 - [ ] M4 — Runtime reliability.
 - [ ] M5 — Interaction and privacy modes.
@@ -126,6 +135,8 @@ The full issue descriptions and evidence are in `REPOSITORY_AUDIT.md`.
 - Installer, doctor, compatibility runtime, and Ollama CLI/client configuration-convergence checks pass without invoking hardware or network.
 - Isolated offline wheel build/install passes; the installed CLI locates shipped defaults outside the checkout and reports the Qwen 3.5 authority.
 - M2.3 standard-library host suite: 51 of 51 tests pass, including profile boundaries, deterministic lock rendering, exact hashes, blocked-profile behavior, and machine-readable license reporting.
+- M2.4 repository entry point: 63 of 63 unit tests and 3 of 3 deterministic process-integration tests pass (66 total), with automated/manual boundaries enforced by regression tests.
+- The live Ollama router, microphone/speaker pipeline, and wake detector programs all fail closed with exit 2 before importing optional dependencies unless their explicit opt-in variable is set.
 - Clean x86/Python 3.12 dev-lock and wheel install passes without `--ignore-requires-python`; `pip check` reports no broken requirements.
 - Isolated installed-core import passes with pygame and openWakeWord absent; CLI status remains honestly not runtime-ready.
 - PyPI metadata verification passes for the exact pygame 2.6.1 CPython 3.13/AArch64 wheel filename and recorded SHA-256.
@@ -133,7 +144,7 @@ The full issue descriptions and evidence are in `REPOSITORY_AUDIT.md`.
 ## Tests Failing or Blocked
 
 - Doctor under the audit host: expected FAIL because the repository has not been provisioned there.
-- Router/wake/smoke scripts under the audit host: dependency/runtime unavailable.
+- Live router and physical audio/wake manual programs: NOT RUN because their services, dependencies, devices, and recorded-environment evidence are unavailable on the audit host.
 - All Raspberry Pi ARM64 runtime, audio, GPIO, service, reboot, and failure-injection tests: BLOCKED pending implementation and target hardware.
 - Networked AArch64 `pip download`, optional-UI installation/import, and the physical Pi Python 3.13 venv install: BLOCKED because this environment cannot reach the package index and has no Pi. Metadata verification is not promoted to install evidence.
 - The retained full prototype installer has not been rerun and is not an accepted installer; M3 owns its replacement.
@@ -170,7 +181,8 @@ Exact commands and interpretations are in `TEST_MATRIX.md`.
 - Package metadata makes no license claim; the maintained headless core remains dependency-free until runtime dependencies are selected and verified.
 - Exact locks are generated from `requirements/profiles.toml`; all accepted locks require hashes and wheels, while blocked profiles deliberately have no lock.
 - Python 3.12 is a supported host-development interpreter; the production target remains Python 3.13 on Trixie/AArch64.
-- M2.1 host tests use `unittest` so this package-boundary check itself adds no dependency; D-029’s planned pytest architecture remains assigned to M2.4.
+- M2.1 used `unittest` as a transitional dependency-free runner; M2.4 resolved the runner choice under D-055.
+- M2.4 retains `unittest` as the executable dependency-free runner under D-055; pytest-compatible naming is preserved, but pytest has not been installed or claimed.
 - No project license is granted; continued work is private development and redistribution remains prohibited until a later explicit decision.
 - Unknown PNG/WAV media and noncommercial voice/wake artifacts are quarantined from packages, releases, and public exports.
 - `config/defaults.toml` is the only active default-value authority; legacy JSON and `.env` are never loaded by normal runtime.
@@ -181,12 +193,13 @@ See `DECISIONS.md` for rationale and status.
 
 ## Next Recommended Action
 
-Implement M2.4 only. Classify the legacy interactive/manual probes, establish
-deterministic unit and integration boundaries, add one repository test entry
-point, and correct the known router/joke and wake-phrase test contradictions.
-Keep T0/T1 independent of network, models, Ollama, audio, GPIO, pygame, and
-governed extensions. Preserve M2.3 locks and blocked profiles, update every
-control document, commit, and stop before M3.
+Implement M3.1 only. Build the bootstrap preflight and command-stub tests:
+resolve root versus the invoking sudo user; verify the exact supported Raspberry
+Pi OS/Trixie/AArch64/Python contract; validate disk, RAM, time, network, and
+required commands before mutation; record the requested source/ref; reject
+conflicting tracked or untracked checkout state; and create a safe staging
+location. All failures must be noninteractive, diagnostic, and occur before
+privileged project mutation. Stop before M3.2.
 
 ## Session Start Protocol
 

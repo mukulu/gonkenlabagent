@@ -4,12 +4,22 @@ Includes text-based tool detection fallback for smaller models.
 """
 
 import re
-from typing import Optional, Tuple, Any
+from typing import Any, Optional, Protocol, Tuple
 from dataclasses import dataclass
 from enum import Enum
 
-from .ollama_client import OllamaClient, ChatResponse
 from .tool_definitions import TOOLS, SYSTEM_PROMPT
+
+
+class ChatClient(Protocol):
+    """Minimal boundary required by the legacy router."""
+
+    def chat(
+        self,
+        messages: list[dict[str, str]],
+        tools: Optional[list[dict[str, Any]]] = None,
+        stream: bool = False,
+    ) -> Any: ...
 
 
 class ToolType(Enum):
@@ -48,16 +58,23 @@ class Router:
         "help", "what can you do",
     ]
 
-    def __init__(self, ollama_client: OllamaClient):
+    def __init__(self, ollama_client: ChatClient):
         self.client = ollama_client
         self.conversation_history = []
+
+    @staticmethod
+    def _contains_phrase(text: str, phrase: str) -> bool:
+        """Match a phrase without treating substrings as whole words."""
+        return re.search(
+            rf"(?<!\w){re.escape(phrase)}(?!\w)", text, re.IGNORECASE
+        ) is not None
 
     def _is_local_chat(self, user_input: str) -> bool:
         """Check if the input is simple enough for the local model."""
         user_lower = user_input.lower().strip()
         # Short greetings / simple chat
         for phrase in self.LOCAL_PHRASES:
-            if phrase in user_lower:
+            if self._contains_phrase(user_lower, phrase):
                 return True
         # Very short inputs (1-3 words) that aren't questions are likely greetings
         words = user_lower.split()
@@ -72,10 +89,10 @@ class Router:
         # Also match common synonyms
         synonyms = {"tech": "technology", "sport": "sports", "medical": "health"}
         for synonym, category in synonyms.items():
-            if synonym in user_lower:
+            if self._contains_phrase(user_lower, synonym):
                 return category
         for cat in categories:
-            if cat in user_lower:
+            if self._contains_phrase(user_lower, cat):
                 return cat
         return ""
 
@@ -110,25 +127,25 @@ class Router:
 
         # Priority 2: Check for specific phrases in user input
         for phrase in self.TIME_PHRASES:
-            if phrase in user_lower:
+            if self._contains_phrase(user_lower, phrase):
                 return ToolType.TIME, {}
 
         for phrase in self.WEATHER_PHRASES:
-            if phrase in user_lower:
+            if self._contains_phrase(user_lower, phrase):
                 location = self._extract_location(user_input, "")
                 return ToolType.WEATHER, {"location": location}
 
         for phrase in self.NEWS_PHRASES:
-            if phrase in user_lower:
+            if self._contains_phrase(user_lower, phrase):
                 category = self._extract_news_category(user_input)
                 return ToolType.NEWS, {"category": category}
 
         for phrase in self.JOKE_PHRASES:
-            if phrase in user_lower:
+            if self._contains_phrase(user_lower, phrase):
                 return ToolType.JOKE, {}
 
         for phrase in self.SYSTEM_PHRASES:
-            if phrase in user_lower:
+            if self._contains_phrase(user_lower, phrase):
                 return ToolType.SYSTEM_STATUS, {}
 
         # Priority 3: If it's simple chat, keep local

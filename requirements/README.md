@@ -56,8 +56,7 @@ python3.12 -m venv /tmp/gonken-m2.3-host
 /tmp/gonken-m2.3-host/bin/python -m pip install \
   --no-index --no-deps /tmp/gonken-m2.3-wheels/gonkenlab_agent-*.whl
 /tmp/gonken-m2.3-host/bin/python -m pip check
-PYTHONPATH=src /tmp/gonken-m2.3-host/bin/python -m unittest discover \
-  -s tests/unit -v
+PYTHON_BIN=/tmp/gonken-m2.3-host/bin/python ./scripts/ci.sh
 ```
 
 The optional UI profile requires its wheel to be downloaded into a controlled

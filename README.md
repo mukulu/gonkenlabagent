@@ -99,15 +99,18 @@ until their independent acceptance gates pass.
 
 ## Testing
 
-M2.3 host tests require no model, network, audio, GPIO, or optional extension:
+M2.4 provides one default T0/T1 entry point. It requires no model, network,
+Ollama, audio, GPIO, pygame, root access, or governed extension:
 
 ```bash
-PYTHONPATH=src python -m unittest discover -s tests/unit -v
+./scripts/ci.sh
 ```
 
-Hardware and installer scripts under `tests/` remain legacy/manual probes until
-M2.4 classifies and restructures them. Results are meaningful only when the
-environment recorded in `docs/development/TEST_MATRIX.md` matches the test tier.
+Interactive audio/wake checks live under `tests/hardware/`; the live Ollama
+router observation lives under `tests/integration/manual/`. Each requires a
+specific opt-in variable and is excluded from automated discovery. Results are
+meaningful only when the environment recorded in
+`docs/development/TEST_MATRIX.md` matches the test tier. See `tests/README.md`.
 
 ## Licensing and redistribution
 
