@@ -273,3 +273,131 @@ The master-blueprint review must resolve:
 - **Decision:** Decide in M9 whether audit/blueprint/status/test/decision documents remain in `main`, are condensed, or are excluded from the production tree.
 - **Reason:** They are currently necessary for session resilience and accountable development; their final audience is not yet known.
 - **Consequence:** Do not remove or rewrite them merely to simplify intermediate diffs.
+
+## D-031 — Separate the core release from governed extensions
+
+- **Status:** Accepted
+- **Date:** 2026-09-08
+- **Decision:** The core release requires USB audio, push-to-talk, recording LED, local STT/retrieval/LLM/TTS, provenance, content-free telemetry, loopback dashboard, systemd, and lifecycle operations. Wake word, voice power, direct LAN dashboard, and Bluetooth are extensions X1–X4 with independent gates.
+- **Reason:** M1B found that combining all desired features made experimental privacy/security risks obscure the feasible research contribution described in the supplied feasibility blueprint.
+- **Consequence:** Extension failure cannot block or weaken the core release, and extension dependencies/privileges do not enter the core profile.
+
+## D-032 — Confirm Trixie/Python 3.13 as the single core target
+
+- **Status:** Accepted; resolves D-028
+- **Date:** 2026-09-08
+- **Decision:** Target current Raspberry Pi OS Lite 64-bit based on Debian 13 Trixie and its distribution Python 3.13, without assuming an exact patch release.
+- **Reason:** Current Raspberry Pi documentation identifies Trixie as the latest OS base, and Debian Trixie publishes Python 3.13 as default. Supporting a second OS generation before one clean target passes would multiply unresolved ARM dependency paths.
+- **Consequence:** Preflight records exact image/package/systemd versions and fails before mutation on unsupported platforms; real Pi evidence remains mandatory.
+
+## D-033 — Use local-software and conventional service paths
+
+- **Status:** Accepted; supersedes D-019
+- **Date:** 2026-09-08
+- **Decision:** Use `/usr/local/lib/gonken-agent` for immutable releases, `/usr/local/bin/gonken-agent` as the stable entry point, `/etc/gonken-agent` for configuration, `/var/lib/gonken-agent` for state, `/srv/gonken-agent/corpus` for the administrator-visible corpus, and system cache/runtime paths.
+- **Reason:** This is easier to administer and integrates more naturally with systemd-managed directories than an `/opt` + `/etc/opt` + `/var/opt` split while preserving root-owned code and separate state.
+- **Consequence:** M3/M6 tests must verify mixed ownership, read-only release code, exact writable paths, and uninstall retention.
+
+## D-034 — Retain at most two release-local virtual environments
+
+- **Status:** Accepted with evidence gate; resolves D-018
+- **Date:** 2026-09-08
+- **Decision:** Keep the active and one previous validated release, each with its own venv. Require measured staging headroom and report release size before activation.
+- **Reason:** Dependency rollback is otherwise unreliable, but unbounded release retention is inappropriate for microSD storage.
+- **Consequence:** Low-space preflight blocks staging; failed candidates are captured for diagnosis and then safely cleaned.
+
+## D-035 — Verify named Ollama release assets and model digests
+
+- **Status:** Accepted
+- **Date:** 2026-09-08
+- **Decision:** Install a named stable Ollama ARM64 release only after validating its upstream-published SHA-256. Record the configured model tag and local digest; any digest change is an explicit update requiring revalidation.
+- **Reason:** Official releases publish asset checksums and the model API exposes digests, so a mutable privileged `curl | sh` path is unnecessary.
+- **Consequence:** M3 records the selected Ollama version/checksum after target validation; the blueprint does not freeze whichever release happened to be newest during review.
+
+## D-036 — Keep the core independent of openWakeWord
+
+- **Status:** Accepted
+- **Date:** 2026-09-08
+- **Decision:** Treat openWakeWord as the first candidate for X1, not a core dependency or predetermined backend. Select it only after a Python 3.13/AArch64, licensing, maintenance, and inference spike.
+- **Reason:** Current upstream guidance supports custom training, but current issue evidence includes notebook, Raspberry Pi installation, false-positive, and license questions.
+- **Consequence:** Core locks contain no wake dependencies; X1 uses a backend-neutral adapter and separate lock/model card.
+
+## D-037 — Require a distinct continuous-monitoring indicator for wake mode
+
+- **Status:** Accepted
+- **Date:** 2026-09-08
+- **Decision:** The red LED continues to mean only active utterance recording. Enabling X1 additionally requires a second physical indicator that is on whenever continuous wake sampling is active.
+- **Reason:** Local/in-memory processing reduces data exposure but does not remove the ethically relevant fact that the microphone is continuously sampled.
+- **Consequence:** A dashboard icon or documentation alone is not sufficient for GX1.
+
+## D-038 — Give the core runtime no host-power privilege
+
+- **Status:** Accepted; supersedes D-027 for the core release
+- **Date:** 2026-09-08
+- **Decision:** Do not install core sudoers, polkit, capabilities, or a helper that allows the service account to power off/reboot. X2 may proceed only with independent physical confirmation and a separately reviewed root helper.
+- **Reason:** Two voice phrases reduce accidental STT activation but do not constrain a compromised network/audio-facing service account.
+- **Consequence:** Core security tests prove absence of power authority. SSH/physical host controls remain the supported operations path.
+
+## D-039 — Use `Type=exec` and no core watchdog
+
+- **Status:** Accepted
+- **Date:** 2026-09-08
+- **Decision:** The first service unit uses `Type=exec`, bounded `Restart=on-failure`, and application health/doctor interfaces. It does not implement `sd_notify` or `WatchdogSec`.
+- **Reason:** No dependent unit currently requires application-level readiness, and no measured hang mode yet justifies heartbeat complexity.
+- **Consequence:** Notification/watchdog support requires later evidence and tests; it cannot be added as ornamental hardening.
+
+## D-040 — Restrict the core dashboard to loopback
+
+- **Status:** Accepted; resolves D-026
+- **Date:** 2026-09-08
+- **Decision:** Core configuration rejects non-loopback dashboard binds. SSH forwarding is the supported laptop access path. Direct LAN/phone access is X3.
+- **Reason:** A read-only interface can still expose transcripts, institutional filenames, sources, and health data; authentication without a transport/threat model is insufficient.
+- **Consequence:** X3 must decide authentication, transport, token lifecycle, rate limiting, and browser-origin behavior before non-loopback binding.
+
+## D-041 — Describe package installation as convergent, not transactional
+
+- **Status:** Accepted
+- **Date:** 2026-09-08
+- **Decision:** APT/dpkg, pip downloads, and Ollama pulls use postcondition-driven detection, repair, and rerun. Atomic rollback claims apply only to project-owned release/config/index activation.
+- **Reason:** Linux package managers and shared model stores cannot be truthfully rolled back as part of one project transaction.
+- **Consequence:** Documentation and tests distinguish external provisioning recovery from project release rollback.
+
+## D-042 — Use a durable activation journal and pre-start reconciliation
+
+- **Status:** Accepted
+- **Date:** 2026-09-08
+- **Decision:** Root-owned activation state records candidate, previous release, and phase. Durable writes use same-filesystem staging and atomic replacement; pre-start reconciliation completes or restores an interrupted activation before the app starts.
+- **Reason:** Atomic rename prevents torn pointers but does not by itself explain power loss after switching and before post-restart health validation.
+- **Consequence:** M3/M8 failure tests interrupt every journal/write/switch/restart boundary; corrupt ambiguity fails visibly.
+
+## D-043 — Retain BM25 only behind a frozen retrieval evaluation
+
+- **Status:** Accepted
+- **Date:** 2026-09-08
+- **Decision:** Use deterministic lexical retrieval first, with at least 40 answerable and 20 unanswerable frozen questions. Initial targets are hit@3 ≥85%, unsupported-answer abstention ≥90%, and valid-source-ID coverage 100%.
+- **Reason:** BM25 is proportionate for a bounded text corpus, but architectural simplicity is not evidence of adequate retrieval or grounded answers.
+- **Consequence:** Thresholds and index configuration are frozen before final evaluation; a more complex retriever requires measured failure and a new decision.
+
+## D-044 — Make licensing an M2.1 governance gate
+
+- **Status:** Accepted gate; exact project license pending maintainer decision
+- **Date:** 2026-09-08
+- **Decision:** Build a source/assets/dependencies inventory in M2.1 and obtain explicit maintainer approval for the project/distribution license before claiming a redistributable package.
+- **Reason:** Piper is GPL-3.0-or-later, individual voices vary, and other models/assets have separate terms. M1B should not invent the maintainer's licensing choice.
+- **Consequence:** Unknown bundled provenance or an unresolved project-license decision blocks release but does not block creation of the package/test skeleton.
+
+## D-045 — Separate transient provenance display from persistent content logging
+
+- **Status:** Accepted
+- **Date:** 2026-09-08
+- **Decision:** Persistent telemetry is content-free by default. The loopback dashboard may optionally display current/last transcript, answer, and escaped source excerpts from memory; restart clears them. Persistence remains explicit research mode.
+- **Reason:** Students need inspectable provenance, but observability does not require default retention of speech or generated content.
+- **Consequence:** Tests verify that transient display content never enters telemetry/support bundles and that absolute paths/usernames are redacted.
+
+## D-046 — Assign planned verification IDs to every Critical/High audit finding
+
+- **Status:** Accepted
+- **Date:** 2026-09-08
+- **Decision:** Blueprint Section 15 maps each C/H finding to a stable planned verification ID and core/extension disposition.
+- **Reason:** A milestone reference alone can create apparent traceability without an executable acceptance test.
+- **Consequence:** Implementation sessions must preserve these IDs in `TEST_MATRIX.md`, replacing planned procedures with exact commands/results as tests are created and run.
