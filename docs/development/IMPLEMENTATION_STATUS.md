@@ -6,8 +6,9 @@ This file is the authoritative short handoff for a later development session. Ve
 
 - **Working branch:** `dev/bootstrap-rearchitecture`
 - **Inspected application baseline:** `6682360786135136abeb0bd2a17a9d45c6f291e7`
-- **Current control milestone:** M0 — Audit and control plane
-- **Blueprint revision:** not yet created
+- **Current control milestone:** M1 — Master blueprint and adversarial review
+- **Blueprint revision:** 1.0-draft
+- **Current draft checkpoint:** `checkpoint/blueprint-draft` (resolve its exact commit with `git rev-list -n 1 checkpoint/blueprint-draft`)
 - **Last verification date:** 2026-09-08 UTC
 - **Target:** Raspberry Pi 5 4GB, Raspberry Pi OS Lite 64-bit
 - **Audit host:** Ubuntu 24.04 x86_64, Python 3.12 (not target hardware)
@@ -22,14 +23,19 @@ This file is the authoritative short handoff for a later development session. Ve
 - [x] Established a persistent test matrix and decision log.
 - [x] Confirmed the official Ollama tag `qwen3.5:2b-q4_K_M` exists.
 - [x] Made no runtime/application-code changes during M0.
+- [x] Completed M0 documentation commit `f71c371` and tag `checkpoint/audit`.
+- [x] Created implementation-grade `MASTER_BLUEPRINT.md` revision 1.0-draft.
+- [x] Mapped every Critical and High audit finding to implementation work and acceptance gates.
+- [x] Resolved the audit’s deferred architecture questions at accepted, provisional, or explicitly deferred status.
+- [x] Preserved M1A as documentation-only; no runtime code was changed.
+- [x] Committed M1A as `docs: add implementation master blueprint` and tagged it `checkpoint/blueprint-draft`.
 
 ## In Progress
 
-- None. M0 is complete once its documentation commit and checkpoint tag exist.
+- [ ] M1B — adversarial architecture review of blueprint revision 1.0-draft.
 
 ## Not Started
 
-- [ ] M1 — Master blueprint and adversarial review.
 - [ ] M2 — Packaging/configuration/state foundation.
 - [ ] M3 — Idempotent provisioning.
 - [ ] M4 — Runtime reliability.
@@ -86,12 +92,18 @@ Exact commands and interpretations are in `TEST_MATRIX.md`.
 - Installer/runtime model settings must converge on one authority.
 - A custom wake phrase cannot be advertised unless its matching model is loaded and validated.
 - Voice shutdown/reboot cannot be implemented as arbitrary LLM-generated shell execution.
+- GonKenLab Agent is the single product identity; Jansky/Jarvis/Mayukh behavior will be removed from active code and documentation.
+- Offline governs normal runtime; internet is permitted only for explicit installation/update operations.
+- Push-to-talk is the mandatory reliable path; “Hey Gonken” remains disabled until its evaluation gate passes.
+- Local grounding, provenance, content-free telemetry, and a read-only dashboard are release scope.
+- USB audio is the supported release path; Bluetooth is experimental until separately accepted.
+- Installed runtime will use a dedicated non-login service account and will not own application code.
 
 See `DECISIONS.md` for rationale and status.
 
 ## Next Recommended Action
 
-Create and adversarially review `docs/development/MASTER_BLUEPRINT.md` according to Section 16 of `REPOSITORY_AUDIT.md`. Do not change runtime code before the reviewed blueprint resolves product scope, filesystem/ownership, configuration authority, privacy modes, service boundaries, safe power control, installation recovery, and acceptance-test tiers.
+Perform M1B against `MASTER_BLUEPRINT.md` revision 1.0-draft. Attack its platform, filesystem, rollback, Ollama, wake-word, privacy-indicator, power-control, systemd, dashboard, offline-verification, APT/interruption, corpus, and scope assumptions. Incorporate accepted findings as revision 1.1-reviewed, commit `docs: harden blueprint after architecture review`, then tag `checkpoint/blueprint`. Do not implement M2 code during that review.
 
 ## Session Start Protocol
 

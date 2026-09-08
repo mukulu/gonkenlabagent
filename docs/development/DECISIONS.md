@@ -143,3 +143,133 @@ The master-blueprint review must resolve:
 13. readiness levels when microphone/speaker/GPIO are missing;
 14. test framework and clean Raspberry Pi image automation strategy;
 15. which development documents are retained, condensed, or removed before merge to `main`.
+
+---
+
+## D-015 — Use GonKenLab Agent as the sole active product identity
+
+- **Status:** Accepted
+- **Date:** 2026-09-08
+- **Decision:** Active code, prompts, speech, UI, tests, services, and user documentation will use “GonKenLab Agent.” SOPHIA-Lab remains research-background material; Jansky, Jarvis, PiBot, and Mayukh-specific behavior are historical only.
+- **Reason:** The repository and stated lab use case already establish GonKenLab Agent; mixed identity currently breaks activation instructions and institutional fit.
+- **Consequence:** M2 removes inherited identity while preserving history/audit evidence.
+
+## D-016 — Distinguish offline runtime from online provisioning
+
+- **Status:** Accepted
+- **Date:** 2026-09-08
+- **Decision:** Normal runtime must be fully local and require no internet. Initial installation and explicit administrator-invoked updates may use internet access.
+- **Reason:** Models and dependencies must first reach the Pi, but installation traffic does not justify transmitting operational speech or prompts later.
+- **Consequence:** Offline tests block internet while allowing loopback and separately classify optional local-LAN dashboard traffic.
+
+## D-017 — Use a dedicated non-login runtime account
+
+- **Status:** Accepted
+- **Date:** 2026-09-08
+- **Decision:** `gonken-agent.service` runs as a `gonken-agent` system user with no login shell; Ollama remains a separate `ollama` service/account.
+- **Reason:** Runtime should not inherit the administrator’s home, secrets, source ownership, or general privileges.
+- **Consequence:** Audio, GPIO, state, cache, model, corpus, and power permissions must be explicitly defined and tested.
+
+## D-018 — Use immutable installed releases with an atomic current pointer
+
+- **Status:** Provisional
+- **Date:** 2026-09-08
+- **Decision:** Install root-owned releases under `/opt/gonken-agent/releases/<commit>` with release-local venvs and switch `/opt/gonken-agent/current` only after validation; retain one prior validated release.
+- **Reason:** It separates development checkout from installed runtime and makes rollback comprehensible after failed upgrades.
+- **Consequence:** M1B must test whether disk/time cost is proportionate on a 64GB microSD and whether a simpler alternative provides equivalent recovery.
+
+## D-019 — Separate static, configuration, variable, cache, and runtime data
+
+- **Status:** Provisional
+- **Date:** 2026-09-08
+- **Decision:** Use `/opt/gonken-agent`, `/etc/opt/gonken-agent`, `/var/opt/gonken-agent`, `/var/cache/gonken-agent`, and `/run/gonken-agent`, with journald for operational logs.
+- **Reason:** The current checkout mixes code, venv, builds, models, secrets, and runtime state under a user directory.
+- **Consequence:** M1B must verify FHS/systemd practicality and ensure service hardening permits required device/state access.
+
+## D-020 — Use TOML configuration with explicit precedence
+
+- **Status:** Accepted
+- **Date:** 2026-09-08
+- **Decision:** Source-controlled `config/defaults.toml` is the only packaged default authority; site TOML overrides it; explicit `GONKEN_*` environment values override site config; CLI values are one-shot. Legacy JSON/`.env` are migration inputs only.
+- **Reason:** Python 3.13 includes `tomllib`, TOML is readable, and explicit precedence prevents installer/runtime drift.
+- **Consequence:** Unknown/invalid settings fail validation, and effective-config output shows sources while redacting sensitive values.
+
+## D-021 — Lock target dependencies and verify non-Python artifacts
+
+- **Status:** Accepted
+- **Date:** 2026-09-08
+- **Decision:** Maintain exact, hashed locks for the primary Pi target and development host, plus a checked artifact manifest for Ollama, Whisper, Piper, wake-word resources, and model metadata.
+- **Reason:** Broad ranges and file-existence checks cannot reproduce or repair installations reliably.
+- **Consequence:** Updating a dependency or artifact requires regenerating locks/manifests and rerunning applicable gates.
+
+## D-022 — Make push-to-talk mandatory and wake word acceptance-gated
+
+- **Status:** Accepted
+- **Date:** 2026-09-08
+- **Decision:** Physical push-to-talk is the supported privacy/recovery path. “Hey Gonken” is implemented and evaluated but remains disabled until phrase/model consistency, false-accept/reject, load, reboot, and licensing gates pass.
+- **Reason:** This satisfies the desired hands-free direction without allowing an untrained or misleading wake phrase to block basic use.
+- **Consequence:** Failure of the wake-word gate does not block a valid PTT release, but the limitation must be explicit.
+
+## D-023 — Include local grounding and provenance in release scope
+
+- **Status:** Accepted
+- **Date:** 2026-09-08
+- **Decision:** Deterministic lexical retrieval over bounded Markdown/text, source identifiers, unsupported-answer behavior, content-free telemetry, and a read-only dashboard are required release capabilities.
+- **Reason:** They distinguish the project as an accountable AI-lab instrument rather than a generic personal voice assistant.
+- **Consequence:** Embeddings/vector databases and implicit PDF parsing remain out of first-release scope.
+
+## D-024 — Remove internet-dependent assistant features from the release path
+
+- **Status:** Accepted
+- **Date:** 2026-09-08
+- **Decision:** Automatic Moonshot handoff and internet weather/news/joke tools will not be registered in normal release runtime.
+- **Reason:** Disabled keys do not resolve the conceptual/privacy conflict created by cloud-first routing.
+- **Consequence:** Time/system information remain local allow-listed tools; any future network mode requires a new explicit governance decision.
+
+## D-025 — Support USB audio first
+
+- **Status:** Accepted
+- **Date:** 2026-09-08
+- **Decision:** USB microphone/speaker is the acceptance target. Bluetooth remains experimental until pairing, reconnect, enumeration, boot, and latency behavior pass a separate matrix.
+- **Reason:** USB reduces a large source of setup and reboot variability while preserving the user’s available AIRHUG device.
+- **Consequence:** Documentation must not imply Bluetooth has the same support level.
+
+## D-026 — Bind the dashboard to loopback by default
+
+- **Status:** Provisional
+- **Date:** 2026-09-08
+- **Decision:** The first dashboard binds `127.0.0.1`; SSH forwarding is the supported safe access path. LAN binding is an explicit administrator choice after access control is decided.
+- **Reason:** Transcripts/provenance/health can be sensitive, and a local network is not automatically trusted.
+- **Consequence:** M1B must assess whether this is usable enough for the lab demonstration and define authentication before LAN exposure.
+
+## D-027 — Use exact two-stage power intent with least privilege
+
+- **Status:** Provisional
+- **Date:** 2026-09-08
+- **Decision:** Voice power control uses finite-state request/confirmation/cancel phrases and an exact root-owned allow-list; the LLM does not decide or construct the command. It is disabled until security/hardware tests pass.
+- **Reason:** The feature is useful for headless operation but has material false-trigger and privilege risks.
+- **Consequence:** M1B must challenge voice-only confirmation sufficiency and the effect of a compromised service account.
+
+## D-028 — Support one primary Pi OS/Python target first
+
+- **Status:** Provisional
+- **Date:** 2026-09-08
+- **Decision:** First acceptance targets Raspberry Pi OS Lite 64-bit based on Debian 13, AArch64, distribution Python 3.13.
+- **Reason:** The next deployment is intended to start from a freshly formatted current image, and earlier failures occurred on Python 3.13. Broad OS compatibility would multiply untested paths.
+- **Consequence:** M1B must verify the actual image before implementation; other platforms receive a clear unsupported/development-host result.
+
+## D-029 — Use tiered pytest and install-failure testing
+
+- **Status:** Accepted
+- **Date:** 2026-09-08
+- **Decision:** Unit tests must run without network/models/hardware; separate integration, failure, and Pi hardware suites exercise real boundaries. Interactive scripts are not counted as automated regression tests.
+- **Reason:** The current tests cannot isolate logic regressions or substantiate installer reliability.
+- **Consequence:** Each milestone records exact tier/environment/results in `TEST_MATRIX.md`.
+
+## D-030 — Defer development-document disposition to release review
+
+- **Status:** Deferred
+- **Date:** 2026-09-08
+- **Decision:** Decide in M9 whether audit/blueprint/status/test/decision documents remain in `main`, are condensed, or are excluded from the production tree.
+- **Reason:** They are currently necessary for session resilience and accountable development; their final audience is not yet known.
+- **Consequence:** Do not remove or rewrite them merely to simplify intermediate diffs.
