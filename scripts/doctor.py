@@ -40,7 +40,6 @@ def check_imports() -> bool:
         "piper": "piper-tts",
         "openwakeword": "openwakeword",
         "onnxruntime": "onnxruntime",
-        "pygame": "pygame",
     }
     ok = True
     for module, package in modules.items():

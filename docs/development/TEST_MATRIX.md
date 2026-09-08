@@ -120,9 +120,9 @@ The master blueprint must allocate stable IDs and concrete procedures for at lea
 
 ## 5. Latest test summary
 
-- **T0:** M0 recorded 9 PASS and 4 baseline FAIL findings; M2.1 and M2.2 static/package/configuration checks pass without closing unrelated findings.
-- **T1:** M2.2 expands the dependency-free host suite to 42 passing tests; full M2.4 framework remains not started.
-- **T2:** one limited dependency probe FAIL/risk; full target install NOT RUN.
+- **T0:** M0 recorded 9 PASS and 4 baseline FAIL findings; M2.1–M2.3 static/package/configuration/dependency-policy checks pass without closing unrelated findings.
+- **T1:** M2.3 expands the dependency-free host suite to 51 passing tests and adds a clean Python 3.12 wheel install/`pip check`; full M2.4 framework remains not started.
+- **T2:** exact Python 3.13/AArch64 pygame wheel metadata now passes, superseding the old pygame-availability observation; networked resolution and the physical target install remain BLOCKED.
 - **T3–T6:** BLOCKED or NOT RUN as detailed above.
 - **Production readiness:** not established.
 
@@ -226,4 +226,36 @@ the audit host; it is not Python 3.13 target evidence.
 
 M2.2 is complete. H-01 and H-02 are resolved for active configuration
 consumers. The historical JSON retains its old value solely as tested migration
-input; it is not a runtime layer. M2.3 is the only next authorized work package.
+input; it is not a runtime layer. M2.3 followed as the only authorized work package.
+
+## 10. M2.3 dependency-profile and lock checks
+
+**Starting checkpoint:** `checkpoint/m2.2` / resolve with `git rev-list -n 1 checkpoint/m2.2`
+
+**Date:** 2026-09-08 UTC
+
+**Environment:** Ubuntu 24.04.3 LTS, x86_64, Python 3.12.13 and pip 26.2.1.
+No Raspberry Pi, Python 3.13 interpreter, package-index network access, audio,
+GPIO, model, Ollama, pygame, or governed extension was used. Target artifact
+existence/hash evidence was read from the authoritative PyPI release page.
+
+| ID | Tier | Check | Command/procedure | Result | Interpretation |
+|---|---|---|---|---|---|
+| M2.3-T001 | T0 | Clean accepted starting checkpoint | `git status --short --branch`; inspect HEAD/tag against `checkpoint/m2.2` | PASS | M2.3 began at committed M2.2 with a clean worktree. |
+| M2.3-T002 / V-H06 | T0/T1 | Deterministic exact-lock policy | `python scripts/dependencies.py render --check`; profile unit tests | PASS | Four installable locks match the manifest byte-for-byte; all force hashes and binary wheels. Empty core/dev graphs are explicit. |
+| M2.3-T003 | T1 | Full dependency-free host suite | `PYTHONPATH=src python -m unittest discover -s tests/unit -v` on host and isolated venv | PASS | 51/51 tests pass in both environments without a network, model, hardware, or optional dependency. |
+| M2.3-T004 / V-H06 | T1 | Clean x86 development install | Build wheel with local backend; create fresh venv; install `dev-py312.lock` and wheel with `--no-index`; run `pip check`, import, status | PASS | Python 3.12 installs without bypassing `Requires-Python`; `pip check` reports no broken requirements and status remains not runtime-ready. |
+| M2.3-T005 / V-H08 | T1 | Headless core excludes optional UI/wake | In isolated venv, import package and assert `find_spec('pygame')` and `find_spec('openwakeword')` are `None` | PASS | Mandatory pygame is removed and openWakeWord cannot leak into the maintained core. |
+| M2.3-T006 / V-H07 | T2 metadata | Target UI wheel identity and hash | Inspect PyPI pygame 2.6.1 file details; compare CPython 3.13/AArch64 filename/SHA-256 with `profiles.toml` | PASS (LIMITED) | Exact compatible wheel metadata exists and matches `27eb17...510b`; this is not download, install, import, or Pi evidence. |
+| M2.3-T007 / V-H07 | T2 | Networked AArch64 resolution/download | Documented binary-only `pip download` for `pi-trixie-py313.lock` and `ui-pi-trixie-py313.lock` | BLOCKED | Environment network policy rejected the resolver invocation before execution. No wheelhouse was created; metadata evidence is not promoted. |
+| M2.3-T008 / V-H07 | T2/T3 | Physical Pi Python 3.13 venv install | Fresh supported Raspberry Pi OS Lite/Trixie image; install core and optional profiles; `pip check` and imports | BLOCKED | No Raspberry Pi target is available. H-07 remains open. |
+| M2.3-T009 | T0 governance | License/profile report | `python scripts/dependencies.py report` and `report --json`; inspect provenance revision 1.2 | PASS | Selected pygame is exact and LGPL-2.1-or-later; wake/TTS candidates are reported blocked rather than silently accepted. |
+| M2.3-T010 | T0 | Broad-input quarantine | Verify no root `requirements.txt`; inspect `legacy-prototype.in`, `setup.sh`, `doctor.py`, and pyproject extras | PASS | Broad ranges remain only in the explicitly unaccepted prototype; pygame is neither a mandatory legacy install nor required doctor import. |
+| M2.3-T011 | T0 | Static syntax and whitespace | `bash -n`; `compileall`; TOML/JSON parse; `git diff --check` | PASS | Changed shell, Python, TOML, JSON, locks, and patch whitespace validate on the host. |
+| M2.3-T012 | T1/T2 | Optional UI download/install/import | Install the appropriate exact UI lock from a fresh wheelhouse and import pygame | BLOCKED | Package-index access is unavailable. Both host/target filenames and hashes are recorded; execution evidence remains outstanding. |
+| M2.3-T013 | T2–T4 | Voice/wake runtime dependency graph | Select package/voice/backend, create complete transitive locks, install and infer on Pi | BLOCKED | Maintained runtime is not packaged; Piper/voice licensing and X1 wake compatibility/model gates are unresolved. Placeholder locks are prohibited. |
+
+M2.3 is complete for the maintained package foundation. H-08 is resolved and
+H-06 is controlled for the current exact graph; both must be rechecked whenever
+runtime dependencies are added. H-07 remains open pending networked AArch64
+resolution and a real Pi venv. M2.4 is the only next authorized work package.

@@ -59,7 +59,7 @@ class PackageTests(unittest.TestCase):
             metadata["project"]["name"], gonken_agent.IDENTITY.package_name
         )
         self.assertEqual(metadata["project"]["version"], gonken_agent.__version__)
-        self.assertEqual(metadata["project"]["requires-python"], ">=3.13,<3.14")
+        self.assertEqual(metadata["project"]["requires-python"], ">=3.12,<3.14")
         self.assertNotIn("license", metadata["project"])
         self.assertEqual(metadata["project"]["dependencies"], [])
 
@@ -226,7 +226,7 @@ class ProvenanceTests(unittest.TestCase):
     def test_every_legacy_requirement_is_inventory_tracked(self) -> None:
         requirements = {
             re.split(r"[<>=!~\[]", line, maxsplit=1)[0].strip().lower()
-            for line in (ROOT / "requirements.txt")
+            for line in (ROOT / "requirements" / "legacy-prototype.in")
             .read_text(encoding="utf-8")
             .splitlines()
             if line.strip() and not line.lstrip().startswith("#")

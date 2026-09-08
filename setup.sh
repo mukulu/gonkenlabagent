@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 # ==============================================================
-# GonKenLab Agent — one-command installer for Raspberry Pi 5
+# GonKenLab Agent — retained prototype installer for Raspberry Pi 5
 # ==============================================================
 # Usage: chmod +x setup.sh && ./setup.sh
 #
-# Safe to rerun. Python dependencies are installed only inside
+# This is not an accepted release install path. M3 will replace it. Python
+# dependencies are installed only inside
 # the repository-owned .venv; the Debian/Raspberry Pi OS system
 # Python is never modified with pip.
 # ==============================================================
@@ -34,7 +35,7 @@ trap 'on_error $LINENO' ERR
 PYTHON_BIN="${PYTHON_BIN:-python3}"
 VENV_DIR="${GONKEN_VENV_DIR:-$SCRIPT_DIR/.venv}"
 VENV_PYTHON="$VENV_DIR/bin/python"
-REQUIREMENTS_FILE="$SCRIPT_DIR/requirements.txt"
+REQUIREMENTS_FILE="$SCRIPT_DIR/requirements/legacy-prototype.in"
 LEGACY_VENV_DIR="$SCRIPT_DIR/venv313"
 OPENWAKEWORD_VERSION="${OPENWAKEWORD_VERSION:-0.6.0}"
 
@@ -141,12 +142,13 @@ build_whisper_static() {
 }
 
 # ── 1. System packages ───────────────────────────────────────
+info "WARNING: setup.sh provisions the unaccepted legacy compatibility runtime"
+info "Accepted dependency profiles are documented under requirements/"
 info "Installing required system packages …"
 sudo apt update
 sudo apt install -y \
   python3 python3-venv python3-dev \
   build-essential cmake git curl wget \
-  libsdl2-dev libsdl2-mixer-dev libsdl2-ttf-dev \
   portaudio19-dev libasound2-dev \
   alsa-utils
 ok "System packages installed"
