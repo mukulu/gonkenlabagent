@@ -6,11 +6,12 @@ This file is the authoritative short handoff for a later development session. Ve
 
 - **Working branch:** `dev/bootstrap-rearchitecture`
 - **Inspected application baseline:** `6682360786135136abeb0bd2a17a9d45c6f291e7`
-- **Current control milestone:** M2.2 — Configuration authority and migration
-- **Blueprint revision:** 1.2-implementation
+- **Current control milestone:** M2.3 — Dependency profiles and locks
+- **Blueprint revision:** 1.3-implementation
 - **Accepted blueprint checkpoint:** `checkpoint/blueprint` (resolve its exact commit with `git rev-list -n 1 checkpoint/blueprint`)
 - **M2.1 implementation checkpoint:** `checkpoint/m2.1-license-gate` (created after the tested commit; resolve it with `git rev-list -n 1 checkpoint/m2.1-license-gate`)
 - **M2.1 completed checkpoint:** `checkpoint/m2.1` (resolve its exact commit with `git rev-list -n 1 checkpoint/m2.1`)
+- **M2.2 completed checkpoint:** `checkpoint/m2.2` (resolve its exact commit with `git rev-list -n 1 checkpoint/m2.2`)
 - **Last verification date:** 2026-09-08 UTC
 - **Target:** Raspberry Pi 5 4GB, Raspberry Pi OS Lite 64-bit
 - **Audit host:** Ubuntu 24.04 x86_64, Python 3.12 (not target hardware)
@@ -48,15 +49,23 @@ This file is the authoritative short handoff for a later development session. Ve
 - [x] Quarantined all unknown PNG/WAV media as internal compatibility evidence excluded from packages, releases, and public exports.
 - [x] Restricted GPL/noncommercial Piper voice and wake artifacts to internal legacy evaluation pending a future release-compatible decision.
 - [x] Completed M2.1 and authorized M2.2 as the next bounded work package.
+- [x] Added the typed, dependency-free configuration authority and sole source-controlled defaults TOML.
+- [x] Enforced defaults → site TOML → explicit environment → one-shot CLI precedence for every schema field.
+- [x] Added strict schema/value validation, loopback-only endpoints/binds, safe normalized paths, GPIO/audio constraints, and rejection of unsupported extensions.
+- [x] Added redacted human/JSON effective-config output with non-sensitive per-field source attribution.
+- [x] Added atomic, repeatable, non-destructive legacy JSON/`.env` migration with timestamp/hash backups and restrictive permissions.
+- [x] Routed installer, doctor, compatibility runtime, and legacy component construction through the same model, endpoint, audio, and path authority.
+- [x] Passed 42 dependency-free host tests and an isolated offline wheel install that located its shipped defaults.
+- [x] Completed M2.2 and authorized M2.3 as the next bounded work package.
 
 ## In Progress
 
 - No implementation package is currently in progress.
-- M2.2 is the next and only authorized implementation package.
+- M2.3 is the next and only authorized implementation package.
 
 ## Not Started
 
-- [ ] M2.2 — Configuration authority and migration.
+- [x] M2.2 — Configuration authority and migration.
 - [ ] M2.3 — Dependency profiles and locks.
 - [ ] M2.4 — Automated test foundation.
 - [ ] M3 — Idempotent provisioning.
@@ -82,7 +91,7 @@ The full issue descriptions and evidence are in `REPOSITORY_AUDIT.md`.
 
 ### High
 
-- H-01 through H-18 are open; see the audit.
+- H-01 (model authority) and H-02 (Ollama endpoint convergence) are resolved on active paths by M2.2; H-03 through H-18 remain open.
 
 ### Architecture gates introduced by M1B
 
@@ -105,6 +114,9 @@ The full issue descriptions and evidence are in `REPOSITORY_AUDIT.md`.
 - Offline local-backend wheel build passes; wheel contains only `gonken_agent` package files and metadata.
 - Active-surface inherited-identity scan passes; historical PRD/audit/decision evidence is intentionally excluded.
 - Provenance hash/coverage checks pass for every tracked PNG/WAV and every legacy Python requirement.
+- M2.2 standard-library host suite: 42 of 42 tests pass, including every-field source/precedence coverage, invalid values, privacy redaction, and migration failure paths.
+- Installer, doctor, compatibility runtime, and Ollama CLI/client configuration-convergence checks pass without invoking hardware or network.
+- Isolated offline wheel build/install passes; the installed CLI locates shipped defaults outside the checkout and reports the Qwen 3.5 authority.
 
 ## Tests Failing or Blocked
 
@@ -146,17 +158,20 @@ Exact commands and interpretations are in `TEST_MATRIX.md`.
 - M2.1 host tests use `unittest` so this package-boundary check itself adds no dependency; D-029’s planned pytest architecture remains assigned to M2.4.
 - No project license is granted; continued work is private development and redistribution remains prohibited until a later explicit decision.
 - Unknown PNG/WAV media and noncommercial voice/wake artifacts are quarantined from packages, releases, and public exports.
+- `config/defaults.toml` is the only active default-value authority; legacy JSON and `.env` are never loaded by normal runtime.
+- Site configuration is read-only to normal runtime; migration refuses to replace a differing destination.
+- Effective-config output redacts filesystem paths and reports only source category/environment/CLI identifiers.
 
 See `DECISIONS.md` for rationale and status.
 
 ## Next Recommended Action
 
-Implement M2.2 only. Create `config/defaults.toml` and the typed package
-configuration authority; implement strict precedence, validation, redacted
-effective-config output, and non-destructive/repeatable migration from legacy
-JSON/`.env`. Reject unknown keys, unsafe paths, unsupported extension enablement,
-and non-loopback core dashboard binds. Add dependency-free table-driven tests,
-update every control document, commit, and stop before M2.3.
+Implement M2.3 only. Create the headless-core, development/test, optional-UI,
+and governed-extension dependency profiles and exact lock artifacts. Verify
+Python 3.13/AArch64 resolution for the declared Raspberry Pi OS target, keep
+pygame and openWakeWord out of core, replace broad requirements in accepted
+install paths, document deterministic lock generation, add validation, update
+every control document, commit, and stop before M2.4.
 
 ## Session Start Protocol
 

@@ -13,12 +13,20 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 def test_wake_word():
     """Test wake word model loading and basic detection."""
     from senses.wake_word_detector import WakeWordDetector
+    from config import Config
     
     print("Testing wake word detector...\n")
     
     # Test model loading
     try:
-        detector = WakeWordDetector()
+        config = Config.load()
+        detector = WakeWordDetector(
+            model_path=config.wake_word_model,
+            threshold=config.wake_word_threshold,
+            sample_rate=config.target_sample_rate,
+            mic_sample_rate=config.mic_sample_rate,
+            mic_name=config.mic_name,
+        )
         print("✓ Wake word model loaded successfully")
     except FileNotFoundError as e:
         print(f"✗ Model not found: {e}")

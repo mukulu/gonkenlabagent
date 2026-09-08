@@ -34,6 +34,8 @@ def make_components(config):
     stt = WhisperSTT(
         whisper_path=config.whisper_path,
         model_path=config.whisper_model,
+        language=config.language,
+        threads=config.stt_threads,
         timeout=120,
     )
     tts = PiperTTS(model_path=config.piper_voice)

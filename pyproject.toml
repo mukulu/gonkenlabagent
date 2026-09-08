@@ -20,6 +20,9 @@ gonken-agent = "gonken_agent.cli:entrypoint"
 package-dir = {"" = "src"}
 include-package-data = false
 
+[tool.setuptools.data-files]
+"share/gonken-agent" = ["config/defaults.toml"]
+
 [tool.setuptools.packages.find]
 where = ["src"]
 include = ["gonken_agent", "gonken_agent.*"]

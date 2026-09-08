@@ -1,6 +1,6 @@
 # GonKenLab Agent Implementation Master Blueprint
 
-**Blueprint revision:** 1.2-implementation
+**Blueprint revision:** 1.3-implementation
 
 **Prepared:** 2026-09-08 UTC
 
@@ -10,7 +10,7 @@
 
 **Review state:** adversarial review completed in `BLUEPRINT_ADVERSARIAL_REVIEW.md`; accepted for staged implementation
 
-**Implementation authorization:** M2.1 is complete under a no-redistribution policy; M2.2 is the only next authorized work package
+**Implementation authorization:** M2.2 is complete; M2.3 is the only next authorized work package
 
 ## 1. Purpose and authority
 
@@ -303,6 +303,17 @@ dashboard_transient_content = false
 enabled = true
 bind = "127.0.0.1"
 port = 8080
+
+[paths]
+assets_dir = "/usr/local/lib/gonken-agent/current/share/gonken-agent/face"
+state_dir = "/var/lib/gonken-agent"
+cache_dir = "/var/cache/gonken-agent"
+runtime_dir = "/run/gonken-agent"
+corpus_dir = "/srv/gonken-agent/corpus"
+whisper_binary = "/usr/local/lib/gonken-agent/current/bin/whisper-cli"
+whisper_model = "/var/lib/gonken-agent/models/whisper/base.en-q5_1.bin"
+piper_voice = "/var/lib/gonken-agent/models/piper/en_GB-semaine-medium.onnx"
+local_prompt = "/usr/local/lib/gonken-agent/current/share/gonken-agent/local_soul.md"
 
 [extensions.wake_word]
 enabled = false
@@ -657,6 +668,16 @@ later blocker, but M2.2 may proceed.
 **Validation:** import/CLI unit tests; repository search for forbidden inherited identity outside historical/audit docs; core import works with extension packages absent; license inventory has no unknown bundled source/asset; no hardware required.
 
 #### M2.2 Configuration authority and migration
+
+**Implementation status (2026-09-08): COMPLETE.** The package now loads the
+single shipped `config/defaults.toml`, strict site TOML, explicit environment
+overrides, and one-shot CLI overrides with per-field source attribution. The
+effective-config CLI redacts paths. Legacy JSON/`.env` are explicit,
+non-destructive migration inputs with atomic output, restricted backups, and
+repeat behavior. The installer, doctor, compatibility runtime, and component
+constructors no longer carry independent model, endpoint, audio, or artifact
+fallbacks. Forty-two dependency-free host tests plus an isolated offline wheel
+install pass; Pi behavior remains unclaimed.
 
 **Files:** `config/defaults.toml`, `src/gonken_agent/config.py`, migration tests, `.env.example`, legacy JSON.
 
@@ -1017,15 +1038,14 @@ They are resolved in this revision by removing core power privilege, distinguish
 
 ## 18. Exact next action
 
-Implement M2.2 only. Add `config/defaults.toml` and a typed
-`src/gonken_agent/config.py` authority with strict schema validation and the
-documented defaults → site TOML → `GONKEN_*` environment → one-shot CLI
-precedence. Add redacted human/JSON effective-config output, deterministic
-legacy JSON/`.env` migration without destructive rewrite, safe path handling,
-and rejection of unknown keys, unsupported extensions, and non-loopback core
-dashboard binds. Add table-driven dependency-free tests for every field,
-precedence, invalid input, redaction, and repeat migration; update all control
-documents and commit before M2.3.
+Implement M2.3 only. Define dependency profiles and exact lock artifacts for
+the headless core, development/test tooling, optional UI, and governed
+extensions. Resolve and document Python 3.13/AArch64 availability on the
+declared Raspberry Pi OS target; keep pygame and openWakeWord out of core,
+remove the legacy broad `requirements.txt` from every accepted install path,
+add reproducible lock-generation/verification commands, run clean x86 and
+AArch64 resolution checks that do not claim Pi hardware success, update all
+control documents, commit, and stop before M2.4.
 
 ## 19. Primary references
 

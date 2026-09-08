@@ -129,7 +129,7 @@ def check_openwakeword_runtime() -> bool:
 def check_ollama(config: Config) -> bool:
     try:
         with urllib.request.urlopen(
-            "http://127.0.0.1:11434/api/version", timeout=3
+            f"{config.ollama_base_url}/api/version", timeout=3
         ) as response:
             payload = json.loads(response.read().decode("utf-8"))
         report(PASS, "Ollama server", str(payload.get("version", "unknown version")))
@@ -197,8 +197,8 @@ def check_audio(config: Config) -> bool:
     if not mic_matches or not speaker_matches:
         print(f"[WARN] Available audio devices: {available}")
         print(
-            "[WARN] Override device-name matching in .env with "
-            "GONKEN_MIC_NAME and GONKEN_SPEAKER_NAME."
+            "[WARN] Override device-name matching in site TOML or with "
+            "GONKEN_AUDIO_INPUT_MATCH and GONKEN_AUDIO_OUTPUT_MATCH."
         )
     return True
 

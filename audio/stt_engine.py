@@ -4,16 +4,6 @@ import os
 import subprocess
 import tempfile
 from pathlib import Path
-from typing import Optional
-
-
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_WHISPER_PATH = (
-    PROJECT_ROOT / "whisper.cpp" / "build" / "bin" / "whisper-cli"
-)
-DEFAULT_MODEL_PATH = (
-    PROJECT_ROOT / "whisper.cpp" / "models" / "ggml-base.en-q5_1.bin"
-)
 
 
 def _validate_whisper_executable(path: Path, timeout: int = 15) -> None:
@@ -46,26 +36,17 @@ class WhisperSTT:
 
     def __init__(
         self,
-        whisper_path: Optional[str] = None,
-        model_path: Optional[str] = None,
-        language: str = "en",
-        threads: int = 4,
+        whisper_path: str,
+        model_path: str,
+        language: str,
+        threads: int,
         timeout: int = 120,
     ):
-        requested_whisper = Path(whisper_path) if whisper_path else DEFAULT_WHISPER_PATH
-        requested_model = Path(model_path) if model_path else DEFAULT_MODEL_PATH
+        requested_whisper = Path(whisper_path)
+        requested_model = Path(model_path)
 
         if not requested_whisper.exists():
-            alt_paths = [
-                Path("/usr/local/bin/whisper-cpp"),
-                PROJECT_ROOT / "whisper.cpp" / "main",
-            ]
-            for alt in alt_paths:
-                if alt.exists():
-                    requested_whisper = alt
-                    break
-            else:
-                raise FileNotFoundError(f"Whisper not found at {requested_whisper}")
+            raise FileNotFoundError(f"Whisper not found at {requested_whisper}")
 
         if not requested_model.exists():
             raise FileNotFoundError(f"Model not found at {requested_model}")
@@ -106,7 +87,7 @@ class WhisperSTT:
 
         return process.stdout.strip().replace("[BLANK_AUDIO]", "").strip()
 
-    def transcribe_audio_array(self, audio, sample_rate: int = 16000) -> str:
+    def transcribe_audio_array(self, audio, sample_rate: int) -> str:
         """Transcribe a NumPy audio array."""
         import wave
 

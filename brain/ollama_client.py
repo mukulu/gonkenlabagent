@@ -28,12 +28,16 @@ class OllamaClient:
     
     def __init__(
         self,
-        base_url: str = "http://localhost:11434",
-        model: str = "qwen2.5:1.5b",
+        base_url: str,
+        model: str,
+        max_output_tokens: int,
+        keep_alive: str,
         timeout: float = 120.0
     ):
         self.base_url = base_url
         self.model = model
+        self.max_output_tokens = max_output_tokens
+        self.keep_alive = keep_alive
         self.client = httpx.Client(timeout=timeout)
     
     def chat(
@@ -59,7 +63,7 @@ class OllamaClient:
             "stream": stream,
             "options": {
                 "temperature": 0.7,
-                "num_predict": 512
+                "num_predict": self.max_output_tokens
             }
         }
         
@@ -142,7 +146,7 @@ class OllamaClient:
                 json={
                     "model": self.model,
                     "prompt": "hello",
-                    "keep_alive": "10m"
+                    "keep_alive": self.keep_alive
                 }
             )
             return response.status_code == 200

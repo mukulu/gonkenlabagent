@@ -1,0 +1,70 @@
+schema_version = 1
+
+[assistant]
+name = "GonKenLab Agent"
+language = "en"
+
+[runtime]
+mode = "offline"
+interaction_mode = "push_to_talk"
+
+[llm]
+provider = "ollama"
+base_url = "http://127.0.0.1:11434"
+model = "qwen3.5:2b-q4_K_M"
+context_tokens = 2048
+max_output_tokens = 160
+keep_alive = "5m"
+
+[audio]
+input_match = "AIRHUG"
+output_match = "AIRHUG"
+capture_rate = 48000
+processing_rate = 16000
+
+[stt]
+model = "base.en-q5_1"
+threads = 4
+
+[tts]
+voice = "en_GB-semaine-medium"
+
+[interaction]
+push_to_talk_gpio = 17
+recording_led_gpio = 27
+
+[retrieval]
+enabled = true
+top_k = 3
+
+[privacy]
+raw_audio_retention = "delete"
+interaction_logging = false
+telemetry_content = false
+dashboard_transient_content = false
+
+[dashboard]
+enabled = true
+bind = "127.0.0.1"
+port = 8080
+
+[paths]
+assets_dir = "/usr/local/lib/gonken-agent/current/share/gonken-agent/face"
+state_dir = "/var/lib/gonken-agent"
+cache_dir = "/var/cache/gonken-agent"
+runtime_dir = "/run/gonken-agent"
+corpus_dir = "/srv/gonken-agent/corpus"
+whisper_binary = "/usr/local/lib/gonken-agent/current/bin/whisper-cli"
+whisper_model = "/var/lib/gonken-agent/models/whisper/base.en-q5_1.bin"
+piper_voice = "/var/lib/gonken-agent/models/piper/en_GB-semaine-medium.onnx"
+local_prompt = "/usr/local/lib/gonken-agent/current/share/gonken-agent/local_soul.md"
+
+[extensions.wake_word]
+enabled = false
+phrase = "Hey Gonken"
+model = ""
+threshold = 0.5
+monitoring_led_gpio = 22
+
+[extensions.voice_power]
+enabled = false

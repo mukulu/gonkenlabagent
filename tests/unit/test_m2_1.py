@@ -120,6 +120,7 @@ class CliTests(unittest.TestCase):
         self.assertIs(payload["redistribution_approved"], False)
         self.assertEqual(payload["redistribution_policy"], "prohibited")
         self.assertEqual(payload["package_foundation"], "complete")
+        self.assertEqual(payload["configuration_foundation"], "complete")
         self.assertEqual(set(payload["extensions"].values()), {"disabled"})
 
     def test_packaged_run_refuses_to_claim_runtime_readiness(self) -> None:

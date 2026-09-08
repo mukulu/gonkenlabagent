@@ -23,14 +23,15 @@ Repository state and Git history are the project handoff. Start with:
 
 `PRD.md` is historical provenance only and is not implementation authority.
 
-## Current package boundary
+## Current package and configuration boundary
 
-M2.1 introduces a dependency-light `src/gonken_agent` package and CLI. From a
-development checkout:
+M2.2 provides a dependency-light package/CLI and a typed configuration
+authority. From a development checkout:
 
 ```bash
 PYTHONPATH=src python -m gonken_agent version
 PYTHONPATH=src python -m gonken_agent status --json
+PYTHONPATH=src python -m gonken_agent config show --effective --no-site
 ```
 
 The package imports without audio, model, GPIO, UI, network, or extension
@@ -44,6 +45,25 @@ command remains:
 
 That launcher crosses an explicit compatibility boundary and is not evidence
 of release readiness.
+
+`config/defaults.toml` is the only source-controlled default authority. Normal
+precedence is packaged defaults, optional `/etc/gonken-agent/config.toml`,
+explicit `GONKEN_<SECTION>_<FIELD>` environment variables, then one-shot CLI
+`--set SECTION.FIELD=VALUE`. Unknown keys and unsafe/unsupported values fail
+closed. Effective output reports each setting's source and redacts filesystem
+paths.
+
+Legacy `config/config.json` and checkout `.env` are never loaded normally. To
+stage a validated, non-destructive migration to a chosen path:
+
+```bash
+PYTHONPATH=src python -m gonken_agent config migrate \
+  --legacy-json config/config.json --legacy-env .env \
+  --output /tmp/gonken-agent-config.toml
+```
+
+Migration refuses to overwrite different output, keeps restricted timestamped
+backups, and produces the same output when repeated with unchanged inputs.
 
 ## Accepted first-release boundary
 
@@ -64,7 +84,7 @@ until their independent acceptance gates pass.
 
 ## Testing
 
-M2.1 host tests require no model, network, audio, GPIO, or optional extension:
+M2.2 host tests require no model, network, audio, GPIO, or optional extension:
 
 ```bash
 PYTHONPATH=src python -m unittest discover -s tests/unit -v
