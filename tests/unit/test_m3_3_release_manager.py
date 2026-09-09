@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import importlib.util
+import io
 import os
 import stat
 import subprocess
 import sys
+import tarfile
 import tempfile
 import unittest
 from pathlib import Path
@@ -86,6 +88,25 @@ class RecordAndPointerTests(unittest.TestCase):
             self.assertEqual(marker.name, "marker")
             self.assertEqual((final / "marker").read_text(), "complete\n")
             self.assertEqual(stat.S_IMODE((final / "marker").stat().st_mode) & 0o222, 0)
+
+    def test_source_archive_rejects_traversal_and_links(self) -> None:
+        cases = (("../escape", b"payload", False), ("link", b"", True))
+        for name, payload, is_link in cases:
+            with self.subTest(name=name), tempfile.TemporaryDirectory() as temporary:
+                root = Path(temporary)
+                archive = root / "source.tar"
+                with tarfile.open(archive, "w") as bundle:
+                    member = tarfile.TarInfo(name)
+                    if is_link:
+                        member.type = tarfile.SYMTYPE
+                        member.linkname = "target"
+                        bundle.addfile(member)
+                    else:
+                        member.size = len(payload)
+                        bundle.addfile(member, io.BytesIO(payload))
+                with self.assertRaises(release_manager.ReleaseError) as raised:
+                    release_manager._safe_extract(archive, root / "destination")
+                self.assertEqual(raised.exception.code, "RELEASE_SOURCE")
 
 
 class IntegrityAndPrivilegeTests(unittest.TestCase):
