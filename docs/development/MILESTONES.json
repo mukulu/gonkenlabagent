@@ -1,0 +1,247 @@
+{
+  "schema_version": 1,
+  "checkpoint_scope": "M3.4 baseline; continuous progression enabled",
+  "baseline_commit": "459f8da3ffb1dd084f9947988c117ae6da10ae1b",
+  "milestones": [
+    {
+      "id": "M2.1",
+      "title": "Package and identity normalization",
+      "software": "host-verified",
+      "target": "not-applicable",
+      "evidence": "TEST_MATRIX.md (M2.1)",
+      "remaining": ""
+    },
+    {
+      "id": "M2.2",
+      "title": "Configuration authority and migration",
+      "software": "host-verified",
+      "target": "not-applicable",
+      "evidence": "TEST_MATRIX.md (M2.2)",
+      "remaining": ""
+    },
+    {
+      "id": "M2.3",
+      "title": "Dependency profiles and locks",
+      "software": "host-verified",
+      "target": "not-applicable",
+      "evidence": "TEST_MATRIX.md (M2.3)",
+      "remaining": ""
+    },
+    {
+      "id": "M2.4",
+      "title": "Automated test foundation",
+      "software": "host-verified",
+      "target": "not-applicable",
+      "evidence": "TEST_MATRIX.md (M2.4)",
+      "remaining": ""
+    },
+    {
+      "id": "M3.1",
+      "title": "Bootstrap preflight",
+      "software": "host-verified",
+      "target": "not-run",
+      "evidence": "TEST_MATRIX.md (M3.1)",
+      "remaining": "Physical Pi acceptance remains open."
+    },
+    {
+      "id": "M3.2",
+      "title": "Step engine and install state",
+      "software": "host-verified",
+      "target": "not-run",
+      "evidence": "TEST_MATRIX.md (M3.2)",
+      "remaining": "Physical Pi acceptance remains open."
+    },
+    {
+      "id": "M3.3",
+      "title": "Immutable application release",
+      "software": "host-verified",
+      "target": "not-run",
+      "evidence": "TEST_MATRIX.md (M3.3)",
+      "remaining": "Physical Pi acceptance remains open."
+    },
+    {
+      "id": "M3.4",
+      "title": "Ollama lifecycle and selected model",
+      "software": "host-verified",
+      "target": "not-run",
+      "evidence": "TEST_MATRIX.md (M3.4)",
+      "remaining": "Physical Pi acceptance remains open."
+    },
+    {
+      "id": "M3.5",
+      "title": "Whisper and Piper artifacts",
+      "software": "pending",
+      "target": "not-run",
+      "evidence": "",
+      "remaining": "Not implemented."
+    },
+    {
+      "id": "M3.6",
+      "title": "Install summary",
+      "software": "pending",
+      "target": "not-run",
+      "evidence": "",
+      "remaining": "Not implemented."
+    },
+    {
+      "id": "M4.1",
+      "title": "Coordinator/state/health",
+      "software": "pending",
+      "target": "not-run",
+      "evidence": "",
+      "remaining": "Not implemented."
+    },
+    {
+      "id": "M4.2",
+      "title": "Audio discovery and recovery",
+      "software": "pending",
+      "target": "not-run",
+      "evidence": "",
+      "remaining": "Not implemented."
+    },
+    {
+      "id": "M4.3",
+      "title": "Resampling/STT/TTS lifecycle",
+      "software": "pending",
+      "target": "not-run",
+      "evidence": "",
+      "remaining": "Not implemented."
+    },
+    {
+      "id": "M5.1",
+      "title": "Push-to-talk and recording indication",
+      "software": "pending",
+      "target": "not-run",
+      "evidence": "",
+      "remaining": "Not implemented."
+    },
+    {
+      "id": "M5.2",
+      "title": "Offline boundary",
+      "software": "pending",
+      "target": "not-run",
+      "evidence": "",
+      "remaining": "Not implemented."
+    },
+    {
+      "id": "M6.1",
+      "title": "Application service",
+      "software": "pending",
+      "target": "not-run",
+      "evidence": "",
+      "remaining": "Not implemented."
+    },
+    {
+      "id": "M6.2",
+      "title": "Service installer/removal",
+      "software": "pending",
+      "target": "not-run",
+      "evidence": "",
+      "remaining": "Not implemented."
+    },
+    {
+      "id": "M7.1",
+      "title": "Corpus and lexical index",
+      "software": "pending",
+      "target": "not-run",
+      "evidence": "",
+      "remaining": "Not implemented."
+    },
+    {
+      "id": "M7.2",
+      "title": "Grounded prompt and response contract",
+      "software": "pending",
+      "target": "not-run",
+      "evidence": "",
+      "remaining": "Not implemented."
+    },
+    {
+      "id": "M7.3",
+      "title": "Privacy-preserving telemetry",
+      "software": "pending",
+      "target": "not-run",
+      "evidence": "",
+      "remaining": "Not implemented."
+    },
+    {
+      "id": "M7.4",
+      "title": "Read-only dashboard",
+      "software": "pending",
+      "target": "not-run",
+      "evidence": "",
+      "remaining": "Not implemented."
+    },
+    {
+      "id": "M7.5",
+      "title": "Research benchmarks",
+      "software": "pending",
+      "target": "not-run",
+      "evidence": "",
+      "remaining": "Not implemented."
+    },
+    {
+      "id": "M8.1",
+      "title": "Doctor and support bundle",
+      "software": "pending",
+      "target": "not-run",
+      "evidence": "",
+      "remaining": "Not implemented."
+    },
+    {
+      "id": "M8.2",
+      "title": "Update/rollback",
+      "software": "pending",
+      "target": "not-run",
+      "evidence": "",
+      "remaining": "Not implemented."
+    },
+    {
+      "id": "M8.3",
+      "title": "Uninstall/reinstall",
+      "software": "pending",
+      "target": "not-run",
+      "evidence": "",
+      "remaining": "Not implemented."
+    },
+    {
+      "id": "M9.1",
+      "title": "Clean-install and failure campaign",
+      "software": "pending",
+      "target": "not-run",
+      "evidence": "",
+      "remaining": "Not implemented."
+    },
+    {
+      "id": "M9.2",
+      "title": "Security/license review",
+      "software": "pending",
+      "target": "not-run",
+      "evidence": "",
+      "remaining": "Not implemented."
+    },
+    {
+      "id": "M9.3",
+      "title": "Documentation and onboarding",
+      "software": "pending",
+      "target": "not-run",
+      "evidence": "",
+      "remaining": "Not implemented."
+    },
+    {
+      "id": "M9.4",
+      "title": "Development-artifact disposition",
+      "software": "pending",
+      "target": "not-run",
+      "evidence": "",
+      "remaining": "Not implemented."
+    },
+    {
+      "id": "M9.5",
+      "title": "Portable Git handoff",
+      "software": "pending",
+      "target": "not-run",
+      "evidence": "",
+      "remaining": "Not implemented."
+    }
+  ]
+}

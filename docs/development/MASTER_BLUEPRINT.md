@@ -1,6 +1,6 @@
 # GonKenLab Agent Implementation Master Blueprint
 
-**Blueprint revision:** 1.9-implementation
+**Blueprint revision:** 2.0-continuous
 
 **Prepared:** 2026-09-09 UTC
 
@@ -10,7 +10,7 @@
 
 **Review state:** adversarial review completed in `BLUEPRINT_ADVERSARIAL_REVIEW.md`; accepted for staged implementation
 
-**Implementation authorization:** M3.4 is complete at T0/T1; M3.5 is the only next authorized work package
+**Implementation authorization:** Continuous implementation of all dependency-ready core work through M9 is authorized by the maintainer on 2026-09-09; no one-item-per-session limit.
 
 ## 1. Purpose and authority
 
@@ -636,7 +636,9 @@ Final numeric thresholds require the first controlled Pi benchmark, but the rele
 
 ## 14. Implementation milestones
 
-Each milestone below is a maximum scope, not an instruction to force all its items into one conversation. A session selects one acceptance-bounded work package, tests it, updates control documents, commits, and stops.
+Milestones are acceptance and traceability units, not conversation limits. Implement a coherent dependency-ready item, run its proportionate success/failure tests, update evidence/status/decisions, and commit. Immediately continue to the next ready item in the same session. Multiple items or milestones may be grouped in one coherent tested commit. Do not repeat broad testing without a concrete remaining risk; run the full applicable regression suite at checkpoint close.
+
+A failed requirement blocks that requirement and its genuine dependants, not unrelated host-testable work. Record the blocker, the missing evidence and its release impact, then continue independent work. Distinguish software implementation, host T0/T1 evidence, target T2–T6 acceptance and release acceptance. Mocked tests never close hardware gates. Stop only for completion, an actual dependency/access/decision barrier with no useful independent work, or an execution/context limit requiring a resumable committed checkpoint. Never weaken acceptance criteria to increase milestone counts. Never require new permission solely to cross a milestone.
 
 ### M1 — Blueprint and architecture review
 
@@ -1121,13 +1123,7 @@ They are resolved in this revision by removing core power privilege, distinguish
 
 ## 18. Exact next action
 
-Implement M3.5 only. Select and pin the Whisper and Piper runtime/artifact
-chain allowed by the dependency and licensing gates; verify immutable Whisper
-source/build inputs and checksummed model/voice/voice-configuration pairs; add
-sample STT and non-empty valid-WAV TTS smoke checks; and prove rerun repairs
-interrupted, missing-pair, zero-byte, wrong-architecture, and bad-checksum
-states. Do not install the GonKen application service, audio/GPIO rules, wake
-word, or power controls and stop before M3.6.
+Read the current machine-readable milestone ledger and generated status table. Resolve M3.5 artifact/dependency policy where evidence permits, while advancing independent M4/M5/M7 software work with explicit interfaces. Continue through every dependency-ready item; reserve service activation and target acceptance until their real prerequisites pass. Commit tested progress and package the exact clean Git state. The checkpoint name must describe demonstrated scope without implying that skipped or partial milestones are complete.
 
 ## 19. Primary references
 

@@ -439,3 +439,7 @@ M3.4 is implementation-complete at T0/T1. The Ollama service is the only
 installed runtime service at this boundary; no speech artifacts, GonKen
 application service, audio/GPIO behavior, wake word, or power action exists.
 M3.5 is the only next authorized work package.
+
+## Continuous-workflow reconciliation — 2026-09-09
+
+The preceding milestone-specific next-only authorizations are historical and superseded by D-060 and blueprint revision 2.0. Baseline `459f8da` rerun: 109 unit + 26 integration tests PASS, T0 PASS, on Linux x86_64/Python 3.12. No Pi acceptance is claimed. ZIP extraction lost executable bits; restored exactly from the Git index before testing, without source changes. The new generated status check requires all blueprint item IDs exactly once.
