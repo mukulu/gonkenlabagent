@@ -585,3 +585,19 @@ transport checks are repeated.
 - **Consequence:** `--speech-only` is a tested milestone return point. M3.6 replaces the
   unavailable boundary with `M3_6_INSTALL_SUMMARY`, but the summary still reports
   `DEGRADED` and `ready=false`; this is still not `READY`.
+
+## D-068 — Start systemd through a degraded headless supervisor
+
+- **Status:** Accepted
+- **Date:** 2026-09-09
+- **Decision:** M6.1/M6.2 install `gonken-agent.service` with `ExecStart` set to
+  `gonken-agent service`, not the unfinished voice `run` entry point. The service
+  emits content-free degraded readiness and remains supervised until physical
+  audio/GPIO acceptance can close later milestones.
+- **Reason:** A systemd service that immediately executes the fail-closed voice
+  path would create a restart loop and obscure the true project state. A headless
+  supervisor gives boot persistence, logging, privilege boundaries and reversible
+  install/remove behavior without falsely claiming microphone/speaker readiness.
+- **Consequence:** Service installation can advance independently under D-060,
+  while target start/stop/restart, reboot persistence, audio hotplug recovery,
+  journal review and systemd-analyze verification remain hardware/target gates.

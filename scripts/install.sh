@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# GonKenLab Agent resumable installer (through M3.6).
+# GonKenLab Agent resumable installer (through M6.2).
 #
-# M3.6 reports the post-speech installation boundary. It still does not
-# provision the application service or hardware adapters.
+# M6.2 installs the governed headless application service. Physical audio and
+# hardware acceptance remain explicitly degraded until later milestones.
 
 set -Eeuo pipefail
 
@@ -42,9 +42,9 @@ usage() {
   cat <<'EOF'
 Usage: scripts/install.sh --source-record PATH [OPTIONS]
 
-M3.6 validates and activates the application release, provisions the pinned
+M6.2 validates and activates the application release, provisions the pinned
 Ollama runtime/model and Whisper/Piper speech chain on a supported target, then
-prints a content-free readiness summary.
+installs the governed headless service and prints a content-free readiness summary.
 
 Options:
   --source-record PATH  Private source.record created by bootstrap (required).
@@ -246,7 +246,7 @@ gonken_prerequisite_postcondition() {
     return 69
   fi
   if [[ "${GONKEN_SOURCE_RECORD[platform_mode]}" == "target" ]]; then
-    for command_name in cmake c++ getent groupadd runuser tar useradd zstd; do
+    for command_name in cmake c++ getent groupadd runuser systemd-tmpfiles tar useradd zstd; do
       command -v "$command_name" >/dev/null 2>&1 || return 1
     done
   fi
@@ -433,6 +433,18 @@ gonken_install_summary_manager() {
   printf '%s\n' "$RELEASE_ROOT/current/maintenance/install_summary.py"
 }
 
+gonken_service_manager() {
+  printf '%s\n' "$RELEASE_ROOT/current/maintenance/service_manager.py"
+}
+
+gonken_service_unit_template() {
+  printf '%s\n' "$RELEASE_ROOT/current/maintenance/packaging/systemd/gonken-agent.service"
+}
+
+gonken_service_tmpfiles_template() {
+  printf '%s\n' "$RELEASE_ROOT/current/maintenance/packaging/tmpfiles/gonken-agent.conf"
+}
+
 gonken_ollama_template_arguments() {
   printf '%s\n' \
     --endpoint "$OLLAMA_ENDPOINT" \
@@ -567,6 +579,25 @@ gonken_speech_smoke_action() {
   python3 "$(gonken_speech_manager)" run-smoke     --manifest "$(gonken_speech_manifest)" --system-root /     "${arguments[@]}" --threads "$SPEECH_STT_THREADS"
 }
 
+gonken_app_service_postcondition() {
+  python3 "$(gonken_service_manager)" status \
+    --system-root / \
+    --unit-template "$(gonken_service_unit_template)" \
+    --tmpfiles-template "$(gonken_service_tmpfiles_template)" \
+    --systemctl /usr/bin/systemctl \
+    --systemd-tmpfiles /usr/bin/systemd-tmpfiles >/dev/null 2>&1 || return 1
+  GONKEN_STEP_EVIDENCE="gonken_agent_service_enabled_headless_degraded"
+}
+
+gonken_app_service_action() {
+  python3 "$(gonken_service_manager)" install \
+    --system-root / \
+    --unit-template "$(gonken_service_unit_template)" \
+    --tmpfiles-template "$(gonken_service_tmpfiles_template)" \
+    --systemctl /usr/bin/systemctl \
+    --systemd-tmpfiles /usr/bin/systemd-tmpfiles
+}
+
 gonken_engine_initialize "$STATE_DIR" "$LOG_DIR" || exit $?
 gonken_prepare_private_directory "$STATE_DIR/artifacts" "installer artifact directory" || exit $?
 
@@ -657,6 +688,10 @@ if ((ENGINE_ONLY == 0)); then
       gonken_register_step         "speech_models" "1"         "gonken_piper_postcondition" "gonken_speech_models_action" "gonken_speech_models_postcondition"         "checksum_verified_whisper_model_and_piper_voice_pair"         "resume_downloads_and_repair_missing_zero_byte_or_bad_checksum_pairs"         "noncommercial_legacy_voice_is_never_provisioned" || exit $?
 
       gonken_register_step         "speech_smoke" "1"         "gonken_speech_models_postcondition" "gonken_speech_smoke_action" "gonken_speech_smoke_postcondition"         "content_free_real_tts_then_stt_smoke_record"         "rerun_smoke_when_validation_record_is_missing_or_drifted"         "smoke_samples_are_temporary_and_not_retained" || exit $?
+
+      if ((SPEECH_ONLY == 0)); then
+        gonken_register_step         "application_service" "1"         "gonken_speech_smoke_postcondition" "gonken_app_service_action" "gonken_app_service_postcondition"         "exact_systemd_unit_tmpfiles_and_degraded_headless_supervisor"         "refuse_conflicts_then_install_tmpfiles_enable_and_restart_service"         "no_privilege_or_power_grants_are_added" || exit $?
+      fi
     fi
   fi
 fi
@@ -712,4 +747,5 @@ python3 "$(gonken_install_summary_manager)" \
   --commit "${GONKEN_SOURCE_RECORD[resolved_commit]}" \
   --json
 printf '[OK] code=M3_6_INSTALL_SUMMARY status=DEGRADED ready=false next=M6_1_APPLICATION_SERVICE\n'
+printf '[OK] code=M6_2_SERVICE_COMPLETE status=DEGRADED ready=false next=M8_1_TARGET_DIAGNOSTICS_AND_M9_ACCEPTANCE\n'
 exit 0

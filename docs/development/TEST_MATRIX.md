@@ -596,3 +596,41 @@ verified **5 installable dependency profiles** and included the new
 `tests.unit.test_m3_6_install_summary` suite. `git status --short` in the clone
 was clean. `git fsck --full --strict` exited successfully; dangling local test
 blobs were informational and no Git history was pruned.
+
+## M6.1/M6.2 governed headless service lifecycle — 2026-09-09
+
+Focused command before full regression:
+
+```bash
+python -m unittest tests.integration.test_cli_process tests.unit.test_m3_3_release_manager tests.unit.test_m6_service_manager
+```
+
+Full host regression:
+
+```bash
+PYTHONPATH=src python -m unittest discover tests/unit
+PYTHONPATH=src python -m unittest discover tests/integration
+```
+
+| Case | Evidence | Result / boundary |
+|---|---|---|
+| M6-T001 | `packaging/systemd/gonken-agent.service` | Application service is a non-login `gonken-agent` systemd unit with `Type=exec`, bounded restart/stop behavior, pre-start release reconciliation, no capabilities and no power/privilege grants |
+| M6-T002 | `gonken-agent service --once` | Headless service entry point emits content-free degraded readiness and returns success for systemd supervision without starting the unfinished voice runtime |
+| M6-T003 | `packaging/tmpfiles/gonken-agent.conf` | Runtime/cache/run directories are owned by `gonken-agent`; immutable install state is not made writable by the service account |
+| M6-T004 | `scripts/service_manager.py` | Atomic unit/tmpfiles install refuses administrator conflicts, validates exact installed bytes, runs daemon reload/enable, and removes only matching managed files |
+| M6-T005 | `tests.unit.test_m6_service_manager` | Install, repeat install, status, reversible removal and modified-unit fail-closed paths pass under an isolated fake system root |
+| M6-T006 | `tests.unit.test_m3_3_release_manager` | Immutable release payload now carries `service_manager.py`, the app unit and tmpfiles template so future sessions/installations have the service contract in-repo |
+| M6-T007 | `scripts/install.sh` | Normal target installation can proceed from M3.5/M3.6 to `application_service`; `--speech-only` remains a deliberate earlier diagnostic stop |
+
+This closes M6.1/M6.2 at the host software tier only. No Raspberry Pi
+`systemctl` execution, `systemd-analyze verify`, reboot/no-login persistence,
+audio hotplug recovery, GPIO behavior, target journal review, thermal behavior,
+or live voice interaction is inferred.
+
+### M6.1/M6.2 host validation result
+
+Focused service tests passed: **19 tests**. Full host regression then passed:
+**167 unit + 41 integration tests = 208 total** on Linux x86_64/Python 3.12 with
+`PYTHONPATH=src`. The first broad run without `PYTHONPATH=src` failed to import
+`gonken_agent`; rerunning with the project source path matched the established
+integration-test environment and passed.

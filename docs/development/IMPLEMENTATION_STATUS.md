@@ -6,7 +6,7 @@ Historical implementation detail remains in Git, `TEST_MATRIX.md` and `DECISIONS
 M0/M1 audit and architecture review are complete; the table covers every core implementation item.
 
 <!-- MILESTONES -->
-Checkpoint scope: **Continuation 03: M3.6 install summary plus M3.5 speech artifact lifecycle**
+Checkpoint scope: **Continuation 04: M6.1/M6.2 governed headless application service lifecycle**
 
 | Item | Software | Target acceptance | Evidence / remaining work |
 |---|---|---|---|
@@ -25,8 +25,8 @@ Checkpoint scope: **Continuation 03: M3.6 install summary plus M3.5 speech artif
 | M4.3 — Resampling/STT/TTS lifecycle | partial | not-run | tests/unit/test_runtime_audio.py; TEST_MATRIX.md continuation-runtime FIR resampling and speech subprocess cleanup tested; pinned real speech binaries, tiny/base comparison and audible Pi acceptance remain open. |
 | M5.1 — Push-to-talk and recording indication | partial | not-run | tests/unit/test_runtime_audio.py; TEST_MATRIX.md continuation-runtime Debounced hold/release controller tested; physical GPIO adapter, crash-default LED-off and wiring acceptance remain open. |
 | M5.2 — Offline boundary | partial | not-run | TEST_MATRIX.md continuation-grounding; text runtime guide Core text path allows numeric-loopback only, no DNS/proxy/redirect/tool/cloud path. Kernel-observed Pi network denial and voice runtime acceptance remain open. |
-| M6.1 — Application service | pending | not-run |  Next implementation gate: add the GonKen application service unit, runtime command, readiness/degraded policy and service acceptance tests. |
-| M6.2 — Service installer/removal | pending | not-run |  Not implemented. |
+| M6.1 — Application service | host-verified | not-run | TEST_MATRIX.md continuation-04; tests/integration/test_cli_process.py; tests/unit/test_m6_service_manager.py Headless service command and systemd unit are host-tested as degraded supervisor. Raspberry Pi systemd start/stop/restart, reboot/no-login persistence, real audio/GPIO recovery and journal review remain target gates. |
+| M6.2 — Service installer/removal | host-verified | not-run | TEST_MATRIX.md continuation-04; scripts/service_manager.py; tests/unit/test_m6_service_manager.py; tests/unit/test_m3_3_release_manager.py Atomic unit/tmpfiles install, exact conflict refusal and reversible removal are host-tested with fake systemctl. Real root install/remove, systemd-analyze verify and target ownership validation remain target gates. |
 | M7.1 — Corpus and lexical index | partial | not-run | TEST_MATRIX.md continuation-grounding; text runtime guide Safe deterministic calibrated BM25 and 60-case synthetic regression pass. Real-lab 40/20 evaluation and support calibration remain open. |
 | M7.2 — Grounded prompt and response contract | partial | not-run | TEST_MATRIX.md continuation-grounding; text runtime guide Untrusted-data prompt and citation/abstention format enforced. Real model factual support, contradiction and prompt-injection evaluation remain open. |
 | M7.3 — Privacy-preserving telemetry | partial | not-run | TEST_MATRIX.md continuation-grounding; text runtime guide Content-free bounded process-serialized JSONL rotation implemented. Opt-in persistent research interaction records/retention remain gated. |
@@ -35,9 +35,9 @@ Checkpoint scope: **Continuation 03: M3.6 install summary plus M3.5 speech artif
 | M8.1 — Doctor and support bundle | partial | not-run | tests/unit/test_support_export.py; TEST_MATRIX.md continuation-support Categorical doctor and private allow-listed support ZIP tested. Detailed target versions/services/audio/GPIO/resource probes remain open. |
 | M8.2 — Update/rollback | pending | not-run |  Not implemented. |
 | M8.3 — Uninstall/reinstall | pending | not-run |  Not implemented. |
-| M9.1 — Clean-install and failure campaign | blocked | not-run | TEST_MATRIX.md continuation-01 full regression Full clean-image failure campaign requires final service path and physical Pi. Host suites remain passing. |
-| M9.2 — Security/license review | partial | not-run | CONTINUATION_01_REPORT.md; D-050/D-051 and D-060–D-064 New-code review, inherited identity invariant, privacy tests and credential-pattern scan pass. Target hardening, artifact licenses and redistribution approval remain open. |
-| M9.3 — Documentation and onboarding | partial | not-run | TEST_MATRIX.md continuation-grounding; text runtime guide Text diagnostic onboarding commands tested. Target installation/service/hardware operational guide remains open. |
+| M9.1 — Clean-install and failure campaign | blocked | not-run | TEST_MATRIX.md continuation-01 full regression Full clean-image failure campaign requires physical Pi and post-service target validation. Host unit/integration suites remain passing through M6.2. |
+| M9.2 — Security/license review | partial | not-run | CONTINUATION_01_REPORT.md; D-050/D-051 and D-060–D-064 New-code review, inherited identity invariant, privacy tests, privilege-pattern service checks and credential-pattern scan pass. Target hardening, artifact licenses and redistribution approval remain open. |
+| M9.3 — Documentation and onboarding | partial | not-run | TEST_MATRIX.md continuation-grounding; text runtime guide Text diagnostic onboarding commands and service lifecycle source contracts are tested. Target installation/service/hardware operational guide remains open. |
 | M9.4 — Development-artifact disposition | host-verified | not-applicable | D-065 Development evidence retained with concise current status; no history removed. Review again before public release. |
 | M9.5 — Portable Git handoff | host-verified | not-applicable | CONTINUATION_01_REPORT.md; checkpoint/continuation-01 Private checkpoint transport verified: ZIP integrity, extracted branch/tag/HEAD, executable modes, clean Git and strict object checks. Core release gates remain open. |
 <!-- /MILESTONES -->
