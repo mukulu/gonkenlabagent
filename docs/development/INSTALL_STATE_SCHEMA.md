@@ -33,8 +33,8 @@ performs only two bounded actions:
 and changes no package, release, virtual environment, model, service,
 configuration, or hardware state. Since M3.3, omission of `--engine-only`
 continues through the release lifecycle. A development host stops at
-`M3_4_TARGET_REQUIRED`; a validated target continues through M3.5 and stops at
-`M3_6_UNAVAILABLE`; see `RELEASE_ACTIVATION_SCHEMA.md`,
+`M3_4_TARGET_REQUIRED`; a validated target continues through M3.6 and prints
+`M3_6_INSTALL_SUMMARY` with `ready=false`; see `RELEASE_ACTIVATION_SCHEMA.md`,
 `OLLAMA_MODEL_LIFECYCLE.md`, and `SPEECH_ARTIFACT_LIFECYCLE.md`.
 
 ## 2. Private directory layout
@@ -210,6 +210,7 @@ This checkpoint proves the control mechanism, not an installation. It does not:
 
 M3.3 implemented the immutable application release and separate activation
 journal described here; M3.4 added its bounded Ollama/model steps under the same
-global engine lock. The exact next action is M3.5: add verified Whisper/Piper
-runtime and artifact provisioning without weakening the existing state,
-activation, or model contracts.
+global engine lock; M3.5 added verified Whisper/Piper runtime and artifact
+provisioning; M3.6 added the degraded install summary. The exact next action is
+M6.1: add the application service lifecycle without weakening the existing
+state, activation, model, speech, or summary contracts.

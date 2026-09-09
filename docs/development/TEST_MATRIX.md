@@ -549,7 +549,7 @@ python -m unittest tests.unit.test_m3_3_release_manager tests.unit.test_m2_3_dep
 | M3.5-T005 | `tests.integration.test_speech_lifecycle_process` | Local failure-injection fixtures cover idempotent repair after partial Whisper/model/Piper/smoke states |
 | M3.5-T006 | `tests.integration.test_speech_lifecycle_process` | Fake Piper and Whisper executables exercise the real CLI contract and content-free success record |
 | M3.5-T007 | `tests.unit.test_m3_3_release_manager` | Release payload contract now includes speech maintenance inputs and installer `--speech-only` boundary |
-| M3.5-T008 | `scripts/install.sh` syntax and status docs | Normal target path advances through M3.5 and stops at `M3_6_UNAVAILABLE`; Pi target execution remains unrun |
+| M3.5-T008 | `scripts/install.sh` syntax and status docs | Normal target path advances through M3.5, then M3.6 reports degraded summary status; Pi target execution remains unrun |
 
 This closes M3.5 at the host software tier only. No Raspberry Pi build,
 network download, real Piper synthesis, real Whisper transcription, audio
@@ -564,3 +564,25 @@ verified **5 installable dependency profiles**, including the new separate
 `speech-piper-pi-trixie-py313` profile. `git status --short` in the clone was
 clean. `git fsck --full --strict` exited successfully; dangling local test blobs
 were informational and no Git history was pruned.
+
+## M3.6 install summary — 2026-09-09
+
+Focused command before full regression:
+
+```bash
+bash -n scripts/install.sh scripts/ci.sh
+python -m py_compile scripts/install_summary.py scripts/release_manager.py
+python -m unittest tests.unit.test_m3_3_release_manager tests.unit.test_m3_6_install_summary -v
+```
+
+| Case | Evidence | Result / boundary |
+|---|---|---|
+| M3.6-T001 | `scripts/install_summary.py` | Verified release, Ollama and speech records produce `M3_6_INSTALL_SUMMARY` with `status=DEGRADED` and `ready=false` |
+| M3.6-T002 | `tests.unit.test_m3_6_install_summary` | Current release pointer must match the bootstrap commit before summary is emitted |
+| M3.6-T003 | `tests.unit.test_m3_6_install_summary` | Ollama and speech install records must be private, closed-schema and `validation=passed` |
+| M3.6-T004 | `tests.unit.test_m3_3_release_manager` | Immutable release maintenance payload includes `install_summary.py`; installer no longer contains `M3_6_UNAVAILABLE` |
+| M3.6-T005 | `scripts/install.sh` | Normal target flow emits JSON summary plus `[OK] code=M3_6_INSTALL_SUMMARY status=DEGRADED ready=false next=M6_1_APPLICATION_SERVICE` after M3.5 |
+
+This closes M3.6 at the host software tier only. The next implementation gate is
+M6.1/M6.2 application service lifecycle. No Raspberry Pi service start, reboot,
+audio, GPIO, thermal, or hardware acceptance is inferred.

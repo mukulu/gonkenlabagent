@@ -66,11 +66,12 @@ restores the prior validated release when one exists.
 
 Successful target provisioning prints `M3_3_RELEASE_COMPLETE`,
 `M3_4_OLLAMA_COMPLETE`, and `M3_5_SPEECH_COMPLETE`, then the normal bootstrap
-ends with `M3_6_UNAVAILABLE`. This deliberate nonzero boundary means the core
-package, Ollama service, selected model, and pinned speech artifacts are
-validated, but the install summary, application service, and physical hardware
-integration are not. Do not interpret it as `READY`. Use `--ollama-only` or
-`--speech-only` only to return success at those explicit milestone boundaries.
+prints `M3_6_INSTALL_SUMMARY` with `status=DEGRADED` and `ready=false`. This
+means the core package, Ollama service, selected model, pinned speech artifacts,
+and installer summary are validated, but the application service and physical
+hardware integration are not. Do not interpret it as `READY`. Use
+`--ollama-only` or `--speech-only` only to return success at earlier explicit
+milestone boundaries.
 A development host instead
 reports `M3_4_TARGET_REQUIRED`; its M3.4 behavior is exercised with isolated
 local fixtures rather than an unrepresentative host installation.

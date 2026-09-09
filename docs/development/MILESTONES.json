@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "checkpoint_scope": "Continuation 02: M3.5 speech artifact lifecycle plus continuation-01 runtime/text/support work",
+  "checkpoint_scope": "Continuation 03: M3.6 install summary plus M3.5 speech artifact lifecycle",
   "baseline_commit": "459f8da3ffb1dd084f9947988c117ae6da10ae1b",
   "milestones": [
     {
@@ -78,10 +78,10 @@
     {
       "id": "M3.6",
       "title": "Install summary",
-      "software": "pending",
+      "software": "host-verified",
       "target": "not-run",
-      "evidence": "",
-      "remaining": "Not implemented."
+      "evidence": "TEST_MATRIX.md (M3.6); scripts/install_summary.py; tests/unit/test_m3_6_install_summary.py",
+      "remaining": "Target invocation after real M3.5 provisioning remains unrun; service and hardware readiness remain M6/T4/T5 gates."
     },
     {
       "id": "M4.1",
@@ -129,7 +129,7 @@
       "software": "pending",
       "target": "not-run",
       "evidence": "",
-      "remaining": "Not implemented."
+      "remaining": "Next implementation gate: add the GonKen application service unit, runtime command, readiness/degraded policy and service acceptance tests."
     },
     {
       "id": "M6.2",

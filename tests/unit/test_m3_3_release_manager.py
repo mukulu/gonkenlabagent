@@ -162,6 +162,7 @@ class IntegrityAndPrivilegeTests(unittest.TestCase):
         installer = (ROOT / "scripts/install.sh").read_text(encoding="utf-8")
         for expected in (
             '"speech_manager.py"',
+            '"install_summary.py"',
             '"speech-artifacts.toml"',
             '"piper-pi-trixie-py313.lock"',
         ):
@@ -169,7 +170,8 @@ class IntegrityAndPrivilegeTests(unittest.TestCase):
         self.assertIn("gonken_speech_manager", installer)
         self.assertIn("--speech-only", installer)
         self.assertIn("M3_5_SPEECH_COMPLETE", installer)
-        self.assertIn("M3_6_UNAVAILABLE", installer)
+        self.assertIn("M3_6_INSTALL_SUMMARY", installer)
+        self.assertNotIn("M3_6_UNAVAILABLE", installer)
 
     def test_maintenance_lock_rejects_concurrent_state_mutation(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:

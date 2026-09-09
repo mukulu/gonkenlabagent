@@ -582,5 +582,6 @@ transport checks are repeated.
   bad model paths, incomplete downloads, or unusable binaries. At the same time,
   a host fixture cannot prove microphone, speaker, GPIO, service, thermal, or
   reboot behavior.
-- **Consequence:** `--speech-only` is a tested milestone return point. Normal
-  target bootstrap now stops at `M3_6_UNAVAILABLE`; this is still not `READY`.
+- **Consequence:** `--speech-only` is a tested milestone return point. M3.6 replaces the
+  unavailable boundary with `M3_6_INSTALL_SUMMARY`, but the summary still reports
+  `DEGRADED` and `ready=false`; this is still not `READY`.

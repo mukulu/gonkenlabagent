@@ -548,8 +548,8 @@ candidate, the release-local venv, immutable finalization, and durable atomic
 activation. M3.4 adds a checksum-pinned Ollama release, exact service policy,
 and full-digest-bound Qwen state. M3.5 adds checksum-pinned Whisper/Piper
 artifact provisioning and a real content-free speech-chain smoke; target
-execution then stops at `M3_6_UNAVAILABLE` and never falls through to legacy
-`setup.sh`. The apparent item-7 `--source` interface is concretely implemented
+execution then prints `M3_6_INSTALL_SUMMARY` with `status=DEGRADED`,
+`ready=false`, and never falls through to legacy `setup.sh`. The apparent item-7 `--source` interface is concretely implemented
 as the private `--source-record` plus a refetch of its exact commit so mutable
 checkout contents never become the installed payload. D-056–D-059, D-066,
 `RELEASE_ACTIVATION_SCHEMA.md`, `OLLAMA_MODEL_LIFECYCLE.md`, and
