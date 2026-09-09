@@ -21,7 +21,7 @@ This file is the authoritative short handoff for a later development session. Ve
 - **M3.2 clean-checkout test commit:** `28ac3dac9ecf591c1845712036d97119377a9f37`
 - **M3.3 implementation commit:** `0ea9db1` (`feat: add immutable release activation lifecycle`)
 - **M3.3 completed checkpoint:** `checkpoint/m3.3` (created after the tested documentation checkpoint; resolve it with `git rev-list -n 1 checkpoint/m3.3`)
-- **M3.3 clean-checkout test commit:** recorded in `TEST_MATRIX.md` M3.3-T016 after final documentation verification
+- **M3.3 clean-checkout test commit:** `6c4c19e82be9cf47f5181a342f9f8638d754abe7`
 - **Last verification date:** 2026-09-09 UTC
 - **Target:** Raspberry Pi 5 4GB, Raspberry Pi OS Lite 64-bit
 - **Audit host:** Linux x86_64, Python 3.12.14 (not target hardware)
@@ -183,6 +183,7 @@ The full issue descriptions and evidence are in `REPOSITORY_AUDIT.md`.
 - A local no-hardlink clone of M3.2 implementation commit `28ac3dac9ecf591c1845712036d97119377a9f37` passed the same entry point in a fresh standard-library-only virtual environment and remained clean.
 - M3.3 suite: 103 of 103 unit tests and 21 of 21 deterministic integration tests pass (124 total), including strict manifests/pointers, unsafe-archive rejection, maintenance locking, immutable retention, exact local-source wheel/venv construction, repeated installation, low-space refusal, rollback, and TERM at all candidate/journal/pointer/postcheck boundaries.
 - The M3.3 end-to-end fixture installs from an exact local Git commit into a disposable FHS-shaped root, runs the installed CLI, confirms a post-verified journal and immutable payload, repeats without manifest drift, and confirms the normal path stops honestly at `M3_4_UNAVAILABLE`.
+- A local no-hardlink clone of M3.3 documentation commit `6c4c19e82be9cf47f5181a342f9f8638d754abe7` passed all 124 checks through a fresh Python 3.12.14 venv, remained clean, and passed `git fsck --full --strict`.
 
 ## Tests Failing or Blocked
 
