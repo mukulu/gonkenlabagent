@@ -6,7 +6,7 @@ Historical implementation detail remains in Git, `TEST_MATRIX.md` and `DECISIONS
 M0/M1 audit and architecture review are complete; the table covers every core implementation item.
 
 <!-- MILESTONES -->
-Checkpoint scope: **Continuation 02: M3.5 speech artifact lifecycle plus continuation-01 runtime/text/support work**
+Checkpoint scope: **Continuation 03: M3.6 install summary plus M3.5 speech artifact lifecycle**
 
 | Item | Software | Target acceptance | Evidence / remaining work |
 |---|---|---|---|
@@ -19,13 +19,13 @@ Checkpoint scope: **Continuation 02: M3.5 speech artifact lifecycle plus continu
 | M3.3 — Immutable application release | host-verified | not-run | TEST_MATRIX.md (M3.3) Physical Pi acceptance remains open. |
 | M3.4 — Ollama lifecycle and selected model | host-verified | not-run | TEST_MATRIX.md (M3.4) Physical Pi acceptance remains open. |
 | M3.5 — Whisper and Piper artifacts | host-verified | not-run | SPEECH_ARTIFACT_LIFECYCLE.md; TEST_MATRIX.md (M3.5); tests/unit/test_m3_5_speech_manager.py; tests/integration/test_speech_lifecycle_process.py Real Raspberry Pi build/download/install, Piper synthesis, Whisper transcription, audio hardware and reboot acceptance remain open. |
-| M3.6 — Install summary | pending | not-run |  Not implemented. |
+| M3.6 — Install summary | host-verified | not-run | TEST_MATRIX.md (M3.6); scripts/install_summary.py; tests/unit/test_m3_6_install_summary.py Target invocation after real M3.5 provisioning remains unrun; service and hardware readiness remain M6/T4/T5 gates. |
 | M4.1 — Coordinator/state/health | host-verified | not-run | tests/unit/test_runtime_audio.py; TEST_MATRIX.md continuation-runtime Physical/service adapters and process-level Pi acceptance remain open. |
 | M4.2 — Audio discovery and recovery | partial | not-run | tests/unit/test_runtime_audio.py; TEST_MATRIX.md continuation-runtime Selection/recovery/frame buffer tested; real ALSA enumeration, capture backend and hotplug acceptance remain open. |
 | M4.3 — Resampling/STT/TTS lifecycle | partial | not-run | tests/unit/test_runtime_audio.py; TEST_MATRIX.md continuation-runtime FIR resampling and speech subprocess cleanup tested; pinned real speech binaries, tiny/base comparison and audible Pi acceptance remain open. |
 | M5.1 — Push-to-talk and recording indication | partial | not-run | tests/unit/test_runtime_audio.py; TEST_MATRIX.md continuation-runtime Debounced hold/release controller tested; physical GPIO adapter, crash-default LED-off and wiring acceptance remain open. |
 | M5.2 — Offline boundary | partial | not-run | TEST_MATRIX.md continuation-grounding; text runtime guide Core text path allows numeric-loopback only, no DNS/proxy/redirect/tool/cloud path. Kernel-observed Pi network denial and voice runtime acceptance remain open. |
-| M6.1 — Application service | pending | not-run |  Not implemented. |
+| M6.1 — Application service | pending | not-run |  Next implementation gate: add the GonKen application service unit, runtime command, readiness/degraded policy and service acceptance tests. |
 | M6.2 — Service installer/removal | pending | not-run |  Not implemented. |
 | M7.1 — Corpus and lexical index | partial | not-run | TEST_MATRIX.md continuation-grounding; text runtime guide Safe deterministic calibrated BM25 and 60-case synthetic regression pass. Real-lab 40/20 evaluation and support calibration remain open. |
 | M7.2 — Grounded prompt and response contract | partial | not-run | TEST_MATRIX.md continuation-grounding; text runtime guide Untrusted-data prompt and citation/abstention format enforced. Real model factual support, contradiction and prompt-injection evaluation remain open. |

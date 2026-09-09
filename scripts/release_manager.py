@@ -528,6 +528,7 @@ def build_release(
             source / "scripts" / "reconcile-release.sh": maintenance / "reconcile-release.sh",
             source / "scripts" / "ollama_manager.py": maintenance / "ollama_manager.py",
             source / "scripts" / "speech_manager.py": maintenance / "speech_manager.py",
+            source / "scripts" / "install_summary.py": maintenance / "install_summary.py",
             source / "packaging" / "ollama-artifacts.toml": maintenance / "packaging" / "ollama-artifacts.toml",
             source / "packaging" / "speech-artifacts.toml": maintenance / "packaging" / "speech-artifacts.toml",
             source / "requirements" / "piper-pi-trixie-py313.lock": maintenance / "requirements" / "piper-pi-trixie-py313.lock",
@@ -544,6 +545,7 @@ def build_release(
             maintenance / "reconcile-release.sh",
             maintenance / "ollama_manager.py",
             maintenance / "speech_manager.py",
+            maintenance / "install_summary.py",
         ):
             executable.chmod(0o755)
         package_version, _ = smoke_release(

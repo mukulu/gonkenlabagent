@@ -70,9 +70,9 @@ Primary evidence:
 
 This is an engineering inventory, not legal advice. M2.3 records the exact
 version, wheel filenames, PyPI SHA-256 values, and license expression for its
-only selected third-party package, optional pygame. Core and development locks
-are exactly empty because the maintained runtime is not implemented. Future
-dependency selection must still verify notice obligations, transitive metadata,
+only selected third-party package, optional pygame. Core and development locks remain empty; M3.5 adds a separate Piper
+process-runtime lock outside the application package. Future dependency
+selection must still verify notice obligations, transitive metadata,
 ARM/Python compatibility, versions, and hashes rather than relying on package
 names or repository-level labels alone.
 

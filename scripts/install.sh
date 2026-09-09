@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# GonKenLab Agent resumable installer (through M3.5).
+# GonKenLab Agent resumable installer (through M3.6).
 #
-# M3.5 adds pinned Whisper/Piper speech artifacts. It still does not provision
-# the application service or hardware adapters.
+# M3.6 reports the post-speech installation boundary. It still does not
+# provision the application service or hardware adapters.
 
 set -Eeuo pipefail
 
@@ -42,8 +42,9 @@ usage() {
   cat <<'EOF'
 Usage: scripts/install.sh --source-record PATH [OPTIONS]
 
-M3.5 validates and activates the application release, then provisions the
-pinned Ollama runtime/model and Whisper/Piper speech chain on a supported target.
+M3.6 validates and activates the application release, provisions the pinned
+Ollama runtime/model and Whisper/Piper speech chain on a supported target, then
+prints a content-free readiness summary.
 
 Options:
   --source-record PATH  Private source.record created by bootstrap (required).
@@ -428,6 +429,10 @@ gonken_speech_manifest() {
   printf '%s\n' "$RELEASE_ROOT/current/maintenance/packaging/speech-artifacts.toml"
 }
 
+gonken_install_summary_manager() {
+  printf '%s\n' "$RELEASE_ROOT/current/maintenance/install_summary.py"
+}
+
 gonken_ollama_template_arguments() {
   printf '%s\n' \
     --endpoint "$OLLAMA_ENDPOINT" \
@@ -702,5 +707,9 @@ if ((SPEECH_ONLY == 1)); then
   exit 0
 fi
 
-gonken_error   "M3_6_UNAVAILABLE"   "Speech provisioning passed, but final install summary is not implemented"   "retain the validated state and continue with checkpoint/m3.6" || true
-exit 69
+python3 "$(gonken_install_summary_manager)" \
+  --system-root / \
+  --commit "${GONKEN_SOURCE_RECORD[resolved_commit]}" \
+  --json
+printf '[OK] code=M3_6_INSTALL_SUMMARY status=DEGRADED ready=false next=M6_1_APPLICATION_SERVICE\n'
+exit 0

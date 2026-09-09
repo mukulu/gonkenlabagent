@@ -109,10 +109,10 @@ validated Raspberry Pi target it then installs checksum-pinned Ollama `0.33.3`
 under a separate `ollama` account, installs its exact loopback/no-cloud systemd
 unit, pulls `qwen3.5:2b-q4_K_M`, records the full local digest, and runs an
 inference smoke. It then provisions pinned Whisper/Piper speech artifacts and
-runs a content-free real speech-chain smoke. It finally stops with
-`M3_6_UNAVAILABLE`: the install summary, application service, and hardware
-integration are not installed yet. Use `--speech-only` to return success at the
-M3.5 boundary. It never invokes the retained `setup.sh`.
+runs a content-free real speech-chain smoke. It then prints a content-free `M3_6_INSTALL_SUMMARY` classified as
+`DEGRADED`, because the application service and physical hardware integration
+are not accepted yet. Use `--speech-only` to return success at the M3.5
+boundary. It never invokes the retained `setup.sh`.
 
 For an M3.3 development-host lifecycle test that returns after release
 activation, use a disposable private root:

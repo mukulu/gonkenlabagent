@@ -39,7 +39,7 @@ The target installer consumes the speech manager from the activated immutable re
 python3 /usr/local/lib/gonken-agent/current/maintenance/speech_manager.py whisper-status   --manifest /usr/local/lib/gonken-agent/current/maintenance/packaging/speech-artifacts.toml   --system-root /
 ```
 
-Normal target bootstrap now proceeds through M3.4 and M3.5, then stops at `M3_6_UNAVAILABLE`. Use `--speech-only` to return success immediately after `M3_5_SPEECH_COMPLETE`. Use `--ollama-only` to return success at the earlier M3.4 boundary.
+Normal target bootstrap now proceeds through M3.4, M3.5, and the M3.6 install summary. The summary returns success while reporting `DEGRADED`, because M6 service and physical hardware acceptance remain open. Use `--speech-only` to return success immediately after `M3_5_SPEECH_COMPLETE`. Use `--ollama-only` to return success at the earlier M3.4 boundary.
 
 ## Recovery Contract
 
