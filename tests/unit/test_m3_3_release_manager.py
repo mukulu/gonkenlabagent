@@ -165,6 +165,8 @@ class IntegrityAndPrivilegeTests(unittest.TestCase):
             '"install_summary.py"',
             '"service_manager.py"',
             '"rollback.sh"',
+            '"uninstall.sh"',
+            '"uninstall_manager.py"',
             '"speech-artifacts.toml"',
             '"gonken-agent.service"',
             '"packaging" / "tmpfiles" / "gonken-agent.conf"',
