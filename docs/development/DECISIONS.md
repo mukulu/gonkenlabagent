@@ -617,3 +617,21 @@ transport checks are repeated.
 - **Consequence:** Explicit rollback advances at the host software tier. Update
   acquisition, schema migration/backups, target rollback execution and uninstall
   remain open lifecycle work.
+
+## D-070 — Uninstall removes only project-owned runtime files by default
+
+- **Status:** Accepted
+- **Date:** 2026-09-09
+- **Decision:** `uninstall.sh` keeps GonKenLab data by default and removes only
+  the managed application service, tmpfiles definition, stable CLI symlink and
+  immutable application release root. Purging `/var/lib/gonken-agent`,
+  `/var/cache/gonken-agent` and `/srv/gonken-agent` requires
+  `--purge-data --confirm-purge purge-gonken-agent-data`.
+- **Reason:** The project must support recovery and clean reinstall without
+  quietly deleting state, corpus, diagnostics or downloaded material. Shared
+  Ollama units, binaries, users and model stores are not owned by application
+  uninstall and must not be removed here.
+- **Consequence:** M8.3 can close at the host software tier for keep-data
+  uninstall, purge confirmation and conflict refusal. Real target uninstall,
+  user/group disposition, service stop failures and clean-image reinstall remain
+  target acceptance work.

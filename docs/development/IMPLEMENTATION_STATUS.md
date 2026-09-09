@@ -6,7 +6,7 @@ Historical implementation detail remains in Git, `TEST_MATRIX.md` and `DECISIONS
 M0/M1 audit and architecture review are complete; the table covers every core implementation item.
 
 <!-- MILESTONES -->
-Checkpoint scope: **Continuation 04: M6.1/M6.2 governed service lifecycle plus M8.2 explicit rollback entrypoint**
+Checkpoint scope: **Continuation 05: M8.3 uninstall/reinstall lifecycle plus prior M6 service and M8.2 rollback work**
 
 | Item | Software | Target acceptance | Evidence / remaining work |
 |---|---|---|---|
@@ -34,9 +34,9 @@ Checkpoint scope: **Continuation 04: M6.1/M6.2 governed service lifecycle plus M
 | M7.5 — Research benchmarks | partial | not-run | TEST_MATRIX.md continuation-grounding; text runtime guide Reproducible synthetic retrieval benchmark and result schema provided. Real grounded/ungrounded LLM, STT, latency/RAM/thermal campaign remains open. |
 | M8.1 — Doctor and support bundle | partial | not-run | tests/unit/test_support_export.py; TEST_MATRIX.md continuation-support Categorical doctor and private allow-listed support ZIP tested. Detailed target versions/services/audio/GPIO/resource probes remain open. |
 | M8.2 — Update/rollback | partial | not-run | TEST_MATRIX.md continuation-04; scripts/rollback.sh; scripts/release_manager.py; tests/integration/test_release_lifecycle_process.py Explicit rollback to the previous post-verified immutable release is host-tested and restarts the app service. Update entrypoint, schema migrators, compatibility policy, target rollback and failure-injection service restart remain open. |
-| M8.3 — Uninstall/reinstall | pending | not-run |  Not implemented. |
-| M9.1 — Clean-install and failure campaign | blocked | not-run | TEST_MATRIX.md continuation-01 full regression Full clean-image failure campaign requires physical Pi and post-service target validation. Host unit/integration suites remain passing through M6.2. |
-| M9.2 — Security/license review | partial | not-run | CONTINUATION_01_REPORT.md; D-050/D-051 and D-060–D-064 New-code review, inherited identity invariant, privacy tests, privilege-pattern service checks and credential-pattern scan pass. Target hardening, artifact licenses and redistribution approval remain open. |
+| M8.3 — Uninstall/reinstall | host-verified | not-run | TEST_MATRIX.md continuation-05; scripts/uninstall.sh; scripts/uninstall_manager.py; tests/unit/test_m8_uninstall_manager.py; tests/integration/test_uninstall_lifecycle_process.py Keep-data uninstall, explicit purge confirmation, managed-file conflict refusal and shared Ollama protection are host-tested. Real target uninstall/reinstall, user/group disposition, service stop failures and clean-image reinstall acceptance remain target gates. |
+| M9.1 — Clean-install and failure campaign | blocked | not-run | TEST_MATRIX.md continuation-01 full regression Full clean-image failure campaign requires physical Pi and post-service target validation. Host unit/integration suites remain passing through M8.3. |
+| M9.2 — Security/license review | partial | not-run | CONTINUATION_01_REPORT.md; D-050/D-051 and D-060–D-064 New-code review, inherited identity invariant, privacy tests, privilege-pattern service checks, uninstall protection tests and credential-pattern scan pass. Target hardening, artifact licenses and redistribution approval remain open. |
 | M9.3 — Documentation and onboarding | partial | not-run | TEST_MATRIX.md continuation-grounding; text runtime guide Text diagnostic onboarding commands and service lifecycle source contracts are tested. Target installation/service/hardware operational guide remains open. |
 | M9.4 — Development-artifact disposition | host-verified | not-applicable | D-065 Development evidence retained with concise current status; no history removed. Review again before public release. |
 | M9.5 — Portable Git handoff | host-verified | not-applicable | CONTINUATION_01_REPORT.md; checkpoint/continuation-01 Private checkpoint transport verified: ZIP integrity, extracted branch/tag/HEAD, executable modes, clean Git and strict object checks. Core release gates remain open. |

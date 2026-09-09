@@ -654,3 +654,24 @@ PYTHONPATH=src python -m unittest tests.unit.test_m3_3_release_manager tests.int
 This advances M8.2 at the host software tier only. It does not implement update
 acquisition, compatibility/schema migration, target rollback execution, service
 restart failure handling, uninstall, or clean-image lifecycle acceptance.
+
+## M8.3 uninstall/reinstall lifecycle — 2026-09-09
+
+Focused command before full regression:
+
+```bash
+bash -n scripts/uninstall.sh scripts/rollback.sh scripts/install.sh
+PYTHONPATH=src python -m unittest tests.unit.test_m8_uninstall_manager tests.integration.test_uninstall_lifecycle_process tests.unit.test_m3_3_release_manager
+```
+
+| Case | Evidence | Result / boundary |
+|---|---|---|
+| M8.3-T001 | `scripts/uninstall_manager.py` | Keep-data default removes managed app service, tmpfiles, stable CLI symlink and immutable app release root while retaining `/var/lib/gonken-agent`, `/var/cache/gonken-agent` and `/srv/gonken-agent` |
+| M8.3-T002 | `tests.unit.test_m8_uninstall_manager` | Explicit purge requires the exact confirmation phrase and still does not remove shared Ollama service files |
+| M8.3-T003 | `tests.unit.test_m8_uninstall_manager` | Modified service files or modified stable entrypoints fail closed before release/data mutation |
+| M8.3-T004 | `tests.integration.test_uninstall_lifecycle_process` | `scripts/uninstall.sh` resolves normalized absolute templates and removes a project-owned installation from an isolated FHS root |
+| M8.3-T005 | `tests.unit.test_m3_3_release_manager` | Immutable release maintenance payload includes `uninstall.sh` and `uninstall_manager.py` so installed releases retain the operator uninstall entry point |
+
+This closes M8.3 at the host software tier only. Real Raspberry Pi uninstall,
+reinstall using retained data, user/group disposition, service stop/disable
+failure behavior, and clean-image lifecycle acceptance remain target gates.

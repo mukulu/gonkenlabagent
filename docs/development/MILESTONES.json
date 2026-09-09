@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "checkpoint_scope": "Continuation 04: M6.1/M6.2 governed service lifecycle plus M8.2 explicit rollback entrypoint",
+  "checkpoint_scope": "Continuation 05: M8.3 uninstall/reinstall lifecycle plus prior M6 service and M8.2 rollback work",
   "baseline_commit": "459f8da3ffb1dd084f9947988c117ae6da10ae1b",
   "milestones": [
     {
@@ -198,10 +198,10 @@
     {
       "id": "M8.3",
       "title": "Uninstall/reinstall",
-      "software": "pending",
+      "software": "host-verified",
       "target": "not-run",
-      "evidence": "",
-      "remaining": "Not implemented."
+      "evidence": "TEST_MATRIX.md continuation-05; scripts/uninstall.sh; scripts/uninstall_manager.py; tests/unit/test_m8_uninstall_manager.py; tests/integration/test_uninstall_lifecycle_process.py",
+      "remaining": "Keep-data uninstall, explicit purge confirmation, managed-file conflict refusal and shared Ollama protection are host-tested. Real target uninstall/reinstall, user/group disposition, service stop failures and clean-image reinstall acceptance remain target gates."
     },
     {
       "id": "M9.1",
@@ -209,7 +209,7 @@
       "software": "blocked",
       "target": "not-run",
       "evidence": "TEST_MATRIX.md continuation-01 full regression",
-      "remaining": "Full clean-image failure campaign requires physical Pi and post-service target validation. Host unit/integration suites remain passing through M6.2."
+      "remaining": "Full clean-image failure campaign requires physical Pi and post-service target validation. Host unit/integration suites remain passing through M8.3."
     },
     {
       "id": "M9.2",
@@ -217,7 +217,7 @@
       "software": "partial",
       "target": "not-run",
       "evidence": "CONTINUATION_01_REPORT.md; D-050/D-051 and D-060\u2013D-064",
-      "remaining": "New-code review, inherited identity invariant, privacy tests, privilege-pattern service checks and credential-pattern scan pass. Target hardening, artifact licenses and redistribution approval remain open."
+      "remaining": "New-code review, inherited identity invariant, privacy tests, privilege-pattern service checks, uninstall protection tests and credential-pattern scan pass. Target hardening, artifact licenses and redistribution approval remain open."
     },
     {
       "id": "M9.3",

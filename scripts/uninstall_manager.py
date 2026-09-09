@@ -1,0 +1,187 @@
+#!/usr/bin/env python3
+"""Uninstall GonKenLab Agent-owned service and release files."""
+
+from __future__ import annotations
+
+import argparse
+import os
+import shutil
+import subprocess
+import sys
+from pathlib import Path
+
+
+SERVICE_NAME = "gonken-agent.service"
+PURGE_CONFIRMATION = "purge-gonken-agent-data"
+OWNED_DATA_PATHS = (
+    "/var/lib/gonken-agent",
+    "/var/cache/gonken-agent",
+    "/srv/gonken-agent",
+)
+
+
+class UninstallError(RuntimeError):
+    def __init__(self, code: str, message: str, remediation: str, exit_code: int = 74):
+        super().__init__(message)
+        self.code = code
+        self.remediation = remediation
+        self.exit_code = exit_code
+
+
+def fail(code: str, message: str, remediation: str, exit_code: int = 74) -> None:
+    raise UninstallError(code, message, remediation, exit_code)
+
+
+def emit_error(error: UninstallError) -> None:
+    print(f"[ERROR] code={error.code} message={error} remediation={error.remediation}", file=sys.stderr)
+
+
+def require_absolute(value: str, label: str) -> Path:
+    path = Path(value)
+    if not path.is_absolute() or "\n" in value or "\r" in value or ".." in path.parts:
+        fail("UNINSTALL_PATH", f"{label} must be an absolute normalized path", "supply a safe absolute path", 64)
+    return path
+
+
+def mapped(root: Path, absolute: str) -> Path:
+    return Path(absolute) if root == Path("/") else root / absolute.lstrip("/")
+
+
+def test_mode(root: Path) -> None:
+    if root != Path("/") and os.environ.get("GONKEN_ENABLE_TEST_FAILURES") != "1":
+        fail("UNINSTALL_TEST_GATE", "redirected system roots require the explicit test gate", "set GONKEN_ENABLE_TEST_FAILURES=1 only in isolated tests", 77)
+
+
+def run_tool(tool: Path, *arguments: str) -> None:
+    if not tool.is_absolute():
+        fail("UNINSTALL_TOOL", "systemctl path must be absolute", "use /usr/bin/systemctl", 64)
+    result = subprocess.run([str(tool), *arguments], check=False, capture_output=True, text=True)
+    if result.returncode != 0:
+        detail = (result.stderr or result.stdout).strip().replace("\n", " ")[:400]
+        fail("UNINSTALL_COMMAND", f"command failed ({result.returncode}): {detail or tool.name}", "inspect system service state and rerun", result.returncode if 1 <= result.returncode <= 125 else 74)
+
+
+def load_service_payloads(unit_template: Path, tmpfiles_template: Path) -> tuple[bytes, bytes]:
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    import service_manager  # type: ignore
+
+    return service_manager.service_files(unit_template, tmpfiles_template)
+
+
+def service_paths(root: Path) -> tuple[Path, Path]:
+    return (
+        mapped(root, "/etc/systemd/system/gonken-agent.service"),
+        mapped(root, "/etc/tmpfiles.d/gonken-agent.conf"),
+    )
+
+
+def validate_managed_or_absent(path: Path, payload: bytes) -> bool:
+    if not path.exists() and not path.is_symlink():
+        return False
+    if not path.is_file() or path.is_symlink() or path.read_bytes() != payload:
+        fail("UNINSTALL_CONFLICT", f"managed file differs: {path}", "review administrator changes before uninstalling", 75)
+    return True
+
+
+def remove_if_managed(path: Path, payload: bytes) -> bool:
+    if validate_managed_or_absent(path, payload):
+        path.unlink()
+        return True
+    return False
+
+
+def remove_entrypoint(root: Path) -> bool:
+    path = mapped(root, "/usr/local/bin/gonken-agent")
+    if not path.exists() and not path.is_symlink():
+        return False
+    expected = "../lib/gonken-agent/current/.venv/bin/gonken-agent"
+    if not path.is_symlink() or os.readlink(path) != expected:
+        fail("UNINSTALL_CONFLICT", f"entrypoint differs: {path}", "review the binary path before uninstalling", 75)
+    path.unlink()
+    return True
+
+
+def remove_tree(path: Path) -> bool:
+    if not path.exists() and not path.is_symlink():
+        return False
+    if path.is_symlink() or not path.is_dir():
+        fail("UNINSTALL_CONFLICT", f"owned path is not a real directory: {path}", "inspect the path before uninstalling", 75)
+    for directory in [path, *[item for item in path.rglob("*") if item.is_dir() and not item.is_symlink()]]:
+        directory.chmod(0o700)
+    shutil.rmtree(path)
+    return True
+
+
+def uninstall(root: Path, unit_template: Path, tmpfiles_template: Path, systemctl: Path, purge_data: bool, confirm_purge: str | None) -> None:
+    if purge_data and confirm_purge != PURGE_CONFIRMATION:
+        fail("UNINSTALL_PURGE_CONFIRMATION", "purge requires the exact confirmation phrase", f"use --confirm-purge {PURGE_CONFIRMATION}", 64)
+    unit_payload, tmpfiles_payload = load_service_payloads(unit_template, tmpfiles_template)
+    unit_path, tmpfiles_path = service_paths(root)
+    service_installed = validate_managed_or_absent(unit_path, unit_payload)
+    validate_managed_or_absent(tmpfiles_path, tmpfiles_payload)
+
+    removed: list[str] = []
+    if service_installed:
+        run_tool(systemctl, "stop", SERVICE_NAME)
+        run_tool(systemctl, "disable", SERVICE_NAME)
+    if remove_if_managed(unit_path, unit_payload):
+        removed.append("/etc/systemd/system/gonken-agent.service")
+    if remove_if_managed(tmpfiles_path, tmpfiles_payload):
+        removed.append("/etc/tmpfiles.d/gonken-agent.conf")
+    if service_installed:
+        run_tool(systemctl, "daemon-reload")
+    if remove_entrypoint(root):
+        removed.append("/usr/local/bin/gonken-agent")
+    if remove_tree(mapped(root, "/usr/local/lib/gonken-agent")):
+        removed.append("/usr/local/lib/gonken-agent")
+
+    retained = [path for path in OWNED_DATA_PATHS if mapped(root, path).exists() or mapped(root, path).is_symlink()]
+    purged: list[str] = []
+    if purge_data:
+        for path in OWNED_DATA_PATHS:
+            if remove_tree(mapped(root, path)):
+                purged.append(path)
+        retained = []
+
+    print(
+        "[OK] code=UNINSTALL_COMPLETE "
+        f"removed={','.join(removed) or 'none'} "
+        f"retained={','.join(retained) or 'none'} "
+        f"purged={','.join(purged) or 'none'}"
+    )
+
+
+def parser() -> argparse.ArgumentParser:
+    result = argparse.ArgumentParser(description=__doc__)
+    result.add_argument("--system-root", default="/")
+    result.add_argument("--unit-template", required=True)
+    result.add_argument("--tmpfiles-template", required=True)
+    result.add_argument("--systemctl", default="/usr/bin/systemctl")
+    result.add_argument("--purge-data", action="store_true")
+    result.add_argument("--confirm-purge")
+    return result
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = parser().parse_args(argv)
+    try:
+        root = require_absolute(args.system_root, "system root")
+        test_mode(root)
+        if root == Path("/") and os.geteuid() != 0:
+            fail("UNINSTALL_PRIVILEGE", "production uninstall requires root", "run through an explicit administrator transition", 77)
+        uninstall(
+            root,
+            require_absolute(args.unit_template, "unit template"),
+            require_absolute(args.tmpfiles_template, "tmpfiles template"),
+            require_absolute(args.systemctl, "systemctl"),
+            args.purge_data,
+            args.confirm_purge,
+        )
+    except UninstallError as error:
+        emit_error(error)
+        return error.exit_code
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
