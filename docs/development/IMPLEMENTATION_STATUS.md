@@ -23,6 +23,8 @@ This file is the authoritative short handoff for a later development session. Ve
 - **M3.3 completed checkpoint:** `checkpoint/m3.3` (created after the tested documentation checkpoint; resolve it with `git rev-list -n 1 checkpoint/m3.3`)
 - **M3.3 clean-checkout test commit:** `6c4c19e82be9cf47f5181a342f9f8638d754abe7`
 - **M3.4 implementation commit:** `980e09c153d4c3232c6bc8390bcbd4f1dcf0a1bd` (`feat: provision pinned ollama model lifecycle`)
+- **M3.4 completed checkpoint:** `checkpoint/m3.4` (created after the final verification ledger; resolve it with `git rev-list -n 1 checkpoint/m3.4`)
+- **M3.4 clean-checkout test commit:** `bc90a378f855b55d0a55f014c791f4d25a5e5967`
 - **Last verification date:** 2026-09-09 UTC
 - **Target:** Raspberry Pi 5 4GB, Raspberry Pi OS Lite 64-bit
 - **Audit host:** Linux x86_64, Python 3.12.14 (not target hardware)
@@ -196,6 +198,7 @@ The full issue descriptions and evidence are in `REPOSITORY_AUDIT.md`.
 - M3.4 suite: 109 of 109 unit tests and 26 of 26 deterministic integration tests pass (135 total), including strict manifest/endpoint/record/archive checks and a local fake Ollama binary, systemctl boundary, loopback API, pull, full digest, and inference lifecycle.
 - M3.4 termination coverage passes before/during/after download, extraction, binary finalization, readiness, model pull, and inference smoke (18 points); every case converges on rerun without accepting an unverified payload.
 - M3.4 checksum mismatch, service-file conflict, wrong digest/quantization, recorded full-digest drift, repeat provisioning, exact status, no-cloud settings, one-model/one-parallel limits, and development-root gate checks pass.
+- A local no-hardlink clone of M3.4 documentation commit `bc90a378f855b55d0a55f014c791f4d25a5e5967` passed all 135 checks through a fresh Python 3.12.14 venv, remained clean, and passed `git fsck --full --strict`.
 
 ## Tests Failing or Blocked
 
