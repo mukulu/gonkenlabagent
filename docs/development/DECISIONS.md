@@ -601,3 +601,19 @@ transport checks are repeated.
 - **Consequence:** Service installation can advance independently under D-060,
   while target start/stop/restart, reboot persistence, audio hotplug recovery,
   journal review and systemd-analyze verification remain hardware/target gates.
+
+## D-069 — Roll back by reusing validated activation, not ad hoc symlink edits
+
+- **Status:** Accepted
+- **Date:** 2026-09-09
+- **Decision:** The first M8.2 lifecycle entry point is `rollback.sh`, backed by
+  `release_manager rollback-previous`. It rolls back only to the previous
+  post-verified release recorded in the activation journal, then restarts
+  `gonken-agent.service`.
+- **Reason:** Release rollback should use the same validation, locking, journal
+  and pruning rules as normal activation. A separate shell-only symlink switch
+  would duplicate critical state-machine logic and risk producing a state that
+  pre-start reconciliation cannot understand.
+- **Consequence:** Explicit rollback advances at the host software tier. Update
+  acquisition, schema migration/backups, target rollback execution and uninstall
+  remain open lifecycle work.
