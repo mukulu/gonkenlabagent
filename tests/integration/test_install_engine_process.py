@@ -144,11 +144,11 @@ class InstallProcessTests(unittest.TestCase):
                 )
             )
 
-    def test_default_stops_at_next_unimplemented_milestone(self) -> None:
-        result = self.run_install()
-        self.assertEqual(result.returncode, 69)
-        self.assertIn("code=M3_3_UNAVAILABLE", result.stderr)
+    def test_engine_only_stops_before_release_provisioning(self) -> None:
+        result = self.run_install("--engine-only")
+        self.assertEqual(result.returncode, 0)
         self.assertIn("code=M3_2_ENGINE_COMPLETE", result.stdout)
+        self.assertFalse((self.root / "development-root").exists())
 
     def test_false_complete_state_is_repaired_from_probe_truth(self) -> None:
         self.assertEqual(self.run_install("--engine-only").returncode, 0)

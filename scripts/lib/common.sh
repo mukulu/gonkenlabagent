@@ -296,6 +296,7 @@ gonken_validate_existing_checkout() {
   local checkout_path="$1"
   local expected_source="$2"
   local status origin normalized_origin normalized_expected
+  local -a checkout_git=(git -c "safe.directory=$checkout_path" -C "$checkout_path")
   [[ -n "$checkout_path" ]] || return 0
   [[ ! -L "$checkout_path" ]] || {
     gonken_error "PREFLIGHT_CHECKOUT" "existing checkout path is a symlink" "use an explicit real directory"
@@ -307,7 +308,7 @@ gonken_validate_existing_checkout() {
     return 1
   }
   if [[ -d "$checkout_path/.git" ]]; then
-    status="$(git -C "$checkout_path" status --porcelain=v1 --untracked-files=normal)" || {
+    status="$("${checkout_git[@]}" status --porcelain=v1 --untracked-files=normal)" || {
       gonken_error "PREFLIGHT_CHECKOUT" "cannot inspect existing Git checkout" "repair or replace the checkout"
       return 1
     }
@@ -318,7 +319,7 @@ gonken_validate_existing_checkout() {
         "commit, preserve elsewhere, or remove the changes before bootstrap"
       return 1
     fi
-    origin="$(git -C "$checkout_path" remote get-url origin 2>/dev/null)" || origin=""
+    origin="$("${checkout_git[@]}" remote get-url origin 2>/dev/null)" || origin=""
     normalized_origin="$(gonken_normalize_source_url "$origin")"
     normalized_expected="$(gonken_normalize_source_url "$expected_source")"
     if [[ -z "$origin" || "$normalized_origin" != "$normalized_expected" ]]; then
