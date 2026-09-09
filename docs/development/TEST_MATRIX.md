@@ -391,10 +391,10 @@ was used.
 | M3.3-T013 | T0/T1 / V-H03 | Privilege/account/source-record boundary | Inspect sudo handoff and non-login account declarations; test root-readable invoking-user-owned private record and bootstrap routing | PASS (HOST-LIMITED) | The code performs one validated sudo transition, keeps root ownership of code/state, and reserves runtime smoke for the service user. Real `useradd`/`runuser`/APT execution remains untested on target. |
 | M3.3-T014 | T1 | Stable entrypoint and reconciliation payload | Initialize temporary layout; inspect relative entrypoint; hash/copy exact-source maintenance helpers into release | PASS | Stable CLI path crosses only constrained `current`; release contains its exact reconciliation implementation for later M6 pre-start wiring. No service is installed. |
 | M3.3-T015 | T1 | Repeatability and milestone stop | Repeat `--release-only`; compare manifest; invoke normal installer | PASS | Repeat leaves the release record byte-identical. Normal execution reports `M3_3_RELEASE_COMPLETE` then exits 69/`M3_4_UNAVAILABLE`, never legacy setup. |
-| M3.3-T016 | T0/T1 | Clean-checkout repeatability | No-hardlink clone of the final M3.3 documentation commit; fresh stdlib-only venv; run `scripts/ci.sh`; inspect cleanliness and strict Git objects | PENDING | Must pass before `checkpoint/m3.3` is created. |
+| M3.3-T016 | T0/T1 | Clean-checkout repeatability | No-hardlink clone of `6c4c19e82be9cf47f5181a342f9f8638d754abe7`; fresh Python 3.12.14 venv; `PYTHON_BIN=<venv>/bin/python ./scripts/ci.sh`; inspect cleanliness and run `git fsck --full --strict` | PASS | All 124 tests and T0 checks pass from committed files; the cloned worktree remains clean and strict Git object validation succeeds. System setuptools 84.0.0 remains the recorded local build prerequisite. |
 | M3.3-T017 | T2/T3/T6 | Real target, HTTPS, privilege, filesystem, and power loss | Fresh supported Pi 5; normal bootstrap; controlled interruptions/reboots; inspect ownership/journal/pointer | BLOCKED | No target is available. Host evidence cannot establish APT/account behavior, Python 3.13/AArch64 install, storage durability, or boot reconciliation. |
 
-M3.3 is implementation-complete at T0/T1 once M3.3-T016 passes. The installed
+M3.3 is implementation-complete at T0/T1. The installed
 artifact is only the dependency-light core package and release machinery; no
 model, speech pipeline, application service, or hardware readiness exists.
 M3.4 is the only next authorized work package.
