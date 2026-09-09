@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
-# GonKenLab Agent bootstrap preflight (M3.1).
+# GonKenLab Agent bootstrap and validated installer handoff (through M3.3).
 #
-# This milestone validates the host and requested source without installing
-# packages or invoking the retained prototype setup.sh. M3.2 will add the
-# resumable installation engine behind this boundary.
+# Preflight remains mutation-free. A normal target invocation crosses the
+# already-validated noninteractive sudo boundary before installed-system work.
 
 set -Eeuo pipefail
 
@@ -32,7 +31,8 @@ usage() {
   cat <<'EOF'
 Usage: ./bootstrap.sh [OPTIONS]
 
-M3.1 performs preflight only; it does not install GonKenLab Agent.
+Preflight-only performs no installation. A normal invocation continues through
+the accepted immutable-release milestone and stops before model provisioning.
 
 Options:
   --preflight-only          Return success after writing the source manifest.
@@ -211,6 +211,11 @@ printf '[OK] source_commit=%s privilege_mode=%s platform_mode=%s\n' \
 
 if ((PREFLIGHT_ONLY == 1)); then
   exit 0
+fi
+
+if [[ "$PLATFORM_MODE" == "target" && "${#GONKEN_PRIVILEGE_PREFIX[@]}" -gt 0 ]]; then
+  exec "${GONKEN_PRIVILEGE_PREFIX[@]}" -- "$SCRIPT_DIR/scripts/install.sh" \
+    --source-record "$GONKEN_STAGING_DIR/source.record"
 fi
 
 exec "$SCRIPT_DIR/scripts/install.sh" \

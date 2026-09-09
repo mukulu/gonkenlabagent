@@ -148,6 +148,7 @@ gonken_read_record() {
 
 gonken_private_file_permissions() {
   local path="$1"
+  local expected_uid="$2"
   local effective_uid file_uid file_mode parent parent_uid parent_mode
   effective_uid="$(id -u)" || return 65
   file_uid="$(stat -c %u -- "$path" 2>/dev/null)" || return 65
@@ -156,11 +157,13 @@ gonken_private_file_permissions() {
   parent_uid="$(stat -c %u -- "$parent" 2>/dev/null)" || return 65
   parent_mode="$(stat -c %a -- "$parent" 2>/dev/null)" || return 65
   [[ "$file_mode" =~ ^[0-7]{3,4}$ && "$parent_mode" =~ ^[0-7]{3,4}$ ]] || return 65
-  if [[ "$file_uid" != "$effective_uid" || "$parent_uid" != "$effective_uid" \
+  if [[ "$file_uid" != "$parent_uid" \
+      || ("$file_uid" != "$expected_uid" && "$file_uid" != "$effective_uid") \
+      || ("$effective_uid" != "0" && "$expected_uid" != "$effective_uid") \
       || $((8#$file_mode & 077)) -ne 0 || $((8#$parent_mode & 077)) -ne 0 ]]; then
     gonken_error \
       "INSTALL_RECORD_PERMISSIONS" \
-      "source record and parent must be private and owned by the effective user" \
+      "source record and parent must be private and owned by the recorded or effective administrator" \
       "use the untouched mode-600 record in its mode-700 bootstrap directory"
     return 65
   fi
@@ -168,7 +171,7 @@ gonken_private_file_permissions() {
 
 gonken_load_source_record() {
   local path="$1"
-  local key
+  local key invoking_uid
   local -a fields=(
     format source_url requested_ref resolved_commit platform_mode invoking_user
     kernel_name architecture userspace_bits python_version os_id os_version_id
@@ -177,10 +180,6 @@ gonken_load_source_record() {
     observed_epoch existing_checkout
   )
   gonken_validate_absolute_path "$path" "source record" || return 65
-  gonken_private_file_permissions "$path" || {
-    gonken_error "INSTALL_RECORD_PERMISSIONS" "cannot verify private source-record ownership or mode" "use the untouched bootstrap record"
-    return 65
-  }
   gonken_read_record "$path" fields GONKEN_SOURCE_RECORD || return $?
   for key in "${fields[@]}"; do
     if [[ ! -v "GONKEN_SOURCE_RECORD[$key]" ]]; then
@@ -203,6 +202,14 @@ gonken_load_source_record() {
   }
   [[ "${GONKEN_SOURCE_RECORD[invoking_user]}" =~ ^(root|[a-z_][a-z0-9_-]*[$]?)$ ]] || {
     gonken_error "INSTALL_RECORD" "source record has an invalid invoking user" "rerun bootstrap from a real local account"
+    return 65
+  }
+  invoking_uid="$(id -u -- "${GONKEN_SOURCE_RECORD[invoking_user]}" 2>/dev/null)" || {
+    gonken_error "INSTALL_RECORD_PERMISSIONS" "recorded invoking user no longer resolves" "rerun bootstrap from the intended administrator account"
+    return 65
+  }
+  gonken_private_file_permissions "$path" "$invoking_uid" || {
+    gonken_error "INSTALL_RECORD_PERMISSIONS" "cannot verify private source-record ownership or mode" "use the untouched bootstrap record"
     return 65
   }
   for key in userspace_bits free_kib memory_kib observed_epoch; do

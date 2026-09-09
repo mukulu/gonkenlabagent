@@ -38,7 +38,12 @@ class BootstrapProcessTests(unittest.TestCase):
         self.stubs.mkdir()
         id_stub = self.stubs / "id"
         id_stub.write_text(
-            "#!/bin/bash\nset -Eeuo pipefail\n[[ \"$*\" == '-u' ]] && echo 0\n",
+            "#!/bin/bash\nset -Eeuo pipefail\n"
+            "case \"$*\" in\n"
+            "  '-u'|'-u -- root') echo 0 ;;\n"
+            "  '-un') echo root ;;\n"
+            "  *) exit 1 ;;\n"
+            "esac\n",
             encoding="utf-8",
         )
         id_stub.chmod(0o755)
@@ -103,7 +108,7 @@ class BootstrapProcessTests(unittest.TestCase):
         self.assertIn("rpi_image_reference=not-applicable", content)
         self.assertNotIn("M3_2_UNAVAILABLE", result.stderr)
 
-    def test_default_routes_to_engine_and_stops_before_real_provisioning(self) -> None:
+    def test_default_routes_to_release_manager_and_never_legacy_setup(self) -> None:
         source, expected_commit = self.make_source()
         result = subprocess.run(
             self.command(source),
@@ -114,14 +119,17 @@ class BootstrapProcessTests(unittest.TestCase):
             text=True,
             timeout=15,
         )
-        self.assertEqual(result.returncode, 69)
-        self.assertIn("code=M3_3_UNAVAILABLE", result.stderr)
-        self.assertIn("code=M3_2_ENGINE_COMPLETE", result.stdout)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("code=RELEASE_", result.stderr)
+        self.assertNotIn("M3_2_UNAVAILABLE", result.stderr)
         self.assertIn(f"source_commit={expected_commit}", result.stdout)
         self.assertNotIn("Starting full GonKenLab Agent setup", result.stdout)
         match = re.search(r"staging=([^\n]+)", result.stdout)
         self.assertIsNotNone(match, result.stdout)
-        state = Path(match.group(1)) / "install-state"
+        state = (
+            Path(match.group(1))
+            / "development-root/var/lib/gonken-agent/install/engine"
+        )
         self.assertTrue((state / "steps" / "engine_contract.record").is_file())
         self.assertFalse((state / "engine.lock").exists())
 
