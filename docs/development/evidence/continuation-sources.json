@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "inputs": [
+    {
+      "filename": "01-gonkenlabagent-checkpoint-m3.4-private.zip",
+      "bytes": 3966624,
+      "sha256": "93ddb5e3673b351a6835c51e513c6a847a76eba82152659c3e906062d64df303"
+    },
+    {
+      "filename": "02-SOPHIA_Lab_Raspberry_Pi_Project_Feasibility_and_Build_Blueprint.md",
+      "bytes": 47008,
+      "sha256": "879310bbf5593efe8ba171e30fe5fb54e577694c754d1044804dc91167942455"
+    }
+  ],
+  "baseline_commit": "459f8da",
+  "software_test_commit": "129aad0ef8437ca057f69b401d0c7ce2a973ee37",
+  "environment": {
+    "system": "Linux",
+    "architecture": "x86_64",
+    "python": "3.12.14"
+  },
+  "scope": "private development continuation; no target acceptance",
+  "unavailable": [
+    "physical Raspberry Pi",
+    "USB audio",
+    "GPIO button and LED",
+    "live accepted Whisper/Piper chain",
+    "representative approved lab corpus and real model evaluations"
+  ]
+}

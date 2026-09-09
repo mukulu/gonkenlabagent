@@ -507,3 +507,13 @@ suite now passes **18 grounding unit + 9 text/network integration tests (27)**, 
 malformed/duplicate/unknown-source calibration refusal and cancellation after response
 headers. Final combined count is 189; committed clean-checkout execution is recorded
 in the checkpoint verification report.
+
+### Final committed clean-checkout result
+
+Commit `129aad0` was fetched into the no-hardlink local clone and checked out detached.
+Using a fresh dependency-free Python 3.12.14 venv through `PYTHON_BIN`,
+`./scripts/ci.sh` passed **154 unit + 35 integration tests = 189 total**. The
+worktree remained clean. This is the exact final software commit; the subsequent
+handoff commit changes documentation/evidence only. All T0 checks passed, including
+configuration/lock syntax, lock drift, generated milestone completeness and Git diff
+whitespace checks. No physical Pi or live speech/model result is inferred.
