@@ -543,3 +543,10 @@ The master-blueprint review must resolve:
 - **Status:** Accepted, 2026-09-09.
 - **Decision:** Retain `docs/development`, the supplied feasibility source, test evidence and Git history in the private checkpoint. Replace only the confusing current-status presentation with the complete generated ledger. Use the concise current guide as the entry point.
 - **Consequence:** No history or quarantined baseline material is deleted to make a checkpoint appear release-ready. Public-release disposition and license approval remain separate gates. M9.5 is recorded conservatively as partial until the final archive verification is attached to the handoff.
+
+### D-065 transport evidence update
+
+The private archive verification now passes. M9.5 is host-verified for transport;
+the earlier pending verification note is historical. Release-candidate acceptance
+remains open. The final archive is regenerated after this status update and its
+transport checks are repeated.

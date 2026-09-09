@@ -517,3 +517,13 @@ worktree remained clean. This is the exact final software commit; the subsequent
 handoff commit changes documentation/evidence only. All T0 checks passed, including
 configuration/lock syntax, lock drift, generated milestone completeness and Git diff
 whitespace checks. No physical Pi or live speech/model result is inferred.
+
+### Private checkpoint transport verification
+
+The first complete Continuation 01 archive at documentation commit `8aec82a` passed
+ZIP CRC validation, extraction with stored executable modes, expected branch/tag/HEAD,
+clean `git status`, `git fsck --full --strict` and generated status validation. M9.5
+therefore closes at the private transport/host tier. A final documentation-only status
+commit records this evidence; the final regenerated ZIP repeats these transport checks.
+Its exact commit and archive SHA-256 are recorded in the downloadable handoff report.
+This does not close M9 release-candidate acceptance.

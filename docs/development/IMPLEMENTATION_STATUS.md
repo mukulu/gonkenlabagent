@@ -39,7 +39,7 @@ Checkpoint scope: **Continuation 01: M3.4 plus runtime/audio/PTT contracts, grou
 | M9.2 — Security/license review | partial | not-run | CONTINUATION_01_REPORT.md; D-050/D-051 and D-060–D-064 New-code review, inherited identity invariant, privacy tests and credential-pattern scan pass. Target hardening, artifact licenses and redistribution approval remain open. |
 | M9.3 — Documentation and onboarding | partial | not-run | TEST_MATRIX.md continuation-grounding; text runtime guide Text diagnostic onboarding commands tested. Target installation/service/hardware operational guide remains open. |
 | M9.4 — Development-artifact disposition | host-verified | not-applicable | D-065 Development evidence retained with concise current status; no history removed. Review again before public release. |
-| M9.5 — Portable Git handoff | partial | not-applicable | CONTINUATION_01_REPORT.md; checkpoint/continuation-01 Portable private checkpoint prepared; final archive verification is reported in the external handoff. No release-candidate acceptance claimed. |
+| M9.5 — Portable Git handoff | host-verified | not-applicable | CONTINUATION_01_REPORT.md; checkpoint/continuation-01 Private checkpoint transport verified: ZIP integrity, extracted branch/tag/HEAD, executable modes, clean Git and strict object checks. Core release gates remain open. |
 <!-- /MILESTONES -->
 
 ## Workflow
