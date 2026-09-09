@@ -238,10 +238,10 @@
     {
       "id": "M9.5",
       "title": "Portable Git handoff",
-      "software": "partial",
+      "software": "host-verified",
       "target": "not-applicable",
       "evidence": "CONTINUATION_01_REPORT.md; checkpoint/continuation-01",
-      "remaining": "Portable private checkpoint prepared; final archive verification is reported in the external handoff. No release-candidate acceptance claimed."
+      "remaining": "Private checkpoint transport verified: ZIP integrity, extracted branch/tag/HEAD, executable modes, clean Git and strict object checks. Core release gates remain open."
     }
   ]
 }
