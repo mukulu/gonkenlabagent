@@ -51,6 +51,17 @@ class CliProcessTests(unittest.TestCase):
         self.assertEqual(payload["config"]["llm"]["model"], "qwen3.5:2b-q4_K_M")
         self.assertNotIn(str(ROOT), serialized)
 
+    def test_service_process_once_is_content_free_and_degraded(self) -> None:
+        result = run_cli("service", "--no-site", "--once")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        payload = json.loads(result.stdout)
+        self.assertEqual(payload["service"], "gonken-agent")
+        self.assertEqual(payload["mode"], "headless-supervisor")
+        self.assertEqual(payload["status"], "DEGRADED")
+        self.assertTrue(payload["ready_for_systemd"])
+        self.assertIn("service", json.dumps(payload))
+        self.assertNotIn(str(ROOT), json.dumps(payload))
+
 
 if __name__ == "__main__":
     unittest.main()

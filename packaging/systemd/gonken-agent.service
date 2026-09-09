@@ -1,0 +1,35 @@
+[Unit]
+Description=GonKenLab Agent headless offline assistant
+Documentation=man:systemd.service(5)
+Wants=ollama.service
+After=network-online.target ollama.service
+ConditionPathIsDirectory=/usr/local/lib/gonken-agent/current
+StartLimitIntervalSec=60
+StartLimitBurst=3
+
+[Service]
+Type=exec
+User=gonken-agent
+Group=gonken-agent
+WorkingDirectory=/usr/local/lib/gonken-agent/current
+EnvironmentFile=-/etc/gonken-agent/environment
+ExecStartPre=/usr/local/lib/gonken-agent/current/maintenance/reconcile-release.sh
+ExecStart=/usr/local/lib/gonken-agent/current/.venv/bin/gonken-agent service
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=20
+RuntimeDirectory=gonken-agent
+CacheDirectory=gonken-agent
+UMask=0027
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=full
+ReadWritePaths=/var/lib/gonken-agent/runtime /var/cache/gonken-agent /run/gonken-agent
+ReadOnlyPaths=/srv/gonken-agent/corpus
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+CapabilityBoundingSet=
+PrivateDevices=false
+
+[Install]
+WantedBy=multi-user.target

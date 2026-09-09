@@ -1,5 +1,6 @@
 """Explicit local maintenance/diagnostic commands; no privileged mutation."""
 import json
+import time
 import signal
 import sys
 import threading
@@ -45,6 +46,11 @@ def add_commands(subparsers):
     config_arguments(doctor)
     doctor.add_argument('--index',type=Path)
     doctor.add_argument('--probe-ollama',action='store_true',help='explicit local API probe')
+    service=subparsers.add_parser('service',help='run the governed headless service supervisor')
+    config_arguments(service)
+    service.add_argument('--index',type=Path)
+    service.add_argument('--probe-ollama',action='store_true',help='explicit local API probe')
+    service.add_argument('--once',action='store_true',help='emit one content-free service status and exit')
 
 
 def effective(args):
@@ -75,9 +81,34 @@ def doctor(config,index_path=None,probe_ollama=False):
     return data
 
 
+def service_loop(args):
+    config=effective(args)
+    stop=threading.Event()
+    old={}
+    try:
+        for sig in (signal.SIGINT,signal.SIGTERM):
+            old[sig]=signal.signal(sig,lambda *_:stop.set())
+        data=doctor(config,args.index,args.probe_ollama)
+        data['service']='gonken-agent'
+        data['mode']='headless-supervisor'
+        data['ready_for_systemd']=True
+        data['voice_runtime']='degraded_until_physical_audio_acceptance'
+        print(json.dumps(data,sort_keys=True),flush=True)
+        if args.once:
+            return 0
+        while not stop.is_set():
+            time.sleep(0.5)
+        print(json.dumps({'service':'gonken-agent','status':'STOPPED','code':'SERVICE_STOP_REQUESTED'},sort_keys=True),flush=True)
+        return 0
+    finally:
+        for sig,handler in old.items(): signal.signal(sig,handler)
+
+
 def execute(args):
     config=effective(args)
     corpus=config.paths.corpus_dir
+    if args.command=='service':
+        return service_loop(args)
     if args.command=='support':
         from .support import create_bundle
         kw={'cli_overrides':parse_cli_overrides(args.set)}

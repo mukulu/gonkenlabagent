@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "checkpoint_scope": "Continuation 03: M3.6 install summary plus M3.5 speech artifact lifecycle",
+  "checkpoint_scope": "Continuation 04: M6.1/M6.2 governed headless application service lifecycle",
   "baseline_commit": "459f8da3ffb1dd084f9947988c117ae6da10ae1b",
   "milestones": [
     {
@@ -126,18 +126,18 @@
     {
       "id": "M6.1",
       "title": "Application service",
-      "software": "pending",
+      "software": "host-verified",
       "target": "not-run",
-      "evidence": "",
-      "remaining": "Next implementation gate: add the GonKen application service unit, runtime command, readiness/degraded policy and service acceptance tests."
+      "evidence": "TEST_MATRIX.md continuation-04; tests/integration/test_cli_process.py; tests/unit/test_m6_service_manager.py",
+      "remaining": "Headless service command and systemd unit are host-tested as degraded supervisor. Raspberry Pi systemd start/stop/restart, reboot/no-login persistence, real audio/GPIO recovery and journal review remain target gates."
     },
     {
       "id": "M6.2",
       "title": "Service installer/removal",
-      "software": "pending",
+      "software": "host-verified",
       "target": "not-run",
-      "evidence": "",
-      "remaining": "Not implemented."
+      "evidence": "TEST_MATRIX.md continuation-04; scripts/service_manager.py; tests/unit/test_m6_service_manager.py; tests/unit/test_m3_3_release_manager.py",
+      "remaining": "Atomic unit/tmpfiles install, exact conflict refusal and reversible removal are host-tested with fake systemctl. Real root install/remove, systemd-analyze verify and target ownership validation remain target gates."
     },
     {
       "id": "M7.1",
@@ -209,7 +209,7 @@
       "software": "blocked",
       "target": "not-run",
       "evidence": "TEST_MATRIX.md continuation-01 full regression",
-      "remaining": "Full clean-image failure campaign requires final service path and physical Pi. Host suites remain passing."
+      "remaining": "Full clean-image failure campaign requires physical Pi and post-service target validation. Host unit/integration suites remain passing through M6.2."
     },
     {
       "id": "M9.2",
@@ -217,7 +217,7 @@
       "software": "partial",
       "target": "not-run",
       "evidence": "CONTINUATION_01_REPORT.md; D-050/D-051 and D-060\u2013D-064",
-      "remaining": "New-code review, inherited identity invariant, privacy tests and credential-pattern scan pass. Target hardening, artifact licenses and redistribution approval remain open."
+      "remaining": "New-code review, inherited identity invariant, privacy tests, privilege-pattern service checks and credential-pattern scan pass. Target hardening, artifact licenses and redistribution approval remain open."
     },
     {
       "id": "M9.3",
@@ -225,7 +225,7 @@
       "software": "partial",
       "target": "not-run",
       "evidence": "TEST_MATRIX.md continuation-grounding; text runtime guide",
-      "remaining": "Text diagnostic onboarding commands tested. Target installation/service/hardware operational guide remains open."
+      "remaining": "Text diagnostic onboarding commands and service lifecycle source contracts are tested. Target installation/service/hardware operational guide remains open."
     },
     {
       "id": "M9.4",

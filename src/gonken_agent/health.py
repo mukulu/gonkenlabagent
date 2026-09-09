@@ -14,7 +14,7 @@ EXIT_CODES = {Readiness.READY: 0, Readiness.DEGRADED: 2,
               Readiness.FAILED: 1, Readiness.MAINTENANCE: 2}
 COMPONENTS = frozenset({'config', 'filesystem', 'ollama', 'model', 'whisper',
                         'piper', 'input_audio', 'output_audio', 'gpio', 'index',
-                        'dashboard', 'privacy'})
+                        'dashboard', 'privacy', 'service'})
 
 
 @dataclass(frozen=True)

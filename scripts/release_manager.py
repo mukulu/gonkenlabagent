@@ -529,14 +529,17 @@ def build_release(
             source / "scripts" / "ollama_manager.py": maintenance / "ollama_manager.py",
             source / "scripts" / "speech_manager.py": maintenance / "speech_manager.py",
             source / "scripts" / "install_summary.py": maintenance / "install_summary.py",
+            source / "scripts" / "service_manager.py": maintenance / "service_manager.py",
             source / "packaging" / "ollama-artifacts.toml": maintenance / "packaging" / "ollama-artifacts.toml",
             source / "packaging" / "speech-artifacts.toml": maintenance / "packaging" / "speech-artifacts.toml",
             source / "requirements" / "piper-pi-trixie-py313.lock": maintenance / "requirements" / "piper-pi-trixie-py313.lock",
             source / "packaging" / "systemd" / "ollama.service": maintenance / "packaging" / "systemd" / "ollama.service",
             source / "packaging" / "systemd" / "ollama.service.d" / "gonken-agent.conf": maintenance / "packaging" / "systemd" / "ollama.service.d" / "gonken-agent.conf",
+            source / "packaging" / "systemd" / "gonken-agent.service": maintenance / "packaging" / "systemd" / "gonken-agent.service",
+            source / "packaging" / "tmpfiles" / "gonken-agent.conf": maintenance / "packaging" / "tmpfiles" / "gonken-agent.conf",
         }
         if any(not item.is_file() for item in maintenance_sources):
-            fail("RELEASE_MAINTENANCE", "source commit lacks release, Ollama, or speech maintenance inputs", "install a commit implementing M3.5", 65)
+            fail("RELEASE_MAINTENANCE", "source commit lacks release, Ollama, speech, or service maintenance inputs", "install a commit implementing M6.2", 65)
         for source_path, destination in maintenance_sources.items():
             destination.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(source_path, destination)
@@ -546,6 +549,7 @@ def build_release(
             maintenance / "ollama_manager.py",
             maintenance / "speech_manager.py",
             maintenance / "install_summary.py",
+            maintenance / "service_manager.py",
         ):
             executable.chmod(0o755)
         package_version, _ = smoke_release(
