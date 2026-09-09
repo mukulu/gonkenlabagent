@@ -523,14 +523,21 @@ def build_release(
         run([str(venv_python), "-m", "pip", "install", "--no-index", "--no-deps", str(wheel)])
         maintenance = release / "maintenance"
         maintenance.mkdir(mode=0o755)
-        manager_source = source / "scripts" / "release_manager.py"
-        reconcile_source = source / "scripts" / "reconcile-release.sh"
-        if not manager_source.is_file() or not reconcile_source.is_file():
-            fail("RELEASE_MAINTENANCE", "source commit lacks release reconciliation commands", "install a commit implementing M3.3", 65)
-        shutil.copy2(manager_source, maintenance / manager_source.name)
-        shutil.copy2(reconcile_source, maintenance / reconcile_source.name)
-        (maintenance / "release_manager.py").chmod(0o755)
-        (maintenance / "reconcile-release.sh").chmod(0o755)
+        maintenance_sources = {
+            source / "scripts" / "release_manager.py": maintenance / "release_manager.py",
+            source / "scripts" / "reconcile-release.sh": maintenance / "reconcile-release.sh",
+            source / "scripts" / "ollama_manager.py": maintenance / "ollama_manager.py",
+            source / "packaging" / "ollama-artifacts.toml": maintenance / "packaging" / "ollama-artifacts.toml",
+            source / "packaging" / "systemd" / "ollama.service": maintenance / "packaging" / "systemd" / "ollama.service",
+            source / "packaging" / "systemd" / "ollama.service.d" / "gonken-agent.conf": maintenance / "packaging" / "systemd" / "ollama.service.d" / "gonken-agent.conf",
+        }
+        if any(not item.is_file() for item in maintenance_sources):
+            fail("RELEASE_MAINTENANCE", "source commit lacks release or Ollama maintenance inputs", "install a commit implementing M3.4", 65)
+        for source_path, destination in maintenance_sources.items():
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(source_path, destination)
+        for executable in (maintenance / "release_manager.py", maintenance / "reconcile-release.sh", maintenance / "ollama_manager.py"):
+            executable.chmod(0o755)
         package_version, _ = smoke_release(
             release,
             "root" if os.geteuid() == 0 else service_user,

@@ -1,0 +1,21 @@
+format = "gonken-ollama-artifacts-v1"
+verified_at = "2026-09-09"
+
+[ollama]
+version = "0.33.3"
+release_tag = "v0.33.3"
+platform = "linux-arm64"
+asset = "ollama-linux-arm64.tar.zst"
+url = "https://github.com/ollama/ollama/releases/download/v0.33.3/ollama-linux-arm64.tar.zst"
+sha256 = "4425a112af999ae6572c1ce211fbabeaca7bab23ed5860972acdfc0cc2358420"
+license = "MIT"
+source = "https://github.com/ollama/ollama/releases/tag/v0.33.3"
+
+[model]
+tag = "qwen3.5:2b-q4_K_M"
+digest_prefix = "124a03c34777"
+quantization = "Q4_K_M"
+parameter_size = "2.27B"
+display_size = "1.9GB"
+license = "Apache-2.0"
+source = "https://ollama.com/library/qwen3.5:2b-q4_K_M"

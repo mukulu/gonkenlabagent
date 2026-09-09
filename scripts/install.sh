@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# GonKenLab Agent resumable installer (through M3.3).
+# GonKenLab Agent resumable installer (through M3.4).
 #
-# M3.3 adds immutable application releases and durable activation. It still
-# does not provision Ollama, speech artifacts, services, or hardware.
+# M3.4 adds the pinned Ollama runtime/model service. It still does not
+# provision speech artifacts, the application service, or hardware.
 
 set -Eeuo pipefail
 
@@ -35,13 +35,14 @@ SYSTEM_ROOT=""
 SYSTEM_ROOT_EXPLICIT=0
 ENGINE_ONLY=0
 RELEASE_ONLY=0
+OLLAMA_ONLY=0
 
 usage() {
   cat <<'EOF'
 Usage: scripts/install.sh --source-record PATH [OPTIONS]
 
-M3.3 validates the bootstrap record, builds an immutable application release,
-and activates it through the durable journal. Models and services remain absent.
+M3.4 validates and activates the application release, then provisions the
+pinned Ollama runtime and authoritative local chat model on a supported target.
 
 Options:
   --source-record PATH  Private source.record created by bootstrap (required).
@@ -50,6 +51,7 @@ Options:
   --system-root PATH    Development-only FHS test root (default: private staging).
   --engine-only         Return success after the M3.2 boundary steps.
   --release-only        Return success after the M3.3 release boundary.
+  --ollama-only         Return success after the M3.4 Ollama/model boundary.
   -h, --help            Show this help.
 EOF
 }
@@ -86,6 +88,10 @@ while (($#)); do
       ;;
     --release-only)
       RELEASE_ONLY=1
+      shift
+      ;;
+    --ollama-only)
+      OLLAMA_ONLY=1
       shift
       ;;
     -h|--help)
@@ -233,7 +239,7 @@ gonken_prerequisite_postcondition() {
     return 69
   fi
   if [[ "${GONKEN_SOURCE_RECORD[platform_mode]}" == "target" ]]; then
-    for command_name in getent groupadd runuser useradd; do
+    for command_name in getent groupadd runuser tar useradd zstd; do
       command -v "$command_name" >/dev/null 2>&1 || return 1
     done
   fi
@@ -246,7 +252,8 @@ gonken_prerequisite_action() {
   DEBIAN_FRONTEND=noninteractive apt-get update || return 69
   gonken_step_checkpoint "$step_id" "during" || return $?
   DEBIAN_FRONTEND=noninteractive apt-get install -y \
-    git python3-pip python3-setuptools python3-venv util-linux || return 69
+    ca-certificates git python3-pip python3-setuptools python3-venv \
+    tar util-linux zstd || return 69
 }
 
 gonken_account_precondition() {
@@ -348,6 +355,121 @@ gonken_activation_action() {
     --commit "${GONKEN_SOURCE_RECORD[resolved_commit]}"
 }
 
+gonken_ollama_account_postcondition() {
+  local passwd_record group_record name password uid gid gecos home shell group_name group_password group_gid members
+  passwd_record="$(getent passwd ollama)" || return 1
+  group_record="$(getent group ollama)" || return 2
+  IFS=: read -r name password uid gid gecos home shell <<<"$passwd_record"
+  IFS=: read -r group_name group_password group_gid members <<<"$group_record"
+  [[ "$name" == "ollama" && "$gid" == "$group_gid" \
+    && "$home" == "/var/lib/ollama" && "$shell" == "/usr/sbin/nologin" \
+    && -d /var/lib/ollama && ! -L /var/lib/ollama \
+    && -d /var/lib/ollama/models && ! -L /var/lib/ollama/models \
+    && "$(stat -c %U:%G /var/lib/ollama/models 2>/dev/null)" == "ollama:ollama" \
+    && "$(stat -c %a /var/lib/ollama/models 2>/dev/null)" == "750" ]] || return 2
+  GONKEN_STEP_EVIDENCE="ollama_uid_${uid}_gid_${gid}"
+}
+
+gonken_ollama_account_action() {
+  local step_id="$1"
+  local path
+  for path in /var/lib/ollama /var/lib/ollama/models; do
+    if [[ -L "$path" || (-e "$path" && ! -d "$path") ]]; then
+      gonken_error "OLLAMA_LAYOUT" "unsafe existing Ollama data path: $path" "move the conflict after administrator review"
+      return 73
+    fi
+  done
+  getent group ollama >/dev/null 2>&1 || groupadd --system ollama || return 73
+  gonken_step_checkpoint "$step_id" "during" || return $?
+  getent passwd ollama >/dev/null 2>&1 || useradd --system \
+    --gid ollama --home-dir /var/lib/ollama \
+    --shell /usr/sbin/nologin --no-create-home ollama || return 73
+  mkdir -p /var/lib/ollama/models || return 73
+  chown ollama:ollama /var/lib/ollama /var/lib/ollama/models || return 73
+  chmod 0750 /var/lib/ollama /var/lib/ollama/models || return 73
+}
+
+gonken_load_effective_ollama_config() {
+  local config_json
+  config_json="$("$BIN_ROOT/gonken-agent" config show --effective --json)" || return 65
+  mapfile -t OLLAMA_EFFECTIVE < <(python3 -c '
+import json, sys
+value = json.load(sys.stdin)["config"]
+print(value["llm"]["base_url"])
+print(value["llm"]["model"])
+print(value["llm"]["context_tokens"])
+' <<<"$config_json") || return 65
+  [[ "${#OLLAMA_EFFECTIVE[@]}" == "3" ]] || return 65
+  OLLAMA_ENDPOINT="${OLLAMA_EFFECTIVE[0]}"
+  OLLAMA_MODEL="${OLLAMA_EFFECTIVE[1]}"
+  OLLAMA_CONTEXT_TOKENS="${OLLAMA_EFFECTIVE[2]}"
+}
+
+gonken_ollama_manager() {
+  printf '%s\n' "$RELEASE_ROOT/current/maintenance/ollama_manager.py"
+}
+
+gonken_ollama_manifest() {
+  printf '%s\n' "$RELEASE_ROOT/current/maintenance/packaging/ollama-artifacts.toml"
+}
+
+gonken_ollama_template_arguments() {
+  printf '%s\n' \
+    --endpoint "$OLLAMA_ENDPOINT" \
+    --context-tokens "$OLLAMA_CONTEXT_TOKENS" \
+    --unit-template "$RELEASE_ROOT/current/maintenance/packaging/systemd/ollama.service" \
+    --dropin-template "$RELEASE_ROOT/current/maintenance/packaging/systemd/ollama.service.d/gonken-agent.conf" \
+    --systemctl /usr/bin/systemctl
+}
+
+gonken_ollama_binary_postcondition() {
+  python3 "$(gonken_ollama_manager)" binary-status \
+    --manifest "$(gonken_ollama_manifest)" --system-root / >/dev/null 2>&1 || return 1
+  GONKEN_STEP_EVIDENCE="ollama_binary_pinned"
+}
+
+gonken_ollama_binary_action() {
+  python3 "$(gonken_ollama_manager)" install-binary \
+    --manifest "$(gonken_ollama_manifest)" --system-root / --zstd /usr/bin/zstd
+}
+
+gonken_ollama_service_postcondition() {
+  local -a arguments
+  gonken_load_effective_ollama_config || return 65
+  mapfile -t arguments < <(gonken_ollama_template_arguments)
+  python3 "$(gonken_ollama_manager)" service-status \
+    --manifest "$(gonken_ollama_manifest)" --system-root / \
+    "${arguments[@]}" >/dev/null 2>&1 || return 1
+  GONKEN_STEP_EVIDENCE="ollama_service_${OLLAMA_ENDPOINT}"
+}
+
+gonken_ollama_service_action() {
+  local -a arguments
+  gonken_load_effective_ollama_config || return 65
+  mapfile -t arguments < <(gonken_ollama_template_arguments)
+  python3 "$(gonken_ollama_manager)" install-service \
+    --manifest "$(gonken_ollama_manifest)" --system-root / "${arguments[@]}"
+}
+
+gonken_ollama_model_postcondition() {
+  local -a arguments
+  gonken_load_effective_ollama_config || return 65
+  mapfile -t arguments < <(gonken_ollama_template_arguments)
+  python3 "$(gonken_ollama_manager)" model-status \
+    --manifest "$(gonken_ollama_manifest)" --system-root / \
+    "${arguments[@]}" --model "$OLLAMA_MODEL" >/dev/null 2>&1 || return 1
+  GONKEN_STEP_EVIDENCE="ollama_model_${OLLAMA_MODEL}"
+}
+
+gonken_ollama_model_action() {
+  local -a arguments
+  gonken_load_effective_ollama_config || return 65
+  mapfile -t arguments < <(gonken_ollama_template_arguments)
+  python3 "$(gonken_ollama_manager)" provision-model \
+    --manifest "$(gonken_ollama_manifest)" --system-root / \
+    "${arguments[@]}" --model "$OLLAMA_MODEL"
+}
+
 gonken_engine_initialize "$STATE_DIR" "$LOG_DIR" || exit $?
 gonken_prepare_private_directory "$STATE_DIR/artifacts" "installer artifact directory" || exit $?
 
@@ -367,7 +489,7 @@ gonken_register_step \
 
 if ((ENGINE_ONLY == 0)); then
   gonken_register_step \
-    "release_prerequisites" "1" \
+    "release_prerequisites" "2" \
     "gonken_prerequisite_precondition" "gonken_prerequisite_action" "gonken_prerequisite_postcondition" \
     "target_only_apt_bootstrap_prerequisites" \
     "probe_distro_tools_then_install_only_missing_target_prerequisites" \
@@ -400,6 +522,36 @@ if ((ENGINE_ONLY == 0)); then
     "durable_activation_journal_and_atomic_current_pointer" \
     "reconcile_known_phase_then_complete_or_restore_previous_release" \
     "postcheck_failure_restores_previous_validated_release" || exit $?
+
+  if [[ "${GONKEN_SOURCE_RECORD[platform_mode]}" == "target" && "$RELEASE_ONLY" == "0" ]]; then
+    gonken_register_step \
+      "ollama_account_and_store" "1" \
+      "gonken_activation_postcondition" "gonken_ollama_account_action" "gonken_ollama_account_postcondition" \
+      "dedicated_ollama_account_and_private_model_store" \
+      "accept_only_exact_existing_identity_or_create_once" \
+      "existing_accounts_and_model_blobs_are_never_deleted" || exit $?
+
+    gonken_register_step \
+      "ollama_binary" "1" \
+      "gonken_ollama_account_postcondition" "gonken_ollama_binary_action" "gonken_ollama_binary_postcondition" \
+      "checksum_verified_immutable_named_ollama_release" \
+      "resume_download_then_validate_or_activate_exact_release" \
+      "unverified_payload_never_reaches_the_stable_entrypoint" || exit $?
+
+    gonken_register_step \
+      "ollama_service" "1" \
+      "gonken_ollama_binary_postcondition" "gonken_ollama_service_action" "gonken_ollama_service_postcondition" \
+      "exact_systemd_unit_dropin_enablement_and_loopback_readiness" \
+      "refuse_conflicts_then_restart_and_probe_exact_api_version" \
+      "administrator_owned_conflicting_units_are_never_overwritten" || exit $?
+
+    gonken_register_step \
+      "ollama_model" "1" \
+      "gonken_ollama_service_postcondition" "gonken_ollama_model_action" "gonken_ollama_model_postcondition" \
+      "authoritative_tag_full_digest_and_deterministic_smoke_record" \
+      "resume_blob_pull_then_require_digest_prefix_and_inference" \
+      "existing_model_blobs_are_retained_and_tag_drift_fails_closed" || exit $?
+  fi
 fi
 
 if gonken_run_registered_steps; then
@@ -420,8 +572,26 @@ if ((RELEASE_ONLY == 1)); then
   exit 0
 fi
 
+if [[ "${GONKEN_SOURCE_RECORD[platform_mode]}" != "target" ]]; then
+  gonken_error \
+    "M3_4_TARGET_REQUIRED" \
+    "Ollama provisioning is implemented only for the validated Raspberry Pi target" \
+    "use --release-only on development hosts or run bootstrap on the supported target" || true
+  exit 69
+fi
+
+gonken_load_effective_ollama_config || {
+  gonken_error "OLLAMA_CONFIG" "cannot load authoritative effective LLM configuration" "repair the installed config and rerun"
+  exit 65
+}
+
+printf '[OK] code=M3_4_OLLAMA_COMPLETE model=%s endpoint=%s\n' "$OLLAMA_MODEL" "$OLLAMA_ENDPOINT"
+if ((OLLAMA_ONLY == 1)); then
+  exit 0
+fi
+
 gonken_error \
-  "M3_4_UNAVAILABLE" \
-  "immutable release passed, but Ollama and model provisioning are not implemented" \
-  "retain the validated release and continue only after checkpoint/m3.4" || true
+  "M3_5_UNAVAILABLE" \
+  "Ollama passed, but Whisper and Piper provisioning are not implemented" \
+  "retain the validated state and continue only after checkpoint/m3.5" || true
 exit 69
