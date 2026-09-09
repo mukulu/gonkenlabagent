@@ -177,15 +177,24 @@ class AudioTests(unittest.TestCase):
         self.assertTrue(b.push(b'\0' * 160))
         self.assertFalse(b.push(b'\0' * 20))
         self.assertEqual(b.dropped_frames, 10)
-        self.assertEqual(b.duration, .005)
+        self.assertEqual(b.duration, 90 / 16000)
         b.queue.get_nowait()
-        self.assertTrue(b.push(b'\0' * 160))
+        self.assertTrue(b.push(b'\0' * 140))
         self.assertFalse(b.push(b'\0' * 2))
         self.assertFalse(b.active)
         b.close()
         self.assertTrue(b.queue.empty())
         with self.assertRaises(ValueError): b.push(b'\0')
         with self.assertRaises(ValueError): b.push(b'\0' * 10000)
+    def test_overflow_still_counts_toward_recording_time_limit(self):
+        b=FrameBuffer(rate=16000,queue_frames=1,max_seconds=.01)
+        b.start()
+        self.assertTrue(b.push(b'\0'*160))
+        self.assertFalse(b.push(b'\0'*160))
+        self.assertEqual(b.duration,.01)
+        self.assertFalse(b.push(b'\0'*160))
+        self.assertFalse(b.active)
+        b.close()
     def test_resampling_suppresses_alias_without_destroying_passband(self):
         def tone(freq):
             vals = [round(15000 * math.sin(2 * math.pi * freq * i / 48000)) for i in range(4800)]

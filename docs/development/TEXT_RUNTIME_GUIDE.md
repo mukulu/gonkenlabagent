@@ -81,6 +81,20 @@ Doctor returns 2 (DEGRADED) while physical and provisioning gates remain open. I
 optional `--probe-ollama` contacts only the configured numeric loopback endpoint. No
 hardware, package installation or network download is performed by the CI entrypoint.
 
+## Private support export
+
+```bash
+python -m gonken_agent support --no-site \
+  --output /tmp/gonken-text-demo/support.zip
+```
+
+The output must not already exist. The archive contains only generated environment,
+redacted configuration, categorical health and optional revalidated telemetry JSON.
+Use `--telemetry PATH` to include at most 100 content-free events; pass `--index` and
+the matching corpus override when events contain source IDs. Raw logs, corpus files,
+audio, credentials, exception text and Git history are never bulk-copied. Hardware
+readiness is still reported as unestablished. Retain the source checkpoint separately.
+
 ## What remains
 
 M3.5 must settle the existing speech dependency/voice policy and verify immutable

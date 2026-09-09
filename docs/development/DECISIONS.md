@@ -531,3 +531,9 @@ The master-blueprint review must resolve:
 - **Status:** Accepted, 2026-09-09.
 - **Decision:** Ship ten invented equipment documents, 30 development calibration cases and a frozen 40-answerable/20-unanswerable extractive smoke set. Preserve deterministic metrics and fixture hashes.
 - **Consequence:** The corpus is explicitly fictional; positives share fact templates and negatives are out of domain. These percentages cannot close real-lab retrieval/abstention, reasoning, speech or Pi benchmark gates. Real data and representative near-miss questions must precede research claims.
+
+## D-064 — Export constructed diagnostics, never bulk-copy support files
+
+- **Status:** Accepted, 2026-09-09.
+- **Decision:** `gonken-agent support` builds a new private ZIP from redacted effective configuration, categorical health, non-identifying runtime versions and revalidated content-free telemetry. It never recursively copies logs, configuration, corpus, Git history, audio, secrets or arbitrary exception detail. Existing destinations and publication races fail without overwrite.
+- **Consequence:** M8.1 advances at the host tier while detailed Pi probes remain open. A malformed/content-bearing telemetry record rejects the export; content is never silently included. Diagnostic bundles and private source checkpoints have different purposes and contents.

@@ -1,5 +1,7 @@
 # GonKenLab Agent Test Matrix
 
+Current continuation evidence is recorded in the `continuation-*` sections below. Earlier next-only authorization statements are historical, superseded by D-060. See the generated implementation status for current gates.
+
 ## 1. Test evidence rules
 
 - `PASS` means the stated check passed in the recorded environment; it does not imply a higher test tier passed.
@@ -473,3 +475,23 @@ Adapters are explicit injection points, not proof of deployment wiring. M3.5 sta
 | Synthetic smoke | `python scripts/benchmark_grounding.py --output docs/development/evidence/grounding-smoke.json` | 40/40 answerable hit@3; 20/20 out-of-domain abstentions; valid ID coverage 100%. Synthetic templated extractive mode only; no model or real-lab quality claim. |
 
 Target gates, deployment readiness, semantic answer validation and research generalization remain open.
+
+## continuation-support and regression repairs — 2026-09-09
+
+`PYTHONPATH=src:. python -m unittest tests.unit.test_support_export tests.unit.test_runtime_audio tests.unit.test_m2_1 tests.unit.test_grounding_observability -q`: **60 tests PASS**.
+
+- Four support-export cases cover exact members, redaction, content refusal, private modes, symlinks, existing output, publication race and cleanup; arbitrary health detail is discarded.
+- Broad regression discovered one identity-authority failure: dashboard duplicated the product-name literal. It now consumes `IDENTITY.product_name`; the existing invariant test passes unchanged.
+- Review found dropped capture frames did not advance the recording-duration bound. Captured and accepted frame counters are now separate; a regression proves overflow still stops capture at the configured duration boundary (within one bounded callback block).
+- Added AGENTS.md to make continuous progression and final committed checkpoint handling discoverable to future development sessions.
+
+## continuation-01 full regression
+
+After the support export and regression repairs, `./scripts/ci.sh` passes all T0
+checks, **153 unit tests and 34 process/integration tests (187 total)** on Linux
+x86_64 / Python 3.12.14. This retains every original M2/M3 test and adds 52 tests.
+The run includes real local Git → wheel → venv → immutable release activation,
+installer/Ollama interruption fixtures, text CLI and loopback HTTP boundaries.
+`git diff --check` and `git fsck --full --strict` succeed. Unreachable historical
+loose objects are informational; no Git history was pruned. Clean-clone/archive
+verification is recorded separately below when executed.

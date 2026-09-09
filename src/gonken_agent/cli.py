@@ -112,7 +112,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser = _build_parser()
     args = parser.parse_args(argv)
 
-    if args.command in {'index', 'ask', 'doctor', 'dashboard'}:
+    if args.command in {'index', 'ask', 'doctor', 'dashboard', 'support'}:
         from .operations import execute
         try:
             return execute(args)

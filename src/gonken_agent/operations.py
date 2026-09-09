@@ -36,6 +36,11 @@ def add_commands(subparsers):
     dashboard=subparsers.add_parser('dashboard',help='serve read-only loopback diagnostic health')
     config_arguments(dashboard)
     dashboard.add_argument('--index',type=Path,required=True)
+    support=subparsers.add_parser('support',help='create an allow-listed private diagnostic ZIP')
+    config_arguments(support)
+    support.add_argument('--output',type=Path,required=True)
+    support.add_argument('--index',type=Path)
+    support.add_argument('--telemetry',type=Path)
     doctor=subparsers.add_parser('doctor',help='report software/voice readiness without mutation')
     config_arguments(doctor)
     doctor.add_argument('--index',type=Path)
@@ -73,6 +78,17 @@ def doctor(config,index_path=None,probe_ollama=False):
 def execute(args):
     config=effective(args)
     corpus=config.paths.corpus_dir
+    if args.command=='support':
+        from .support import create_bundle
+        kw={'cli_overrides':parse_cli_overrides(args.set)}
+        if args.no_site:kw['site_path']=None
+        elif args.site is not None:kw['site_path']=args.site
+        effective_config=load_config(**kw)
+        ids=[]
+        if args.index:ids=[c['id'] for c in load(args.index,corpus)['chunks']]
+        result=create_bundle(args.output,effective_config,doctor(config,args.index),args.telemetry,ids)
+        print(json.dumps(result,sort_keys=True))
+        return 0
     if args.command=='index':
         if args.action=='build':
             if not args.calibration or args.calibration.stat().st_size>1024*1024:

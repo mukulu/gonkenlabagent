@@ -1,10 +1,12 @@
 """Read-only numeric-loopback dashboard with optional in-memory content."""
 import json
+from html import escape
+from .identity import IDENTITY
 import threading
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from .telemetry import validate_event
 
-HTML = b'''<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>GonKenLab Agent</title><body><h1>GonKenLab Agent</h1><p>Local diagnostic dashboard</p><pre id="status">Loading...</pre><script src="/app.js"></script></body></html>'''
+HTML = '''<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>{product}</title><body><h1>{product}</h1><p>Local diagnostic dashboard</p><pre id="status">Loading...</pre><script src="/app.js"></script></body></html>'''.format(product=escape(IDENTITY.product_name)).encode()
 JS = b'''async function refresh(){try{const response=await fetch('/api/status',{cache:'no-store'});document.getElementById('status').textContent=JSON.stringify(await response.json(),null,2);}catch(e){document.getElementById('status').textContent='Dashboard unavailable';}}refresh();setInterval(refresh,2000);'''
 
 

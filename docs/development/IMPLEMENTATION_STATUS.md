@@ -6,7 +6,7 @@ Historical implementation detail remains in Git, `TEST_MATRIX.md` and `DECISIONS
 M0/M1 audit and architecture review are complete; the table covers every core implementation item.
 
 <!-- MILESTONES -->
-Checkpoint scope: **M3.4 baseline plus M4/M5/M7 software and text diagnostics; target release gates open**
+Checkpoint scope: **Continuation 01: M3.4 plus runtime/audio/PTT contracts, grounded text, dashboard and support diagnostics**
 
 | Item | Software | Target acceptance | Evidence / remaining work |
 |---|---|---|---|
@@ -32,7 +32,7 @@ Checkpoint scope: **M3.4 baseline plus M4/M5/M7 software and text diagnostics; t
 | M7.3 — Privacy-preserving telemetry | partial | not-run | TEST_MATRIX.md continuation-grounding; text runtime guide Content-free bounded process-serialized JSONL rotation implemented. Opt-in persistent research interaction records/retention remain gated. |
 | M7.4 — Read-only dashboard | host-verified | not-run | TEST_MATRIX.md continuation-grounding; text runtime guide Integrated text dashboard, privacy/Host/Origin/read-only tests pass. Physical runtime integration remains open. |
 | M7.5 — Research benchmarks | partial | not-run | TEST_MATRIX.md continuation-grounding; text runtime guide Reproducible synthetic retrieval benchmark and result schema provided. Real grounded/ungrounded LLM, STT, latency/RAM/thermal campaign remains open. |
-| M8.1 — Doctor and support bundle | partial | not-run | TEST_MATRIX.md continuation-grounding; text runtime guide Package doctor returns categorical readiness; extended support/hardware diagnostics remain open. |
+| M8.1 — Doctor and support bundle | partial | not-run | tests/unit/test_support_export.py; TEST_MATRIX.md continuation-support Categorical doctor and private allow-listed support ZIP tested. Detailed target versions/services/audio/GPIO/resource probes remain open. |
 | M8.2 — Update/rollback | pending | not-run |  Not implemented. |
 | M8.3 — Uninstall/reinstall | pending | not-run |  Not implemented. |
 | M9.1 — Clean-install and failure campaign | pending | not-run |  Not implemented. |
