@@ -27,7 +27,7 @@ model = "base.en-q5_1"
 threads = 4
 
 [tts]
-voice = "en_GB-semaine-medium"
+voice = "en_US-ljspeech-medium"
 
 [interaction]
 push_to_talk_gpio = 17
@@ -54,9 +54,9 @@ state_dir = "/var/lib/gonken-agent"
 cache_dir = "/var/cache/gonken-agent"
 runtime_dir = "/run/gonken-agent"
 corpus_dir = "/srv/gonken-agent/corpus"
-whisper_binary = "/usr/local/lib/gonken-agent/current/bin/whisper-cli"
+whisper_binary = "/usr/local/bin/whisper-cli"
 whisper_model = "/var/lib/gonken-agent/models/whisper/base.en-q5_1.bin"
-piper_voice = "/var/lib/gonken-agent/models/piper/en_GB-semaine-medium.onnx"
+piper_voice = "/var/lib/gonken-agent/models/piper/en_US-ljspeech-medium/en_US-ljspeech-medium.onnx"
 local_prompt = "/usr/local/lib/gonken-agent/current/share/gonken-agent/local_soul.md"
 
 [extensions.wake_word]

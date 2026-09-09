@@ -40,6 +40,7 @@ class DependencyProfileTests(unittest.TestCase):
             {
                 "core-pi-trixie-py313",
                 "dev-py312",
+                "speech-piper-pi-trixie-py313",
                 "ui-pi-trixie-py313",
                 "ui-dev-py312",
             },
@@ -58,7 +59,7 @@ class DependencyProfileTests(unittest.TestCase):
             text=True,
         )
         self.assertEqual(result.returncode, 0, result.stderr or result.stdout)
-        self.assertIn("verified 4", result.stdout)
+        self.assertIn("verified 5", result.stdout)
 
     def test_every_accepted_requirement_is_exact_hashed_and_binary_only(self) -> None:
         requirement_re = re.compile(r"^[A-Za-z0-9_.+-]+==[^ ]+ --hash=sha256:[0-9a-f]{64}$")
@@ -79,8 +80,11 @@ class DependencyProfileTests(unittest.TestCase):
             for dependency in profile.get("dependencies", []):
                 for artifact in dependency["artifacts"]:
                     filename = artifact["filename"]
-                    self.assertIn(python_tag, filename)
-                    self.assertIn(architecture, filename)
+                    pure_python = re.search(r"-py[23](?:\.py3)?-none-any\.whl$", filename) is not None
+                    abi3_python = "-abi3-" in filename and re.search(r"-cp3[0-9]-abi3-", filename)
+                    self.assertTrue(pure_python or python_tag in filename or abi3_python, filename)
+                    if not pure_python:
+                        self.assertIn(architecture, filename)
 
     def test_ui_and_wake_dependencies_cannot_leak_into_core(self) -> None:
         core_lock = (
@@ -93,7 +97,7 @@ class DependencyProfileTests(unittest.TestCase):
     def test_blocked_profiles_have_reasons_and_no_locks(self) -> None:
         self.assertEqual(
             set(self.blocked),
-            {"x1-wake-pi-trixie-py313", "core-voice-runtime-pi-trixie-py313"},
+            {"x1-wake-pi-trixie-py313"},
         )
         for profile in self.blocked.values():
             self.assertEqual(profile["status"], "blocked")
@@ -126,6 +130,7 @@ class DependencyProfileTests(unittest.TestCase):
         report = json.loads(result.stdout)
         states = {row["profile"]: row["status"] for row in report}
         self.assertEqual(states["core-pi-trixie-py313"], "installable")
+        self.assertEqual(states["speech-piper-pi-trixie-py313"], "installable")
         self.assertEqual(states["x1-wake-pi-trixie-py313"], "blocked")
         self.assertFalse(any(row["license"].startswith("UNVERIFIED") for row in report))
 

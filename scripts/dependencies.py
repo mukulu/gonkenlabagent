@@ -103,8 +103,9 @@ def validate_manifest(manifest: dict[str, Any]) -> list[dict[str, Any]]:
             architecture = str(profile["platform"]).rsplit("_", 1)[-1]
             for artifact in dependency.get("artifacts", []):
                 filename = artifact["filename"]
-                pure_python = "-py3-none-any.whl" in filename
-                if not pure_python and python_tag not in filename:
+                pure_python = re.search(r"-py[23](?:\.py3)?-none-any\.whl$", filename) is not None
+                abi3_python = re.search(r"-cp3[0-9]-abi3-", filename) is not None
+                if not pure_python and not abi3_python and python_tag not in filename:
                     raise DependencyError(
                         f"artifact/interpreter mismatch in {profile_id}: {filename}"
                     )

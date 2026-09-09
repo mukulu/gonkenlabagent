@@ -527,16 +527,24 @@ def build_release(
             source / "scripts" / "release_manager.py": maintenance / "release_manager.py",
             source / "scripts" / "reconcile-release.sh": maintenance / "reconcile-release.sh",
             source / "scripts" / "ollama_manager.py": maintenance / "ollama_manager.py",
+            source / "scripts" / "speech_manager.py": maintenance / "speech_manager.py",
             source / "packaging" / "ollama-artifacts.toml": maintenance / "packaging" / "ollama-artifacts.toml",
+            source / "packaging" / "speech-artifacts.toml": maintenance / "packaging" / "speech-artifacts.toml",
+            source / "requirements" / "piper-pi-trixie-py313.lock": maintenance / "requirements" / "piper-pi-trixie-py313.lock",
             source / "packaging" / "systemd" / "ollama.service": maintenance / "packaging" / "systemd" / "ollama.service",
             source / "packaging" / "systemd" / "ollama.service.d" / "gonken-agent.conf": maintenance / "packaging" / "systemd" / "ollama.service.d" / "gonken-agent.conf",
         }
         if any(not item.is_file() for item in maintenance_sources):
-            fail("RELEASE_MAINTENANCE", "source commit lacks release or Ollama maintenance inputs", "install a commit implementing M3.4", 65)
+            fail("RELEASE_MAINTENANCE", "source commit lacks release, Ollama, or speech maintenance inputs", "install a commit implementing M3.5", 65)
         for source_path, destination in maintenance_sources.items():
             destination.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(source_path, destination)
-        for executable in (maintenance / "release_manager.py", maintenance / "reconcile-release.sh", maintenance / "ollama_manager.py"):
+        for executable in (
+            maintenance / "release_manager.py",
+            maintenance / "reconcile-release.sh",
+            maintenance / "ollama_manager.py",
+            maintenance / "speech_manager.py",
+        ):
             executable.chmod(0o755)
         package_version, _ = smoke_release(
             release,

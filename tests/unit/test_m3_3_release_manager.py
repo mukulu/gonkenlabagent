@@ -157,6 +157,20 @@ class IntegrityAndPrivilegeTests(unittest.TestCase):
         self.assertIn("--shell /usr/sbin/nologin --no-create-home gonken-agent", installer)
         self.assertNotIn("sudoers", installer.lower())
 
+    def test_speech_maintenance_inputs_are_release_payload_contract(self) -> None:
+        manager = (ROOT / "scripts/release_manager.py").read_text(encoding="utf-8")
+        installer = (ROOT / "scripts/install.sh").read_text(encoding="utf-8")
+        for expected in (
+            '"speech_manager.py"',
+            '"speech-artifacts.toml"',
+            '"piper-pi-trixie-py313.lock"',
+        ):
+            self.assertIn(expected, manager)
+        self.assertIn("gonken_speech_manager", installer)
+        self.assertIn("--speech-only", installer)
+        self.assertIn("M3_5_SPEECH_COMPLETE", installer)
+        self.assertIn("M3_6_UNAVAILABLE", installer)
+
     def test_maintenance_lock_rejects_concurrent_state_mutation(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
