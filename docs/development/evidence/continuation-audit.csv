@@ -1,0 +1,8 @@
+id,status,source,finding
+E001,V,checkpoint Git HEAD 459f8da,M3.4 history and implementation present
+E002,V,baseline-tests.log,109 unit and 26 integration tests pass on host
+E003,O,old IMPLEMENTATION_STATUS.md,Completed items were listed under Not Started
+E004,V,MASTER_BLUEPRINT.md section 14,Explicit one-work-package then stop rule existed
+E005,V,user instruction 2026-09-09,Continuous dependency-ready implementation and commits authorized
+E006,U,requirements/profiles.toml,Speech dependency and voice policy remains blocked
+E007,E,target hardware unavailable,Pi acceptance requires physical testing
