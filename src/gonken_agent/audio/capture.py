@@ -11,7 +11,7 @@ class FrameBuffer:
         self.max_frames = int(rate * max_seconds)
         self.block_frames = block_frames
         self.queue = queue.Queue(maxsize=queue_frames)
-        self.frames = self.dropped_frames = 0
+        self.frames = self.captured_frames = self.dropped_frames = 0
         self.active = False
         self._lock = threading.Lock()
 
@@ -21,7 +21,7 @@ class FrameBuffer:
                 raise RuntimeError('capture already active')
             while not self.queue.empty():
                 self.queue.get_nowait()
-            self.frames = self.dropped_frames = 0
+            self.frames = self.captured_frames = self.dropped_frames = 0
             self.active = True
 
     def push(self, pcm):
@@ -33,7 +33,8 @@ class FrameBuffer:
         with self._lock:
             if not self.active:
                 return False
-            if self.frames + frames > self.max_frames:
+            self.captured_frames += frames
+            if self.captured_frames > self.max_frames:
                 self.active = False
                 self.dropped_frames += frames
                 return False
@@ -47,7 +48,7 @@ class FrameBuffer:
 
     @property
     def duration(self):
-        return self.frames / self.rate
+        return self.captured_frames / self.rate
 
     def stop(self):
         with self._lock:

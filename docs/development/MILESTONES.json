@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "checkpoint_scope": "M3.4 baseline plus M4/M5/M7 software and text diagnostics; target release gates open",
+  "checkpoint_scope": "Continuation 01: M3.4 plus runtime/audio/PTT contracts, grounded text, dashboard and support diagnostics",
   "baseline_commit": "459f8da3ffb1dd084f9947988c117ae6da10ae1b",
   "milestones": [
     {
@@ -184,8 +184,8 @@
       "title": "Doctor and support bundle",
       "software": "partial",
       "target": "not-run",
-      "evidence": "TEST_MATRIX.md continuation-grounding; text runtime guide",
-      "remaining": "Package doctor returns categorical readiness; extended support/hardware diagnostics remain open."
+      "evidence": "tests/unit/test_support_export.py; TEST_MATRIX.md continuation-support",
+      "remaining": "Categorical doctor and private allow-listed support ZIP tested. Detailed target versions/services/audio/GPIO/resource probes remain open."
     },
     {
       "id": "M8.2",
