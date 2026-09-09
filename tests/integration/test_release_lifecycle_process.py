@@ -146,7 +146,7 @@ class EndToEndReleaseTests(unittest.TestCase):
         self.assertEqual((release / "release.record").read_bytes(), manifest_before)
         default = self.run_install(system_root)
         self.assertEqual(default.returncode, 69)
-        self.assertIn("code=M3_4_UNAVAILABLE", default.stderr)
+        self.assertIn("code=M3_4_TARGET_REQUIRED", default.stderr)
         for item in [release, *release.rglob("*")]:
             if not item.is_symlink():
                 self.assertEqual(stat.S_IMODE(item.stat().st_mode) & 0o222, 0)
