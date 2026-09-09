@@ -586,3 +586,13 @@ python -m unittest tests.unit.test_m3_3_release_manager tests.unit.test_m3_6_ins
 This closes M3.6 at the host software tier only. The next implementation gate is
 M6.1/M6.2 application service lifecycle. No Raspberry Pi service start, reboot,
 audio, GPIO, thermal, or hardware acceptance is inferred.
+
+### M3.6 committed clean-checkout result
+
+Commit `01e8ca7` was cloned with `git clone --no-hardlinks` into a fresh detached
+checkout. Using a fresh Python venv through `PYTHON_BIN`, `./scripts/ci.sh`
+passed T0/T1 with **164 unit + 40 integration tests = 204 total**. The run
+verified **5 installable dependency profiles** and included the new
+`tests.unit.test_m3_6_install_summary` suite. `git status --short` in the clone
+was clean. `git fsck --full --strict` exited successfully; dangling local test
+blobs were informational and no Git history was pruned.
