@@ -28,6 +28,9 @@ class LocalAPI(BaseHTTPRequestHandler):
     def reply(self,data,status=200):
         raw=json.dumps(data).encode()
         self.send_response(status);self.send_header('Content-Length',str(len(raw)));self.end_headers()
+        if getattr(self.server,'delay_body',0):
+            self.server.body_headers_sent.set()
+            time.sleep(self.server.delay_body)
         try:self.wfile.write(raw)
         except (BrokenPipeError,ConnectionResetError):pass
     def do_GET(self):
@@ -91,6 +94,20 @@ class LocalNetworkTests(unittest.TestCase):
         short.close()
         self.api.delay=0;self.api.status=503
         with self.assertRaisesRegex(OllamaError,'OVERLOADED'):OllamaClient(self.config).chat([],threading.Event())
+    def test_cancellation_after_connection_close_response_headers(self):
+        # HTTP/1.0 makes HTTPConnection detach its socket before body consumption.
+        self.api.delay_body=.5;self.api.body_headers_sent=threading.Event()
+        client=OllamaClient(self.config,timeout=2);cancel=threading.Event();errors=[]
+        def request():
+            try:client.chat([],cancel)
+            except Exception as exc:errors.append(exc)
+        worker=threading.Thread(target=request);worker.start()
+        self.assertTrue(self.api.body_headers_sent.wait(1))
+        time.sleep(.03)
+        cancel.set();worker.join(.3)
+        self.assertFalse(worker.is_alive())
+        self.assertIsInstance(errors[0],Cancelled)
+        client.close()
     def test_response_limit_and_malformed_model_identity(self):
         tiny=OllamaClient(self.config,max_response=10)
         with self.assertRaises(OllamaError):tiny.model_identity(threading.Event())

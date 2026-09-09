@@ -495,3 +495,15 @@ installer/Ollama interruption fixtures, text CLI and loopback HTTP boundaries.
 `git diff --check` and `git fsck --full --strict` succeed. Unreachable historical
 loose objects are informational; no Git history was pruned. Clean-clone/archive
 verification is recorded separately below when executed.
+
+### Final review follow-up
+
+The first no-hardlink clean clone of `44da1de` passed the same 187 tests in a fresh
+Python 3.12.14 venv with no additional dependencies, and remained clean. Review then
+identified two concrete remaining risks: malformed calibration structures could expose
+an uncategorized exception, and HTTP/1.0 response handling could detach the connection
+socket before cancellation of a delayed response body. Both were fixed. The targeted
+suite now passes **18 grounding unit + 9 text/network integration tests (27)**, including
+malformed/duplicate/unknown-source calibration refusal and cancellation after response
+headers. Final combined count is 189; committed clean-checkout execution is recorded
+in the checkpoint verification report.

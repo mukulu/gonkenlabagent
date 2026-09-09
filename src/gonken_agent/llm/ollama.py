@@ -26,6 +26,7 @@ class OllamaClient:
         self.timeout, self.max_response = timeout, max_response
         self._lock = threading.Lock()
         self._active = None
+        self._transport = None
         self._closed = False
 
     def _connection(self):
@@ -39,6 +40,7 @@ class OllamaClient:
             raise
         connection = http.client.HTTPConnection(self.endpoint.hostname, self.endpoint.port or 80, timeout=self.timeout)
         connection.sock = sock
+        self._transport = sock
         return connection
 
     def request(self, method, path, payload, cancel):
@@ -54,16 +56,19 @@ class OllamaClient:
                 if time.monotonic() >= deadline:
                     expired.set()
                 if cancel.is_set() or self._closed or expired.is_set():
-                    active = self._active
-                    if active and active.sock:
-                        try: active.sock.shutdown(socket.SHUT_RDWR)
+                    transport = self._transport
+                    if transport:
+                        try: transport.shutdown(socket.SHUT_RDWR)
                         except OSError: pass
                     return
         watcher = threading.Thread(target=interrupt, daemon=True)
+        response = None
         try:
             if self._closed or cancel.is_set(): raise Cancelled()
             watcher.start()
             self._active = self._connection()
+            if cancel.is_set() or self._closed: raise Cancelled()
+            if expired.is_set(): raise OllamaError('OLLAMA_TIMEOUT')
             body = None if payload is None else json.dumps(payload, allow_nan=False).encode()
             if body and len(body) > 128 * 1024: raise OllamaError('OLLAMA_REQUEST_LIMIT')
             self._active.request(method, path, body=body, headers={'Content-Type': 'application/json'})
@@ -87,8 +92,10 @@ class OllamaClient:
             raise OllamaError('OLLAMA_UNAVAILABLE_OR_MALFORMED') from exc
         finally:
             done.set()
+            if response: response.close()
             if self._active: self._active.close()
             self._active = None
+            self._transport = None
             if watcher.ident: watcher.join(timeout=.2)
             self._lock.release()
 
@@ -115,6 +122,6 @@ class OllamaClient:
 
     def close(self):
         self._closed = True
-        if self._active and self._active.sock:
-            try: self._active.sock.shutdown(socket.SHUT_RDWR)
+        if self._transport:
+            try: self._transport.shutdown(socket.SHUT_RDWR)
             except OSError: pass

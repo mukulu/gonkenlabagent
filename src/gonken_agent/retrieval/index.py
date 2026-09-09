@@ -131,6 +131,19 @@ def ranked(index, query, top_k=3):
 def calibrate(index, cases):
     if not isinstance(cases, list) or not cases or len(cases) > 1000:
         raise IndexError('CALIBRATION_CASES_REQUIRED')
+    paths={source['path'] for source in index['sources']}
+    seen=set()
+    for case in cases:
+        if not isinstance(case,dict) or not {'query','expected_paths'} <= set(case):
+            raise IndexError('CALIBRATION_CASE_INVALID')
+        if not isinstance(case['query'],str) or not case['query'].strip() or len(case['query'])>4096:
+            raise IndexError('CALIBRATION_QUERY_INVALID')
+        expected=case['expected_paths']
+        if not isinstance(expected,list) or any(type(path) is not str or path not in paths for path in expected):
+            raise IndexError('CALIBRATION_SOURCE_INVALID')
+        if case['query'] in seen:
+            raise IndexError('CALIBRATION_DUPLICATE_QUERY')
+        seen.add(case['query'])
     if not any(c['expected_paths'] for c in cases) or not any(not c['expected_paths'] for c in cases):
         raise IndexError('CALIBRATION_REQUIRES_ANSWERABLE_AND_UNANSWERABLE')
     scores = []
