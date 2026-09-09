@@ -6,8 +6,8 @@ This file is the authoritative short handoff for a later development session. Ve
 
 - **Working branch:** `dev/bootstrap-rearchitecture`
 - **Inspected application baseline:** `6682360786135136abeb0bd2a17a9d45c6f291e7`
-- **Current control milestone:** M3.3 — Immutable release and activation journal
-- **Blueprint revision:** 1.7-implementation
+- **Current control milestone:** M3.4 — Ollama lifecycle and selected model
+- **Blueprint revision:** 1.8-implementation
 - **Accepted blueprint checkpoint:** `checkpoint/blueprint` (resolve its exact commit with `git rev-list -n 1 checkpoint/blueprint`)
 - **M2.1 implementation checkpoint:** `checkpoint/m2.1-license-gate` (created after the tested commit; resolve it with `git rev-list -n 1 checkpoint/m2.1-license-gate`)
 - **M2.1 completed checkpoint:** `checkpoint/m2.1` (resolve its exact commit with `git rev-list -n 1 checkpoint/m2.1`)
@@ -19,9 +19,12 @@ This file is the authoritative short handoff for a later development session. Ve
 - **M3.1 clean-checkout test commit:** `29b5143febfea299454f56f05a75be06bffd790c`
 - **M3.2 completed checkpoint:** `checkpoint/m3.2` (created after the tested commit; resolve it with `git rev-list -n 1 checkpoint/m3.2`)
 - **M3.2 clean-checkout test commit:** `28ac3dac9ecf591c1845712036d97119377a9f37`
-- **Last verification date:** 2026-09-08 UTC
+- **M3.3 implementation commit:** `0ea9db1` (`feat: add immutable release activation lifecycle`)
+- **M3.3 completed checkpoint:** `checkpoint/m3.3` (created after the tested documentation checkpoint; resolve it with `git rev-list -n 1 checkpoint/m3.3`)
+- **M3.3 clean-checkout test commit:** recorded in `TEST_MATRIX.md` M3.3-T016 after final documentation verification
+- **Last verification date:** 2026-09-09 UTC
 - **Target:** Raspberry Pi 5 4GB, Raspberry Pi OS Lite 64-bit
-- **Audit host:** Ubuntu 24.04 x86_64, Python 3.12 (not target hardware)
+- **Audit host:** Linux x86_64, Python 3.12.14 (not target hardware)
 
 ## Completed
 
@@ -96,11 +99,19 @@ This file is the authoritative short handoff for a later development session. Ve
 - [x] Routed default bootstrap into the M3.2 engine while preserving an explicit `M3_3_UNAVAILABLE` stop before any real provisioning.
 - [x] Passed 92 dependency-free unit tests and 16 deterministic process-integration tests (108 total) on the audit host.
 - [x] Completed M3.2 and authorized M3.3 as the next bounded work package.
+- [x] Refetched and archived only the exact commit recorded by preflight; rejected changed commits, submodules, unsafe paths, links, and device entries.
+- [x] Built a local wheel with the recorded distribution setuptools backend and installed the platform-selected exact/hash lock plus wheel into a release-local venv without inherited Python paths.
+- [x] Added CLI version, JSON status identity, `pip check`, payload digest, owner, permission, profile, manifest, and release-size validation before and after activation.
+- [x] Added target-only bootstrap prerequisites, the dedicated `gonken-agent` non-login account, root-owned FHS release/state paths, and a constant stable entrypoint.
+- [x] Added immutable same-filesystem candidate finalization, a private maintenance lock, the prepared/switched/post-verified/rolled-back journal, atomic constrained `current`, rollback, reconciliation, and validated active-plus-previous retention.
+- [x] Added a release-local reconciliation helper for later M6 `ExecStartPre` wiring without prematurely installing a systemd application service.
+- [x] Passed 103 dependency-free unit tests and 21 deterministic integration tests (124 total), including a real local Git → wheel → venv → immutable release → activation path and all declared interruption/failure boundaries.
+- [x] Completed M3.3 at the host evidence tier and authorized M3.4 as the next bounded work package.
 
 ## In Progress
 
 - No implementation package is currently in progress.
-- M3.3 is the next and only authorized implementation package.
+- M3.4 is the next and only authorized implementation package.
 
 ## Not Started
 
@@ -109,8 +120,8 @@ This file is the authoritative short handoff for a later development session. Ve
 - [x] M2.4 — Automated test foundation.
 - [x] M3.1 — Bootstrap preflight.
 - [x] M3.2 — Step engine and install state.
-- [ ] M3.3 — Immutable release and activation journal.
-- [ ] M3.4–M3.6 — Dependency and model provisioning.
+- [x] M3.3 — Immutable release and activation journal.
+- [ ] M3.4–M3.6 — Ollama, model, and speech provisioning.
 - [ ] M4 — Runtime reliability.
 - [ ] M5 — Interaction and privacy modes.
 - [ ] M6 — Headless service and privileged operations.
@@ -129,11 +140,11 @@ The full issue descriptions and evidence are in `REPOSITORY_AUDIT.md`.
 - C-03: RESOLVED for active package/user surfaces by M2.1/V-C03. Historical documents and technical legacy detector identifiers remain explicitly isolated.
 - C-04: no custom Gonken wake-word training/artifact/evaluation chain; reassigned to governed extension X1 rather than the core release.
 - C-05: no local grounding/provenance/telemetry implementation.
-- C-06: M3.2 provides deterministic control-engine rerun/interruption evidence only; real install, reboot, power-loss, and unattended-readiness evidence remain open.
+- C-06: M3.3 provides deterministic host release/activation rerun and interruption evidence; physical Pi install, reboot, storage power-loss, model/service, and unattended-readiness evidence remain open.
 
 ### High
 
-- H-01/H-02 are resolved on active paths by M2.2. H-03/H-04 remain resolved at the admission boundary because M3.2 performs no privileged mutation; revalidate them when M3.3 first mutates installed state. H-10 is controlled for generic step state/locking but remains open at the real release journal/switch boundary. H-08 is resolved for the maintained package by M2.3. H-06 is resolved for the package foundation but reopens for every future runtime dependency addition; H-07 remains open until a real Python 3.13/AArch64 download and Pi venv pass. H-05 and H-09 through H-18 remain open.
+- H-01/H-02 are resolved on active paths by M2.2. H-03/H-04 are revalidated for the M3.3 privilege/account/path design and host process tests, but physical target execution remains blocked. H-10 is controlled through the real candidate/journal/pointer/reconciliation mechanism at T1; physical storage power-loss evidence remains open. H-08 is resolved for the maintained package by M2.3. H-06 is controlled for the current exact runtime graph but reopens for every dependency addition; H-07 remains open until a real Python 3.13/AArch64 download and Pi venv pass. H-05 and H-09 through H-18 remain open.
 
 ### Architecture gates introduced by M1B
 
@@ -170,16 +181,18 @@ The full issue descriptions and evidence are in `REPOSITORY_AUDIT.md`.
 - A local no-hardlink clone of M3.1 implementation commit `29b5143febfea299454f56f05a75be06bffd790c` passed the same entry point in a fresh standard-library-only virtual environment and remained clean.
 - M3.2 suite: 92 of 92 unit tests and 16 of 16 deterministic integration tests pass, including step-contract validation, private atomic state/event writes and collision allocation, malicious-record rejection, source-ref revalidation, probe-authoritative repair, active/stale/PID-reuse locks, six cooperative interruption boundaries, abrupt-death recovery, and bootstrap routing.
 - A local no-hardlink clone of M3.2 implementation commit `28ac3dac9ecf591c1845712036d97119377a9f37` passed the same entry point in a fresh standard-library-only virtual environment and remained clean.
+- M3.3 suite: 103 of 103 unit tests and 21 of 21 deterministic integration tests pass (124 total), including strict manifests/pointers, unsafe-archive rejection, maintenance locking, immutable retention, exact local-source wheel/venv construction, repeated installation, low-space refusal, rollback, and TERM at all candidate/journal/pointer/postcheck boundaries.
+- The M3.3 end-to-end fixture installs from an exact local Git commit into a disposable FHS-shaped root, runs the installed CLI, confirms a post-verified journal and immutable payload, repeats without manifest drift, and confirms the normal path stops honestly at `M3_4_UNAVAILABLE`.
 
 ## Tests Failing or Blocked
 
 - Doctor under the audit host: expected FAIL because the repository has not been provisioned there.
 - Live router and physical audio/wake manual programs: NOT RUN because their services, dependencies, devices, and recorded-environment evidence are unavailable on the audit host.
-- All Raspberry Pi ARM64 runtime, audio, GPIO, service, reboot, physical power-loss, and real-install failure-injection tests: BLOCKED pending implementation and target hardware. M3.2 fake-step interruption coverage is T1 evidence only.
+- All Raspberry Pi ARM64 runtime, audio, GPIO, service, reboot, physical power-loss, and real-install failure-injection tests: BLOCKED pending target hardware and later milestones. M3.3 host TERM and temporary-root coverage is T1 evidence only.
 - Networked AArch64 `pip download`, optional-UI installation/import, and the physical Pi Python 3.13 venv install: BLOCKED because this environment cannot reach the package index and has no Pi. Metadata verification is not promoted to install evidence.
 - The retained full prototype installer has not been rerun and is not an accepted installer; M3 owns its replacement.
 - Physical Raspberry Pi M3.1 preflight and a real target-to-GitHub HTTPS/ref probe remain BLOCKED; fixture and development-host success are not promoted to T2/T3 evidence.
-- `bootstrap.sh` now invokes the M3.2 control engine but deliberately stops at `M3_3_UNAVAILABLE`; this checkpoint is not install-ready.
+- `bootstrap.sh` can install and activate the dependency-light core package, but deliberately stops at `M3_4_UNAVAILABLE`; Ollama, Qwen, speech, application services, and hardware are absent, so this checkpoint is not assistant-ready.
 - Package publication, a public repository export, and a public portable Git ZIP: BLOCKED by the deliberate no-redistribution policy.
 - Unknown-media rights and a release-compatible Piper/voice/wake licensing plan remain release/runtime blockers, not grounds for inventing M2.3 locks.
 
@@ -224,20 +237,24 @@ Exact commands and interpretations are in `TEST_MATRIX.md`.
 - Initial 8 GiB free-space and approximately 3.5 GiB target-memory thresholds are conservative admission gates pending physical-Pi recalibration, not performance claims.
 - Installer step state is advisory; current postcondition probes alone determine whether an action is skipped or repaired.
 - M3.2 state/events are private atomic records, and lock ownership is bound to Linux boot ID, PID, and process start identity where procfs exposes it.
-- Verified source acquisition moves to M3.3 so it can create an immutable candidate directly; M3.2 success never means the application is installed.
+- Verified source acquisition creates an M3.3 immutable candidate directly; M3.2 success alone never means the application is installed.
+- M3.3 source acquisition refetches the recorded commit and installs only its validated immutable payload; checkout contents are not the installed source of truth.
+- Release activation truth is the agreement of validated payload, constrained `current` pointer, and durable journal—not an advisory step record alone.
+- Full installations share global engine and maintenance locks under `/var/lib/gonken-agent/install`; development tests preserve the same layout below a private system root.
+- The distribution setuptools backend is an APT-managed build prerequisite whose observed version is recorded; release runtime dependencies remain exact/hash locked.
 
 See `DECISIONS.md` for rationale and status.
 
 ## Next Recommended Action
 
-Implement M3.3 only. Reuse the accepted M3.2 protocol to acquire the exact
-recorded commit into an immutable candidate, build its release-local virtual
-environment from applicable exact/hash locks, and add the separate durable
-activation journal with prepared/switched/post-verified/rolled-back states.
-Interrupt candidate finalization, journal replacement, the atomic `current`
-switch, and post-switch validation; prove a bad candidate is never promoted and
-rerun completes or restores a prior validated release. Do not install Ollama,
-Whisper, Piper, systemd services, or hardware rules; stop before M3.4.
+Implement M3.4 only. Add verified named-version Ollama ARM64 acquisition,
+published checksum validation, separate service identity, loopback/no-cloud
+configuration, readiness checks, and authoritative `qwen3.5:2b-q4_K_M` pull
+with full digest recording and deterministic inference smoke. Inject partial
+download, extraction, readiness, and model-pull failures and prove rerun
+converges without weakening or replacing the validated M3.3 release. Do not
+install Whisper, Piper, the application systemd service, audio/GPIO rules, wake
+word, or power controls; stop before M3.5.
 
 ## Session Start Protocol
 

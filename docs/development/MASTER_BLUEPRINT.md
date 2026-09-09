@@ -1,8 +1,8 @@
 # GonKenLab Agent Implementation Master Blueprint
 
-**Blueprint revision:** 1.7-implementation
+**Blueprint revision:** 1.8-implementation
 
-**Prepared:** 2026-09-08 UTC
+**Prepared:** 2026-09-09 UTC
 
 **Branch:** `dev/bootstrap-rearchitecture`
 
@@ -10,7 +10,7 @@
 
 **Review state:** adversarial review completed in `BLUEPRINT_ADVERSARIAL_REVIEW.md`; accepted for staged implementation
 
-**Implementation authorization:** M3.2 is complete; M3.3 is the only next authorized work package
+**Implementation authorization:** M3.3 is complete; M3.4 is the only next authorized work package
 
 ## 1. Purpose and authority
 
@@ -542,12 +542,15 @@ The Ollama drop-in binds loopback, enables `OLLAMA_NO_CLOUD=1`, constrains paral
 
 M3.1 implements the admission boundary for items 1, 2, 5, and 6 and writes a
 private, non-sourceable facts record only after every check passes. M3.2
-implements item 7 as a bounded engine handoff: it revalidates the record and
-resolved source, writes only private engine evidence, and stops at
-`M3_3_UNAVAILABLE`. Items 3 and 4 remain deliberately unavailable until M3.3
-can bind source acquisition to an immutable candidate-release contract; the
-current bootstrap never falls through to legacy `setup.sh`. D-056 and D-057
-record this staged contract.
+implements item 7 as a probe-authoritative engine handoff. M3.3 adds target
+bootstrap prerequisites, verified exact-commit acquisition directly into a
+candidate, the release-local venv, immutable finalization, and durable atomic
+activation. A normal invocation now stops at `M3_4_UNAVAILABLE` after a
+post-verified core-package activation; it never falls through to legacy
+`setup.sh`. The apparent item-7 `--source` interface is concretely implemented
+as the private `--source-record` plus a refetch of its exact commit so mutable
+checkout contents never become the installed payload. D-056–D-058 and
+`RELEASE_ACTIVATION_SCHEMA.md` record the staged contract.
 
 The README supports two onboarding paths:
 
@@ -790,6 +793,20 @@ from host processes.
 **Validation:** interrupt before/during/after every fake step; rerun converges; false complete state repairs.
 
 #### M3.3 Immutable application release
+
+**Implementation status (2026-09-09): COMPLETE at T0/T1 host tier.** Commit
+`0ea9db1` implements target prerequisite/account creation, exact recorded-commit
+fetch and archive validation, platform lock selection, local wheel build,
+release-local venv installation, CLI/status/`pip check` smoke tests, payload
+hash/size/ownership/immutability validation, same-filesystem candidate
+finalization, a root-owned four-phase activation journal, atomic constrained
+`current`, maintenance locking, rerun reconciliation, rollback, and validated
+active-plus-previous retention. A release-local pre-start helper is present but
+is not wired to systemd before M6. The deterministic suite interrupts every
+candidate-finalization, journal, pointer, and post-switch boundary; failed
+postchecks restore the prior release. Physical Pi, real root/service-account,
+filesystem power-loss, and reboot evidence remain blocked and are not inferred
+from temporary-root tests. See `RELEASE_ACTIVATION_SCHEMA.md`.
 
 **Files:** install-python/release functions, tmpfiles packaging.
 
@@ -1100,18 +1117,16 @@ They are resolved in this revision by removing core power privilege, distinguish
 
 ## 18. Exact next action
 
-Implement M3.3 only. Extend the accepted M3.2 protocol with verified source
-acquisition and immutable candidate releases under temporary roots before any
-target mutation. Bind the candidate to the recorded source commit; create its
-release-local virtual environment; install only the applicable exact/hash
-locks; validate CLI/import/smoke postconditions; measure staging/release space;
-and introduce the separate prepared/switched/post-verified/rolled-back
-activation journal and reconciliation command. Interrupt before/during/after
-candidate finalization, journal replacement, atomic `current` switch, and
-post-switch validation; prove that failure never promotes a bad candidate and
-that rerun either completes a valid pending activation or restores the prior
-validated release. Do not install Ollama, Whisper, Piper, systemd services, or
-hardware rules and stop before M3.4.
+Implement M3.4 only. Acquire a named stable Ollama ARM64 release through an
+explicit manifest and verified published SHA-256; keep Ollama under its own
+service identity; enforce loopback binding and no-cloud behavior; start and
+probe the service; pull the authoritative `qwen3.5:2b-q4_K_M` model; record and
+verify its full digest; enforce the provisional single-model/parallelism limits
+for 4GB; and run deterministic API and inference smoke checks. Inject failure
+before/during/after download, extraction, service readiness, and model pull;
+prove corrupt/partial artifacts are never accepted and rerun converges without
+changing the validated M3.3 release. Do not install Whisper, Piper, systemd app
+services, audio/GPIO rules, wake word, or power controls and stop before M3.5.
 
 ## 19. Primary references
 

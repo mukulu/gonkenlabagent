@@ -82,8 +82,9 @@ and dependency-change procedures.
 
 ## Bootstrap status
 
-M3.2 adds a resumable, postcondition-driven step engine behind the M3.1
-preflight boundary. To validate prerequisites only, run:
+M3.3 adds verified immutable application releases and recoverable activation
+behind the M3.1 preflight and M3.2 step-engine boundaries. To validate
+prerequisites only, run:
 
 ```bash
 ./bootstrap.sh --preflight-only \
@@ -93,11 +94,32 @@ preflight boundary. To validate prerequisites only, run:
 
 It validates the supported Pi/OS/Python/systemd contract, resources, clock,
 administrator access, checkout cleanliness, and the advertised source ref
-before writing a private staging record. Without `--preflight-only`, it now
-revalidates that record, exercises only the bounded M3.2 state-engine markers,
-and deliberately stops with `M3_3_UNAVAILABLE`. It never invokes the retained
-`setup.sh` and still does not install the application. See
-`docs/development/ONBOARDING_DRAFT.md` for the exact temporary boundary.
+before writing a private staging record. Without `--preflight-only`, it
+revalidates the record and remote commit, creates the dedicated non-login
+runtime account on the target, builds a release-local virtual environment from
+the applicable exact lock, validates an immutable commit-named release, and
+activates it through a durable journal and atomic `current` link. It then stops
+with `M3_4_UNAVAILABLE`: Ollama, the Qwen model, speech components, systemd
+services, and hardware integration are not installed yet. It never invokes the
+retained `setup.sh`.
+
+For an M3.3 development-host lifecycle test that returns after release
+activation, use a disposable private root:
+
+```bash
+temporary_root="$(mktemp -d)"
+mkdir "$temporary_root/empty-checkout"
+./bootstrap.sh --development-host \
+  --source-url "$(pwd | sed 's#^#file://#')" \
+  --ref "$(git branch --show-current)" \
+  --existing-checkout "$temporary_root/empty-checkout" \
+  --staging-parent /tmp
+```
+
+The normal development bootstrap still stops at the M3.4 boundary. The test
+suite exercises `scripts/install.sh --release-only` directly in temporary
+roots. See `docs/development/ONBOARDING_DRAFT.md` and
+`docs/development/RELEASE_ACTIVATION_SCHEMA.md` for the exact boundary.
 
 ## Accepted first-release boundary
 
@@ -118,7 +140,7 @@ until their independent acceptance gates pass.
 
 ## Testing
 
-M3.2 retains one default T0/T1 entry point. It requires no model, network,
+M3.3 retains one default T0/T1 entry point. It requires no live model, internet,
 Ollama, audio, GPIO, pygame, root access, or governed extension:
 
 ```bash
