@@ -1,5 +1,8 @@
 # M3.2 installer state and step protocol
 
+> M3.3 extends this accepted engine with global installed-state paths and a
+> separate release activation journal. See `RELEASE_ACTIVATION_SCHEMA.md`.
+
 **Schema revision:** 1
 
 **Scope:** resumable engine mechanics only; no application provisioning
@@ -10,7 +13,7 @@ package, service, model, and artifact probes remain authoritative. A state file
 is evidence about an earlier attempt; it is never permission to skip a failed
 postcondition.
 
-## 1. Current invocation boundary
+## 1. M3.2 checkpoint and current engine-only boundary
 
 `bootstrap.sh` creates and validates a private staging directory and then calls:
 
@@ -18,17 +21,19 @@ postcondition.
 scripts/install.sh --source-record /absolute/path/to/source.record
 ```
 
-At M3.2 the installer performs only two bounded actions:
+At the M3.2 checkpoint—and today when `--engine-only` is explicit—the installer
+performs only two bounded actions:
 
 1. revalidate the complete M3.1 record and its advertised Git commit, then write
    a validation marker;
 2. write an engine-contract marker confirming that provisioning remains
    forbidden before M3.3.
 
-`--engine-only` returns zero after those steps for deterministic verification.
-Without it, success ends with exit 69 and `M3_3_UNAVAILABLE`. No package,
-release, virtual environment, model, service, configuration, or hardware state
-is changed.
+`--engine-only` returns zero after those steps for deterministic verification
+and changes no package, release, virtual environment, model, service,
+configuration, or hardware state. Since M3.3, omission of `--engine-only`
+continues into the release lifecycle and eventually stops at
+`M3_4_UNAVAILABLE`; see `RELEASE_ACTIVATION_SCHEMA.md`.
 
 ## 2. Private directory layout
 
@@ -48,6 +53,11 @@ is changed.
         └── owner.record
 ```
 
+This staging-local layout applies to `--engine-only`. A full M3.3 installation
+uses the same schema under `/var/lib/gonken-agent/install/engine` (or below the
+development `--system-root`) so different bootstrap staging directories cannot
+bypass the global engine lock.
+
 All directories are owned by the effective installer user and deny group/other
 access. Records are written to a same-directory mode-0600 temporary file and
 renamed into place. Cooperative signal handling removes registered temporary
@@ -58,7 +68,8 @@ repair or replace its own partial output.
 Atomic rename prevents a half-written record from becoming authoritative. It
 does not claim that the whole installation is a transaction, that external
 package stores can be rolled back, or that storage survives physical media
-failure. M3.3 introduces the separate root-owned release activation journal.
+failure. M3.3 adds the separate root-owned release activation journal described
+in `RELEASE_ACTIVATION_SCHEMA.md`.
 
 ## 3. Source-record consumption
 
@@ -66,7 +77,8 @@ The M3.1 `gonken-bootstrap-source-v1` record is parsed line by line. It is never
 sourced, evaluated, expanded, or passed through `eval`. The parser rejects:
 
 - a missing, non-regular, or symbolic-link record;
-- group/other-readable input or mismatched effective-user ownership;
+- group/other-readable input or ownership outside the recorded/effective
+  administrator transition;
 - malformed, duplicate, missing, or unknown fields;
 - unknown schema versions, invalid platform mode, user identity, numeric
   fields, source URL/ref, or commit hash;
@@ -194,7 +206,8 @@ This checkpoint proves the control mechanism, not an installation. It does not:
 - implement activation, reconciliation, rollback, upgrade, or uninstall;
 - establish Raspberry Pi hardware or reboot evidence.
 
-The exact next action is M3.3: use temporary roots to implement immutable
-application release creation and the separate activation journal, then prove
-that failed candidate construction and every activation interruption preserve
-or recover the prior validated release.
+M3.3 has now implemented the immutable application release and separate
+activation journal described here. The exact next action is M3.4: add verified
+Ollama installation, loopback-only service configuration, selected-model digest
+provisioning, readiness/inference validation, and interrupted-pull recovery
+without weakening the M3.2/M3.3 state and activation contracts.

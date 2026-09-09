@@ -30,7 +30,11 @@ Pi, reboot/recovery, and failure-injection suites will be added by the
 milestones that implement those boundaries.
 
 M3.2 adds deterministic process failure injection through the tracked install
-engine harness. `GONKEN_ENABLE_TEST_FAILURES=1` is required before its
-before/during/after TERM or KILL controls become active; production installer
-steps never set that gate. These tests establish host control-flow recovery,
-not Raspberry Pi storage durability or physical power-loss behavior.
+engine harness. M3.3 extends it to immutable candidate finalization, activation
+journal replacement, atomic `current` replacement, and post-switch validation.
+`GONKEN_ENABLE_TEST_FAILURES=1` is required before any tracked TERM/KILL control
+becomes active; production installer steps never set that gate. The M3.3 suite
+also builds and installs the exact committed source into a real temporary venv,
+but it uses local Git and a development FHS root. These tests establish host
+control-flow and packaging recovery, not Raspberry Pi storage durability,
+service behavior, or physical power-loss behavior.

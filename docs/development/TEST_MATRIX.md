@@ -120,8 +120,8 @@ The master blueprint must allocate stable IDs and concrete procedures for at lea
 
 ## 5. Latest test summary
 
-- **T0:** M0 recorded 9 PASS and 4 baseline FAIL findings; M2.1–M3.2 static, package, configuration, dependency-policy, test-boundary, bootstrap-admission, and install-engine checks pass without closing unrelated findings.
-- **T1:** M3.2 expands the dependency-free entry point to 92 unit and 16 deterministic process-integration tests; all remote source behavior uses command stubs or local Git fixtures.
+- **T0:** M0 recorded 9 PASS and 4 baseline FAIL findings; M2.1–M3.3 static, package, configuration, dependency-policy, test-boundary, bootstrap, install-engine, and immutable-release checks pass without closing unrelated findings.
+- **T1:** M3.3 expands the dependency-free entry point to 103 unit and 21 deterministic process-integration tests; source success uses local Git fixtures and no internet, live service, model, device, or privilege boundary.
 - **T2:** exact Python 3.13/AArch64 pygame wheel metadata now passes, superseding the old pygame-availability observation; networked resolution and the physical target install remain BLOCKED.
 - **T3–T6:** BLOCKED or NOT RUN as detailed above.
 - **Production readiness:** not established.
@@ -358,3 +358,43 @@ M3.2 is complete at the host control-engine boundary. It performs no
 privileged or installed-system mutation, so success is not installation
 evidence. M3.3 is the only next authorized work package and must revalidate
 H-03/H-04/H-10 at immutable candidate, journal, and atomic-switch boundaries.
+
+## 14. M3.3 immutable-release and activation checks
+
+**Starting checkpoint:** `checkpoint/m3.2` / `6af99b2ed0379ba1a976ee184bb32d2e74b0205f`
+
+**Implementation commit:** `0ea9db1` (`feat: add immutable release activation lifecycle`)
+
+**Date:** 2026-09-09 UTC
+
+**Environment:** Linux x86_64, Python 3.12.14, setuptools 84.0.0. Exact-source
+success uses a local `file://` Git repository and disposable FHS-shaped root.
+The test venv installs the empty exact development lock and a locally built
+wheel with `--no-index`. No internet, APT mutation, sudo transition, non-root
+service account, Raspberry Pi, systemd service, Ollama, model, audio, or GPIO
+was used.
+
+| ID | Tier | Check | Command/procedure | Result | Interpretation |
+|---|---|---|---|---|---|
+| M3.3-T001 | T0 | Clean accepted starting checkpoint | Compare clean HEAD with `checkpoint/m3.2` before edits | PASS | M3.3 began at the committed/tagged M3.2 boundary. |
+| M3.3-T002 | T0/T1 | Full deterministic repository entry point | `./scripts/ci.sh` | PASS | Static/data checks, 103 unit tests, and 21 integrations pass without a live external boundary. |
+| M3.3-T003 | T0/T1 / V-H04 | Exact verified source acquisition | End-to-end local Git fixture; source-record/ref and archive-rejection tests; inspect submodule guard | PASS | Installed payload is rebuilt from the exact recorded commit; ref movement and unsafe traversal/link/archive or submodule types fail closed. No mutable checkout tree is installed. |
+| M3.3-T004 | T1 / V-H06 | Release-local environment and smoke | Build wheel; create venv; install applicable lock and local wheel with no index; run installed CLI version/status and `pip check` | PASS | The committed dependency-light core installs and executes outside its source checkout without inherited `PYTHONPATH`; backend version and lock/wheel hashes are recorded. |
+| M3.3-T005 | T1 / V-H10 | Manifest, immutability, and integrity | Validate schema, path/commit/profile/digests/owner/modes/smoke; mutate fake payload | PASS | Final release has no write bits and post-build payload changes are rejected; malformed identity or pointer state cannot become activation truth. |
+| M3.3-T006 | T1 | Conservative headroom | Override observed free KiB below the computed threshold | PASS | Exit 78 occurs before a final release or `current` pointer exists. The threshold is not model-space or Pi performance evidence. |
+| M3.3-T007 | T1/T6 fixture / V-H10 | Candidate-finalization interruption | TERM before/during/after freeze-and-rename, inspect old/new state, rerun | PASS | All three boundaries leave either the complete candidate or final payload; rerun converges. A narrowly complete rename/top-mode interval is identity/digest/owner checked before repair. |
+| M3.3-T008 | T1/T6 fixture / V-H10 | Journal, pointer, and postcheck interruption | TERM before/during/after each of journal replacement, `current` replacement, and post-switch validation; rerun activation | PASS | All nine boundaries converge to a post-verified candidate without stale journal/pointer temporaries. Host signals are not physical power-loss evidence. |
+| M3.3-T009 | T1 / V-H10 | Failed post-switch validation rollback | Candidate fake passes prechecks then fails the post-switch smoke | PASS | Exit code is preserved, `current` returns to the prior validated release, and journal becomes `rolled_back`. |
+| M3.3-T010 | T1 | Ambiguity fails closed | Disagree a `post_verified` journal and constrained `current` link | PASS | Reconciliation returns `ACTIVATION_AMBIGUOUS` and does not rewrite the pointer based on guesswork. |
+| M3.3-T011 | T1 | Global activation mutual exclusion | Hold `maintenance.lock`; invoke concurrent reconciliation | PASS | Concurrent state mutation returns exit 75/`ACTIVATION_BUSY`; full installs also share the installed-state M3.2 engine lock. |
+| M3.3-T012 | T1 | Validated two-release retention | Create three valid immutable releases; record active and previous; prune | PASS | Only active and previous remain. An inactive release is fully validated before controlled removal; corrupt evidence is not silently deleted. |
+| M3.3-T013 | T0/T1 / V-H03 | Privilege/account/source-record boundary | Inspect sudo handoff and non-login account declarations; test root-readable invoking-user-owned private record and bootstrap routing | PASS (HOST-LIMITED) | The code performs one validated sudo transition, keeps root ownership of code/state, and reserves runtime smoke for the service user. Real `useradd`/`runuser`/APT execution remains untested on target. |
+| M3.3-T014 | T1 | Stable entrypoint and reconciliation payload | Initialize temporary layout; inspect relative entrypoint; hash/copy exact-source maintenance helpers into release | PASS | Stable CLI path crosses only constrained `current`; release contains its exact reconciliation implementation for later M6 pre-start wiring. No service is installed. |
+| M3.3-T015 | T1 | Repeatability and milestone stop | Repeat `--release-only`; compare manifest; invoke normal installer | PASS | Repeat leaves the release record byte-identical. Normal execution reports `M3_3_RELEASE_COMPLETE` then exits 69/`M3_4_UNAVAILABLE`, never legacy setup. |
+| M3.3-T016 | T0/T1 | Clean-checkout repeatability | No-hardlink clone of the final M3.3 documentation commit; fresh stdlib-only venv; run `scripts/ci.sh`; inspect cleanliness and strict Git objects | PENDING | Must pass before `checkpoint/m3.3` is created. |
+| M3.3-T017 | T2/T3/T6 | Real target, HTTPS, privilege, filesystem, and power loss | Fresh supported Pi 5; normal bootstrap; controlled interruptions/reboots; inspect ownership/journal/pointer | BLOCKED | No target is available. Host evidence cannot establish APT/account behavior, Python 3.13/AArch64 install, storage durability, or boot reconciliation. |
+
+M3.3 is implementation-complete at T0/T1 once M3.3-T016 passes. The installed
+artifact is only the dependency-light core package and release machinery; no
+model, speech pipeline, application service, or hardware readiness exists.
+M3.4 is the only next authorized work package.
