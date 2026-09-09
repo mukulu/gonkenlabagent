@@ -6,7 +6,7 @@ Historical implementation detail remains in Git, `TEST_MATRIX.md` and `DECISIONS
 M0/M1 audit and architecture review are complete; the table covers every core implementation item.
 
 <!-- MILESTONES -->
-Checkpoint scope: **M3.4 baseline; continuous progression enabled**
+Checkpoint scope: **M3.4 baseline + M4 runtime/audio contracts + M5.1 controller; continuous progression active**
 
 | Item | Software | Target acceptance | Evidence / remaining work |
 |---|---|---|---|
@@ -18,12 +18,12 @@ Checkpoint scope: **M3.4 baseline; continuous progression enabled**
 | M3.2 — Step engine and install state | host-verified | not-run | TEST_MATRIX.md (M3.2) Physical Pi acceptance remains open. |
 | M3.3 — Immutable application release | host-verified | not-run | TEST_MATRIX.md (M3.3) Physical Pi acceptance remains open. |
 | M3.4 — Ollama lifecycle and selected model | host-verified | not-run | TEST_MATRIX.md (M3.4) Physical Pi acceptance remains open. |
-| M3.5 — Whisper and Piper artifacts | pending | not-run |  Not implemented. |
+| M3.5 — Whisper and Piper artifacts | blocked | not-run | requirements/profiles.toml blocked voice profile Existing voice-runtime profile and noncommercial voice remain gated; immutable speech pins/build/target smoke not accepted. |
 | M3.6 — Install summary | pending | not-run |  Not implemented. |
-| M4.1 — Coordinator/state/health | pending | not-run |  Not implemented. |
-| M4.2 — Audio discovery and recovery | pending | not-run |  Not implemented. |
-| M4.3 — Resampling/STT/TTS lifecycle | pending | not-run |  Not implemented. |
-| M5.1 — Push-to-talk and recording indication | pending | not-run |  Not implemented. |
+| M4.1 — Coordinator/state/health | host-verified | not-run | tests/unit/test_runtime_audio.py; TEST_MATRIX.md continuation-runtime Physical/service adapters and process-level Pi acceptance remain open. |
+| M4.2 — Audio discovery and recovery | partial | not-run | tests/unit/test_runtime_audio.py; TEST_MATRIX.md continuation-runtime Selection/recovery/frame buffer tested; real ALSA enumeration, capture backend and hotplug acceptance remain open. |
+| M4.3 — Resampling/STT/TTS lifecycle | partial | not-run | tests/unit/test_runtime_audio.py; TEST_MATRIX.md continuation-runtime FIR resampling and speech subprocess cleanup tested; pinned real speech binaries, tiny/base comparison and audible Pi acceptance remain open. |
+| M5.1 — Push-to-talk and recording indication | partial | not-run | tests/unit/test_runtime_audio.py; TEST_MATRIX.md continuation-runtime Debounced hold/release controller tested; physical GPIO adapter, crash-default LED-off and wiring acceptance remain open. |
 | M5.2 — Offline boundary | pending | not-run |  Not implemented. |
 | M6.1 — Application service | pending | not-run |  Not implemented. |
 | M6.2 — Service installer/removal | pending | not-run |  Not implemented. |

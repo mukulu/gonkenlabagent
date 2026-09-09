@@ -443,3 +443,17 @@ M3.5 is the only next authorized work package.
 ## Continuous-workflow reconciliation — 2026-09-09
 
 The preceding milestone-specific next-only authorizations are historical and superseded by D-060 and blueprint revision 2.0. Baseline `459f8da` rerun: 109 unit + 26 integration tests PASS, T0 PASS, on Linux x86_64/Python 3.12. No Pi acceptance is claimed. ZIP extraction lost executable bits; restored exactly from the Git index before testing, without source changes. The new generated status check requires all blueprint item IDs exactly once.
+
+## continuation-runtime — M4/M5.1 software, 2026-09-09
+
+`PYTHONPATH=src:. python -m unittest tests.unit.test_runtime_audio -v`: **22 tests PASS** on Linux x86_64/Python 3.12.
+
+| Scope | Evidence | Result / limit |
+|---|---|---|
+| M4.1 | Every pipeline stage cancellation/error, 12 concurrent activations, late dependency, stop before dispatch, text path, transition rejection | PASS at T1; no physical adapter claim |
+| M4.2 | Missing/ambiguous/exact stable identity, rate mismatch, re-enumeration/backoff, bounded frame count/queue/overflow | PASS at T1; real ALSA backend pending |
+| M4.3 | 48→16kHz deterministic tones, passband preservation, alias amplitude below 1%; stereo conversion and ratio rejection | PASS at T1; Pi timing unmeasured |
+| M4.3 | Real subprocess success/error/timeout/cancel/output cap; fake speech executable outputs, valid/truncated WAV, cleanup on success/error/cancel/playback failure | PASS at T1; real pinned STT/TTS and audible target tests unrun |
+| M5.1 | Bounce, hold/release, indicator-before-capture and off-before-submit ordering, stuck-button cancel/inhibit, missing device/start failure | PASS at T1; GPIO permission/crash/physical LED tests unrun |
+
+Adapters are explicit injection points, not proof of deployment wiring. M3.5 stays blocked and installer activation is unchanged.

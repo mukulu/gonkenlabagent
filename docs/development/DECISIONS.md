@@ -512,3 +512,10 @@ The master-blueprint review must resolve:
 - **Decision:** Remove one-package-per-session limits. Continue after verified items; group coherent changes and commit at tested boundaries. A blocked hardware/artifact requirement does not block independent software modules.
 - **Evidence:** M3.4 Git history and all 135 host tests pass; the previous status grouped completed tasks under Not Started and the blueprint explicitly instructed stopping.
 - **Consequence:** MILESTONES.json is the complete item ledger; generated status is checked by CI. Software progress and target acceptance are separate. Do not label the whole project M7/M9 merely because later independent software exists. Prior next-only authorization statements are historical and superseded by this decision.
+
+## D-061 — Advance local runtime contracts independently of speech provisioning
+
+- **Status:** Accepted implementation choice under D-060, 2026-09-09.
+- **Decision:** Implement the sequential coordinator, bounded PCM frame buffer, stable selector/retry, subprocess speech adapters and PTT controller against injected adapters while the real speech chain remains gated. The default voice runtime still fails closed.
+- **Reason:** These contracts can be tested without granting fake hardware readiness or introducing an unpinned Python dependency.
+- **Consequence:** Use a dependency-free 97-tap windowed-sinc anti-alias FIR for integer 16/32/48→16kHz paths. Reject unsupported ratios; deterministic spectral tests pass, but CPU/latency on Pi remains an acceptance gate. Physical capture/GPIO and pinned artifacts are still required. Temporary speech outputs are context-managed; process groups are terminated on cancel/error/timeout.

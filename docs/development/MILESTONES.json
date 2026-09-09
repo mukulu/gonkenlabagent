@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "checkpoint_scope": "M3.4 baseline; continuous progression enabled",
+  "checkpoint_scope": "M3.4 baseline + M4 runtime/audio contracts + M5.1 controller; continuous progression active",
   "baseline_commit": "459f8da3ffb1dd084f9947988c117ae6da10ae1b",
   "milestones": [
     {
@@ -70,10 +70,10 @@
     {
       "id": "M3.5",
       "title": "Whisper and Piper artifacts",
-      "software": "pending",
+      "software": "blocked",
       "target": "not-run",
-      "evidence": "",
-      "remaining": "Not implemented."
+      "evidence": "requirements/profiles.toml blocked voice profile",
+      "remaining": "Existing voice-runtime profile and noncommercial voice remain gated; immutable speech pins/build/target smoke not accepted."
     },
     {
       "id": "M3.6",
@@ -86,34 +86,34 @@
     {
       "id": "M4.1",
       "title": "Coordinator/state/health",
-      "software": "pending",
+      "software": "host-verified",
       "target": "not-run",
-      "evidence": "",
-      "remaining": "Not implemented."
+      "evidence": "tests/unit/test_runtime_audio.py; TEST_MATRIX.md continuation-runtime",
+      "remaining": "Physical/service adapters and process-level Pi acceptance remain open."
     },
     {
       "id": "M4.2",
       "title": "Audio discovery and recovery",
-      "software": "pending",
+      "software": "partial",
       "target": "not-run",
-      "evidence": "",
-      "remaining": "Not implemented."
+      "evidence": "tests/unit/test_runtime_audio.py; TEST_MATRIX.md continuation-runtime",
+      "remaining": "Selection/recovery/frame buffer tested; real ALSA enumeration, capture backend and hotplug acceptance remain open."
     },
     {
       "id": "M4.3",
       "title": "Resampling/STT/TTS lifecycle",
-      "software": "pending",
+      "software": "partial",
       "target": "not-run",
-      "evidence": "",
-      "remaining": "Not implemented."
+      "evidence": "tests/unit/test_runtime_audio.py; TEST_MATRIX.md continuation-runtime",
+      "remaining": "FIR resampling and speech subprocess cleanup tested; pinned real speech binaries, tiny/base comparison and audible Pi acceptance remain open."
     },
     {
       "id": "M5.1",
       "title": "Push-to-talk and recording indication",
-      "software": "pending",
+      "software": "partial",
       "target": "not-run",
-      "evidence": "",
-      "remaining": "Not implemented."
+      "evidence": "tests/unit/test_runtime_audio.py; TEST_MATRIX.md continuation-runtime",
+      "remaining": "Debounced hold/release controller tested; physical GPIO adapter, crash-default LED-off and wiring acceptance remain open."
     },
     {
       "id": "M5.2",
