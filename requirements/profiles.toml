@@ -5,8 +5,8 @@ target_python = "CPython 3.13"
 target_arch = "aarch64"
 index_url = "https://pypi.org/simple"
 
-# These profiles describe the maintained package foundation at M2.3. They do
-# not claim that the voice runtime exists: gonken-agent run still fails closed.
+# Core profiles include dependency-free text diagnostics and runtime contracts.
+# Voice activation still fails closed until artifact and physical adapters pass.
 [[profiles]]
 id = "core-pi-trixie-py313"
 kind = "headless-core"
@@ -14,7 +14,7 @@ status = "installable"
 python = "3.13"
 platform = "manylinux_2_28_aarch64"
 lock = "requirements/pi-trixie-py313.lock"
-scope = "Maintained package foundation only; runtime migration begins after M2.3."
+scope = "Maintained package, text diagnostics and standard-library runtime contracts; voice activation remains gated."
 dependencies = []
 
 [[profiles]]
@@ -88,7 +88,7 @@ source = "https://pypi.org/project/piper-tts/"
 blockers = [
   "The maintained piper-tts package is GPL-3.0-or-later and integration policy is unresolved.",
   "The configured legacy voice has noncommercial terms and is quarantined.",
-  "The maintained runtime has not yet been migrated into src/gonken_agent.",
+  "Speech adapters exist in src/gonken_agent but pinned speech provisioning and physical backends remain unaccepted.",
 ]
 next_gate = "Select and validate a release-compatible TTS package/voice during runtime implementation."
 

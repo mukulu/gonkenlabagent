@@ -1,0 +1,162 @@
+[
+  {
+    "query": "Atlas bench: booking duration?",
+    "expected_paths": [
+      "atlas-bench.md"
+    ]
+  },
+  {
+    "query": "Atlas bench: support desk?",
+    "expected_paths": [
+      "atlas-bench.md"
+    ]
+  },
+  {
+    "query": "Birch printer: booking duration?",
+    "expected_paths": [
+      "birch-printer.md"
+    ]
+  },
+  {
+    "query": "Birch printer: support desk?",
+    "expected_paths": [
+      "birch-printer.md"
+    ]
+  },
+  {
+    "query": "Cedar workstation: booking duration?",
+    "expected_paths": [
+      "cedar-workstation.md"
+    ]
+  },
+  {
+    "query": "Cedar workstation: support desk?",
+    "expected_paths": [
+      "cedar-workstation.md"
+    ]
+  },
+  {
+    "query": "Delta microscope: booking duration?",
+    "expected_paths": [
+      "delta-microscope.md"
+    ]
+  },
+  {
+    "query": "Delta microscope: support desk?",
+    "expected_paths": [
+      "delta-microscope.md"
+    ]
+  },
+  {
+    "query": "Elm sensor: booking duration?",
+    "expected_paths": [
+      "elm-sensor.md"
+    ]
+  },
+  {
+    "query": "Elm sensor: support desk?",
+    "expected_paths": [
+      "elm-sensor.md"
+    ]
+  },
+  {
+    "query": "Fir recorder: booking duration?",
+    "expected_paths": [
+      "fir-recorder.md"
+    ]
+  },
+  {
+    "query": "Fir recorder: support desk?",
+    "expected_paths": [
+      "fir-recorder.md"
+    ]
+  },
+  {
+    "query": "Grove server: booking duration?",
+    "expected_paths": [
+      "grove-server.md"
+    ]
+  },
+  {
+    "query": "Grove server: support desk?",
+    "expected_paths": [
+      "grove-server.md"
+    ]
+  },
+  {
+    "query": "Hazel camera: booking duration?",
+    "expected_paths": [
+      "hazel-camera.md"
+    ]
+  },
+  {
+    "query": "Hazel camera: support desk?",
+    "expected_paths": [
+      "hazel-camera.md"
+    ]
+  },
+  {
+    "query": "Iris scanner: booking duration?",
+    "expected_paths": [
+      "iris-scanner.md"
+    ]
+  },
+  {
+    "query": "Iris scanner: support desk?",
+    "expected_paths": [
+      "iris-scanner.md"
+    ]
+  },
+  {
+    "query": "Juniper chamber: booking duration?",
+    "expected_paths": [
+      "juniper-chamber.md"
+    ]
+  },
+  {
+    "query": "Juniper chamber: support desk?",
+    "expected_paths": [
+      "juniper-chamber.md"
+    ]
+  },
+  {
+    "query": "Explain glacier depth.",
+    "expected_paths": []
+  },
+  {
+    "query": "Explain opera tickets.",
+    "expected_paths": []
+  },
+  {
+    "query": "Explain mountain altitude.",
+    "expected_paths": []
+  },
+  {
+    "query": "Explain cosmic expansion.",
+    "expected_paths": []
+  },
+  {
+    "query": "Explain bird migration.",
+    "expected_paths": []
+  },
+  {
+    "query": "Explain vaccine dosage.",
+    "expected_paths": []
+  },
+  {
+    "query": "Explain ocean currents.",
+    "expected_paths": []
+  },
+  {
+    "query": "Explain meteor trajectory.",
+    "expected_paths": []
+  },
+  {
+    "query": "Explain hurricane speed.",
+    "expected_paths": []
+  },
+  {
+    "query": "Explain national election.",
+    "expected_paths": []
+  }
+]

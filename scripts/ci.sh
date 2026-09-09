@@ -14,6 +14,8 @@ export PYTHONPATH="$PROJECT_ROOT/src:$PROJECT_ROOT"
 echo "[T0] dependency lock drift"
 "$PYTHON_BIN" "$SCRIPT_DIR/dependencies.py" render --check
 
+"$PYTHON_BIN" "$SCRIPT_DIR/milestone_status.py" --check
+
 echo "[T0] source/config syntax"
 bash -n bootstrap.sh setup.sh scripts/ci.sh scripts/install.sh \
   scripts/lib/common.sh scripts/lib/install_engine.sh scripts/reconcile-release.sh \

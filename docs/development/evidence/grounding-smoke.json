@@ -1,0 +1,519 @@
+{
+  "answerable": 40,
+  "cases": [
+    {
+      "abstained": false,
+      "answerable": true,
+      "hit_at_3": true,
+      "id": "known-01-0",
+      "source_ids": [
+        "atlas-bench.md#booking-duration:4@6a411b727f223312"
+      ]
+    },
+    {
+      "abstained": false,
+      "answerable": true,
+      "hit_at_3": true,
+      "id": "known-01-1",
+      "source_ids": [
+        "atlas-bench.md#reservation-code:6@6938be4f7fbf459d"
+      ]
+    },
+    {
+      "abstained": false,
+      "answerable": true,
+      "hit_at_3": true,
+      "id": "known-01-2",
+      "source_ids": [
+        "atlas-bench.md#atlas-bench:1@fed64c6157a52f13"
+      ]
+    },
+    {
+      "abstained": false,
+      "answerable": true,
+      "hit_at_3": true,
+      "id": "known-01-3",
+      "source_ids": [
+        "atlas-bench.md#atlas-bench:1@fed64c6157a52f13"
+      ]
+    },
+    {
+      "abstained": false,
+      "answerable": true,
+      "hit_at_3": true,
+      "id": "known-02-0",
+      "source_ids": [
+        "birch-printer.md#booking-duration:4@e04105c8f007dffe"
+      ]
+    },
+    {
+      "abstained": false,
+      "answerable": true,
+      "hit_at_3": true,
+      "id": "known-02-1",
+      "source_ids": [
+        "birch-printer.md#reservation-code:6@f264f206b948169f"
+      ]
+    },
+    {
+      "abstained": false,
+      "answerable": true,
+      "hit_at_3": true,
+      "id": "known-02-2",
+      "source_ids": [
+        "birch-printer.md#birch-printer:1@42f061c11331eac2"
+      ]
+    },
+    {
+      "abstained": false,
+      "answerable": true,
+      "hit_at_3": true,
+      "id": "known-02-3",
+      "source_ids": [
+        "birch-printer.md#birch-printer:1@42f061c11331eac2"
+      ]
+    },
+    {
+      "abstained": false,
+      "answerable": true,
+      "hit_at_3": true,
+      "id": "known-03-0",
+      "source_ids": [
+        "cedar-workstation.md#booking-duration:4@ef8cbadf943eb478"
+      ]
+    },
+    {
+      "abstained": false,
+      "answerable": true,
+      "hit_at_3": true,
+      "id": "known-03-1",
+      "source_ids": [
+        "cedar-workstation.md#reservation-code:6@27e9e1cdb1f4d41b"
+      ]
+    },
+    {
+      "abstained": false,
+      "answerable": true,
+      "hit_at_3": true,
+      "id": "known-03-2",
+      "source_ids": [
+        "cedar-workstation.md#cedar-workstation:1@773d55ac4d4fc023"
+      ]
+    },
+    {
+      "abstained": false,
+      "answerable": true,
+      "hit_at_3": true,
+      "id": "known-03-3",
+      "source_ids": [
+        "cedar-workstation.md#cedar-workstation:1@773d55ac4d4fc023"
+      ]
+    },
+    {
+      "abstained": false,
+      "answerable": true,
+      "hit_at_3": true,
+      "id": "known-04-0",
+      "source_ids": [
+        "delta-microscope.md#booking-duration:4@0fa06c62030220c8"
+      ]
+    },
+    {
+      "abstained": false,
+      "answerable": true,
+      "hit_at_3": true,
+      "id": "known-04-1",
+      "source_ids": [
+        "delta-microscope.md#reservation-code:6@9eaa8ae12ae0830b"
+      ]
+    },
+    {
+      "abstained": false,
+      "answerable": true,
+      "hit_at_3": true,
+      "id": "known-04-2",
+      "source_ids": [
+        "delta-microscope.md#delta-microscope:1@562f10f2fbf703b5"
+      ]
+    },
+    {
+      "abstained": false,
+      "answerable": true,
+      "hit_at_3": true,
+      "id": "known-04-3",
+      "source_ids": [
+        "delta-microscope.md#delta-microscope:1@562f10f2fbf703b5"
+      ]
+    },
+    {
+      "abstained": false,
+      "answerable": true,
+      "hit_at_3": true,
+      "id": "known-05-0",
+      "source_ids": [
+        "elm-sensor.md#booking-duration:4@4c7f3ec4979b3716"
+      ]
+    },
+    {
+      "abstained": false,
+      "answerable": true,
+      "hit_at_3": true,
+      "id": "known-05-1",
+      "source_ids": [
+        "elm-sensor.md#reservation-code:6@e12cc5fc4a1224ba"
+      ]
+    },
+    {
+      "abstained": false,
+      "answerable": true,
+      "hit_at_3": true,
+      "id": "known-05-2",
+      "source_ids": [
+        "elm-sensor.md#elm-sensor:1@fa3d5ff7660603a3"
+      ]
+    },
+    {
+      "abstained": false,
+      "answerable": true,
+      "hit_at_3": true,
+      "id": "known-05-3",
+      "source_ids": [
+        "elm-sensor.md#elm-sensor:1@fa3d5ff7660603a3"
+      ]
+    },
+    {
+      "abstained": false,
+      "answerable": true,
+      "hit_at_3": true,
+      "id": "known-06-0",
+      "source_ids": [
+        "fir-recorder.md#booking-duration:4@01d4053c3eeee613"
+      ]
+    },
+    {
+      "abstained": false,
+      "answerable": true,
+      "hit_at_3": true,
+      "id": "known-06-1",
+      "source_ids": [
+        "fir-recorder.md#reservation-code:6@224cf81272c9706a"
+      ]
+    },
+    {
+      "abstained": false,
+      "answerable": true,
+      "hit_at_3": true,
+      "id": "known-06-2",
+      "source_ids": [
+        "fir-recorder.md#fir-recorder:1@e51381933cc93bb6"
+      ]
+    },
+    {
+      "abstained": false,
+      "answerable": true,
+      "hit_at_3": true,
+      "id": "known-06-3",
+      "source_ids": [
+        "fir-recorder.md#fir-recorder:1@e51381933cc93bb6"
+      ]
+    },
+    {
+      "abstained": false,
+      "answerable": true,
+      "hit_at_3": true,
+      "id": "known-07-0",
+      "source_ids": [
+        "grove-server.md#booking-duration:4@3f08b935776e8968"
+      ]
+    },
+    {
+      "abstained": false,
+      "answerable": true,
+      "hit_at_3": true,
+      "id": "known-07-1",
+      "source_ids": [
+        "grove-server.md#reservation-code:6@2183923212a9b358"
+      ]
+    },
+    {
+      "abstained": false,
+      "answerable": true,
+      "hit_at_3": true,
+      "id": "known-07-2",
+      "source_ids": [
+        "grove-server.md#grove-server:1@2b2f27842b019261"
+      ]
+    },
+    {
+      "abstained": false,
+      "answerable": true,
+      "hit_at_3": true,
+      "id": "known-07-3",
+      "source_ids": [
+        "grove-server.md#grove-server:1@2b2f27842b019261"
+      ]
+    },
+    {
+      "abstained": false,
+      "answerable": true,
+      "hit_at_3": true,
+      "id": "known-08-0",
+      "source_ids": [
+        "hazel-camera.md#booking-duration:4@ab0de927100b00c4"
+      ]
+    },
+    {
+      "abstained": false,
+      "answerable": true,
+      "hit_at_3": true,
+      "id": "known-08-1",
+      "source_ids": [
+        "hazel-camera.md#reservation-code:6@db03639ee8398262"
+      ]
+    },
+    {
+      "abstained": false,
+      "answerable": true,
+      "hit_at_3": true,
+      "id": "known-08-2",
+      "source_ids": [
+        "hazel-camera.md#hazel-camera:1@11e4fee6fccfd634"
+      ]
+    },
+    {
+      "abstained": false,
+      "answerable": true,
+      "hit_at_3": true,
+      "id": "known-08-3",
+      "source_ids": [
+        "hazel-camera.md#hazel-camera:1@11e4fee6fccfd634"
+      ]
+    },
+    {
+      "abstained": false,
+      "answerable": true,
+      "hit_at_3": true,
+      "id": "known-09-0",
+      "source_ids": [
+        "iris-scanner.md#booking-duration:4@2705dede6ec63314"
+      ]
+    },
+    {
+      "abstained": false,
+      "answerable": true,
+      "hit_at_3": true,
+      "id": "known-09-1",
+      "source_ids": [
+        "iris-scanner.md#reservation-code:6@8693fb9049074ca7"
+      ]
+    },
+    {
+      "abstained": false,
+      "answerable": true,
+      "hit_at_3": true,
+      "id": "known-09-2",
+      "source_ids": [
+        "iris-scanner.md#iris-scanner:1@ddbc1a81691c678a"
+      ]
+    },
+    {
+      "abstained": false,
+      "answerable": true,
+      "hit_at_3": true,
+      "id": "known-09-3",
+      "source_ids": [
+        "iris-scanner.md#iris-scanner:1@ddbc1a81691c678a"
+      ]
+    },
+    {
+      "abstained": false,
+      "answerable": true,
+      "hit_at_3": true,
+      "id": "known-10-0",
+      "source_ids": [
+        "juniper-chamber.md#booking-duration:4@f198072db3938785"
+      ]
+    },
+    {
+      "abstained": false,
+      "answerable": true,
+      "hit_at_3": true,
+      "id": "known-10-1",
+      "source_ids": [
+        "juniper-chamber.md#reservation-code:6@de9add934a64342f"
+      ]
+    },
+    {
+      "abstained": false,
+      "answerable": true,
+      "hit_at_3": true,
+      "id": "known-10-2",
+      "source_ids": [
+        "juniper-chamber.md#juniper-chamber:1@59d9fba823429517"
+      ]
+    },
+    {
+      "abstained": false,
+      "answerable": true,
+      "hit_at_3": true,
+      "id": "known-10-3",
+      "source_ids": [
+        "juniper-chamber.md#juniper-chamber:1@59d9fba823429517"
+      ]
+    },
+    {
+      "abstained": true,
+      "answerable": false,
+      "hit_at_3": null,
+      "id": "unknown-00",
+      "source_ids": []
+    },
+    {
+      "abstained": true,
+      "answerable": false,
+      "hit_at_3": null,
+      "id": "unknown-01",
+      "source_ids": []
+    },
+    {
+      "abstained": true,
+      "answerable": false,
+      "hit_at_3": null,
+      "id": "unknown-02",
+      "source_ids": []
+    },
+    {
+      "abstained": true,
+      "answerable": false,
+      "hit_at_3": null,
+      "id": "unknown-03",
+      "source_ids": []
+    },
+    {
+      "abstained": true,
+      "answerable": false,
+      "hit_at_3": null,
+      "id": "unknown-04",
+      "source_ids": []
+    },
+    {
+      "abstained": true,
+      "answerable": false,
+      "hit_at_3": null,
+      "id": "unknown-05",
+      "source_ids": []
+    },
+    {
+      "abstained": true,
+      "answerable": false,
+      "hit_at_3": null,
+      "id": "unknown-06",
+      "source_ids": []
+    },
+    {
+      "abstained": true,
+      "answerable": false,
+      "hit_at_3": null,
+      "id": "unknown-07",
+      "source_ids": []
+    },
+    {
+      "abstained": true,
+      "answerable": false,
+      "hit_at_3": null,
+      "id": "unknown-08",
+      "source_ids": []
+    },
+    {
+      "abstained": true,
+      "answerable": false,
+      "hit_at_3": null,
+      "id": "unknown-09",
+      "source_ids": []
+    },
+    {
+      "abstained": true,
+      "answerable": false,
+      "hit_at_3": null,
+      "id": "unknown-10",
+      "source_ids": []
+    },
+    {
+      "abstained": true,
+      "answerable": false,
+      "hit_at_3": null,
+      "id": "unknown-11",
+      "source_ids": []
+    },
+    {
+      "abstained": true,
+      "answerable": false,
+      "hit_at_3": null,
+      "id": "unknown-12",
+      "source_ids": []
+    },
+    {
+      "abstained": true,
+      "answerable": false,
+      "hit_at_3": null,
+      "id": "unknown-13",
+      "source_ids": []
+    },
+    {
+      "abstained": true,
+      "answerable": false,
+      "hit_at_3": null,
+      "id": "unknown-14",
+      "source_ids": []
+    },
+    {
+      "abstained": true,
+      "answerable": false,
+      "hit_at_3": null,
+      "id": "unknown-15",
+      "source_ids": []
+    },
+    {
+      "abstained": true,
+      "answerable": false,
+      "hit_at_3": null,
+      "id": "unknown-16",
+      "source_ids": []
+    },
+    {
+      "abstained": true,
+      "answerable": false,
+      "hit_at_3": null,
+      "id": "unknown-17",
+      "source_ids": []
+    },
+    {
+      "abstained": true,
+      "answerable": false,
+      "hit_at_3": null,
+      "id": "unknown-18",
+      "source_ids": []
+    },
+    {
+      "abstained": true,
+      "answerable": false,
+      "hit_at_3": null,
+      "id": "unknown-19",
+      "source_ids": []
+    }
+  ],
+  "evaluation_sha256": "b678557fbd7013fb33173fd2d484fbc35c8cc521811ec424e26099c3732a1c49",
+  "evidence_tier": "T1 synthetic retrieval smoke only",
+  "hit_at_3": 1.0,
+  "index_checksum": "cf14b33d4164c6d2a13960e59308936d5bf100b6ca9d377532df5227948e27d0",
+  "limitations": [
+    "Templated synthetic equipment documents, not actual lab policy.",
+    "Out-of-domain negatives do not establish in-domain abstention.",
+    "Source ID validity is not factual entailment."
+  ],
+  "mode": "extractive; no real model, speech, timing, RAM or thermal benchmark",
+  "schema": 1,
+  "unanswerable": 20,
+  "unsupported_abstention": 1.0,
+  "valid_source_id_coverage": 1.0
+}

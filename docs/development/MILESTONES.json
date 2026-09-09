@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "checkpoint_scope": "M3.4 baseline + M4 runtime/audio contracts + M5.1 controller; continuous progression active",
+  "checkpoint_scope": "M3.4 baseline plus M4/M5/M7 software and text diagnostics; target release gates open",
   "baseline_commit": "459f8da3ffb1dd084f9947988c117ae6da10ae1b",
   "milestones": [
     {
@@ -118,10 +118,10 @@
     {
       "id": "M5.2",
       "title": "Offline boundary",
-      "software": "pending",
+      "software": "partial",
       "target": "not-run",
-      "evidence": "",
-      "remaining": "Not implemented."
+      "evidence": "TEST_MATRIX.md continuation-grounding; text runtime guide",
+      "remaining": "Core text path allows numeric-loopback only, no DNS/proxy/redirect/tool/cloud path. Kernel-observed Pi network denial and voice runtime acceptance remain open."
     },
     {
       "id": "M6.1",
@@ -142,50 +142,50 @@
     {
       "id": "M7.1",
       "title": "Corpus and lexical index",
-      "software": "pending",
+      "software": "partial",
       "target": "not-run",
-      "evidence": "",
-      "remaining": "Not implemented."
+      "evidence": "TEST_MATRIX.md continuation-grounding; text runtime guide",
+      "remaining": "Safe deterministic calibrated BM25 and 60-case synthetic regression pass. Real-lab 40/20 evaluation and support calibration remain open."
     },
     {
       "id": "M7.2",
       "title": "Grounded prompt and response contract",
-      "software": "pending",
+      "software": "partial",
       "target": "not-run",
-      "evidence": "",
-      "remaining": "Not implemented."
+      "evidence": "TEST_MATRIX.md continuation-grounding; text runtime guide",
+      "remaining": "Untrusted-data prompt and citation/abstention format enforced. Real model factual support, contradiction and prompt-injection evaluation remain open."
     },
     {
       "id": "M7.3",
       "title": "Privacy-preserving telemetry",
-      "software": "pending",
+      "software": "partial",
       "target": "not-run",
-      "evidence": "",
-      "remaining": "Not implemented."
+      "evidence": "TEST_MATRIX.md continuation-grounding; text runtime guide",
+      "remaining": "Content-free bounded process-serialized JSONL rotation implemented. Opt-in persistent research interaction records/retention remain gated."
     },
     {
       "id": "M7.4",
       "title": "Read-only dashboard",
-      "software": "pending",
+      "software": "host-verified",
       "target": "not-run",
-      "evidence": "",
-      "remaining": "Not implemented."
+      "evidence": "TEST_MATRIX.md continuation-grounding; text runtime guide",
+      "remaining": "Integrated text dashboard, privacy/Host/Origin/read-only tests pass. Physical runtime integration remains open."
     },
     {
       "id": "M7.5",
       "title": "Research benchmarks",
-      "software": "pending",
+      "software": "partial",
       "target": "not-run",
-      "evidence": "",
-      "remaining": "Not implemented."
+      "evidence": "TEST_MATRIX.md continuation-grounding; text runtime guide",
+      "remaining": "Reproducible synthetic retrieval benchmark and result schema provided. Real grounded/ungrounded LLM, STT, latency/RAM/thermal campaign remains open."
     },
     {
       "id": "M8.1",
       "title": "Doctor and support bundle",
-      "software": "pending",
+      "software": "partial",
       "target": "not-run",
-      "evidence": "",
-      "remaining": "Not implemented."
+      "evidence": "TEST_MATRIX.md continuation-grounding; text runtime guide",
+      "remaining": "Package doctor returns categorical readiness; extended support/hardware diagnostics remain open."
     },
     {
       "id": "M8.2",
@@ -222,10 +222,10 @@
     {
       "id": "M9.3",
       "title": "Documentation and onboarding",
-      "software": "pending",
+      "software": "partial",
       "target": "not-run",
-      "evidence": "",
-      "remaining": "Not implemented."
+      "evidence": "TEST_MATRIX.md continuation-grounding; text runtime guide",
+      "remaining": "Text diagnostic onboarding commands tested. Target installation/service/hardware operational guide remains open."
     },
     {
       "id": "M9.4",
