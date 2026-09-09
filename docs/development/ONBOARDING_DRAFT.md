@@ -1,15 +1,18 @@
 # GonKenLab Agent onboarding draft
 
-**State:** M3.3 immutable core-package boundary; not a complete assistant installation guide
+**State:** M3.4 Ollama/model boundary; not a complete assistant installation guide
 
 This draft records the intended clean-device path while provisioning is built.
 At the current checkpoint, `bootstrap.sh` validates prerequisites, writes a
 private source manifest, and routes a normal invocation through the M3.2 step
-engine and M3.3 immutable-release lifecycle. It can install target bootstrap
+engine, M3.3 immutable-release lifecycle, and M3.4 Ollama/model lifecycle. It can install target bootstrap
 prerequisites, create the `gonken-agent` non-login account, acquire the exact
 recorded commit, build and validate a release-local virtual environment, and
-activate it. It deliberately does not run `setup.sh`, install Ollama or speech
-artifacts, configure services/hardware, or claim that the assistant is ready.
+activate it. On the supported target it can also create the separate `ollama`
+identity, install the pinned verified Ollama payload and systemd unit, pull and
+digest-bind Qwen, and run a deterministic API smoke. It deliberately does not
+run `setup.sh`, install speech artifacts, configure the application service or
+hardware, or claim that the assistant is ready.
 
 ## Supported target
 
@@ -61,13 +64,19 @@ actual artifacts rather than trusting advisory completion records. Failed
 candidate construction never moves `current`; failed post-switch validation
 restores the prior validated release when one exists.
 
-Successful M3.3 activation prints `M3_3_RELEASE_COMPLETE`, then the normal
-bootstrap ends with `M3_4_UNAVAILABLE`. This deliberate nonzero boundary means
-the core package is installed, but Ollama/model provisioning and the complete
-assistant are not. Do not interpret it as `READY`.
+Successful target provisioning prints `M3_3_RELEASE_COMPLETE` and
+`M3_4_OLLAMA_COMPLETE`, then the normal bootstrap ends with
+`M3_5_UNAVAILABLE`. This deliberate nonzero boundary means the core package,
+Ollama service, and selected model are validated, but speech and the complete
+assistant are not. Do not interpret it as `READY`. Use `--ollama-only` only to
+return success at this explicit milestone boundary. A development host instead
+reports `M3_4_TARGET_REQUIRED`; its M3.4 behavior is exercised with isolated
+local fixtures rather than an unrepresentative host installation.
 
 See `INSTALL_STATE_SCHEMA.md` for the step-engine contract and
 `RELEASE_ACTIVATION_SCHEMA.md` for release paths, journal phases, reconciliation,
 retention, failure codes, and the development-only temporary-root procedure.
-The exact next implementation is M3.4 Ollama and Qwen lifecycle—not systemd,
-audio, wake word, or a claim of unattended readiness.
+See `OLLAMA_MODEL_LIFECYCLE.md` for the binary/model pins, paths, service
+settings, digest record, and target diagnostics. The exact next implementation
+is M3.5 Whisper and Piper artifact lifecycle—not the GonKen application service,
+audio/GPIO policy, wake word, or a claim of unattended readiness.

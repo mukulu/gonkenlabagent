@@ -1,6 +1,6 @@
 # GonKenLab Agent Implementation Master Blueprint
 
-**Blueprint revision:** 1.8-implementation
+**Blueprint revision:** 1.9-implementation
 
 **Prepared:** 2026-09-09 UTC
 
@@ -10,7 +10,7 @@
 
 **Review state:** adversarial review completed in `BLUEPRINT_ADVERSARIAL_REVIEW.md`; accepted for staged implementation
 
-**Implementation authorization:** M3.3 is complete; M3.4 is the only next authorized work package
+**Implementation authorization:** M3.4 is complete at T0/T1; M3.5 is the only next authorized work package
 
 ## 1. Purpose and authority
 
@@ -545,12 +545,14 @@ private, non-sourceable facts record only after every check passes. M3.2
 implements item 7 as a probe-authoritative engine handoff. M3.3 adds target
 bootstrap prerequisites, verified exact-commit acquisition directly into a
 candidate, the release-local venv, immutable finalization, and durable atomic
-activation. A normal invocation now stops at `M3_4_UNAVAILABLE` after a
-post-verified core-package activation; it never falls through to legacy
-`setup.sh`. The apparent item-7 `--source` interface is concretely implemented
+activation. M3.4 adds a checksum-pinned Ollama release, exact service policy,
+and full-digest-bound Qwen state; target execution then stops at
+`M3_5_UNAVAILABLE` and never falls through to legacy `setup.sh`. The apparent
+item-7 `--source` interface is concretely implemented
 as the private `--source-record` plus a refetch of its exact commit so mutable
-checkout contents never become the installed payload. D-056–D-058 and
-`RELEASE_ACTIVATION_SCHEMA.md` record the staged contract.
+checkout contents never become the installed payload. D-056–D-059,
+`RELEASE_ACTIVATION_SCHEMA.md`, and `OLLAMA_MODEL_LIFECYCLE.md` record the
+staged contract.
 
 The README supports two onboarding paths:
 
@@ -815,6 +817,8 @@ from temporary-root tests. See `RELEASE_ACTIVATION_SCHEMA.md`.
 **Validation:** failed venv/dependency/smoke never moves `current`; low-space preflight; interruption around candidate finalization/journal/symlink; successful activation/reconciliation/rollback in temporary root, then Pi.
 
 #### M3.4 Ollama lifecycle and selected model
+
+**Status:** Complete at T0/T1 in `980e09c`; real target acceptance remains blocked. See `OLLAMA_MODEL_LIFECYCLE.md` and `TEST_MATRIX.md`.
 
 **Files:** `scripts/install-ollama.sh`, Ollama drop-in, artifact manifest, config/doctor integration.
 
@@ -1117,16 +1121,13 @@ They are resolved in this revision by removing core power privilege, distinguish
 
 ## 18. Exact next action
 
-Implement M3.4 only. Acquire a named stable Ollama ARM64 release through an
-explicit manifest and verified published SHA-256; keep Ollama under its own
-service identity; enforce loopback binding and no-cloud behavior; start and
-probe the service; pull the authoritative `qwen3.5:2b-q4_K_M` model; record and
-verify its full digest; enforce the provisional single-model/parallelism limits
-for 4GB; and run deterministic API and inference smoke checks. Inject failure
-before/during/after download, extraction, service readiness, and model pull;
-prove corrupt/partial artifacts are never accepted and rerun converges without
-changing the validated M3.3 release. Do not install Whisper, Piper, systemd app
-services, audio/GPIO rules, wake word, or power controls and stop before M3.5.
+Implement M3.5 only. Select and pin the Whisper and Piper runtime/artifact
+chain allowed by the dependency and licensing gates; verify immutable Whisper
+source/build inputs and checksummed model/voice/voice-configuration pairs; add
+sample STT and non-empty valid-WAV TTS smoke checks; and prove rerun repairs
+interrupted, missing-pair, zero-byte, wrong-architecture, and bad-checksum
+states. Do not install the GonKen application service, audio/GPIO rules, wake
+word, or power controls and stop before M3.6.
 
 ## 19. Primary references
 

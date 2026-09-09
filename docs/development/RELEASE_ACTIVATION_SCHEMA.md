@@ -159,8 +159,9 @@ records must never be edited to manufacture success.
 
 ## 9. Exact next action
 
-Implement M3.4 only: verified Ollama acquisition, loopback-only/no-cloud service
-configuration, Qwen 3.5 2B Q4_K_M pull bound to its full digest, deterministic
-API/readiness/inference checks, 4GB resource limits, interrupted/corrupt pull
-recovery, and second-run convergence. Do not advance to speech, systemd app
-service, audio, wake word, power controls, or readiness claims until M3.4 passes.
+M3.4 now consumes its manager/manifest/unit inputs from the active immutable
+release; see `OLLAMA_MODEL_LIFECYCLE.md`. Implement M3.5 only: verified
+Whisper/Piper runtime and artifact provisioning, sample STT/TTS smoke, damaged
+pair recovery, and second-run convergence. Do not advance to the GonKen systemd
+application service, audio/GPIO rules, wake word, power controls, or readiness
+claims until M3.5 passes.

@@ -397,4 +397,44 @@ was used.
 M3.3 is implementation-complete at T0/T1. The installed
 artifact is only the dependency-light core package and release machinery; no
 model, speech pipeline, application service, or hardware readiness exists.
-M3.4 is the only next authorized work package.
+At the M3.3 checkpoint, M3.4 was the only next authorized work package; the
+following section records its completed host evidence.
+
+## 15. M3.4 Ollama and selected-model lifecycle checks
+
+**Starting checkpoint:** `checkpoint/m3.3` / `b7575cb44c04b7da90b1a73fec2e89a61a88dd76`
+
+**Implementation commit:** `980e09c153d4c3232c6bc8390bcbd4f1dcf0a1bd`
+
+**Date:** 2026-09-09 UTC
+
+**Environment:** Linux x86_64, Python 3.12.14, system Zstandard CLI. The
+end-to-end fixture builds a tiny local fake Ollama ARM64-shaped tar.zst, uses a
+disposable FHS-shaped root, a fake systemctl executable, and a loopback HTTP
+server implementing only the tested API contract. Automated tests perform no
+internet access, APT/account mutation, real systemd operation, Ollama execution,
+model download/inference, service-user transition, or Raspberry Pi operation.
+
+| ID | Tier | Check | Command/procedure | Result | Interpretation |
+|---|---|---|---|---|---|
+| M3.4-T001 | T0 | Clean accepted starting checkpoint | Compare clean HEAD with `checkpoint/m3.3` before edits | PASS | M3.4 began at the committed/tagged M3.3 boundary. |
+| M3.4-T002 | T0/T1 | Full deterministic repository entry point | `./scripts/ci.sh` | PASS | Static/data checks, 109 unit tests, and 26 integrations pass without a live external boundary. |
+| M3.4-T003 | T0 / V-H04 | Closed upstream artifact authority | Parse `packaging/ollama-artifacts.toml`; inspect exact release, asset, SHA-256, model tag/prefix, sources, and licenses | PASS | Ollama `0.33.3` stable ARM64 and `qwen3.5:2b-q4_K_M` are explicit. Unknown fields, invalid identities, and non-HTTPS production URLs fail. Upstream observations are dated; this is not a real download. |
+| M3.4-T004 | T1/T6 / V-H04 | Resumable verified acquisition and safe extraction | Local file fixture; checksum mismatch; traversal/device/FIFO/escaping-link/duplicate guards; redirect policy inspection | PASS | Only a matching SHA-256 payload can reach a candidate. Unsafe archive types and an HTTPS-to-non-HTTPS redirect are rejected. |
+| M3.4-T005 | T1/T6 / V-H10 | Immutable Ollama release activation | Extract fixture; record asset/binary/complete-payload hashes; atomic versioned rename; validate links/modes; interrupt finalization | PASS | Stable entrypoint reaches only an exact read-only version. The narrow rename/top-mode interval is repaired only with exact digest, modes, and ownership. |
+| M3.4-T006 | T0/T1 / V-H03, V-H02 | Account, unit, loopback, and resource contract | Inspect installer account/path steps and exact unit/drop-in; fake enabled/active systemctl and exact `/api/version` | PASS (HOST-LIMITED) | Separate non-login `ollama`, private model store, loopback/no-cloud, one loaded model, one parallel request, and exact version readiness are enforced by code. Real account/systemd behavior remains blocked. |
+| M3.4-T007 | T0/T1 / V-H01, V-H02 | Configuration convergence | Inspect installed CLI JSON extraction and manager argument validation; run existing config convergence suite | PASS | Installer model, endpoint, and context come from the active release's effective configuration; remote/non-HTTP/credentialed/path-bearing origins fail. |
+| M3.4-T008 | T1 / V-H01 | Authoritative model identity | Fake `/api/tags` exact tag/full digest/quantization; missing model triggers pull; wrong prefix/quantization and later full-digest drift | PASS | The source-pinned catalog prefix constrains the full local digest. Mutable tag drift never silently replaces recorded identity. |
+| M3.4-T009 | T1 | Deterministic inference evidence | Fake `/api/generate`; require nonempty response and `done`; inspect request temperature/seed/context/predict/keep-alive and private record | PASS | Smoke completion and performance counts are stored without prompt/response content. This is contract evidence, not model-quality or speed evidence. |
+| M3.4-T010 | T1/T6 / V-H10 | All lifecycle interruption boundaries | TERM before/during/after download, extraction, binary finalization, readiness, pull, and smoke; rerun then status | PASS | All 18 interruption points converge to their exact postcondition. Partial downloads/blobs are reusable; unverified candidates never activate. Host TERM is not physical power-loss evidence. |
+| M3.4-T011 | T1/T6 | Conflicts and drift fail closed | Seed differing systemd unit; change API digest after recording; test unsafe redirected root without gate | PASS | Administrator files are not overwritten, recorded model identity is not rewritten, and test-only paths cannot be used accidentally. |
+| M3.4-T012 | T1 | Repeatability and status | Repeat binary/service/model provisioning; run all three status commands; inspect record and links | PASS | Rerun validates live postconditions, retains original pull byte evidence, and does not repull an accepted model. |
+| M3.4-T013 | T1 / V-H04 | Exact-source maintenance boundary | M3.3 end-to-end local Git build copies manager, manifest, unit, and drop-in into release payload and validates payload digest | PASS | Target provisioning consumes inputs from the activated immutable release, not the mutable checkout. |
+| M3.4-T014 | T2/T3/T6 | Real Pi provisioning | Supported clean Pi 5; HTTPS asset/model download; account/unit install; API and inference; rerun and corrupt/interrupted cases | BLOCKED | No target is available. Host fixtures cannot establish ARM64 execution, real service ownership, storage behavior, or upstream transfer recovery. |
+| M3.4-T015 | T3/T5 | Pi resource and reboot behavior | Record pull/inference RAM, latency, CPU, temperature/throttling; reboot; confirm enabled/active/readiness/digest | BLOCKED | The provisional 2K context and one-model/one-parallel limits require physical 4GB-Pi acceptance evidence. |
+| M3.4-T016 | T6 / V-C02 | Normal-runtime outbound-network denial | Complete M5.2 runtime; deny/disconnect upstream; observe sockets/traffic while local inference remains functional | BLOCKED | Loopback binding and `OLLAMA_NO_CLOUD=1` are implemented, but kernel-observed no-outbound runtime enforcement is a later gate. |
+
+M3.4 is implementation-complete at T0/T1. The Ollama service is the only
+installed runtime service at this boundary; no speech artifacts, GonKen
+application service, audio/GPIO behavior, wake word, or power action exists.
+M3.5 is the only next authorized work package.

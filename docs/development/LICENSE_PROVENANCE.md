@@ -1,8 +1,8 @@
 # GonKenLab Agent License and Provenance Inventory
 
-**Inventory revision:** 1.2
+**Inventory revision:** 1.3
 
-**Date checked:** 2026-09-08 UTC
+**Date checked:** 2026-09-09 UTC
 
 **Machine-readable authority:** `packaging/provenance.toml`
 
@@ -49,8 +49,8 @@ and use a separately reviewed history-filtered release process where necessary.
 | `en_GB-semaine-medium` voice | Model card identifies a CC BY-NC-SA 4.0 dataset | Legacy internal evaluation only; excluded from packages, releases, and public exports |
 | `whisper.cpp` | MIT | Pin source/release and retain notices in M3 |
 | OpenAI Whisper weights | MIT | Download separately with checksum and notices |
-| Ollama CLI/server repository | MIT | Download a pinned Linux release; review binary notices in M3 |
-| Qwen 3.5 2B / Ollama quantization | Apache-2.0 | Download separately; record tag, digest, license, and Pi acceptance |
+| Ollama CLI/server `0.33.3` | MIT | M3.4 pins the Linux ARM64 tar.zst and published SHA-256 in `packaging/ollama-artifacts.toml`; downloaded separately, not bundled |
+| Qwen 3.5 2B Q4_K_M / Ollama tag | Apache-2.0 | M3.4 records tag, official catalog digest prefix, full local digest, and quantization; Pi acceptance remains blocked |
 | openWakeWord code | Apache-2.0 | Extension X1 only; absent from core dependencies |
 | openWakeWord bundled pretrained models | CC BY-NC-SA 4.0 | Legacy internal evaluation only; excluded from core and release provisioning |
 | `pygame` 2.6.1 | LGPL-2.1-or-later; PyPI publishes exact CPython 3.12/x86_64 and CPython 3.13/AArch64 wheels | Optional UI profile only; absent from headless core and no tracked media is bundled through it |
@@ -63,6 +63,7 @@ Primary evidence:
 - <https://github.com/ggml-org/whisper.cpp/blob/master/LICENSE>
 - <https://github.com/openai/whisper>
 - <https://github.com/ollama/ollama/blob/main/LICENSE>
+- <https://github.com/ollama/ollama/releases/tag/v0.33.3>
 - <https://ollama.com/library/qwen3.5:2b-q4_K_M>
 - <https://github.com/dscripka/openWakeWord>
 - <https://pypi.org/project/pygame/2.6.1/>

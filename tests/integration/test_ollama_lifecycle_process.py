@@ -65,6 +65,8 @@ class ApiHandler(http.server.BaseHTTPRequestHandler):
         length = int(self.headers.get("Content-Length", "0"))
         request = json.loads(self.rfile.read(length) or b"{}")
         if self.path == "/api/pull":
+            assert request["model"] == MODEL
+            assert request["stream"] is True
             self.state.installed = True
             lines = (
                 json.dumps({"status": "downloading", "total": 1900000000}) + "\n"

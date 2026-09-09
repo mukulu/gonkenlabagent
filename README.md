@@ -82,8 +82,8 @@ and dependency-change procedures.
 
 ## Bootstrap status
 
-M3.3 adds verified immutable application releases and recoverable activation
-behind the M3.1 preflight and M3.2 step-engine boundaries. To validate
+M3.4 adds pinned Ollama/model provisioning after verified immutable application
+release activation. To validate
 prerequisites only, run:
 
 ```bash
@@ -98,10 +98,13 @@ before writing a private staging record. Without `--preflight-only`, it
 revalidates the record and remote commit, creates the dedicated non-login
 runtime account on the target, builds a release-local virtual environment from
 the applicable exact lock, validates an immutable commit-named release, and
-activates it through a durable journal and atomic `current` link. It then stops
-with `M3_4_UNAVAILABLE`: Ollama, the Qwen model, speech components, systemd
-services, and hardware integration are not installed yet. It never invokes the
-retained `setup.sh`.
+activates it through a durable journal and atomic `current` link. On the
+validated Raspberry Pi target it then installs checksum-pinned Ollama `0.33.3`
+under a separate `ollama` account, installs its exact loopback/no-cloud systemd
+unit, pulls `qwen3.5:2b-q4_K_M`, records the full local digest, and runs an
+inference smoke. It finally stops with `M3_5_UNAVAILABLE`: speech, the
+application service, and hardware integration are not installed yet. It never
+invokes the retained `setup.sh`.
 
 For an M3.3 development-host lifecycle test that returns after release
 activation, use a disposable private root:
@@ -116,10 +119,12 @@ mkdir "$temporary_root/empty-checkout"
   --staging-parent /tmp
 ```
 
-The normal development bootstrap still stops at the M3.4 boundary. The test
-suite exercises `scripts/install.sh --release-only` directly in temporary
-roots. See `docs/development/ONBOARDING_DRAFT.md` and
-`docs/development/RELEASE_ACTIVATION_SCHEMA.md` for the exact boundary.
+The normal development bootstrap reports `M3_4_TARGET_REQUIRED`; use
+`scripts/install.sh --release-only` for the development-host release lifecycle.
+The automated M3.4 suite uses only local binary/systemd/API fixtures in
+temporary roots. See `docs/development/ONBOARDING_DRAFT.md`,
+`docs/development/RELEASE_ACTIVATION_SCHEMA.md`, and
+`docs/development/OLLAMA_MODEL_LIFECYCLE.md` for the exact boundary.
 
 ## Accepted first-release boundary
 

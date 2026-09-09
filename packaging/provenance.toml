@@ -1,5 +1,5 @@
 schema_version = 1
-inventory_date = "2026-09-08"
+inventory_date = "2026-09-09"
 dependency_profile_authority = "requirements/profiles.toml"
 project_source_license = "NOASSERTION"
 project_license_status = "intentionally-unlicensed-no-redistribution"
@@ -237,15 +237,19 @@ package_dependency = false
 
 [[external_artifacts]]
 name = "Ollama Linux CLI/server"
-role = "planned loopback LLM server"
+role = "pinned loopback LLM server"
 license = "MIT"
-distribution = "administrator download with version and checksum; not bundled"
+version = "0.33.3"
+artifact_manifest = "packaging/ollama-artifacts.toml"
+distribution = "administrator HTTPS download with published SHA-256; not bundled"
 
 [[external_artifacts]]
 name = "Qwen 3.5 2B Q4_K_M model"
-role = "candidate local chat model; Pi gate pending"
+role = "selected local chat model; Pi performance gate pending"
 license = "Apache-2.0"
-distribution = "Ollama-managed download; tag and digest must be recorded"
+tag = "qwen3.5:2b-q4_K_M"
+artifact_manifest = "packaging/ollama-artifacts.toml"
+distribution = "Ollama-managed download; catalog prefix and full local digest recorded"
 
 [[external_artifacts]]
 name = "whisper.cpp"
