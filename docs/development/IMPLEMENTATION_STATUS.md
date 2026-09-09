@@ -6,8 +6,8 @@ This file is the authoritative short handoff for a later development session. Ve
 
 - **Working branch:** `dev/bootstrap-rearchitecture`
 - **Inspected application baseline:** `6682360786135136abeb0bd2a17a9d45c6f291e7`
-- **Current control milestone:** M3.4 — Ollama lifecycle and selected model
-- **Blueprint revision:** 1.8-implementation
+- **Current control milestone:** M3.5 — Whisper and Piper artifacts
+- **Blueprint revision:** 1.9-implementation
 - **Accepted blueprint checkpoint:** `checkpoint/blueprint` (resolve its exact commit with `git rev-list -n 1 checkpoint/blueprint`)
 - **M2.1 implementation checkpoint:** `checkpoint/m2.1-license-gate` (created after the tested commit; resolve it with `git rev-list -n 1 checkpoint/m2.1-license-gate`)
 - **M2.1 completed checkpoint:** `checkpoint/m2.1` (resolve its exact commit with `git rev-list -n 1 checkpoint/m2.1`)
@@ -22,6 +22,7 @@ This file is the authoritative short handoff for a later development session. Ve
 - **M3.3 implementation commit:** `0ea9db1` (`feat: add immutable release activation lifecycle`)
 - **M3.3 completed checkpoint:** `checkpoint/m3.3` (created after the tested documentation checkpoint; resolve it with `git rev-list -n 1 checkpoint/m3.3`)
 - **M3.3 clean-checkout test commit:** `6c4c19e82be9cf47f5181a342f9f8638d754abe7`
+- **M3.4 implementation commit:** `980e09c153d4c3232c6bc8390bcbd4f1dcf0a1bd` (`feat: provision pinned ollama model lifecycle`)
 - **Last verification date:** 2026-09-09 UTC
 - **Target:** Raspberry Pi 5 4GB, Raspberry Pi OS Lite 64-bit
 - **Audit host:** Linux x86_64, Python 3.12.14 (not target hardware)
@@ -107,11 +108,18 @@ This file is the authoritative short handoff for a later development session. Ve
 - [x] Added a release-local reconciliation helper for later M6 `ExecStartPre` wiring without prematurely installing a systemd application service.
 - [x] Passed 103 dependency-free unit tests and 21 deterministic integration tests (124 total), including a real local Git → wheel → venv → immutable release → activation path and all declared interruption/failure boundaries.
 - [x] Completed M3.3 at the host evidence tier and authorized M3.4 as the next bounded work package.
+- [x] Pinned stable Ollama `0.33.3` and its published Linux ARM64 asset SHA-256 in a closed artifact manifest.
+- [x] Added resumable HTTPS acquisition, checksum enforcement, safe Zstandard/tar extraction, complete payload hashing, immutable versioned activation, and narrow interrupted-finalization recovery.
+- [x] Added a distinct `ollama` non-login identity/model store and exact systemd unit/drop-in with loopback, no-cloud, one-loaded-model, and one-parallel-request limits.
+- [x] Made the installer consume endpoint, model, and context only through the active release's effective configuration CLI and exact release-local maintenance inputs.
+- [x] Added exact API version readiness, streamed authoritative model pull, official digest-prefix/full-local-digest validation, deterministic content-free inference smoke evidence, and fail-closed tag drift.
+- [x] Passed 109 dependency-free unit tests and 26 deterministic integration tests (135 total), including 18 before/during/after lifecycle interruption points and rerun convergence.
+- [x] Completed M3.4 at the host evidence tier and authorized M3.5 as the next bounded work package.
 
 ## In Progress
 
 - No implementation package is currently in progress.
-- M3.4 is the next and only authorized implementation package.
+- M3.5 is the next and only authorized implementation package.
 
 ## Not Started
 
@@ -121,7 +129,8 @@ This file is the authoritative short handoff for a later development session. Ve
 - [x] M3.1 — Bootstrap preflight.
 - [x] M3.2 — Step engine and install state.
 - [x] M3.3 — Immutable release and activation journal.
-- [ ] M3.4–M3.6 — Ollama, model, and speech provisioning.
+- [x] M3.4 — Ollama and selected-model provisioning mechanisms.
+- [ ] M3.5–M3.6 — Speech provisioning and install summary.
 - [ ] M4 — Runtime reliability.
 - [ ] M5 — Interaction and privacy modes.
 - [ ] M6 — Headless service and privileged operations.
@@ -140,11 +149,11 @@ The full issue descriptions and evidence are in `REPOSITORY_AUDIT.md`.
 - C-03: RESOLVED for active package/user surfaces by M2.1/V-C03. Historical documents and technical legacy detector identifiers remain explicitly isolated.
 - C-04: no custom Gonken wake-word training/artifact/evaluation chain; reassigned to governed extension X1 rather than the core release.
 - C-05: no local grounding/provenance/telemetry implementation.
-- C-06: M3.3 provides deterministic host release/activation rerun and interruption evidence; physical Pi install, reboot, storage power-loss, model/service, and unattended-readiness evidence remain open.
+- C-06: M3.3/M3.4 provide deterministic host release, Ollama/model, rerun, and interruption mechanisms; physical Pi install, reboot, storage power-loss, performance, and unattended-readiness evidence remain open.
 
 ### High
 
-- H-01/H-02 are resolved on active paths by M2.2. H-03/H-04 are revalidated for the M3.3 privilege/account/path design and host process tests, but physical target execution remains blocked. H-10 is controlled through the real candidate/journal/pointer/reconciliation mechanism at T1; physical storage power-loss evidence remains open. H-08 is resolved for the maintained package by M2.3. H-06 is controlled for the current exact runtime graph but reopens for every dependency addition; H-07 remains open until a real Python 3.13/AArch64 download and Pi venv pass. H-05 and H-09 through H-18 remain open.
+- H-01/H-02 are resolved on active configuration and M3.4 provisioning paths; target network-denial observation remains M5.2. H-03/H-04 are revalidated for the M3.3/M3.4 privilege/account/path design and host process tests, but physical target execution remains blocked. H-10 is controlled through real application/Ollama candidate and activation mechanisms at T1; physical storage power-loss evidence remains open. H-08 is resolved for the maintained package by M2.3. H-06 is controlled for the current exact runtime graph but reopens for every dependency addition; H-07 remains open until a real Python 3.13/AArch64 download and Pi venv pass. H-05 and H-09 through H-18 remain open.
 
 ### Architecture gates introduced by M1B
 
@@ -184,16 +193,20 @@ The full issue descriptions and evidence are in `REPOSITORY_AUDIT.md`.
 - M3.3 suite: 103 of 103 unit tests and 21 of 21 deterministic integration tests pass (124 total), including strict manifests/pointers, unsafe-archive rejection, maintenance locking, immutable retention, exact local-source wheel/venv construction, repeated installation, low-space refusal, rollback, and TERM at all candidate/journal/pointer/postcheck boundaries.
 - The M3.3 end-to-end fixture installs from an exact local Git commit into a disposable FHS-shaped root, runs the installed CLI, confirms a post-verified journal and immutable payload, repeats without manifest drift, and confirms the normal path stops honestly at `M3_4_UNAVAILABLE`.
 - A local no-hardlink clone of M3.3 documentation commit `6c4c19e82be9cf47f5181a342f9f8638d754abe7` passed all 124 checks through a fresh Python 3.12.14 venv, remained clean, and passed `git fsck --full --strict`.
+- M3.4 suite: 109 of 109 unit tests and 26 of 26 deterministic integration tests pass (135 total), including strict manifest/endpoint/record/archive checks and a local fake Ollama binary, systemctl boundary, loopback API, pull, full digest, and inference lifecycle.
+- M3.4 termination coverage passes before/during/after download, extraction, binary finalization, readiness, model pull, and inference smoke (18 points); every case converges on rerun without accepting an unverified payload.
+- M3.4 checksum mismatch, service-file conflict, wrong digest/quantization, recorded full-digest drift, repeat provisioning, exact status, no-cloud settings, one-model/one-parallel limits, and development-root gate checks pass.
 
 ## Tests Failing or Blocked
 
 - Doctor under the audit host: expected FAIL because the repository has not been provisioned there.
 - Live router and physical audio/wake manual programs: NOT RUN because their services, dependencies, devices, and recorded-environment evidence are unavailable on the audit host.
-- All Raspberry Pi ARM64 runtime, audio, GPIO, service, reboot, physical power-loss, and real-install failure-injection tests: BLOCKED pending target hardware and later milestones. M3.3 host TERM and temporary-root coverage is T1 evidence only.
+- All Raspberry Pi ARM64 runtime, audio, GPIO, reboot, physical power-loss, and real-install failure-injection tests: BLOCKED pending target hardware and later milestones. M3.3/M3.4 host TERM and temporary-root coverage is T1 evidence only.
 - Networked AArch64 `pip download`, optional-UI installation/import, and the physical Pi Python 3.13 venv install: BLOCKED because this environment cannot reach the package index and has no Pi. Metadata verification is not promoted to install evidence.
 - The retained full prototype installer has not been rerun and is not an accepted installer; M3 owns its replacement.
 - Physical Raspberry Pi M3.1 preflight and a real target-to-GitHub HTTPS/ref probe remain BLOCKED; fixture and development-host success are not promoted to T2/T3 evidence.
-- `bootstrap.sh` can install and activate the dependency-light core package, but deliberately stops at `M3_4_UNAVAILABLE`; Ollama, Qwen, speech, application services, and hardware are absent, so this checkpoint is not assistant-ready.
+- On a validated target, `bootstrap.sh` can install the dependency-light core package and provision pinned Ollama/Qwen state, then deliberately stops at `M3_5_UNAVAILABLE`; speech, the application service, and hardware behavior are absent, so this checkpoint is not assistant-ready. Development hosts stop at `M3_4_TARGET_REQUIRED` unless `--release-only` is used.
+- Real Ollama HTTPS download, real systemd/account creation, real Qwen pull/inference, Pi 4GB latency/RAM/thermal behavior, reboot persistence, and kernel-observed no-outbound normal runtime are BLOCKED; local fixtures are not promoted to those evidence tiers.
 - Package publication, a public repository export, and a public portable Git ZIP: BLOCKED by the deliberate no-redistribution policy.
 - Unknown-media rights and a release-compatible Piper/voice/wake licensing plan remain release/runtime blockers, not grounds for inventing M2.3 locks.
 
@@ -243,19 +256,21 @@ Exact commands and interpretations are in `TEST_MATRIX.md`.
 - Release activation truth is the agreement of validated payload, constrained `current` pointer, and durable journal—not an advisory step record alone.
 - Full installations share global engine and maintenance locks under `/var/lib/gonken-agent/install`; development tests preserve the same layout below a private system root.
 - The distribution setuptools backend is an APT-managed build prerequisite whose observed version is recorded; release runtime dependencies remain exact/hash locked.
+- Ollama is a separate `ollama` service identity with a root-owned immutable named release, loopback/no-cloud settings, one loaded model, and one parallel request.
+- The Qwen catalog prefix constrains acquisition; the full digest returned by the local tags API is persisted, and later tag drift requires an explicit repin rather than a silent update.
+- M3.4 loopback/no-cloud configuration is implemented, but M5.2 still owns kernel-observed normal-runtime outbound-network denial.
 
 See `DECISIONS.md` for rationale and status.
 
 ## Next Recommended Action
 
-Implement M3.4 only. Add verified named-version Ollama ARM64 acquisition,
-published checksum validation, separate service identity, loopback/no-cloud
-configuration, readiness checks, and authoritative `qwen3.5:2b-q4_K_M` pull
-with full digest recording and deterministic inference smoke. Inject partial
-download, extraction, readiness, and model-pull failures and prove rerun
-converges without weakening or replacing the validated M3.3 release. Do not
-install Whisper, Piper, the application systemd service, audio/GPIO rules, wake
-word, or power controls; stop before M3.5.
+Implement M3.5 only. Select and pin the Whisper and Piper runtime/artifact
+chain allowed by the dependency and licensing gates; verify immutable Whisper
+source/build inputs and checksummed model/voice/voice-configuration pairs; add
+sample STT and non-empty valid-WAV TTS smoke checks; and prove rerun repairs
+interrupted, missing-pair, zero-byte, wrong-architecture, and bad-checksum
+states. Do not install the GonKen application service, audio/GPIO rules, wake
+word, or power controls; stop before M3.6.
 
 ## Session Start Protocol
 

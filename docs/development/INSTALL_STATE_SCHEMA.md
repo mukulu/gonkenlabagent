@@ -32,8 +32,10 @@ performs only two bounded actions:
 `--engine-only` returns zero after those steps for deterministic verification
 and changes no package, release, virtual environment, model, service,
 configuration, or hardware state. Since M3.3, omission of `--engine-only`
-continues into the release lifecycle and eventually stops at
-`M3_4_UNAVAILABLE`; see `RELEASE_ACTIVATION_SCHEMA.md`.
+continues through the release lifecycle. A development host stops at
+`M3_4_TARGET_REQUIRED`; a validated target continues through M3.4 and stops at
+`M3_5_UNAVAILABLE`; see `RELEASE_ACTIVATION_SCHEMA.md` and
+`OLLAMA_MODEL_LIFECYCLE.md`.
 
 ## 2. Private directory layout
 
@@ -206,8 +208,8 @@ This checkpoint proves the control mechanism, not an installation. It does not:
 - implement activation, reconciliation, rollback, upgrade, or uninstall;
 - establish Raspberry Pi hardware or reboot evidence.
 
-M3.3 has now implemented the immutable application release and separate
-activation journal described here. The exact next action is M3.4: add verified
-Ollama installation, loopback-only service configuration, selected-model digest
-provisioning, readiness/inference validation, and interrupted-pull recovery
-without weakening the M3.2/M3.3 state and activation contracts.
+M3.3 implemented the immutable application release and separate activation
+journal described here; M3.4 added its bounded Ollama/model steps under the same
+global engine lock. The exact next action is M3.5: add verified Whisper/Piper
+runtime and artifact provisioning without weakening the existing state,
+activation, or model contracts.
