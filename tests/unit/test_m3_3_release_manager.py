@@ -164,6 +164,7 @@ class IntegrityAndPrivilegeTests(unittest.TestCase):
             '"speech_manager.py"',
             '"install_summary.py"',
             '"service_manager.py"',
+            '"rollback.sh"',
             '"speech-artifacts.toml"',
             '"gonken-agent.service"',
             '"packaging" / "tmpfiles" / "gonken-agent.conf"',
@@ -230,6 +231,51 @@ class IntegrityAndPrivilegeTests(unittest.TestCase):
                 {path.name for path in (release_root / "releases").iterdir()},
                 {active, previous},
             )
+
+    def test_explicit_rollback_returns_to_previous_validated_release(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            release_root = root / "release"
+            state_root = root / "state"
+            state_root.mkdir()
+            previous, active = ("b" * 40, "c" * 40)
+            for commit in (previous, active):
+                create_fake_release(release_root, commit)
+            point_current(release_root, active)
+            release_manager.write_journal(
+                state_root,
+                active,
+                previous,
+                "post_verified",
+                "fixture",
+            )
+            release_manager.rollback_previous(release_root, state_root, current_user())
+            self.assertEqual(release_manager.current_commit(release_root), previous)
+            journal = release_manager.read_journal(state_root)
+            self.assertEqual(journal["phase"], "post_verified")
+            self.assertEqual(journal["candidate_commit"], previous)
+            self.assertEqual(journal["previous_commit"], active)
+
+    def test_explicit_rollback_fails_without_previous_release(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            release_root = root / "release"
+            state_root = root / "state"
+            state_root.mkdir()
+            active = "c" * 40
+            create_fake_release(release_root, active)
+            point_current(release_root, active)
+            release_manager.write_journal(
+                state_root,
+                active,
+                "none",
+                "post_verified",
+                "fixture",
+            )
+            with self.assertRaises(release_manager.ReleaseError) as raised:
+                release_manager.rollback_previous(release_root, state_root, current_user())
+            self.assertEqual(raised.exception.code, "ROLLBACK_UNAVAILABLE")
+            self.assertEqual(release_manager.current_commit(release_root), active)
 
 
 if __name__ == "__main__":

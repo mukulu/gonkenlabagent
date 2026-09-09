@@ -19,6 +19,7 @@ from tests.fixtures.release_fakes import create_fake_release, current_user, poin
 ROOT = Path(__file__).resolve().parents[2]
 INSTALL = ROOT / "scripts" / "install.sh"
 MANAGER = ROOT / "scripts" / "release_manager.py"
+ROLLBACK = ROOT / "scripts" / "rollback.sh"
 PREVIOUS = "1" * 40
 CANDIDATE = "2" * 40
 
@@ -272,6 +273,47 @@ class ActivationInterruptionTests(unittest.TestCase):
             journal = (state_root / "activation.record").read_text(encoding="utf-8")
             self.assertIn("phase=rolled_back", journal)
             self.assertIn(f"candidate_commit={CANDIDATE}", journal)
+
+    def test_operator_rollback_script_restarts_service_after_validated_switch(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            release_root, state_root = self.prepare(root)
+            self.assert_activated(release_root, state_root)
+            systemctl_log = root / "systemctl.log"
+            systemctl = root / "systemctl"
+            systemctl.write_text(
+                "#!/bin/sh\nprintf '%s\\n' \"$*\" >>\"$GONKEN_FAKE_SYSTEMCTL_LOG\"\nexit 0\n",
+                encoding="utf-8",
+            )
+            systemctl.chmod(0o755)
+            environment = os.environ.copy()
+            environment["GONKEN_FAKE_SYSTEMCTL_LOG"] = str(systemctl_log)
+            result = subprocess.run(
+                [
+                    str(ROLLBACK),
+                    "--release-root",
+                    str(release_root),
+                    "--state-root",
+                    str(state_root),
+                    "--service-user",
+                    current_user(),
+                    "--systemctl",
+                    str(systemctl),
+                ],
+                cwd=ROOT,
+                env=environment,
+                check=False,
+                capture_output=True,
+                text=True,
+                timeout=20,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn("code=ROLLBACK_COMPLETE", result.stdout)
+            self.assertEqual(os.readlink(release_root / "current"), f"releases/{PREVIOUS}")
+            self.assertEqual(
+                systemctl_log.read_text(encoding="utf-8").strip(),
+                "restart gonken-agent.service",
+            )
 
 
 class FinalizationInterruptionTests(unittest.TestCase):

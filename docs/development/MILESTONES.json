@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "checkpoint_scope": "Continuation 04: M6.1/M6.2 governed headless application service lifecycle",
+  "checkpoint_scope": "Continuation 04: M6.1/M6.2 governed service lifecycle plus M8.2 explicit rollback entrypoint",
   "baseline_commit": "459f8da3ffb1dd084f9947988c117ae6da10ae1b",
   "milestones": [
     {
@@ -190,10 +190,10 @@
     {
       "id": "M8.2",
       "title": "Update/rollback",
-      "software": "pending",
+      "software": "partial",
       "target": "not-run",
-      "evidence": "",
-      "remaining": "Not implemented."
+      "evidence": "TEST_MATRIX.md continuation-04; scripts/rollback.sh; scripts/release_manager.py; tests/integration/test_release_lifecycle_process.py",
+      "remaining": "Explicit rollback to the previous post-verified immutable release is host-tested and restarts the app service. Update entrypoint, schema migrators, compatibility policy, target rollback and failure-injection service restart remain open."
     },
     {
       "id": "M8.3",

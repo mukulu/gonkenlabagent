@@ -526,6 +526,7 @@ def build_release(
         maintenance_sources = {
             source / "scripts" / "release_manager.py": maintenance / "release_manager.py",
             source / "scripts" / "reconcile-release.sh": maintenance / "reconcile-release.sh",
+            source / "scripts" / "rollback.sh": maintenance / "rollback.sh",
             source / "scripts" / "ollama_manager.py": maintenance / "ollama_manager.py",
             source / "scripts" / "speech_manager.py": maintenance / "speech_manager.py",
             source / "scripts" / "install_summary.py": maintenance / "install_summary.py",
@@ -546,6 +547,7 @@ def build_release(
         for executable in (
             maintenance / "release_manager.py",
             maintenance / "reconcile-release.sh",
+            maintenance / "rollback.sh",
             maintenance / "ollama_manager.py",
             maintenance / "speech_manager.py",
             maintenance / "install_summary.py",
@@ -842,6 +844,19 @@ def status(release_root: Path, state_root: Path, expected: str | None, service_u
     print(f"[OK] code=ACTIVATION_HEALTHY commit={pointer}")
 
 
+def rollback_previous(release_root: Path, state_root: Path, service_user: str) -> None:
+    reconcile(release_root, state_root, service_user)
+    journal = read_journal(state_root)
+    pointer = current_commit(release_root)
+    if not journal or journal["phase"] != "post_verified" or pointer != journal["candidate_commit"]:
+        fail("ROLLBACK_STATE", "active release is not a post-verified rollback source", "repair activation state before rollback", 75)
+    previous = journal["previous_commit"]
+    if previous == "none":
+        fail("ROLLBACK_UNAVAILABLE", "no previous validated release is recorded", "install at least two validated releases before rollback", 1)
+    activate(release_root, state_root, previous, service_user)
+    print(f"[OK] code=ROLLBACK_COMPLETE commit={previous}")
+
+
 def parser() -> argparse.ArgumentParser:
     result = argparse.ArgumentParser(description=__doc__)
     commands = result.add_subparsers(dest="command", required=True)
@@ -859,7 +874,7 @@ def parser() -> argparse.ArgumentParser:
     build.add_argument("--profile", required=True)
     build.add_argument("--service-user", required=True)
 
-    for name in ("activate", "reconcile", "status"):
+    for name in ("activate", "reconcile", "status", "rollback-previous"):
         command = commands.add_parser(name)
         command.add_argument("--release-root", required=True)
         command.add_argument("--state-root", required=True)
@@ -913,6 +928,14 @@ def main(argv: list[str] | None = None) -> int:
             state_root = require_absolute(args.state_root, "install-state root")
             with maintenance_lock(state_root):
                 reconcile(
+                    require_absolute(args.release_root, "release root"),
+                    state_root,
+                    args.service_user,
+                )
+        elif args.command == "rollback-previous":
+            state_root = require_absolute(args.state_root, "install-state root")
+            with maintenance_lock(state_root):
+                rollback_previous(
                     require_absolute(args.release_root, "release root"),
                     state_root,
                     args.service_user,

@@ -634,3 +634,23 @@ Focused service tests passed: **19 tests**. Full host regression then passed:
 `PYTHONPATH=src`. The first broad run without `PYTHONPATH=src` failed to import
 `gonken_agent`; rerunning with the project source path matched the established
 integration-test environment and passed.
+
+## M8.2 explicit rollback entry point — 2026-09-09
+
+Focused command before full regression:
+
+```bash
+bash -n scripts/rollback.sh scripts/install.sh
+PYTHONPATH=src python -m unittest tests.unit.test_m3_3_release_manager tests.integration.test_release_lifecycle_process
+```
+
+| Case | Evidence | Result / boundary |
+|---|---|---|
+| M8.2-T001 | `release_manager rollback-previous` | Rollback is permitted only from a post-verified active release with a recorded previous validated release |
+| M8.2-T002 | `tests.unit.test_m3_3_release_manager` | Rollback reuses validated activation, leaves `current` on the previous release, writes a new post-verified journal and fails closed when no previous release exists |
+| M8.2-T003 | `scripts/rollback.sh` + `tests.integration.test_release_lifecycle_process` | Operator wrapper invokes rollback and restarts `gonken-agent.service` through an injected absolute `systemctl` path |
+| M8.2-T004 | `scripts/release_manager.py` | Immutable release maintenance payload includes `rollback.sh`, so installed releases retain the operator rollback entry point |
+
+This advances M8.2 at the host software tier only. It does not implement update
+acquisition, compatibility/schema migration, target rollback execution, service
+restart failure handling, uninstall, or clean-image lifecycle acceptance.
