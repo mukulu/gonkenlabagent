@@ -554,3 +554,13 @@ python -m unittest tests.unit.test_m3_3_release_manager tests.unit.test_m2_3_dep
 This closes M3.5 at the host software tier only. No Raspberry Pi build,
 network download, real Piper synthesis, real Whisper transcription, audio
 hardware, reboot, or service behavior has been observed in this environment.
+
+### M3.5 committed clean-checkout result
+
+Commit `7cc63a0` was cloned with `git clone --no-hardlinks` into a fresh detached
+checkout. Using a fresh Python venv through `PYTHON_BIN`, `./scripts/ci.sh`
+passed T0/T1 with **161 unit + 40 integration tests = 201 total**. The run
+verified **5 installable dependency profiles**, including the new separate
+`speech-piper-pi-trixie-py313` profile. `git status --short` in the clone was
+clean. `git fsck --full --strict` exited successfully; dangling local test blobs
+were informational and no Git history was pruned.
