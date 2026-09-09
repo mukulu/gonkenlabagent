@@ -84,6 +84,12 @@ class RetrievalTests(unittest.TestCase):
         bad.unlink();(self.corpus/'bad\nname.md').write_text('x')
         with self.assertRaises(IndexError):sources(self.corpus)
         with self.assertRaises(IndexError):build(self.corpus,[])
+    def test_malformed_unknown_and_duplicate_calibration_rejected(self):
+        invalid=[None,[],[{}],[{'query':'x','expected_paths':['absent.md']}],
+                 [{'query':[], 'expected_paths':[]}],self.cal+[self.cal[0]]]
+        for cases in invalid:
+            with self.subTest(cases=cases):
+                with self.assertRaises(IndexError):build(self.corpus,cases)
     def test_headings_overlap_and_unicode_reproducibility(self):
         from gonken_agent.retrieval.index import chunks
         docs=chunks([{'path':'manual.md','text':'# Long section\n\n'+'日本語 token '*200}])
