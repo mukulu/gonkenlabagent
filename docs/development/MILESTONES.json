@@ -206,18 +206,18 @@
     {
       "id": "M9.1",
       "title": "Clean-install and failure campaign",
-      "software": "pending",
+      "software": "blocked",
       "target": "not-run",
-      "evidence": "",
-      "remaining": "Not implemented."
+      "evidence": "TEST_MATRIX.md continuation-01 full regression",
+      "remaining": "Full clean-image failure campaign requires the executable voice/service path and physical Pi. Host suites remain passing."
     },
     {
       "id": "M9.2",
       "title": "Security/license review",
-      "software": "pending",
+      "software": "partial",
       "target": "not-run",
-      "evidence": "",
-      "remaining": "Not implemented."
+      "evidence": "CONTINUATION_01_REPORT.md; D-050/D-051 and D-060\u2013D-064",
+      "remaining": "New-code review, inherited identity invariant, privacy tests and credential-pattern scan pass. Target hardening, artifact licenses and redistribution approval remain open."
     },
     {
       "id": "M9.3",
@@ -230,18 +230,18 @@
     {
       "id": "M9.4",
       "title": "Development-artifact disposition",
-      "software": "pending",
-      "target": "not-run",
-      "evidence": "",
-      "remaining": "Not implemented."
+      "software": "host-verified",
+      "target": "not-applicable",
+      "evidence": "D-065",
+      "remaining": "Development evidence retained with concise current status; no history removed. Review again before public release."
     },
     {
       "id": "M9.5",
       "title": "Portable Git handoff",
-      "software": "pending",
-      "target": "not-run",
-      "evidence": "",
-      "remaining": "Not implemented."
+      "software": "partial",
+      "target": "not-applicable",
+      "evidence": "CONTINUATION_01_REPORT.md; checkpoint/continuation-01",
+      "remaining": "Portable private checkpoint prepared; final archive verification is reported in the external handoff. No release-candidate acceptance claimed."
     }
   ]
 }

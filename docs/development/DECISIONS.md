@@ -537,3 +537,9 @@ The master-blueprint review must resolve:
 - **Status:** Accepted, 2026-09-09.
 - **Decision:** `gonken-agent support` builds a new private ZIP from redacted effective configuration, categorical health, non-identifying runtime versions and revalidated content-free telemetry. It never recursively copies logs, configuration, corpus, Git history, audio, secrets or arbitrary exception detail. Existing destinations and publication races fail without overwrite.
 - **Consequence:** M8.1 advances at the host tier while detailed Pi probes remain open. A malformed/content-bearing telemetry record rejects the export; content is never silently included. Diagnostic bundles and private source checkpoints have different purposes and contents.
+
+## D-065 — Retain traceable development evidence in private checkpoints
+
+- **Status:** Accepted, 2026-09-09.
+- **Decision:** Retain `docs/development`, the supplied feasibility source, test evidence and Git history in the private checkpoint. Replace only the confusing current-status presentation with the complete generated ledger. Use the concise current guide as the entry point.
+- **Consequence:** No history or quarantined baseline material is deleted to make a checkpoint appear release-ready. Public-release disposition and license approval remain separate gates. M9.5 is recorded conservatively as partial until the final archive verification is attached to the handoff.
