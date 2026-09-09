@@ -6,7 +6,7 @@ Historical implementation detail remains in Git, `TEST_MATRIX.md` and `DECISIONS
 M0/M1 audit and architecture review are complete; the table covers every core implementation item.
 
 <!-- MILESTONES -->
-Checkpoint scope: **M3.4 baseline + M4 runtime/audio contracts + M5.1 controller; continuous progression active**
+Checkpoint scope: **M3.4 baseline plus M4/M5/M7 software and text diagnostics; target release gates open**
 
 | Item | Software | Target acceptance | Evidence / remaining work |
 |---|---|---|---|
@@ -24,20 +24,20 @@ Checkpoint scope: **M3.4 baseline + M4 runtime/audio contracts + M5.1 controller
 | M4.2 — Audio discovery and recovery | partial | not-run | tests/unit/test_runtime_audio.py; TEST_MATRIX.md continuation-runtime Selection/recovery/frame buffer tested; real ALSA enumeration, capture backend and hotplug acceptance remain open. |
 | M4.3 — Resampling/STT/TTS lifecycle | partial | not-run | tests/unit/test_runtime_audio.py; TEST_MATRIX.md continuation-runtime FIR resampling and speech subprocess cleanup tested; pinned real speech binaries, tiny/base comparison and audible Pi acceptance remain open. |
 | M5.1 — Push-to-talk and recording indication | partial | not-run | tests/unit/test_runtime_audio.py; TEST_MATRIX.md continuation-runtime Debounced hold/release controller tested; physical GPIO adapter, crash-default LED-off and wiring acceptance remain open. |
-| M5.2 — Offline boundary | pending | not-run |  Not implemented. |
+| M5.2 — Offline boundary | partial | not-run | TEST_MATRIX.md continuation-grounding; text runtime guide Core text path allows numeric-loopback only, no DNS/proxy/redirect/tool/cloud path. Kernel-observed Pi network denial and voice runtime acceptance remain open. |
 | M6.1 — Application service | pending | not-run |  Not implemented. |
 | M6.2 — Service installer/removal | pending | not-run |  Not implemented. |
-| M7.1 — Corpus and lexical index | pending | not-run |  Not implemented. |
-| M7.2 — Grounded prompt and response contract | pending | not-run |  Not implemented. |
-| M7.3 — Privacy-preserving telemetry | pending | not-run |  Not implemented. |
-| M7.4 — Read-only dashboard | pending | not-run |  Not implemented. |
-| M7.5 — Research benchmarks | pending | not-run |  Not implemented. |
-| M8.1 — Doctor and support bundle | pending | not-run |  Not implemented. |
+| M7.1 — Corpus and lexical index | partial | not-run | TEST_MATRIX.md continuation-grounding; text runtime guide Safe deterministic calibrated BM25 and 60-case synthetic regression pass. Real-lab 40/20 evaluation and support calibration remain open. |
+| M7.2 — Grounded prompt and response contract | partial | not-run | TEST_MATRIX.md continuation-grounding; text runtime guide Untrusted-data prompt and citation/abstention format enforced. Real model factual support, contradiction and prompt-injection evaluation remain open. |
+| M7.3 — Privacy-preserving telemetry | partial | not-run | TEST_MATRIX.md continuation-grounding; text runtime guide Content-free bounded process-serialized JSONL rotation implemented. Opt-in persistent research interaction records/retention remain gated. |
+| M7.4 — Read-only dashboard | host-verified | not-run | TEST_MATRIX.md continuation-grounding; text runtime guide Integrated text dashboard, privacy/Host/Origin/read-only tests pass. Physical runtime integration remains open. |
+| M7.5 — Research benchmarks | partial | not-run | TEST_MATRIX.md continuation-grounding; text runtime guide Reproducible synthetic retrieval benchmark and result schema provided. Real grounded/ungrounded LLM, STT, latency/RAM/thermal campaign remains open. |
+| M8.1 — Doctor and support bundle | partial | not-run | TEST_MATRIX.md continuation-grounding; text runtime guide Package doctor returns categorical readiness; extended support/hardware diagnostics remain open. |
 | M8.2 — Update/rollback | pending | not-run |  Not implemented. |
 | M8.3 — Uninstall/reinstall | pending | not-run |  Not implemented. |
 | M9.1 — Clean-install and failure campaign | pending | not-run |  Not implemented. |
 | M9.2 — Security/license review | pending | not-run |  Not implemented. |
-| M9.3 — Documentation and onboarding | pending | not-run |  Not implemented. |
+| M9.3 — Documentation and onboarding | partial | not-run | TEST_MATRIX.md continuation-grounding; text runtime guide Text diagnostic onboarding commands tested. Target installation/service/hardware operational guide remains open. |
 | M9.4 — Development-artifact disposition | pending | not-run |  Not implemented. |
 | M9.5 — Portable Git handoff | pending | not-run |  Not implemented. |
 <!-- /MILESTONES -->

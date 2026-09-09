@@ -23,10 +23,14 @@ Repository state and Git history are the project handoff. Start with:
 
 `PRD.md` is historical provenance only and is not implementation authority.
 
+Development proceeds continuously across verified dependency-ready items. No milestone
+imposes a conversation stop. `MILESTONES.json` generates the complete status table,
+and CI rejects status drift. Host evidence and physical release acceptance remain distinct.
+
 ## Current package, configuration, and dependency boundary
 
-M2.3 provides a dependency-light package/CLI, typed configuration authority,
-and fail-closed dependency profiles. From a development checkout:
+The maintained package provides typed configuration, fail-closed dependency profiles,
+grounded text diagnostics, and host-tested runtime/audio/PTT contracts. From a development checkout:
 
 ```bash
 PYTHONPATH=src python -m gonken_agent version
@@ -35,8 +39,10 @@ PYTHONPATH=src python -m gonken_agent config show --effective --no-site
 ```
 
 The package imports without audio, model, GPIO, UI, network, or extension
-dependencies. `gonken-agent run` intentionally refuses to imply that the new
-core runtime exists yet. For migration testing only, the historical source
+dependencies. `gonken-agent run --text-only` provides an explicit diagnostic session;
+plain `gonken-agent run` still refuses voice activation while speech/hardware gates remain open.
+See [the text runtime guide](docs/development/TEXT_RUNTIME_GUIDE.md) for tested index,
+question, dashboard and telemetry commands. For migration testing only, the historical source
 command remains:
 
 ```bash

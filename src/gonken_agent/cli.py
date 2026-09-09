@@ -25,6 +25,8 @@ def _status() -> dict[str, object]:
         "package_foundation": "complete",
         "configuration_foundation": "complete",
         "core_runtime_ready": False,
+        "text_diagnostics": "available",
+        "voice_runtime": "provisioning_and_hardware_gates_open",
         "redistribution_approved": False,
         "redistribution_policy": "prohibited",
         "extensions": {
@@ -60,6 +62,14 @@ def _build_parser() -> argparse.ArgumentParser:
         help="explicitly use the pre-package source runtime",
     )
 
+    from .operations import config_arguments
+    config_arguments(run_parser)
+    run_parser.add_argument('--text-only', action='store_true', help='read diagnostic questions from stdin; no audio capture')
+    run_parser.add_argument('--index', type=Path)
+    run_parser.add_argument('--extractive', action='store_true')
+    run_parser.add_argument('--telemetry', type=Path)
+    run_parser.add_argument('--with-dashboard', action='store_true')
+
     config_parser = subparsers.add_parser(
         "config", help="inspect or migrate validated configuration"
     )
@@ -91,6 +101,8 @@ def _build_parser() -> argparse.ArgumentParser:
     migrate_parser.add_argument("--output", type=Path, required=True)
     migrate_parser.add_argument("--backup-dir", type=Path)
     migrate_parser.add_argument("--json", action="store_true", dest="as_json")
+    from .operations import add_commands
+    add_commands(subparsers)
     return parser
 
 
@@ -100,6 +112,15 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser = _build_parser()
     args = parser.parse_args(argv)
 
+    if args.command in {'index', 'ask', 'doctor', 'dashboard'}:
+        from .operations import execute
+        try:
+            return execute(args)
+        except (ValueError, OSError, RuntimeError) as exc:
+            # Exception messages may contain corpus paths or content. Keep diagnostics categorical.
+            print(json.dumps({'status': 'FAILED', 'code': 'LOCAL_OPERATION_FAILED',
+                              'error_type': type(exc).__name__}), file=sys.stderr)
+            return EXIT_FAILED
     if args.command is None:
         parser.print_help()
         return 0
@@ -112,14 +133,23 @@ def main(argv: Sequence[str] | None = None) -> int:
             print(json.dumps(status, sort_keys=True))
         else:
             print(f"{status['product']} {status['version']}")
-            print("Core runtime: not yet implemented through the package boundary")
+            print("Voice runtime: provisioning and hardware gates open; text diagnostics available")
             print("Redistribution: prohibited; no project license is granted")
             print("Extensions: disabled")
         return 0
     if args.command == "run":
+        if args.text_only:
+            if args.legacy_source:
+                parser.error('--text-only and --legacy-source cannot be combined')
+            from .operations import text_session
+            try:
+                return text_session(args)
+            except (ValueError, OSError, RuntimeError) as exc:
+                print(json.dumps({'status': 'FAILED', 'code': 'TEXT_SESSION_FAILED', 'error_type': type(exc).__name__}), file=sys.stderr)
+                return EXIT_FAILED
         if not args.legacy_source:
             print(
-                "The packaged core runtime is not implemented yet. "
+                "The packaged voice runtime is not implemented end to end yet. Use ask for text diagnostics. "
                 "Use --legacy-source only for migration testing.",
                 file=sys.stderr,
             )

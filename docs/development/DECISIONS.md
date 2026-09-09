@@ -519,3 +519,15 @@ The master-blueprint review must resolve:
 - **Decision:** Implement the sequential coordinator, bounded PCM frame buffer, stable selector/retry, subprocess speech adapters and PTT controller against injected adapters while the real speech chain remains gated. The default voice runtime still fails closed.
 - **Reason:** These contracts can be tested without granting fake hardware readiness or introducing an unpinned Python dependency.
 - **Consequence:** Use a dependency-free 97-tap windowed-sinc anti-alias FIR for integer 16/32/48→16kHz paths. Reject unsupported ratios; deterministic spectral tests pass, but CPU/latency on Pi remains an acceptance gate. Physical capture/GPIO and pinned artifacts are still required. Temporary speech outputs are context-managed; process groups are terminated on cancel/error/timeout.
+
+## D-062 — Deliver an explicit grounded text diagnostic before voice activation
+
+- **Status:** Accepted implementation choice, 2026-09-09.
+- **Decision:** Add `index`, `ask`, `run --text-only`, `dashboard`, and package `doctor`. `--extractive` explicitly returns a retrieved excerpt; otherwise only the effective loopback Ollama model is contacted. Plain `run` still fails closed for voice.
+- **Consequence:** No hardware readiness is implied. Text mode enables end-to-end grounding/observability and signal testing now. Models cannot trigger tools. Citation shape/IDs are enforced but factual entailment and real-model injection behavior remain empirical gates. Persistent interaction content remains rejected; optional dashboard content is memory-only.
+
+## D-063 — Separate synthetic regression from real-lab acceptance
+
+- **Status:** Accepted, 2026-09-09.
+- **Decision:** Ship ten invented equipment documents, 30 development calibration cases and a frozen 40-answerable/20-unanswerable extractive smoke set. Preserve deterministic metrics and fixture hashes.
+- **Consequence:** The corpus is explicitly fictional; positives share fact templates and negatives are out of domain. These percentages cannot close real-lab retrieval/abstention, reasoning, speech or Pi benchmark gates. Real data and representative near-miss questions must precede research claims.

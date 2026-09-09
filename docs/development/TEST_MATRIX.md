@@ -457,3 +457,19 @@ The preceding milestone-specific next-only authorizations are historical and sup
 | M5.1 | Bounce, hold/release, indicator-before-capture and off-before-submit ordering, stuck-button cancel/inhibit, missing device/start failure | PASS at T1; GPIO permission/crash/physical LED tests unrun |
 
 Adapters are explicit injection points, not proof of deployment wiring. M3.5 stays blocked and installer activation is unchanged.
+
+## continuation-grounding — M5.2/M7 and text diagnostics, 2026-09-09
+
+`PYTHONPATH=src:. python -m unittest tests.unit.test_grounding_observability tests.integration.test_text_runtime_process -v`: **17 unit + 8 integration tests PASS**, Linux x86_64/Python 3.12. Rechecked after dashboard state preservation fix.
+
+| Area | Executed evidence | Result / boundary |
+|---|---|---|
+| Retrieval | Deterministic rebuild; atomic replace failure preserves old index; changed/deleted/added sources; corrupt/tampered index; symlink/size/encoding/name rejection; heading/overlap; calibration | T1 PASS |
+| Grounding | No-source abstention without client call; untrusted JSON source boundary; malformed/extra-field/invalid-citation responses abstain | T1 PASS; citation validation is not entailment; real-model adversarial evaluation open |
+| HTTP inference | Numeric loopback sockets with DNS/proxies/external connections forbidden; cancellation; absolute timeout; concurrent request rejection; overload; redirect refusal; bounded malformed response | T1 PASS; no kernel/Pi network-observation claim |
+| Telemetry | Unknown/content field rejection; finite metric checks; registered IDs; 120 concurrent-thread records; size rotation; torn final-record recovery; corrupt-middle/symlink refusal | T1 PASS; no persistent interaction mode enabled |
+| Dashboard | Real loopback HTTP routes; Host/Origin refusal; mutation routes denied; CSP/no-store; textContent rendering; transient clearing; non-loopback bind refusal | T1 PASS; connected to text coordinator only |
+| CLI lifecycle | Real index build/verify/ask/abstain/doctor subprocesses; multi-line stdin/EOF; SIGINT/SIGTERM exits; categorized errors and content-free telemetry | T1 PASS |
+| Synthetic smoke | `python scripts/benchmark_grounding.py --output docs/development/evidence/grounding-smoke.json` | 40/40 answerable hit@3; 20/20 out-of-domain abstentions; valid ID coverage 100%. Synthetic templated extractive mode only; no model or real-lab quality claim. |
+
+Target gates, deployment readiness, semantic answer validation and research generalization remain open.

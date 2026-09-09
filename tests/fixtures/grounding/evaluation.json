@@ -1,0 +1,422 @@
+[
+  {
+    "id": "known-01-0",
+    "query": "What is the booking duration for the Atlas bench?",
+    "expected_paths": [
+      "atlas-bench.md"
+    ],
+    "expected_fact": "two hours"
+  },
+  {
+    "id": "known-01-1",
+    "query": "What is the reservation code for the Atlas bench?",
+    "expected_paths": [
+      "atlas-bench.md"
+    ],
+    "expected_fact": "REQ-1"
+  },
+  {
+    "id": "known-01-2",
+    "query": "What is the support desk for the Atlas bench?",
+    "expected_paths": [
+      "atlas-bench.md"
+    ],
+    "expected_fact": "local equipment desk 1"
+  },
+  {
+    "id": "known-01-3",
+    "query": "What is the maintenance interval for the Atlas bench?",
+    "expected_paths": [
+      "atlas-bench.md"
+    ],
+    "expected_fact": "every 1 weeks"
+  },
+  {
+    "id": "known-02-0",
+    "query": "What is the booking duration for the Birch printer?",
+    "expected_paths": [
+      "birch-printer.md"
+    ],
+    "expected_fact": "two hours"
+  },
+  {
+    "id": "known-02-1",
+    "query": "What is the reservation code for the Birch printer?",
+    "expected_paths": [
+      "birch-printer.md"
+    ],
+    "expected_fact": "REQ-2"
+  },
+  {
+    "id": "known-02-2",
+    "query": "What is the support desk for the Birch printer?",
+    "expected_paths": [
+      "birch-printer.md"
+    ],
+    "expected_fact": "local equipment desk 2"
+  },
+  {
+    "id": "known-02-3",
+    "query": "What is the maintenance interval for the Birch printer?",
+    "expected_paths": [
+      "birch-printer.md"
+    ],
+    "expected_fact": "every 2 weeks"
+  },
+  {
+    "id": "known-03-0",
+    "query": "What is the booking duration for the Cedar workstation?",
+    "expected_paths": [
+      "cedar-workstation.md"
+    ],
+    "expected_fact": "two hours"
+  },
+  {
+    "id": "known-03-1",
+    "query": "What is the reservation code for the Cedar workstation?",
+    "expected_paths": [
+      "cedar-workstation.md"
+    ],
+    "expected_fact": "REQ-3"
+  },
+  {
+    "id": "known-03-2",
+    "query": "What is the support desk for the Cedar workstation?",
+    "expected_paths": [
+      "cedar-workstation.md"
+    ],
+    "expected_fact": "local equipment desk 3"
+  },
+  {
+    "id": "known-03-3",
+    "query": "What is the maintenance interval for the Cedar workstation?",
+    "expected_paths": [
+      "cedar-workstation.md"
+    ],
+    "expected_fact": "every 3 weeks"
+  },
+  {
+    "id": "known-04-0",
+    "query": "What is the booking duration for the Delta microscope?",
+    "expected_paths": [
+      "delta-microscope.md"
+    ],
+    "expected_fact": "two hours"
+  },
+  {
+    "id": "known-04-1",
+    "query": "What is the reservation code for the Delta microscope?",
+    "expected_paths": [
+      "delta-microscope.md"
+    ],
+    "expected_fact": "REQ-4"
+  },
+  {
+    "id": "known-04-2",
+    "query": "What is the support desk for the Delta microscope?",
+    "expected_paths": [
+      "delta-microscope.md"
+    ],
+    "expected_fact": "local equipment desk 4"
+  },
+  {
+    "id": "known-04-3",
+    "query": "What is the maintenance interval for the Delta microscope?",
+    "expected_paths": [
+      "delta-microscope.md"
+    ],
+    "expected_fact": "every 4 weeks"
+  },
+  {
+    "id": "known-05-0",
+    "query": "What is the booking duration for the Elm sensor?",
+    "expected_paths": [
+      "elm-sensor.md"
+    ],
+    "expected_fact": "two hours"
+  },
+  {
+    "id": "known-05-1",
+    "query": "What is the reservation code for the Elm sensor?",
+    "expected_paths": [
+      "elm-sensor.md"
+    ],
+    "expected_fact": "REQ-5"
+  },
+  {
+    "id": "known-05-2",
+    "query": "What is the support desk for the Elm sensor?",
+    "expected_paths": [
+      "elm-sensor.md"
+    ],
+    "expected_fact": "local equipment desk 5"
+  },
+  {
+    "id": "known-05-3",
+    "query": "What is the maintenance interval for the Elm sensor?",
+    "expected_paths": [
+      "elm-sensor.md"
+    ],
+    "expected_fact": "every 5 weeks"
+  },
+  {
+    "id": "known-06-0",
+    "query": "What is the booking duration for the Fir recorder?",
+    "expected_paths": [
+      "fir-recorder.md"
+    ],
+    "expected_fact": "two hours"
+  },
+  {
+    "id": "known-06-1",
+    "query": "What is the reservation code for the Fir recorder?",
+    "expected_paths": [
+      "fir-recorder.md"
+    ],
+    "expected_fact": "REQ-6"
+  },
+  {
+    "id": "known-06-2",
+    "query": "What is the support desk for the Fir recorder?",
+    "expected_paths": [
+      "fir-recorder.md"
+    ],
+    "expected_fact": "local equipment desk 6"
+  },
+  {
+    "id": "known-06-3",
+    "query": "What is the maintenance interval for the Fir recorder?",
+    "expected_paths": [
+      "fir-recorder.md"
+    ],
+    "expected_fact": "every 6 weeks"
+  },
+  {
+    "id": "known-07-0",
+    "query": "What is the booking duration for the Grove server?",
+    "expected_paths": [
+      "grove-server.md"
+    ],
+    "expected_fact": "two hours"
+  },
+  {
+    "id": "known-07-1",
+    "query": "What is the reservation code for the Grove server?",
+    "expected_paths": [
+      "grove-server.md"
+    ],
+    "expected_fact": "REQ-7"
+  },
+  {
+    "id": "known-07-2",
+    "query": "What is the support desk for the Grove server?",
+    "expected_paths": [
+      "grove-server.md"
+    ],
+    "expected_fact": "local equipment desk 7"
+  },
+  {
+    "id": "known-07-3",
+    "query": "What is the maintenance interval for the Grove server?",
+    "expected_paths": [
+      "grove-server.md"
+    ],
+    "expected_fact": "every 7 weeks"
+  },
+  {
+    "id": "known-08-0",
+    "query": "What is the booking duration for the Hazel camera?",
+    "expected_paths": [
+      "hazel-camera.md"
+    ],
+    "expected_fact": "two hours"
+  },
+  {
+    "id": "known-08-1",
+    "query": "What is the reservation code for the Hazel camera?",
+    "expected_paths": [
+      "hazel-camera.md"
+    ],
+    "expected_fact": "REQ-8"
+  },
+  {
+    "id": "known-08-2",
+    "query": "What is the support desk for the Hazel camera?",
+    "expected_paths": [
+      "hazel-camera.md"
+    ],
+    "expected_fact": "local equipment desk 8"
+  },
+  {
+    "id": "known-08-3",
+    "query": "What is the maintenance interval for the Hazel camera?",
+    "expected_paths": [
+      "hazel-camera.md"
+    ],
+    "expected_fact": "every 8 weeks"
+  },
+  {
+    "id": "known-09-0",
+    "query": "What is the booking duration for the Iris scanner?",
+    "expected_paths": [
+      "iris-scanner.md"
+    ],
+    "expected_fact": "two hours"
+  },
+  {
+    "id": "known-09-1",
+    "query": "What is the reservation code for the Iris scanner?",
+    "expected_paths": [
+      "iris-scanner.md"
+    ],
+    "expected_fact": "REQ-9"
+  },
+  {
+    "id": "known-09-2",
+    "query": "What is the support desk for the Iris scanner?",
+    "expected_paths": [
+      "iris-scanner.md"
+    ],
+    "expected_fact": "local equipment desk 9"
+  },
+  {
+    "id": "known-09-3",
+    "query": "What is the maintenance interval for the Iris scanner?",
+    "expected_paths": [
+      "iris-scanner.md"
+    ],
+    "expected_fact": "every 9 weeks"
+  },
+  {
+    "id": "known-10-0",
+    "query": "What is the booking duration for the Juniper chamber?",
+    "expected_paths": [
+      "juniper-chamber.md"
+    ],
+    "expected_fact": "two hours"
+  },
+  {
+    "id": "known-10-1",
+    "query": "What is the reservation code for the Juniper chamber?",
+    "expected_paths": [
+      "juniper-chamber.md"
+    ],
+    "expected_fact": "REQ-10"
+  },
+  {
+    "id": "known-10-2",
+    "query": "What is the support desk for the Juniper chamber?",
+    "expected_paths": [
+      "juniper-chamber.md"
+    ],
+    "expected_fact": "local equipment desk 10"
+  },
+  {
+    "id": "known-10-3",
+    "query": "What is the maintenance interval for the Juniper chamber?",
+    "expected_paths": [
+      "juniper-chamber.md"
+    ],
+    "expected_fact": "every 10 weeks"
+  },
+  {
+    "id": "unknown-00",
+    "query": "Explain volcano eruption.",
+    "expected_paths": []
+  },
+  {
+    "id": "unknown-01",
+    "query": "Explain ocean salinity.",
+    "expected_paths": []
+  },
+  {
+    "id": "unknown-02",
+    "query": "Explain spacecraft orbit.",
+    "expected_paths": []
+  },
+  {
+    "id": "unknown-03",
+    "query": "Explain medieval dynasty.",
+    "expected_paths": []
+  },
+  {
+    "id": "unknown-04",
+    "query": "Explain lunar eclipse.",
+    "expected_paths": []
+  },
+  {
+    "id": "unknown-05",
+    "query": "Explain tropical rainfall.",
+    "expected_paths": []
+  },
+  {
+    "id": "unknown-06",
+    "query": "Explain galaxy distance.",
+    "expected_paths": []
+  },
+  {
+    "id": "unknown-07",
+    "query": "Explain whale migration.",
+    "expected_paths": []
+  },
+  {
+    "id": "unknown-08",
+    "query": "Explain river delta.",
+    "expected_paths": []
+  },
+  {
+    "id": "unknown-09",
+    "query": "Explain ancient pottery.",
+    "expected_paths": []
+  },
+  {
+    "id": "unknown-10",
+    "query": "Explain desert rainfall.",
+    "expected_paths": []
+  },
+  {
+    "id": "unknown-11",
+    "query": "Explain molecular chirality.",
+    "expected_paths": []
+  },
+  {
+    "id": "unknown-12",
+    "query": "Explain satellite launch.",
+    "expected_paths": []
+  },
+  {
+    "id": "unknown-13",
+    "query": "Explain international airfare.",
+    "expected_paths": []
+  },
+  {
+    "id": "unknown-14",
+    "query": "Explain currency conversion.",
+    "expected_paths": []
+  },
+  {
+    "id": "unknown-15",
+    "query": "Explain football standings.",
+    "expected_paths": []
+  },
+  {
+    "id": "unknown-16",
+    "query": "Explain cooking temperature.",
+    "expected_paths": []
+  },
+  {
+    "id": "unknown-17",
+    "query": "Explain jazz composition.",
+    "expected_paths": []
+  },
+  {
+    "id": "unknown-18",
+    "query": "Explain neutrino mass.",
+    "expected_paths": []
+  },
+  {
+    "id": "unknown-19",
+    "query": "Explain coral bleaching.",
+    "expected_paths": []
+  }
+]
