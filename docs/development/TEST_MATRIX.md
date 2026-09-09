@@ -458,7 +458,7 @@ The preceding milestone-specific next-only authorizations are historical and sup
 | M4.3 | Real subprocess success/error/timeout/cancel/output cap; fake speech executable outputs, valid/truncated WAV, cleanup on success/error/cancel/playback failure | PASS at T1; real pinned STT/TTS and audible target tests unrun |
 | M5.1 | Bounce, hold/release, indicator-before-capture and off-before-submit ordering, stuck-button cancel/inhibit, missing device/start failure | PASS at T1; GPIO permission/crash/physical LED tests unrun |
 
-Adapters are explicit injection points, not proof of deployment wiring. M3.5 stays blocked and installer activation is unchanged.
+Adapters are explicit injection points, not proof of deployment wiring. The real speech artifact chain is tracked separately under M3.5.
 
 ## continuation-grounding — M5.2/M7 and text diagnostics, 2026-09-09
 
@@ -527,3 +527,30 @@ therefore closes at the private transport/host tier. A final documentation-only 
 commit records this evidence; the final regenerated ZIP repeats these transport checks.
 Its exact commit and archive SHA-256 are recorded in the downloadable handoff report.
 This does not close M9 release-candidate acceptance.
+
+
+## M3.5 speech artifact lifecycle — 2026-09-09
+
+Focused command before full regression:
+
+```bash
+bash -n scripts/install.sh scripts/ci.sh
+python scripts/dependencies.py render --check
+python -m py_compile scripts/speech_manager.py scripts/dependencies.py scripts/release_manager.py
+python -m unittest tests.unit.test_m3_3_release_manager tests.unit.test_m2_3_dependencies tests.unit.test_m3_5_speech_manager tests.integration.test_speech_lifecycle_process -v
+```
+
+| Case | Evidence | Result / boundary |
+|---|---|---|
+| M3.5-T001 | `packaging/speech-artifacts.toml` parsed by CI and unit tests | Exact Whisper, model, Piper wheel/lock, and voice artifact pins are machine-checked |
+| M3.5-T002 | `requirements/profiles.toml` + `scripts/dependencies.py render --check` | Separate Piper process-runtime profile is installable; pure Python and `cp39-abi3` AArch64 wheels validate |
+| M3.5-T003 | `tests.unit.test_m3_5_speech_manager` | Manifest schema, HTTPS/root policy, SHA mismatch, and lock mismatch fail closed |
+| M3.5-T004 | `tests.unit.test_m3_5_speech_manager` | Whisper/Piper/models/smoke status gates require real postconditions and complete checked artifacts |
+| M3.5-T005 | `tests.integration.test_speech_lifecycle_process` | Local failure-injection fixtures cover idempotent repair after partial Whisper/model/Piper/smoke states |
+| M3.5-T006 | `tests.integration.test_speech_lifecycle_process` | Fake Piper and Whisper executables exercise the real CLI contract and content-free success record |
+| M3.5-T007 | `tests.unit.test_m3_3_release_manager` | Release payload contract now includes speech maintenance inputs and installer `--speech-only` boundary |
+| M3.5-T008 | `scripts/install.sh` syntax and status docs | Normal target path advances through M3.5 and stops at `M3_6_UNAVAILABLE`; Pi target execution remains unrun |
+
+This closes M3.5 at the host software tier only. No Raspberry Pi build,
+network download, real Piper synthesis, real Whisper transcription, audio
+hardware, reboot, or service behavior has been observed in this environment.

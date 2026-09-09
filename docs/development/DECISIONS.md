@@ -550,3 +550,37 @@ The private archive verification now passes. M9.5 is host-verified for transport
 the earlier pending verification note is historical. Release-candidate acceptance
 remains open. The final archive is regenerated after this status update and its
 transport checks are repeated.
+
+
+## D-066 — Provision speech through pinned external artifacts, not app dependencies
+
+- **Status:** Accepted
+- **Date:** 2026-09-09
+- **Decision:** M3.5 installs Whisper and Piper through root-owned maintenance
+  tooling and immutable artifact directories. Whisper uses `whisper.cpp` v1.9.2
+  plus the checked `base.en-q5_1` model. Piper uses `piper-tts==1.8.0` in a
+  separate root-managed CLI venv and selects `en_US-ljspeech-medium`, replacing
+  the noncommercial legacy `en_GB-semaine-medium` default.
+- **Reason:** The application package must stay governed by the exact core lock,
+  while speech binaries/models have different build, license, size, and runtime
+  properties. A subprocess CLI boundary lets the installer validate concrete
+  artifacts without quietly adding GPL/transitive packages to the app wheel.
+- **Consequence:** Checksums, immutable paths, stable wrapper links, private
+  install records, and rerun/repair behavior are the M3.5 source of truth.
+  Redistribution remains disallowed; real Pi compilation/download, STT/TTS
+  latency, audio routing, and reboot persistence remain target gates.
+
+## D-067 — Treat speech smoke as software evidence, not appliance readiness
+
+- **Status:** Accepted
+- **Date:** 2026-09-09
+- **Decision:** M3.5 requires a content-free real speech-chain smoke: Piper
+  generates a fixed WAV, Whisper transcribes it, and required tokens must appear
+  before `M3_5_SPEECH_COMPLETE` is emitted. The success record stores artifact
+  identities and omits transcript/audio content.
+- **Reason:** A successful package install alone would miss broken wrappers,
+  bad model paths, incomplete downloads, or unusable binaries. At the same time,
+  a host fixture cannot prove microphone, speaker, GPIO, service, thermal, or
+  reboot behavior.
+- **Consequence:** `--speech-only` is a tested milestone return point. Normal
+  target bootstrap now stops at `M3_6_UNAVAILABLE`; this is still not `READY`.

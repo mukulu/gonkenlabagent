@@ -6,7 +6,7 @@ Historical implementation detail remains in Git, `TEST_MATRIX.md` and `DECISIONS
 M0/M1 audit and architecture review are complete; the table covers every core implementation item.
 
 <!-- MILESTONES -->
-Checkpoint scope: **Continuation 01: M3.4 plus runtime/audio/PTT contracts, grounded text, dashboard and support diagnostics**
+Checkpoint scope: **Continuation 02: M3.5 speech artifact lifecycle plus continuation-01 runtime/text/support work**
 
 | Item | Software | Target acceptance | Evidence / remaining work |
 |---|---|---|---|
@@ -18,7 +18,7 @@ Checkpoint scope: **Continuation 01: M3.4 plus runtime/audio/PTT contracts, grou
 | M3.2 — Step engine and install state | host-verified | not-run | TEST_MATRIX.md (M3.2) Physical Pi acceptance remains open. |
 | M3.3 — Immutable application release | host-verified | not-run | TEST_MATRIX.md (M3.3) Physical Pi acceptance remains open. |
 | M3.4 — Ollama lifecycle and selected model | host-verified | not-run | TEST_MATRIX.md (M3.4) Physical Pi acceptance remains open. |
-| M3.5 — Whisper and Piper artifacts | blocked | not-run | requirements/profiles.toml blocked voice profile Existing voice-runtime profile and noncommercial voice remain gated; immutable speech pins/build/target smoke not accepted. |
+| M3.5 — Whisper and Piper artifacts | host-verified | not-run | SPEECH_ARTIFACT_LIFECYCLE.md; TEST_MATRIX.md (M3.5); tests/unit/test_m3_5_speech_manager.py; tests/integration/test_speech_lifecycle_process.py Real Raspberry Pi build/download/install, Piper synthesis, Whisper transcription, audio hardware and reboot acceptance remain open. |
 | M3.6 — Install summary | pending | not-run |  Not implemented. |
 | M4.1 — Coordinator/state/health | host-verified | not-run | tests/unit/test_runtime_audio.py; TEST_MATRIX.md continuation-runtime Physical/service adapters and process-level Pi acceptance remain open. |
 | M4.2 — Audio discovery and recovery | partial | not-run | tests/unit/test_runtime_audio.py; TEST_MATRIX.md continuation-runtime Selection/recovery/frame buffer tested; real ALSA enumeration, capture backend and hotplug acceptance remain open. |
@@ -35,7 +35,7 @@ Checkpoint scope: **Continuation 01: M3.4 plus runtime/audio/PTT contracts, grou
 | M8.1 — Doctor and support bundle | partial | not-run | tests/unit/test_support_export.py; TEST_MATRIX.md continuation-support Categorical doctor and private allow-listed support ZIP tested. Detailed target versions/services/audio/GPIO/resource probes remain open. |
 | M8.2 — Update/rollback | pending | not-run |  Not implemented. |
 | M8.3 — Uninstall/reinstall | pending | not-run |  Not implemented. |
-| M9.1 — Clean-install and failure campaign | blocked | not-run | TEST_MATRIX.md continuation-01 full regression Full clean-image failure campaign requires the executable voice/service path and physical Pi. Host suites remain passing. |
+| M9.1 — Clean-install and failure campaign | blocked | not-run | TEST_MATRIX.md continuation-01 full regression Full clean-image failure campaign requires final service path and physical Pi. Host suites remain passing. |
 | M9.2 — Security/license review | partial | not-run | CONTINUATION_01_REPORT.md; D-050/D-051 and D-060–D-064 New-code review, inherited identity invariant, privacy tests and credential-pattern scan pass. Target hardening, artifact licenses and redistribution approval remain open. |
 | M9.3 — Documentation and onboarding | partial | not-run | TEST_MATRIX.md continuation-grounding; text runtime guide Text diagnostic onboarding commands tested. Target installation/service/hardware operational guide remains open. |
 | M9.4 — Development-artifact disposition | host-verified | not-applicable | D-065 Development evidence retained with concise current status; no history removed. Review again before public release. |

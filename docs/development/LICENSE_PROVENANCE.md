@@ -79,8 +79,10 @@ names or repository-level labels alone.
 The blocked wake profile has no lock: openWakeWord 0.6.0 asks pip to install
 both ONNX Runtime and `tflite-runtime` on Linux, while the legacy installer
 bypasses dependency metadata with `--no-deps`. That workaround is explicitly
-unaccepted. The future TTS profile likewise has no lock until the GPL package
-integration and a release-compatible voice are selected and tested.
+unaccepted. M3.5 adds a separate Piper lock for a CLI-only process boundary. It
+does not make Piper part of the application package, does not grant
+redistribution rights for the project, and does not close legal approval for a
+public release.
 
 ## M2.1 disposition and future release gate
 

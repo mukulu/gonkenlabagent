@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "checkpoint_scope": "Continuation 01: M3.4 plus runtime/audio/PTT contracts, grounded text, dashboard and support diagnostics",
+  "checkpoint_scope": "Continuation 02: M3.5 speech artifact lifecycle plus continuation-01 runtime/text/support work",
   "baseline_commit": "459f8da3ffb1dd084f9947988c117ae6da10ae1b",
   "milestones": [
     {
@@ -70,10 +70,10 @@
     {
       "id": "M3.5",
       "title": "Whisper and Piper artifacts",
-      "software": "blocked",
+      "software": "host-verified",
       "target": "not-run",
-      "evidence": "requirements/profiles.toml blocked voice profile",
-      "remaining": "Existing voice-runtime profile and noncommercial voice remain gated; immutable speech pins/build/target smoke not accepted."
+      "evidence": "SPEECH_ARTIFACT_LIFECYCLE.md; TEST_MATRIX.md (M3.5); tests/unit/test_m3_5_speech_manager.py; tests/integration/test_speech_lifecycle_process.py",
+      "remaining": "Real Raspberry Pi build/download/install, Piper synthesis, Whisper transcription, audio hardware and reboot acceptance remain open."
     },
     {
       "id": "M3.6",
@@ -209,7 +209,7 @@
       "software": "blocked",
       "target": "not-run",
       "evidence": "TEST_MATRIX.md continuation-01 full regression",
-      "remaining": "Full clean-image failure campaign requires the executable voice/service path and physical Pi. Host suites remain passing."
+      "remaining": "Full clean-image failure campaign requires final service path and physical Pi. Host suites remain passing."
     },
     {
       "id": "M9.2",

@@ -120,12 +120,12 @@ Development-root and failure controls require
 
 ## Commands and current boundary
 
-On a validated target, normal `bootstrap.sh` execution reaches M3.4. The
-installer can return specifically at this boundary with `--ollama-only` and
-prints `M3_4_OLLAMA_COMPLETE`. Without that option it deliberately exits 69 as
-`M3_5_UNAVAILABLE` because Whisper and Piper are not implemented. Development
-hosts must use `--release-only`; they report `M3_4_TARGET_REQUIRED` rather than
-contacting upstream or pretending a target installation.
+On a validated target, normal `bootstrap.sh` execution reaches M3.4, then
+continues into M3.5 speech provisioning. The installer can return specifically
+at this boundary with `--ollama-only` and prints `M3_4_OLLAMA_COMPLETE`.
+Development hosts must use `--release-only`; they report
+`M3_4_TARGET_REQUIRED` rather than contacting upstream or pretending a target
+installation.
 
 Useful target diagnostics after provisioning are:
 

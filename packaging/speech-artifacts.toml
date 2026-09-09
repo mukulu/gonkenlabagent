@@ -1,0 +1,68 @@
+format = "gonken-speech-artifacts-v1"
+verified_at = "2026-09-09"
+
+[whisper]
+version = "1.9.2"
+release_tag = "v1.9.2"
+commit = "306c88f4d1286aec1bf96e544632897886af5501"
+repository = "https://github.com/ggml-org/whisper.cpp.git"
+license = "MIT"
+source = "https://github.com/ggml-org/whisper.cpp/releases/tag/v1.9.2"
+cmake_arguments = [
+  "-DCMAKE_BUILD_TYPE=Release",
+  "-DBUILD_SHARED_LIBS=OFF",
+  "-DGGML_NATIVE=OFF",
+  "-DWHISPER_BUILD_TESTS=OFF",
+  "-DWHISPER_BUILD_EXAMPLES=ON",
+  "-DWHISPER_BUILD_SERVER=OFF",
+]
+
+[whisper_model]
+id = "base.en-q5_1"
+filename = "base.en-q5_1.bin"
+upstream_filename = "ggml-base.en-q5_1.bin"
+source_commit = "5359861c739e955e79d9a303bcbc70fb988958b1"
+url = "https://huggingface.co/ggerganov/whisper.cpp/resolve/5359861c739e955e79d9a303bcbc70fb988958b1/ggml-base.en-q5_1.bin?download=true"
+sha256 = "4baf70dd0d7c4247ba2b81fafd9c01005ac77c2f9ef064e00dcf195d0e2fdd2f"
+size = 59721011
+license = "MIT"
+source = "https://huggingface.co/ggerganov/whisper.cpp/blob/5359861c739e955e79d9a303bcbc70fb988958b1/ggml-base.en-q5_1.bin"
+
+[piper]
+version = "1.8.0"
+release_tag = "v1.8.0"
+commit = "639388b6317fc4731e91d53da42aea68fd4166ff"
+platform = "manylinux_2_28_aarch64"
+profile = "speech-piper-pi-trixie-py313"
+lock = "requirements/piper-pi-trixie-py313.lock"
+lock_sha256 = "94205f18f55e75be4f87e390121d32a6d1cfd54d4556d8627ebaacaa99c0940c"
+wheel = "piper_tts-1.8.0-cp39-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.manylinux_2_28_aarch64.whl"
+wheel_sha256 = "3f60c1917de6d8e8033f395878ad3f88f6dfee88a8b05f98971a275f76a38484"
+license = "GPL-3.0-or-later"
+source = "https://github.com/OHF-Voice/piper1-gpl/releases/tag/v1.8.0"
+distribution = "download-only; not bundled or approved for public redistribution"
+
+[piper_voice]
+id = "en_US-ljspeech-medium"
+repository_commit = "1162a9173d0ce503555aed757976b7a9912eae4c"
+filename = "en_US-ljspeech-medium.onnx"
+url = "https://huggingface.co/rhasspy/piper-voices/resolve/1162a9173d0ce503555aed757976b7a9912eae4c/en/en_US/ljspeech/medium/en_US-ljspeech-medium.onnx?download=true"
+sha256 = "6f52a751e2349abe7a76735eb09dc1875298c77ea2342ffd2fef79ff81b87f22"
+size = 63531379
+config_filename = "en_US-ljspeech-medium.onnx.json"
+config_url = "https://huggingface.co/rhasspy/piper-voices/resolve/1162a9173d0ce503555aed757976b7a9912eae4c/en/en_US/ljspeech/medium/en_US-ljspeech-medium.onnx.json?download=true"
+config_sha256 = "141d612cc0a95ed7efc1ca936b845c2364967f2e9217c5dbfcf69fc4d6c65860"
+config_size = 4972
+model_card_filename = "MODEL_CARD"
+model_card_url = "https://huggingface.co/rhasspy/piper-voices/resolve/1162a9173d0ce503555aed757976b7a9912eae4c/en/en_US/ljspeech/medium/MODEL_CARD?download=true"
+model_card_sha256 = "fbee1529c89d36b3fe76d7e9f3f832dce17f44900a52d76a9bda735654766b4d"
+model_card_size = 517
+license = "MIT repository; public-domain source dataset"
+license_source = "https://huggingface.co/rhasspy/piper-voices/blob/1162a9173d0ce503555aed757976b7a9912eae4c/en/en_US/ljspeech/medium/MODEL_CARD"
+source = "https://huggingface.co/rhasspy/piper-voices/tree/1162a9173d0ce503555aed757976b7a9912eae4c/en/en_US/ljspeech/medium"
+
+[smoke]
+text = "This is a speech check."
+required_tokens = ["speech", "check"]
+minimum_wav_frames = 2205
+maximum_wav_seconds = 20

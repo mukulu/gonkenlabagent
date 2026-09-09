@@ -283,7 +283,7 @@ model = "base.en-q5_1"
 threads = 4
 
 [tts]
-voice = "en_GB-semaine-medium"
+voice = "en_US-ljspeech-medium"
 
 [interaction]
 push_to_talk_gpio = 17
@@ -310,9 +310,9 @@ state_dir = "/var/lib/gonken-agent"
 cache_dir = "/var/cache/gonken-agent"
 runtime_dir = "/run/gonken-agent"
 corpus_dir = "/srv/gonken-agent/corpus"
-whisper_binary = "/usr/local/lib/gonken-agent/current/bin/whisper-cli"
+whisper_binary = "/usr/local/bin/whisper-cli"
 whisper_model = "/var/lib/gonken-agent/models/whisper/base.en-q5_1.bin"
-piper_voice = "/var/lib/gonken-agent/models/piper/en_GB-semaine-medium.onnx"
+piper_voice = "/var/lib/gonken-agent/models/piper/en_US-ljspeech-medium/en_US-ljspeech-medium.onnx"
 local_prompt = "/usr/local/lib/gonken-agent/current/share/gonken-agent/local_soul.md"
 
 [extensions.wake_word]
@@ -546,13 +546,14 @@ implements item 7 as a probe-authoritative engine handoff. M3.3 adds target
 bootstrap prerequisites, verified exact-commit acquisition directly into a
 candidate, the release-local venv, immutable finalization, and durable atomic
 activation. M3.4 adds a checksum-pinned Ollama release, exact service policy,
-and full-digest-bound Qwen state; target execution then stops at
-`M3_5_UNAVAILABLE` and never falls through to legacy `setup.sh`. The apparent
-item-7 `--source` interface is concretely implemented
+and full-digest-bound Qwen state. M3.5 adds checksum-pinned Whisper/Piper
+artifact provisioning and a real content-free speech-chain smoke; target
+execution then stops at `M3_6_UNAVAILABLE` and never falls through to legacy
+`setup.sh`. The apparent item-7 `--source` interface is concretely implemented
 as the private `--source-record` plus a refetch of its exact commit so mutable
-checkout contents never become the installed payload. D-056–D-059,
-`RELEASE_ACTIVATION_SCHEMA.md`, and `OLLAMA_MODEL_LIFECYCLE.md` record the
-staged contract.
+checkout contents never become the installed payload. D-056–D-059, D-066,
+`RELEASE_ACTIVATION_SCHEMA.md`, `OLLAMA_MODEL_LIFECYCLE.md`, and
+`SPEECH_ARTIFACT_LIFECYCLE.md` record the staged contract.
 
 The README supports two onboarding paths:
 

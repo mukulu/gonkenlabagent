@@ -64,12 +64,14 @@ actual artifacts rather than trusting advisory completion records. Failed
 candidate construction never moves `current`; failed post-switch validation
 restores the prior validated release when one exists.
 
-Successful target provisioning prints `M3_3_RELEASE_COMPLETE` and
-`M3_4_OLLAMA_COMPLETE`, then the normal bootstrap ends with
-`M3_5_UNAVAILABLE`. This deliberate nonzero boundary means the core package,
-Ollama service, and selected model are validated, but speech and the complete
-assistant are not. Do not interpret it as `READY`. Use `--ollama-only` only to
-return success at this explicit milestone boundary. A development host instead
+Successful target provisioning prints `M3_3_RELEASE_COMPLETE`,
+`M3_4_OLLAMA_COMPLETE`, and `M3_5_SPEECH_COMPLETE`, then the normal bootstrap
+ends with `M3_6_UNAVAILABLE`. This deliberate nonzero boundary means the core
+package, Ollama service, selected model, and pinned speech artifacts are
+validated, but the install summary, application service, and physical hardware
+integration are not. Do not interpret it as `READY`. Use `--ollama-only` or
+`--speech-only` only to return success at those explicit milestone boundaries.
+A development host instead
 reports `M3_4_TARGET_REQUIRED`; its M3.4 behavior is exercised with isolated
 local fixtures rather than an unrepresentative host installation.
 
@@ -77,6 +79,7 @@ See `INSTALL_STATE_SCHEMA.md` for the step-engine contract and
 `RELEASE_ACTIVATION_SCHEMA.md` for release paths, journal phases, reconciliation,
 retention, failure codes, and the development-only temporary-root procedure.
 See `OLLAMA_MODEL_LIFECYCLE.md` for the binary/model pins, paths, service
-settings, digest record, and target diagnostics. The exact next implementation
-is M3.5 Whisper and Piper artifact lifecycle—not the GonKen application service,
-audio/GPIO policy, wake word, or a claim of unattended readiness.
+settings, digest record, and target diagnostics. See
+`SPEECH_ARTIFACT_LIFECYCLE.md` for the Whisper/Piper pins, immutable paths,
+separate Piper runtime, and content-free smoke. Existing model blobs are not
+deleted on failure.

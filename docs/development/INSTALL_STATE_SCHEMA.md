@@ -33,9 +33,9 @@ performs only two bounded actions:
 and changes no package, release, virtual environment, model, service,
 configuration, or hardware state. Since M3.3, omission of `--engine-only`
 continues through the release lifecycle. A development host stops at
-`M3_4_TARGET_REQUIRED`; a validated target continues through M3.4 and stops at
-`M3_5_UNAVAILABLE`; see `RELEASE_ACTIVATION_SCHEMA.md` and
-`OLLAMA_MODEL_LIFECYCLE.md`.
+`M3_4_TARGET_REQUIRED`; a validated target continues through M3.5 and stops at
+`M3_6_UNAVAILABLE`; see `RELEASE_ACTIVATION_SCHEMA.md`,
+`OLLAMA_MODEL_LIFECYCLE.md`, and `SPEECH_ARTIFACT_LIFECYCLE.md`.
 
 ## 2. Private directory layout
 

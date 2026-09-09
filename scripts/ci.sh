@@ -30,6 +30,7 @@ from pathlib import Path
 
 for filename in (
     "config/defaults.toml",
+    "packaging/speech-artifacts.toml",
     "packaging/provenance.toml",
     "pyproject.toml",
     "requirements/profiles.toml",

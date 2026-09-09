@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# GonKenLab Agent resumable installer (through M3.4).
+# GonKenLab Agent resumable installer (through M3.5).
 #
-# M3.4 adds the pinned Ollama runtime/model service. It still does not
-# provision speech artifacts, the application service, or hardware.
+# M3.5 adds pinned Whisper/Piper speech artifacts. It still does not provision
+# the application service or hardware adapters.
 
 set -Eeuo pipefail
 
@@ -36,13 +36,14 @@ SYSTEM_ROOT_EXPLICIT=0
 ENGINE_ONLY=0
 RELEASE_ONLY=0
 OLLAMA_ONLY=0
+SPEECH_ONLY=0
 
 usage() {
   cat <<'EOF'
 Usage: scripts/install.sh --source-record PATH [OPTIONS]
 
-M3.4 validates and activates the application release, then provisions the
-pinned Ollama runtime and authoritative local chat model on a supported target.
+M3.5 validates and activates the application release, then provisions the
+pinned Ollama runtime/model and Whisper/Piper speech chain on a supported target.
 
 Options:
   --source-record PATH  Private source.record created by bootstrap (required).
@@ -52,6 +53,7 @@ Options:
   --engine-only         Return success after the M3.2 boundary steps.
   --release-only        Return success after the M3.3 release boundary.
   --ollama-only         Return success after the M3.4 Ollama/model boundary.
+  --speech-only         Return success after the M3.5 speech boundary.
   -h, --help            Show this help.
 EOF
 }
@@ -92,6 +94,10 @@ while (($#)); do
       ;;
     --ollama-only)
       OLLAMA_ONLY=1
+      shift
+      ;;
+    --speech-only)
+      SPEECH_ONLY=1
       shift
       ;;
     -h|--help)
@@ -239,7 +245,7 @@ gonken_prerequisite_postcondition() {
     return 69
   fi
   if [[ "${GONKEN_SOURCE_RECORD[platform_mode]}" == "target" ]]; then
-    for command_name in getent groupadd runuser tar useradd zstd; do
+    for command_name in cmake c++ getent groupadd runuser tar useradd zstd; do
       command -v "$command_name" >/dev/null 2>&1 || return 1
     done
   fi
@@ -252,6 +258,7 @@ gonken_prerequisite_action() {
   DEBIAN_FRONTEND=noninteractive apt-get update || return 69
   gonken_step_checkpoint "$step_id" "during" || return $?
   DEBIAN_FRONTEND=noninteractive apt-get install -y \
+    build-essential cmake \
     ca-certificates git python3-pip python3-setuptools python3-venv \
     tar util-linux zstd || return 69
 }
@@ -413,6 +420,14 @@ gonken_ollama_manifest() {
   printf '%s\n' "$RELEASE_ROOT/current/maintenance/packaging/ollama-artifacts.toml"
 }
 
+gonken_speech_manager() {
+  printf '%s\n' "$RELEASE_ROOT/current/maintenance/speech_manager.py"
+}
+
+gonken_speech_manifest() {
+  printf '%s\n' "$RELEASE_ROOT/current/maintenance/packaging/speech-artifacts.toml"
+}
+
 gonken_ollama_template_arguments() {
   printf '%s\n' \
     --endpoint "$OLLAMA_ENDPOINT" \
@@ -470,6 +485,83 @@ gonken_ollama_model_action() {
     "${arguments[@]}" --model "$OLLAMA_MODEL"
 }
 
+
+gonken_load_effective_speech_config() {
+  local config_json
+  config_json="$("$BIN_ROOT/gonken-agent" config show --effective --json)" || return 65
+  mapfile -t SPEECH_EFFECTIVE < <(python3 -c '
+import json, sys
+value = json.load(sys.stdin)["config"]
+print(value["stt"]["model"])
+print(value["stt"]["threads"])
+print(value["tts"]["voice"])
+print(value["paths"]["whisper_binary"])
+print(value["paths"]["whisper_model"])
+print(value["paths"]["piper_voice"])
+' <<<"$config_json") || return 65
+  [[ "${#SPEECH_EFFECTIVE[@]}" == "6" ]] || return 65
+  SPEECH_STT_MODEL="${SPEECH_EFFECTIVE[0]}"
+  SPEECH_STT_THREADS="${SPEECH_EFFECTIVE[1]}"
+  SPEECH_TTS_VOICE="${SPEECH_EFFECTIVE[2]}"
+  SPEECH_WHISPER_BINARY="${SPEECH_EFFECTIVE[3]}"
+  SPEECH_WHISPER_MODEL="${SPEECH_EFFECTIVE[4]}"
+  SPEECH_PIPER_VOICE="${SPEECH_EFFECTIVE[5]}"
+  [[ "$SPEECH_STT_MODEL" == "base.en-q5_1"     && "$SPEECH_TTS_VOICE" == "en_US-ljspeech-medium"     && "$SPEECH_WHISPER_BINARY" == "/usr/local/bin/whisper-cli"     && "$SPEECH_WHISPER_MODEL" == "/var/lib/gonken-agent/models/whisper/base.en-q5_1.bin"     && "$SPEECH_PIPER_VOICE" == "/var/lib/gonken-agent/models/piper/en_US-ljspeech-medium/en_US-ljspeech-medium.onnx" ]] || return 65
+  [[ "$SPEECH_STT_THREADS" =~ ^[0-9]+$ && "$SPEECH_STT_THREADS" -ge 1 && "$SPEECH_STT_THREADS" -le 16 ]] || return 65
+}
+
+gonken_speech_model_arguments() {
+  printf '%s\n'     --whisper-model-path "$SPEECH_WHISPER_MODEL"     --piper-voice-path "$SPEECH_PIPER_VOICE"
+}
+
+gonken_whisper_postcondition() {
+  python3 "$(gonken_speech_manager)" whisper-status     --manifest "$(gonken_speech_manifest)" --system-root / >/dev/null 2>&1 || return 1
+  GONKEN_STEP_EVIDENCE="whisper_runtime_pinned"
+}
+
+gonken_whisper_action() {
+  python3 "$(gonken_speech_manager)" install-whisper     --manifest "$(gonken_speech_manifest)" --system-root /     --git /usr/bin/git --cmake /usr/bin/cmake
+}
+
+gonken_piper_postcondition() {
+  python3 "$(gonken_speech_manager)" piper-status     --manifest "$(gonken_speech_manifest)" --system-root / >/dev/null 2>&1 || return 1
+  GONKEN_STEP_EVIDENCE="piper_runtime_pinned"
+}
+
+gonken_piper_action() {
+  python3 "$(gonken_speech_manager)" install-piper     --manifest "$(gonken_speech_manifest)" --system-root /
+}
+
+gonken_speech_models_postcondition() {
+  local -a arguments
+  gonken_load_effective_speech_config || return 65
+  mapfile -t arguments < <(gonken_speech_model_arguments)
+  python3 "$(gonken_speech_manager)" models-status     --manifest "$(gonken_speech_manifest)" --system-root /     "${arguments[@]}" >/dev/null 2>&1 || return 1
+  GONKEN_STEP_EVIDENCE="speech_models_${SPEECH_STT_MODEL}_${SPEECH_TTS_VOICE}"
+}
+
+gonken_speech_models_action() {
+  local -a arguments
+  gonken_load_effective_speech_config || return 65
+  mapfile -t arguments < <(gonken_speech_model_arguments)
+  python3 "$(gonken_speech_manager)" provision-models     --manifest "$(gonken_speech_manifest)" --system-root / "${arguments[@]}"
+}
+
+gonken_speech_smoke_postcondition() {
+  local -a arguments
+  gonken_load_effective_speech_config || return 65
+  mapfile -t arguments < <(gonken_speech_model_arguments)
+  python3 "$(gonken_speech_manager)" smoke-status     --manifest "$(gonken_speech_manifest)" --system-root /     "${arguments[@]}" >/dev/null 2>&1 || return 1
+  GONKEN_STEP_EVIDENCE="speech_smoke_${SPEECH_TTS_VOICE}"
+}
+
+gonken_speech_smoke_action() {
+  local -a arguments
+  gonken_load_effective_speech_config || return 65
+  mapfile -t arguments < <(gonken_speech_model_arguments)
+  python3 "$(gonken_speech_manager)" run-smoke     --manifest "$(gonken_speech_manifest)" --system-root /     "${arguments[@]}" --threads "$SPEECH_STT_THREADS"
+}
+
 gonken_engine_initialize "$STATE_DIR" "$LOG_DIR" || exit $?
 gonken_prepare_private_directory "$STATE_DIR/artifacts" "installer artifact directory" || exit $?
 
@@ -489,7 +581,7 @@ gonken_register_step \
 
 if ((ENGINE_ONLY == 0)); then
   gonken_register_step \
-    "release_prerequisites" "2" \
+    "release_prerequisites" "3" \
     "gonken_prerequisite_precondition" "gonken_prerequisite_action" "gonken_prerequisite_postcondition" \
     "target_only_apt_bootstrap_prerequisites" \
     "probe_distro_tools_then_install_only_missing_target_prerequisites" \
@@ -551,6 +643,16 @@ if ((ENGINE_ONLY == 0)); then
       "authoritative_tag_full_digest_and_deterministic_smoke_record" \
       "resume_blob_pull_then_require_digest_prefix_and_inference" \
       "existing_model_blobs_are_retained_and_tag_drift_fails_closed" || exit $?
+
+    if ((OLLAMA_ONLY == 0)); then
+      gonken_register_step         "whisper_runtime" "1"         "gonken_ollama_model_postcondition" "gonken_whisper_action" "gonken_whisper_postcondition"         "immutable_whisper_cpp_release_and_stable_cli"         "rebuild_only_checked_runtime_when_identity_or_arch_probe_fails"         "unverified_whisper_binary_never_reaches_stable_entrypoint" || exit $?
+
+      gonken_register_step         "piper_runtime" "1"         "gonken_whisper_postcondition" "gonken_piper_action" "gonken_piper_postcondition"         "separate_piper_cli_venv_from_exact_hash_lock"         "reinstall_only_checked_runtime_when_identity_or_arch_probe_fails"         "application_release_venv_is_not_reused_for_gpl_tts_runtime" || exit $?
+
+      gonken_register_step         "speech_models" "1"         "gonken_piper_postcondition" "gonken_speech_models_action" "gonken_speech_models_postcondition"         "checksum_verified_whisper_model_and_piper_voice_pair"         "resume_downloads_and_repair_missing_zero_byte_or_bad_checksum_pairs"         "noncommercial_legacy_voice_is_never_provisioned" || exit $?
+
+      gonken_register_step         "speech_smoke" "1"         "gonken_speech_models_postcondition" "gonken_speech_smoke_action" "gonken_speech_smoke_postcondition"         "content_free_real_tts_then_stt_smoke_record"         "rerun_smoke_when_validation_record_is_missing_or_drifted"         "smoke_samples_are_temporary_and_not_retained" || exit $?
+    fi
   fi
 fi
 
@@ -590,8 +692,15 @@ if ((OLLAMA_ONLY == 1)); then
   exit 0
 fi
 
-gonken_error \
-  "M3_5_UNAVAILABLE" \
-  "Ollama passed, but Whisper and Piper provisioning are not implemented" \
-  "retain the validated state and continue only after checkpoint/m3.5" || true
+gonken_load_effective_speech_config || {
+  gonken_error "SPEECH_CONFIG" "cannot load authoritative effective speech configuration" "repair the installed config and rerun"
+  exit 65
+}
+
+printf '[OK] code=M3_5_SPEECH_COMPLETE stt=%s voice=%s whisper=%s\n'   "$SPEECH_STT_MODEL" "$SPEECH_TTS_VOICE" "$SPEECH_WHISPER_BINARY"
+if ((SPEECH_ONLY == 1)); then
+  exit 0
+fi
+
+gonken_error   "M3_6_UNAVAILABLE"   "Speech provisioning passed, but final install summary is not implemented"   "retain the validated state and continue with checkpoint/m3.6" || true
 exit 69
