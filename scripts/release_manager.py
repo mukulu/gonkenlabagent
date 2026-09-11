@@ -526,12 +526,14 @@ def build_release(
         maintenance_sources = {
             source / "scripts" / "release_manager.py": maintenance / "release_manager.py",
             source / "scripts" / "reconcile-release.sh": maintenance / "reconcile-release.sh",
+            source / "scripts" / "update.sh": maintenance / "update.sh",
             source / "scripts" / "rollback.sh": maintenance / "rollback.sh",
             source / "scripts" / "uninstall.sh": maintenance / "uninstall.sh",
             source / "scripts" / "ollama_manager.py": maintenance / "ollama_manager.py",
             source / "scripts" / "speech_manager.py": maintenance / "speech_manager.py",
             source / "scripts" / "install_summary.py": maintenance / "install_summary.py",
             source / "scripts" / "service_manager.py": maintenance / "service_manager.py",
+            source / "scripts" / "update_manager.py": maintenance / "update_manager.py",
             source / "scripts" / "uninstall_manager.py": maintenance / "uninstall_manager.py",
             source / "packaging" / "ollama-artifacts.toml": maintenance / "packaging" / "ollama-artifacts.toml",
             source / "packaging" / "speech-artifacts.toml": maintenance / "packaging" / "speech-artifacts.toml",
@@ -549,12 +551,14 @@ def build_release(
         for executable in (
             maintenance / "release_manager.py",
             maintenance / "reconcile-release.sh",
+            maintenance / "update.sh",
             maintenance / "rollback.sh",
             maintenance / "uninstall.sh",
             maintenance / "ollama_manager.py",
             maintenance / "speech_manager.py",
             maintenance / "install_summary.py",
             maintenance / "service_manager.py",
+            maintenance / "update_manager.py",
             maintenance / "uninstall_manager.py",
         ):
             executable.chmod(0o755)

@@ -5,6 +5,11 @@ set -Eeuo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+if [[ -f "$SCRIPT_DIR/packaging/systemd/gonken-agent.service" ]]; then
+  TEMPLATE_ROOT="$SCRIPT_DIR"
+else
+  TEMPLATE_ROOT="$PROJECT_ROOT"
+fi
 SYSTEM_ROOT="/"
 SYSTEMCTL="/usr/bin/systemctl"
 PURGE_ARGS=()
@@ -56,7 +61,7 @@ done
 
 exec python3 "$SCRIPT_DIR/uninstall_manager.py" \
   --system-root "$SYSTEM_ROOT" \
-  --unit-template "$PROJECT_ROOT/packaging/systemd/gonken-agent.service" \
-  --tmpfiles-template "$PROJECT_ROOT/packaging/tmpfiles/gonken-agent.conf" \
+  --unit-template "$TEMPLATE_ROOT/packaging/systemd/gonken-agent.service" \
+  --tmpfiles-template "$TEMPLATE_ROOT/packaging/tmpfiles/gonken-agent.conf" \
   --systemctl "$SYSTEMCTL" \
   "${PURGE_ARGS[@]}"

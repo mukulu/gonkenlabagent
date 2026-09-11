@@ -635,3 +635,20 @@ transport checks are repeated.
   uninstall, purge confirmation and conflict refusal. Real target uninstall,
   user/group disposition, service stop failures and clean-image reinstall remain
   target acceptance work.
+
+## D-071 — Update through explicit immutable release activation
+
+- **Status:** Accepted
+- **Date:** 2026-09-11
+- **Decision:** `update.sh` is an explicit administrator-invoked operation backed
+  by `update_manager.py`. It resolves one unambiguous Git branch/tag, builds the
+  exact immutable release for that commit, activates it through
+  `release_manager`, prunes through the release retention policy, and restarts
+  `gonken-agent.service`.
+- **Reason:** Update must not be a boot-time network action and must not mutate
+  the active installation directly. Reusing the release manager preserves the
+  same validation, locking, journal, rollback and post-switch smoke checks used
+  by bootstrap installation.
+- **Consequence:** M8.2 closes at the host software tier for explicit
+  update/rollback mechanics. Real target update/rollback, service restart
+  failures and future schema migrators remain acceptance gates.

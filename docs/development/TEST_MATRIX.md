@@ -635,13 +635,15 @@ Focused service tests passed: **19 tests**. Full host regression then passed:
 `gonken_agent`; rerunning with the project source path matched the established
 integration-test environment and passed.
 
-## M8.2 explicit rollback entry point — 2026-09-09
+## M8.2 explicit update/rollback lifecycle — 2026-09-09 and 2026-09-11
 
 Focused command before full regression:
 
 ```bash
 bash -n scripts/rollback.sh scripts/install.sh
 PYTHONPATH=src python -m unittest tests.unit.test_m3_3_release_manager tests.integration.test_release_lifecycle_process
+bash -n scripts/update.sh scripts/uninstall.sh scripts/rollback.sh scripts/install.sh scripts/ci.sh
+PYTHONPATH=src python -m unittest tests.unit.test_m8_update_manager tests.unit.test_m8_uninstall_manager tests.integration.test_uninstall_lifecycle_process tests.unit.test_m3_3_release_manager
 ```
 
 | Case | Evidence | Result / boundary |
@@ -650,10 +652,14 @@ PYTHONPATH=src python -m unittest tests.unit.test_m3_3_release_manager tests.int
 | M8.2-T002 | `tests.unit.test_m3_3_release_manager` | Rollback reuses validated activation, leaves `current` on the previous release, writes a new post-verified journal and fails closed when no previous release exists |
 | M8.2-T003 | `scripts/rollback.sh` + `tests.integration.test_release_lifecycle_process` | Operator wrapper invokes rollback and restarts `gonken-agent.service` through an injected absolute `systemctl` path |
 | M8.2-T004 | `scripts/release_manager.py` | Immutable release maintenance payload includes `rollback.sh`, so installed releases retain the operator rollback entry point |
+| M8.2-T005 | `scripts/update_manager.py` | Update resolves exactly one Git branch/tag, rejects unsafe refs and non-HTTPS sources outside isolated tests, detects already-current releases and avoids unnecessary restarts |
+| M8.2-T006 | `tests.unit.test_m8_update_manager` | Update orchestration builds the resolved commit, activates through the release manager, prunes through the retention policy and restarts `gonken-agent.service` |
+| M8.2-T007 | `scripts/update.sh` and `scripts/ci.sh` | Update is an explicit shell entry point and is included in the repository syntax gate |
 
-This advances M8.2 at the host software tier only. It does not implement update
-acquisition, compatibility/schema migration, target rollback execution, service
-restart failure handling, uninstall, or clean-image lifecycle acceptance.
+This closes M8.2 at the host software tier only for explicit update/rollback
+mechanics. Real Raspberry Pi update/rollback execution, service restart failure
+handling, future schema migrators and clean-image lifecycle acceptance remain
+target/future-version gates.
 
 ## M8.3 uninstall/reinstall lifecycle — 2026-09-09
 
@@ -669,7 +675,7 @@ PYTHONPATH=src python -m unittest tests.unit.test_m8_uninstall_manager tests.int
 | M8.3-T001 | `scripts/uninstall_manager.py` | Keep-data default removes managed app service, tmpfiles, stable CLI symlink and immutable app release root while retaining `/var/lib/gonken-agent`, `/var/cache/gonken-agent` and `/srv/gonken-agent` |
 | M8.3-T002 | `tests.unit.test_m8_uninstall_manager` | Explicit purge requires the exact confirmation phrase and still does not remove shared Ollama service files |
 | M8.3-T003 | `tests.unit.test_m8_uninstall_manager` | Modified service files or modified stable entrypoints fail closed before release/data mutation |
-| M8.3-T004 | `tests.integration.test_uninstall_lifecycle_process` | `scripts/uninstall.sh` resolves normalized absolute templates and removes a project-owned installation from an isolated FHS root |
+| M8.3-T004 | `tests.integration.test_uninstall_lifecycle_process` | `scripts/uninstall.sh` resolves normalized absolute templates in both checkout and installed-maintenance layouts, then removes a project-owned installation from an isolated FHS root |
 | M8.3-T005 | `tests.unit.test_m3_3_release_manager` | Immutable release maintenance payload includes `uninstall.sh` and `uninstall_manager.py` so installed releases retain the operator uninstall entry point |
 
 This closes M8.3 at the host software tier only. Real Raspberry Pi uninstall,
