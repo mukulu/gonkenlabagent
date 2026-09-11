@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "checkpoint_scope": "Continuation 05: M8.3 uninstall/reinstall lifecycle plus prior M6 service and M8.2 rollback work",
+  "checkpoint_scope": "Continuation 06: M8.2 explicit update/rollback lifecycle and maintenance-wrapper correction",
   "baseline_commit": "459f8da3ffb1dd084f9947988c117ae6da10ae1b",
   "milestones": [
     {
@@ -190,10 +190,10 @@
     {
       "id": "M8.2",
       "title": "Update/rollback",
-      "software": "partial",
+      "software": "host-verified",
       "target": "not-run",
-      "evidence": "TEST_MATRIX.md continuation-04; scripts/rollback.sh; scripts/release_manager.py; tests/integration/test_release_lifecycle_process.py",
-      "remaining": "Explicit rollback to the previous post-verified immutable release is host-tested and restarts the app service. Update entrypoint, schema migrators, compatibility policy, target rollback and failure-injection service restart remain open."
+      "evidence": "TEST_MATRIX.md continuation-06; scripts/update.sh; scripts/update_manager.py; scripts/rollback.sh; scripts/release_manager.py; tests/unit/test_m8_update_manager.py; tests/integration/test_release_lifecycle_process.py",
+      "remaining": "Explicit update and rollback are host-tested through immutable release activation, Git ref resolution, no-op update detection, restart orchestration and previous-release rollback. Real target update/rollback execution, future schema migrators and service restart failure handling remain target/future-version gates."
     },
     {
       "id": "M8.3",
@@ -201,7 +201,7 @@
       "software": "host-verified",
       "target": "not-run",
       "evidence": "TEST_MATRIX.md continuation-05; scripts/uninstall.sh; scripts/uninstall_manager.py; tests/unit/test_m8_uninstall_manager.py; tests/integration/test_uninstall_lifecycle_process.py",
-      "remaining": "Keep-data uninstall, explicit purge confirmation, managed-file conflict refusal and shared Ollama protection are host-tested. Real target uninstall/reinstall, user/group disposition, service stop failures and clean-image reinstall acceptance remain target gates."
+      "remaining": "Keep-data uninstall, explicit purge confirmation, managed-file conflict refusal, maintenance-layout wrapper behavior and shared Ollama protection are host-tested. Real target uninstall/reinstall, user/group disposition, service stop failures and clean-image reinstall acceptance remain target gates."
     },
     {
       "id": "M9.1",
@@ -209,7 +209,7 @@
       "software": "blocked",
       "target": "not-run",
       "evidence": "TEST_MATRIX.md continuation-01 full regression",
-      "remaining": "Full clean-image failure campaign requires physical Pi and post-service target validation. Host unit/integration suites remain passing through M8.3."
+      "remaining": "Full clean-image failure campaign requires physical Pi and post-lifecycle target validation. Host unit/integration suites remain passing through M8.3 and M8.2 update/rollback."
     },
     {
       "id": "M9.2",

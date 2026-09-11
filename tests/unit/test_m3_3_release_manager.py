@@ -164,6 +164,8 @@ class IntegrityAndPrivilegeTests(unittest.TestCase):
             '"speech_manager.py"',
             '"install_summary.py"',
             '"service_manager.py"',
+            '"update.sh"',
+            '"update_manager.py"',
             '"rollback.sh"',
             '"uninstall.sh"',
             '"uninstall_manager.py"',
