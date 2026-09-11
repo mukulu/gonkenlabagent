@@ -6,7 +6,7 @@ language = "en"
 
 [runtime]
 mode = "offline"
-interaction_mode = "push_to_talk"
+interaction_mode = "wake_word"
 
 [llm]
 provider = "ollama"
@@ -17,8 +17,8 @@ max_output_tokens = 160
 keep_alive = "5m"
 
 [audio]
-input_match = "AIRHUG"
-output_match = "AIRHUG"
+input_match = "auto"
+output_match = "auto"
 capture_rate = 48000
 processing_rate = 16000
 
@@ -60,7 +60,7 @@ piper_voice = "/var/lib/gonken-agent/models/piper/en_US-ljspeech-medium/en_US-lj
 local_prompt = "/usr/local/lib/gonken-agent/current/share/gonken-agent/local_soul.md"
 
 [extensions.wake_word]
-enabled = false
+enabled = true
 phrase = "Hey Gonken"
 model = ""
 threshold = 0.5

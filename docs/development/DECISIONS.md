@@ -757,3 +757,126 @@ transport checks are repeated.
 - **Consequence:** Bluetooth remains opt-in and USB remains fallback, but the
   implementation now has a coherent no-login session/reconnect path suitable
   for real-Pi validation.
+
+## D-078 — Define install completion as operational appliance readiness
+
+- **Status:** Accepted
+- **Date:** 2026-09-12
+- **Decision:** Normal target bootstrap completes only after the systemd service
+  has opened physical audio, confirmed the local model and written an ephemeral
+  content-free voice-runtime readiness record. Package/service installation
+  alone is not a `READY` outcome.
+- **Reason:** Real FIX4 target evidence showed all software components and the
+  service could install successfully while no supported production voice path
+  was actually available to the user.
+- **Consequence:** The installer has a final appliance-readiness step and waits
+  for the long-running service rather than telling the operator to manually
+  infer what to do next.
+
+## D-079 — Use systemd boot activation rather than passwordless shell auto-login
+
+- **Status:** Accepted
+- **Date:** 2026-09-12
+- **Decision:** Everyday appliance startup is provided entirely by enabled
+  systemd services. GonKenLab Agent does not require or configure console
+  auto-login or password bypass.
+- **Reason:** system services start before an interactive login and therefore
+  satisfy the no-touch appliance requirement without weakening account access.
+- **Consequence:** A reboot is expected to end at voice wake standby even when
+  nobody logs in. SSH credentials remain an administration boundary only.
+
+## D-080 — Ship a functional Whisper phrase-spotting wake baseline first
+
+- **Status:** Accepted
+- **Date:** 2026-09-12
+- **Decision:** The first production wake loop uses short, bounded local Whisper
+  captures to identify the configured `Hey Gonken` phrase. A dedicated wake-word
+  model remains an optimization extension.
+- **Reason:** Whisper is already pinned/provisioned and avoids introducing an
+  unverified second wake model at the last-mile integration stage.
+- **Consequence:** Functional always-on wake behavior can be physically tested
+  now; CPU/latency measurements from the Pi will determine whether a dedicated
+  wake model is required later.
+
+## D-081 — Require both automatic and manual production voice entry points
+
+- **Status:** Accepted
+- **Date:** 2026-09-12
+- **Decision:** The supported production surface includes automatic
+  `gonken-agent.service`, foreground `gonken-agent run`, one-turn
+  `gonken-agent talk`, systemd controls, journal diagnostics and doctor probes.
+  Legacy orchestrator entry points are not user-operation instructions.
+- **Reason:** A headless appliance needs unattended boot operation, but repair
+  and acceptance work also need a deterministic manual path independent of
+  boot automation.
+- **Consequence:** Operations are documented separately in
+  `docs/OPERATIONS.md`; the README stays focused on installation and everyday
+  use.
+
+## D-082 — Reconcile Bluetooth radio state as a governed prerequisite
+
+- **Status:** Accepted
+- **Date:** 2026-09-12
+- **Decision:** X4 stack readiness requires active BlueZ, a real controller,
+  no hard block, no soft rfkill block, `Powered=yes`, and a responding dedicated
+  PipeWire user session. Root setup/autoconnect may start BlueZ, unblock a soft
+  block and power the controller before retrying.
+- **Reason:** Real Pi pairing repeatedly timed out until the operator manually
+  ran rfkill/service/controller-power commands even though Bluetooth packages
+  were installed.
+- **Consequence:** Bluetooth setup now tests prerequisites before pairing rather
+  than reporting a downstream discovery timeout for an upstream radio problem.
+
+## D-083 — Keep WLAN-country selection outside automatic installer mutation
+
+- **Status:** Accepted
+- **Date:** 2026-09-12
+- **Decision:** Fresh-Pi documentation requires Raspberry Pi Imager (or explicit
+  `raspi-config`) to set the legal WLAN country. The launcher may report blocked
+  Wi-Fi, but it does not guess or silently change the country.
+- **Reason:** The internet installer cannot bootstrap over unavailable Wi-Fi and
+  regulatory country is deployment/location information, not a repository
+  constant.
+- **Consequence:** Ethernet remains an accepted first-install path. Once a valid
+  country is set, normal OS tools can unblock/enable Wi-Fi.
+
+## D-084 — Treat Raspberry Pi 4 as a separate future target profile
+
+- **Status:** Accepted
+- **Date:** 2026-09-12
+- **Decision:** Do not broaden the Pi 5 production preflight to Pi 4 in FIX5.
+  Pi 4 support requires its own memory, thermal, inference, wake and audio
+  acceptance evidence and may require different configuration limits.
+- **Reason:** Generic code structure does not establish real-time appliance
+  suitability on different hardware.
+- **Consequence:** Portability work is preserved without reducing the evidence
+  standard of the currently proven target profile.
+
+## D-085 — Keep physical audio discovery device-generic by default
+
+- **Status:** Accepted
+- **Date:** 2026-09-12
+- **Decision:** The production defaults use `audio.input_match=auto` and
+  `audio.output_match=auto`. Runtime discovery prefers one unambiguous USB audio
+  card over HDMI/video outputs and fails closed when multiple USB cards make the
+  choice ambiguous. Product names such as AIRHUG remain deployment evidence, not
+  source constants.
+- **Reason:** The clean-card installer must work with future microphones/speakers
+  without turning the current Pi's hardware inventory into hard-coded policy.
+- **Consequence:** Sites with several USB audio devices use explicit selectors;
+  Bluetooth selection remains separately governed by its recorded identity.
+
+## D-086 — Upgrade Bluetooth reconnect policy exactly and make headset input explicit
+
+- **Status:** Accepted
+- **Date:** 2026-09-12
+- **Decision:** FIX5 may replace only the exact known FIX4 Bluetooth reconnect
+  unit hash. The new helper reconciles radio readiness at boot and, for a
+  headset-capable device that exposes A2DP output but no microphone source,
+  selects an available HFP/HSP capture profile (preferring mSBC when available).
+- **Reason:** The real Pi proved pairing/autoconnect, but the appliance contract
+  requires a microphone path after reboot as well as playback. Exact-hash
+  migration preserves the existing fail-closed administrator-file policy.
+- **Consequence:** Fully wireless voice operation is deterministic when the
+  headset supports HFP/HSP; unexpected locally edited systemd units are never
+  overwritten silently.

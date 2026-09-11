@@ -1,57 +1,84 @@
 # GonKenLab Agent installation and recovery
 
-This document contains the detailed path behind the short README setup.
+The README gives the shortest supported path. This document covers fresh-Pi
+prerequisites, network recovery, installation options and resume behavior.
 
-## Standard fresh Raspberry Pi
+## Fresh Raspberry Pi preparation
 
-Run as the normal Raspberry Pi administrator user, not as `sudo bash`:
+The currently accepted production profile is Raspberry Pi 5 with at least 4 GB
+RAM running Raspberry Pi OS Lite 64-bit based on Debian 13/Trixie.
+
+Use Raspberry Pi Imager and configure the OS image before first boot:
+
+1. choose a normal administrator username/password;
+2. enable SSH if remote administration is desired;
+3. if using Wi-Fi, set SSID, passphrase **and WLAN country**;
+4. alternatively connect Ethernet for the initial installation.
+
+A passwordless shell login is not required. GonKenLab runs as a systemd service
+and starts before any interactive login.
+
+### Wi-Fi is blocked after first boot
+
+Raspberry Pi OS may block Wi-Fi until its regulatory country is configured. The
+installer must not guess this legal/regulatory value.
+
+Interactive recovery:
+
+```bash
+sudo raspi-config
+```
+
+Set the WLAN country, then enable the radio. A non-interactive equivalent is:
+
+```bash
+sudo raspi-config nonint do_wifi_country CC
+sudo rfkill unblock wifi
+nmcli radio wifi on
+```
+
+Replace `CC` with the correct two-letter country code for the Pi's actual
+location. Then configure/connect the desired NetworkManager Wi-Fi connection.
+
+If Ethernet is working, a blocked unused Wi-Fi radio does not block GonKenLab
+installation.
+
+## One-command installation
+
+Run as the normal Raspberry Pi administrator account:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/mukulu/gonkenlabagent/main/install-gonken.sh | bash
 ```
 
-The streamed launcher performs only the small outer bootstrap:
+The launcher:
 
-1. validates sudo when needed;
-2. runs `apt-get update`;
-3. installs `ca-certificates`, `git`, and `python3`;
-4. creates or updates a clean `~/gonkenlabagent` checkout;
-5. resolves the requested Git ref;
-6. runs the repository's governed `bootstrap.sh`.
+1. validates sudo when required;
+2. refreshes package metadata;
+3. installs Git, CA certificates and distribution Python;
+4. clones/updates a clean `~/gonkenlabagent` checkout;
+5. hands control to the repository bootstrap.
 
-`bootstrap.sh` owns the real installation: platform/resource validation,
-immutable application release, Ollama and Qwen, Whisper/Piper, speech models,
-systemd service, structured installer state, and optional Bluetooth audio.
+`bootstrap.sh` then validates and converges every governed boundary: platform,
+resources, accounts, immutable release, Ollama/Qwen, Whisper/Piper, models,
+systemd, optional Bluetooth, live physical audio and the voice runtime.
 
-## Standard checkout command
+Long operations emit `RUNNING`/`PROGRESS`/`WAITING` state. Recoverable failures
+can be corrected and the same command rerun.
 
-The official source and main ref are defaults:
+## Installation with Bluetooth audio
 
-```bash
-cd ~/gonkenlabagent
-./bootstrap.sh
-```
-
-Advanced/custom source:
-
-```bash
-./bootstrap.sh \
-  --source-url https://github.com/mukulu/gonkenlabagent.git \
-  --ref main
-```
-
-## Bluetooth at first install
-
-Known MAC (preferred in a busy lab):
+Known MAC address (preferred):
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/mukulu/gonkenlabagent/main/install-gonken.sh | \
   bash -s -- --bluetooth-audio --bluetooth-device AA:BB:CC:DD:EE:FF
 ```
 
-Known name substring:
+Known unique name:
 
 ```bash
+cd ~/gonkenlabagent
 ./bootstrap.sh --bluetooth-audio --bluetooth-device 'My Headset'
 ```
 
@@ -61,50 +88,102 @@ Guided discovery:
 ./bootstrap.sh --bluetooth-audio
 ```
 
-The device-specific selector is deployment input only. It is written to the
-private bootstrap record and is never a source-controlled hardware constant.
+Bluetooth setup reconciles its own prerequisites: BlueZ service, software
+rfkill state, controller power, the headless PipeWire/WirePlumber session,
+pairing/trust, audio routing and persistent trusted-device reconnect. A hardware
+rfkill block or missing controller fails with a specific diagnostic instead of
+being silently bypassed.
 
-## Resume after interruption or recoverable failure
+Keep a new device in pairing mode when the installer prints the pairing action.
+Device identities are deployment input only and are never hard-coded in source.
 
-Do not delete models/releases merely because one later step failed. Correct the
-reported cause and rerun the same command:
+## Installation from an existing checkout
+
+The official source and `main` are defaults:
 
 ```bash
 cd ~/gonkenlabagent
 ./bootstrap.sh
 ```
 
-The step engine probes completed boundaries and resumes from the first missing
-postcondition. Long network/build phases emit `RUNNING` and `PROGRESS` output.
-
-## Service verification
+Custom source/ref remains available for controlled forks/tests:
 
 ```bash
-systemctl status gonken-agent.service --no-pager -l
-journalctl -u gonken-agent.service -b --no-pager -n 100
+./bootstrap.sh \
+  --source-url https://github.com/mukulu/gonkenlabagent.git \
+  --ref main
 ```
 
-Optional Bluetooth extension:
+## Successful completion
+
+Installation is no longer considered complete merely because packages and
+services exist. The final appliance gate requires:
+
+- valid active release;
+- local Qwen model reachable through loopback Ollama;
+- Whisper and Piper artifacts validated;
+- system service enabled and active;
+- configured microphone path opens;
+- configured speaker path opens;
+- local voice runtime reaches wake-word standby.
+
+The expected final boundary resembles:
+
+```text
+[READY] code=APPLIANCE_READY service=gonken-agent.service wake_phrase=Hey_Gonken reboot_required=false
+[READY] code=INSTALLATION_COMPLETE service=gonken-agent.service autostart=enabled reboot_required=false wake_phrase=Hey_Gonken
+```
+
+No reboot is normally required. The service is already started. If the output
+path is available the assistant announces readiness; say **Hey Gonken** to use
+it.
+
+## Resume after failure/interruption
+
+Do not delete releases or downloaded models because a later stage failed.
+Correct the reported prerequisite and rerun the same bootstrap command. Each
+step verifies its postcondition and skips valid completed work.
+
+For example:
 
 ```bash
-systemctl status gonken-bluetooth-autoconnect.service --no-pager -l
-sudo /usr/local/bin/gonken-bluetooth status \
-  --record /etc/gonken-agent/bluetooth-device.record \
-  --audio-user gonken-agent
+cd ~/gonkenlabagent
+./bootstrap.sh --bluetooth-audio --bluetooth-device AA:BB:CC:DD:EE:FF
 ```
 
-## Diagnostic support bundle
+## Reboot verification
+
+After a successful install:
 
 ```bash
-sudo /usr/local/lib/gonken-agent/current/maintenance/collect-support.sh
+sudo reboot
 ```
 
-For installer-specific diagnosis also preserve `/var/lib/gonken-agent/install`
-and the current boot's relevant systemd journal. The development blueprint tracks
-expanding the normal support bundle to include those records automatically.
+No login should be required for the appliance itself. After boot, systemd starts
+the service; if Bluetooth was configured, the trusted-device helper reconnects
+it when available. The runtime waits/retries local dependencies and returns to
+wake-word standby.
 
-## Security note about the one-command launcher
+After reconnecting by SSH for verification:
 
-Streaming a script to a shell is convenient but executes the current HTTPS-hosted
-launcher immediately. Environments that require review/change control should use
-the download-review-run form documented in the README or pin a reviewed commit.
+```bash
+systemctl is-enabled gonken-agent.service
+systemctl is-active gonken-agent.service
+gonken-agent status --json
+```
+
+For detailed manual controls/logs see [OPERATIONS.md](OPERATIONS.md).
+
+## Locale warnings
+
+The first-install launcher runs package management under `C.UTF-8` so incomplete
+locale generation on a fresh image does not produce avoidable package-manager
+noise. Site locale configuration remains an operating-system preference and is
+not changed by GonKenLab Agent.
+
+## Security note about streamed installation
+
+`curl ... | bash` is deliberately provided for low-friction private deployment,
+but it executes the current HTTPS-hosted launcher immediately. Environments
+requiring change review should download/pin/review the launcher and source
+commit before execution.

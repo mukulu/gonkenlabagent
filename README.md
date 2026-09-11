@@ -1,177 +1,117 @@
 # GonKenLab Agent
 
-GonKenLab Agent is a privacy-oriented Raspberry Pi 5 assistant stack designed
-for local/offline AI-lab use. The maintained installation provisions local
-Qwen 3.5 through loopback-only Ollama, local Whisper speech recognition, local
-Piper speech synthesis, a governed headless service, diagnostics, and an
-optional headless Bluetooth-audio extension.
+GonKenLab Agent turns a supported Raspberry Pi into a privacy-oriented, fully
+local voice assistant. Qwen, speech recognition, speech synthesis, and the voice
+runtime operate on the Pi; normal conversation does not require a cloud AI
+service.
 
-## Install on Raspberry Pi
+The current production target is **Raspberry Pi 5 (4 GB or greater) running
+Raspberry Pi OS Lite 64-bit based on Debian 13/Trixie**.
 
-Use Raspberry Pi OS Lite 64-bit (Debian Trixie), enable SSH in Raspberry Pi
-Imager, boot the Pi, then run this as the normal Pi user:
+## 1. Prepare the Raspberry Pi
+
+The easiest path is Raspberry Pi Imager. Before writing the card, configure:
+
+- a username and password;
+- SSH, if you want remote administration;
+- Wi-Fi SSID/password **and WLAN country**, if Wi-Fi will be used;
+- or use Ethernet for the first installation.
+
+The WLAN country matters: Raspberry Pi OS may keep Wi-Fi radio-disabled until a
+regulatory country has been configured. See
+[Installation and fresh-Pi preparation](docs/INSTALLATION.md) if Wi-Fi is
+blocked or the Pi is not yet reachable.
+
+## 2. Install
+
+SSH into the Pi as your normal administrator account and run:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/mukulu/gonkenlabagent/main/install-gonken.sh | bash
 ```
 
-That one command refreshes package metadata, installs the small checkout
-prerequisites, clones/updates `~/gonkenlabagent`, and runs the governed
-bootstrap. Long downloads/builds report `RUNNING`/`PROGRESS` state and the
-installer is resumable after recoverable interruption.
+The launcher installs the small checkout prerequisites, clones/updates the
+repository, and hands control to the resumable bootstrap. The bootstrap installs
+and validates the local model, Whisper, Piper, the system service, physical
+audio, and the always-on voice runtime.
 
-Already cloned? The official repository and `main` are defaults:
+### Optional Bluetooth speaker/headset
 
-```bash
-cd ~/gonkenlabagent
-./bootstrap.sh
-```
-
-The explicit form remains available for forks or a non-default ref:
-
-```bash
-./bootstrap.sh \
-  --source-url https://github.com/mukulu/gonkenlabagent.git \
-  --ref main
-```
-
-## Optional headless Bluetooth audio
-
-USB audio remains the fallback. Bluetooth is enabled only when requested.
-If the intended device MAC is known, pass it at install time:
+If you know the device's Bluetooth MAC address, this is the most deterministic
+headless setup:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/mukulu/gonkenlabagent/main/install-gonken.sh | \
   bash -s -- --bluetooth-audio --bluetooth-device AA:BB:CC:DD:EE:FF
 ```
 
-You may supply a unique name substring instead of a MAC:
+Put a new device into pairing mode when the installer asks. The MAC above is an
+example only; no device identity is hard-coded in GonKenLab Agent.
+
+A unique name can also be used, or omit `--bluetooth-device` for guided
+discovery. See [Headless Bluetooth audio](docs/BLUETOOTH_AUDIO.md).
+
+Already cloned? The standard command is simply:
 
 ```bash
-./bootstrap.sh --bluetooth-audio --bluetooth-device 'My Headset'
+cd ~/gonkenlabagent
+./bootstrap.sh
 ```
 
-Or let setup pause at a bounded pairing checkpoint:
+The official repository and `main` branch are defaults.
 
-```bash
-./bootstrap.sh --bluetooth-audio
-```
+## 3. Wait for READY
 
-An exact MAC is checked directly against known BlueZ state before scanning. The
-installer never hard-codes a headset identity and never silently chooses among
-multiple matching nearby devices. Successful setup pairs/trusts the device,
-prepares a no-login PipeWire/WirePlumber session for `gonken-agent`, and enables
-bounded reconnect on later boots.
-
-See [Headless Bluetooth audio](docs/BLUETOOTH_AUDIO.md) for the detailed design
-and troubleshooting path.
-
-## After installation
-
-Check the main service:
-
-```bash
-systemctl status gonken-agent.service --no-pager -l
-```
-
-Recent logs:
-
-```bash
-journalctl -u gonken-agent.service -b --no-pager -n 100
-```
-
-Optional Bluetooth status:
-
-```bash
-systemctl status gonken-bluetooth-autoconnect.service --no-pager -l
-sudo /usr/local/bin/gonken-bluetooth status \
-  --record /etc/gonken-agent/bluetooth-device.record \
-  --audio-user gonken-agent
-```
-
-Local model sanity check:
-
-```bash
-curl -s http://127.0.0.1:11434/api/version
-ollama list
-```
-
-Create a private diagnostic ZIP:
-
-```bash
-sudo /usr/local/lib/gonken-agent/current/maintenance/collect-support.sh
-```
-
-The service also writes a content-free startup snapshot under:
+A successful appliance installation ends with output similar to:
 
 ```text
-/var/lib/gonken-agent/runtime/startup/latest.json
+[READY] code=APPLIANCE_READY service=gonken-agent.service wake_phrase=Hey_Gonken reboot_required=false
+[READY] code=INSTALLATION_COMPLETE service=gonken-agent.service autostart=enabled reboot_required=false wake_phrase=Hey_Gonken
 ```
 
-## Update, rollback, uninstall
+When audio is available, the assistant also announces that it is ready.
+
+No shell login is required for normal operation. `gonken-agent.service` is
+enabled under systemd and starts automatically whenever the Pi boots.
+
+## 4. Use the assistant
+
+Power on the configured speaker/headset (if any), power the Raspberry Pi, and
+wait for the ready announcement. Then say:
+
+> **Hey Gonken**
+
+Wait for the spoken **“Yes?”** acknowledgement, then ask your question. The
+assistant processes it locally, speaks the answer, and returns to wake-word
+standby.
+
+To check readiness from SSH:
 
 ```bash
-sudo /usr/local/lib/gonken-agent/current/maintenance/update.sh
-sudo /usr/local/lib/gonken-agent/current/maintenance/rollback.sh
-sudo /usr/local/lib/gonken-agent/current/maintenance/uninstall.sh
+gonken-agent status
 ```
 
-Uninstall keeps project data unless explicit purge confirmation is supplied.
+For manual foreground operation, one-turn testing, service start/stop/restart,
+logs, `doctor`, and support collection, see
+[Operating and troubleshooting GonKenLab Agent](docs/OPERATIONS.md).
 
-## Configuration
+## Documentation
 
-Site configuration:
-
-```text
-/etc/gonken-agent/config.toml
-```
-
-Important defaults include:
-
-- model: `qwen3.5:2b-q4_K_M`;
-- USB input/output match: `AIRHUG`;
-- push-to-talk GPIO: `17`;
-- recording LED GPIO: `27`;
-- Ollama: loopback only;
-- cloud inference: disabled.
-
-Inspect effective configuration with paths redacted:
-
-```bash
-gonken-agent config show --effective --json
-```
-
-## Current acceptance boundary
-
-The installer/release lifecycle, Ollama/Qwen, Whisper/Piper artifact chain,
-speech-file smoke, systemd service management, update/rollback/uninstall,
-startup diagnostics, and host-side tests are implemented. Bluetooth is an
-opt-in extension whose actual pairing/profile/reboot behavior must be proven on
-the Raspberry Pi.
-
-The governed packaged service is still a headless supervisor while the physical
-capture/playback and push-to-talk/GPIO acceptance gates remain open. Plain
-`gonken-agent run` therefore still refuses to claim production voice activation.
-Do not interpret a successful installer as proof of microphone, speaker, GPIO,
-or live conversational quality until the target acceptance run passes.
-
-For the current physical campaign use:
-
-- [Installation and recovery](docs/INSTALLATION.md)
-- [Raspberry Pi acceptance runbook](docs/RASPBERRY_PI_ACCEPTANCE_RUN.md)
+- [Installation and fresh-Pi preparation](docs/INSTALLATION.md)
+- [Operating, starting/stopping, logs and diagnostics](docs/OPERATIONS.md)
 - [Headless Bluetooth audio](docs/BLUETOOTH_AUDIO.md)
+- [Raspberry Pi acceptance runbook](docs/RASPBERRY_PI_ACCEPTANCE_RUN.md)
+- [Dependency profiles](requirements/README.md)
 
-## Development / project handoff
+Engineering/project-maintenance material is kept under
+[`docs/development/`](docs/development/) rather than in this user-facing README.
 
-Engineering authority is kept outside the README:
+## Important
 
-- `docs/development/MASTER_BLUEPRINT.md`
-- `docs/development/IMPLEMENTATION_STATUS.md`
-- `docs/development/TEST_MATRIX.md`
-- `docs/development/DECISIONS.md`
-- `docs/development/REPOSITORY_AUDIT.md`
-- `requirements/README.md`
+Use the packaged `gonken-agent` commands and `gonken-agent.service`. Do **not**
+run the retained `orchestrator.py`/legacy source runtime or install Python
+packages globally with `pip`; those files exist only for compatibility and
+project provenance, not as the supported appliance entry point.
 
-`PRD.md` and the retained legacy runtime are provenance/compatibility material,
-not release authority. Project policy prohibits redistribution unless that policy is
+Project policy currently prohibits redistribution unless that policy is
 explicitly changed by the project owner.

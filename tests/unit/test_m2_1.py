@@ -122,15 +122,14 @@ class CliTests(unittest.TestCase):
         self.assertEqual(payload["redistribution_policy"], "prohibited")
         self.assertEqual(payload["package_foundation"], "complete")
         self.assertEqual(payload["configuration_foundation"], "complete")
-        self.assertEqual(set(payload["extensions"].values()), {"disabled"})
+        self.assertEqual(payload["extensions"]["wake_word"], "enabled")
+        self.assertEqual(payload["extensions"]["bluetooth"], "disabled")
 
-    def test_packaged_run_refuses_to_claim_runtime_readiness(self) -> None:
-        error = io.StringIO()
-        with contextlib.redirect_stderr(error):
+    def test_packaged_run_enters_voice_appliance_runtime(self) -> None:
+        with mock.patch("gonken_agent.voice_runtime.run_appliance", return_value=0) as runtime:
             result = cli.main(["run"])
-
-        self.assertEqual(result, cli.EXIT_UNSUPPORTED)
-        self.assertIn("not implemented", error.getvalue())
+        self.assertEqual(result, 0)
+        runtime.assert_called_once()
 
     def test_legacy_run_crosses_explicit_adapter(self) -> None:
         with mock.patch.object(cli, "run_legacy_source", return_value=0) as adapter:

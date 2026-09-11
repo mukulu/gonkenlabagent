@@ -109,16 +109,41 @@ class OllamaClient:
             raise OllamaError('OLLAMA_MODEL_DIGEST_INVALID')
         return {'model': self.config.model, 'digest': digest}
 
-    def chat(self, messages, cancel):
-        data = self.request('POST', '/api/chat', {'model': self.config.model,
-            'messages': messages, 'stream': False, 'think': False, 'format': 'json', 'keep_alive': self.config.keep_alive,
-            'options': {'num_ctx': self.config.context_tokens, 'num_predict': self.config.max_output_tokens, 'temperature': 0}}, cancel)
+    def _chat_payload(self, messages, *, structured):
+        if not isinstance(messages, list) or len(messages) > 20:
+            raise ValueError('bounded chat messages required')
+        for item in messages:
+            if not isinstance(item, dict) or set(item) != {'role', 'content'}:
+                raise ValueError('invalid chat message')
+            if item['role'] not in {'system', 'user', 'assistant'} or not isinstance(item['content'], str):
+                raise ValueError('invalid chat message')
+            if not item['content'].strip() or len(item['content']) > 16384:
+                raise ValueError('chat message exceeds bounds')
+        payload = {'model': self.config.model, 'messages': messages, 'stream': False,
+                   'think': False, 'keep_alive': self.config.keep_alive,
+                   'options': {'num_ctx': self.config.context_tokens,
+                               'num_predict': self.config.max_output_tokens, 'temperature': 0}}
+        if structured:
+            payload['format'] = 'json'
+        return payload
+
+    def _chat_result(self, messages, cancel, *, structured):
+        data = self.request('POST', '/api/chat', self._chat_payload(messages, structured=structured), cancel)
         if data.get('model') != self.config.model or data.get('done') is not True:
             raise OllamaError('OLLAMA_MODEL_OR_COMPLETION_MISMATCH')
-        if not isinstance(data.get('message'), dict): raise OllamaError('OLLAMA_MALFORMED_RESPONSE')
+        if not isinstance(data.get('message'), dict):
+            raise OllamaError('OLLAMA_MALFORMED_RESPONSE')
         content = data['message'].get('content')
-        if not isinstance(content, str): raise OllamaError('OLLAMA_MALFORMED_RESPONSE')
+        if not isinstance(content, str) or not content.strip():
+            raise OllamaError('OLLAMA_MALFORMED_RESPONSE')
         return content
+
+    def chat(self, messages, cancel):
+        return self._chat_result(messages, cancel, structured=True)
+
+    def chat_text(self, messages, cancel):
+        """Return normal spoken-conversation text with Qwen thinking disabled."""
+        return self._chat_result(messages, cancel, structured=False)
 
     def close(self):
         self._closed = True

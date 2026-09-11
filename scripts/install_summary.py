@@ -166,6 +166,21 @@ def validate_service(root: Path, commit: str) -> bool:
             return False
     return True
 
+def validate_appliance(root: Path) -> dict[str, object] | None:
+    path = mapped(root, "/run/gonken-agent/ready.json")
+    if not path.is_file() or path.is_symlink() or path.stat().st_size > 8192:
+        return None
+    try:
+        value = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError, json.JSONDecodeError):
+        return None
+    if not isinstance(value, dict) or value.get("status") != "READY" or value.get("code") != "VOICE_RUNTIME_READY":
+        return None
+    if not isinstance(value.get("wake_phrase"), str) or not value["wake_phrase"].strip():
+        return None
+    return value
+
+
 def component(name: str, status: str, code: str) -> dict[str, str]:
     if status not in {"READY", "DEGRADED", "FAILED"} or not SAFE_CODE_RE.fullmatch(code):
         fail("SUMMARY_COMPONENT", "invalid summary component", "repair the summary implementation", 70)
@@ -177,12 +192,14 @@ def build_summary(root: Path, commit: str) -> dict[str, object]:
     ollama = validate_ollama(root)
     speech = validate_speech(root)
     service_ready = validate_service(root, commit)
+    appliance = validate_appliance(root)
+    appliance_ready = service_ready and appliance is not None
     milestones = ["M3.3", "M3.4", "M3.5"]
     if service_ready:
         milestones.append("M6.2")
     return {
-        "status": "DEGRADED",
-        "ready": False,
+        "status": "READY" if appliance_ready else "DEGRADED",
+        "ready": appliance_ready,
         "code": "M3_6_INSTALL_SUMMARY",
         "completed_milestones": milestones,
         "active_commit": release["commit"],
@@ -192,21 +209,25 @@ def build_summary(root: Path, commit: str) -> dict[str, object]:
         "whisper_version": speech["whisper_version"],
         "piper_version": speech["piper_version"],
         "piper_voice": speech["piper_voice"],
+        "wake_phrase": appliance.get("wake_phrase") if appliance else None,
         "components": [
             component("release", "READY", "ACTIVE_RELEASE_VALIDATED"),
             component("ollama", "READY", "LOCAL_MODEL_VALIDATED"),
             component("speech_artifacts", "READY", "PINNED_SPEECH_SMOKE_VALIDATED"),
             component("app_service", "READY" if service_ready else "DEGRADED", "HEADLESS_SERVICE_VALIDATED" if service_ready else "HEADLESS_SERVICE_NOT_READY"),
-            component("input_audio", "DEGRADED", "PHYSICAL_ACCEPTANCE_NOT_RUN"),
-            component("output_audio", "DEGRADED", "PHYSICAL_ACCEPTANCE_NOT_RUN"),
-            component("gpio", "DEGRADED", "PHYSICAL_ACCEPTANCE_NOT_RUN"),
+            component("input_audio", "READY" if appliance_ready else "DEGRADED", "PHYSICAL_INPUT_OPENED" if appliance_ready else "PHYSICAL_ACCEPTANCE_PENDING"),
+            component("output_audio", "READY" if appliance_ready else "DEGRADED", "PHYSICAL_OUTPUT_OPENED" if appliance_ready else "PHYSICAL_ACCEPTANCE_PENDING"),
+            component("wake_runtime", "READY" if appliance_ready else "DEGRADED", "WAKE_STANDBY_READY" if appliance_ready else "WAKE_RUNTIME_PENDING"),
+            component("gpio", "READY", "OPTIONAL_NOT_REQUIRED_FOR_VOICE"),
         ],
-        "next_action": "Run target audio, GPIO, reboot, thermal, and end-to-end acceptance before claiming appliance readiness.",
+        "next_action": "Say the configured wake phrase to begin." if appliance_ready else "Keep the configured audio device powered and rerun bootstrap.",
         "limitations": [
-            "No Raspberry Pi hardware acceptance is implied by this summary.",
-            "No microphone, speaker, GPIO, reboot, thermal, or end-to-end voice behavior is accepted yet.",
+            "GPIO push-to-talk remains optional and requires separate physical acceptance.",
+            "A READY state proves the service opened the configured audio path, warmed local inference, and played the ready announcement; a human-spoken wake turn and reboot cycle remain target acceptance evidence.",
+            "Raspberry Pi 4 is not accepted by the Pi 5 production profile.",
         ],
     }
+
 
 
 def parser() -> argparse.ArgumentParser:
@@ -229,7 +250,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.json:
             print(json.dumps(summary, sort_keys=True))
         else:
-            print(f"[OK] code={summary['code']} status={summary['status']} ready=false next=TARGET_ACCEPTANCE")
+            print(f"[OK] code={summary['code']} status={summary['status']} ready={str(summary['ready']).lower()} next={'USE_ASSISTANT' if summary['ready'] else 'TARGET_ACCEPTANCE'}")
     except SummaryError as error:
         emit_error(error)
         return error.status

@@ -1,10 +1,10 @@
 # GonKenLab Agent Implementation Master Blueprint
 
-**Blueprint revision:** 2.0-continuous
+**Blueprint revision:** 2.1-appliance-readiness
 
-**Prepared:** 2026-09-09 UTC
+**Prepared:** 2026-09-12 UTC
 
-**Branch:** `dev/bootstrap-rearchitecture`
+**Branch:** `fix5-appliance-readiness`
 
 **Source audit:** `REPOSITORY_AUDIT.md` at checkpoint `checkpoint/audit`
 
@@ -24,7 +24,7 @@ The blueprint does not claim that every technical choice is already proven on Ra
 
 ### 2.1 What is being built
 
-**GonKenLab Agent** is a headless Raspberry Pi 5 4GB appliance that provides spoken, source-grounded access to a bounded corpus of GonKen AI-lab documentation. Speech-to-text, document retrieval, language-model inference, text-to-speech, and normal system tools run locally. It starts automatically after boot, remains diagnosable when peripherals are absent, and requires no interactive shell activation during normal use.
+**GonKenLab Agent** is a headless Raspberry Pi 5 4GB appliance that provides a fully local spoken assistant and can optionally ground answers in a bounded corpus of GonKen AI-lab documentation. Speech-to-text, optional document retrieval, language-model inference and text-to-speech run locally. It starts automatically after boot, remains diagnosable when peripherals are absent, and requires no interactive shell activation during normal use.
 
 The primary research and educational contribution is not merely running a chatbot on a Raspberry Pi. It is making a constrained edge-AI assistant observable and accountable through local provenance, measurable performance, explicit privacy states, and restricted actions.
 
@@ -36,17 +36,17 @@ The release candidate must provide:
 2. Qwen 3.5 2B Q4_K_M through local Ollama, subject to the model acceptance gate;
 3. local Whisper speech recognition;
 4. local Piper speech synthesis;
-5. a physical push-to-talk path that works without wake-word recognition;
-6. a bounded local Markdown/text corpus with deterministic lexical retrieval;
-7. concise answers that identify supporting sources or explicitly report insufficient support;
-8. local telemetry and provenance with privacy-preserving defaults;
-9. a minimal read-only dashboard restricted to loopback;
-10. a systemd-managed runtime independent of user login;
-11. clear degraded states and automatic retry when audio/Ollama are temporarily unavailable;
-12. doctor, install verification, update, rollback, recovery, and uninstall procedures;
-13. automated unit/integration tests plus recorded Pi hardware, reboot, and failure-injection evidence.
+5. an always-on, fully local wake-phrase runtime that starts under systemd without interactive login, plus explicit manual `run` and one-turn `talk` entry points;
+6. automatic recovery when the microphone, speaker, Bluetooth transport, or Ollama is temporarily unavailable;
+7. optional bounded local Markdown/text corpus retrieval for document-grounded workflows without preventing ordinary offline conversation when no corpus is provisioned;
+8. concise spoken answers and privacy-preserving content-free operational telemetry;
+9. a minimal read-only diagnostic dashboard restricted to loopback;
+10. deterministic boot autostart, readiness announcement, and a content-free READY contract;
+11. doctor, install verification, update, rollback, recovery, uninstall, manual service control, and log procedures;
+12. optional governed Bluetooth audio with explicit device identity, pairing/trust, headless PipeWire ownership, and reconnect;
+13. automated unit/integration tests plus recorded Pi hardware, reboot, wake, audio, thermal, and failure-injection evidence.
 
-The core release does **not** require wake-word activation, voice power control, direct LAN dashboard access, or Bluetooth. Those are governed extensions X1–X4. They remain planned project work, but each has an independent acceptance gate and none may delay or dilute the core release.
+Voice power control and direct LAN dashboard access remain governed future extensions. A dedicated low-power/custom wake-word backend remains an X1 optimization; the accepted initial appliance path uses the already pinned local Whisper runtime for bounded wake-phrase spotting. Bluetooth remains opt-in and may never make the USB path unusable.
 
 ### 2.3 Explicit non-goals for the first release candidate
 
@@ -55,8 +55,8 @@ The core release does **not** require wake-word activation, voice power control,
 - arbitrary shell execution by the language model;
 - camera or multimodal image input;
 - a purchased LCD or mandatory pygame UI;
-- Bluetooth as the primary supported audio path;
-- continuously sampled wake-word operation;
+- Bluetooth as the only supported audio path;
+- cloud-hosted wake-word processing or retained raw wake-monitor audio;
 - voice-authorized shutdown or reboot;
 - embedding/vector-database retrieval;
 - any non-loopback dashboard bind;
@@ -80,7 +80,7 @@ The core release does **not** require wake-word activation, voice power control,
 |---|---|---|
 | INV-01 | Installer, runtime, doctor, service, and tests resolve one effective chat model. | config unit tests; doctor model/digest check; install smoke test |
 | INV-02 | Normal runtime performs no unapproved outbound internet request. | network-denial integration test; offline packet/connection audit |
-| INV-03 | Any enabled wake phrase equals the validated loaded wake model and displays a distinct continuous-monitoring indicator. | GX1 startup/config/privacy-indicator tests |
+| INV-03 | The enabled wake phrase equals the effective local configuration; continuous monitoring is disclosed in status/docs, and any later physical monitoring indicator must track the same runtime state. | wake/config/runtime tests; GX1 indicator tests when hardware indicator is enabled |
 | INV-04 | Raw utterance audio is temporary and deleted by default on success, error, cancellation, and signal. | lifecycle/failure tests; runtime-directory inspection |
 | INV-05 | The LLM never supplies a shell command for direct execution. | code review; no-shell subprocess policy; adversarial tests |
 | INV-06 | Any voice power extension requires deterministic intent plus independent physical confirmation outside LLM free-form output. | GX2 state-machine, helper, privilege, and hardware tests |
@@ -107,8 +107,8 @@ The core release does **not** require wake-word activation, voice power control,
 - 64GB A2-class microSD or better;
 - appropriate Raspberry Pi 5 active cooling;
 - adequate 5V/5A-class power supply;
-- USB audio device, initially validated against AIRHUG USB audio;
-- GPIO push button and dedicated recording LED for full physical acceptance.
+- one usable local audio input/output path; USB audio is the baseline and optional Bluetooth is accepted through its separate gate;
+- GPIO push button/LED are optional physical-control enhancements rather than prerequisites for wake-voice operation.
 
 As verified during M1B, current Raspberry Pi OS is Trixie and Debian Trixie's default `python3` is 3.13. The installer must still record the exact image release/date, `/etc/os-release`, architecture, Python patch version, Pi model, free storage, RAM, and systemd version. It must not assume a fixed Python patch release. Unsupported platforms fail before mutation unless `--development-host` is explicitly selected for non-service desktop testing.
 
@@ -439,13 +439,13 @@ SIGTERM/SIGINT stop new activation, close input streams, cancel bounded work, de
 
 ## 10. Interaction, grounding, and governance contracts
 
-### 10.1 Push-to-talk
+### 10.1 Voice activation and manual fallback
 
-Push-to-talk is the mandatory reliable and privacy-forward path. Hold GPIO17 to capture; release to stop. GPIO27 red LED is on exactly while utterance audio is being captured. A keyboard/CLI trigger is allowed only for development/diagnostics.
+The production appliance starts in local wake-phrase standby after boot. The initial accepted wake detector reuses the pinned Whisper runtime in bounded windows and deletes temporary audio after transcription. `gonken-agent run` provides the same continuous runtime in the foreground and `gonken-agent talk --seconds N` provides an explicit one-turn fallback. GPIO push-to-talk remains a useful optional physical-control path and may be enabled later without becoming a prerequisite for the basic voice appliance.
 
-### 10.2 Extension X1 — wake-word mode
+### 10.2 Extension X1 — dedicated low-power wake backend
 
-Wake-word mode is a governed post-core extension and is absent/disabled in the core release. openWakeWord is the first evaluation candidate, not an architectural dependency. A backend spike must first prove a maintained, license-compatible, Python 3.13/AArch64 install and on-Pi inference path. When an accepted backend is enabled, short frames are processed locally and not written to disk. Documentation must explain that the microphone is continuously sampled in memory for wake detection even though utterance recording begins only after activation.
+X1 no longer represents whether the appliance can use a wake phrase at all. The baseline appliance can phrase-spot locally with the already accepted Whisper runtime. X1 is the governed optimization path for a dedicated wake backend such as openWakeWord/custom model when a backend spike proves maintenance, license, Python 3.13/AArch64 installation, on-Pi inference, false-reject/false-accept performance, idle CPU/thermal behavior, phrase/model consistency and any physical monitoring-indicator requirements. Failure of X1 leaves the Whisper wake path available.
 
 The “Hey Gonken” model requires:
 
@@ -1120,7 +1120,7 @@ All 18 mandatory attack questions were adjudicated in `BLUEPRINT_ADVERSARIAL_REV
 - undefined power-loss behavior around activation;
 - combined core/experimental scope.
 
-They are resolved in this revision by removing core power privilege, distinguishing convergent provisioning from project-atomic activation, specifying a durable activation journal/pre-start reconciliation contract, and separating X1–X4 from core release gates. No Critical M1B issue remains open. AR-19 remains a High release gate: M2.1 resolved its development disposition through an explicit no-redistribution policy, but a future public release still requires maintainer-approved licensing and provenance.
+They were resolved by removing core power privilege, distinguishing convergent provisioning from project-atomic activation, specifying a durable activation journal/pre-start reconciliation contract, and originally isolating X1–X4. The later appliance-readiness revision promotes baseline Whisper wake operation and opt-in X4 Bluetooth while keeping X2/X3 and the dedicated X1 backend independently gated. No Critical M1B issue remains open. AR-19 remains a High release gate: M2.1 resolved its development disposition through an explicit no-redistribution policy, but a future public release still requires maintainer-approved licensing and provenance.
 
 ## 18. Exact next action
 
@@ -1143,3 +1143,132 @@ Read the current machine-readable milestone ledger and generated status table. R
 - [openWakeWord repository, usage, evaluation, training, and licensing](https://github.com/dscripka/openWakeWord)
 - [whisper.cpp release b4938](https://github.com/ggml-org/whisper.cpp/releases/tag/b4938)
 - [Maintained Piper package, Python/AArch64 wheels, provenance, and GPL license](https://pypi.org/project/piper-tts/)
+
+## 18. FIX5 appliance-readiness renovation (2026-09-12)
+
+### 18.1 Release meaning
+
+A successful bootstrap is no longer allowed to mean only "software installed".
+For the Pi 5 production profile, normal completion means the installed system is
+an operational local voice appliance:
+
+```text
+boot -> systemd -> local dependencies -> physical audio -> wake standby
+     -> wake phrase -> STT -> local Qwen -> Piper -> speaker -> standby
+```
+
+The long-running appliance starts through `gonken-agent.service`; interactive
+shell login or console auto-login is neither required nor desired. The service
+must remain enabled across reboot and recover from temporarily unavailable local
+dependencies without reinstalling models.
+
+### 18.2 Initial wake-word implementation
+
+The first accepted always-on wake path uses the already pinned local Whisper
+runtime for bounded phrase spotting of the configured wake phrase. This closes
+the functional appliance gap without introducing a second unprovisioned ML
+artifact. A dedicated low-power wake-word model remains an X1 optimization and
+must be separately pinned, licensed and benchmarked before replacing the
+baseline.
+
+Wake monitoring must not persist microphone chunks or transcripts. Raw capture
+files are temporary and removed after each bounded operation.
+
+### 18.3 Final appliance readiness record
+
+The runtime owns `/run/gonken-agent/ready.json`. The record is ephemeral,
+content-free and valid only while the service is physically ready. It contains
+categorical state such as wake phrase, audio backend and local model identity;
+it contains no user speech or model answer.
+
+The final installer step restarts the service, waits for `systemctl active` plus
+this valid ready record, and fails with bounded service/journal evidence if the
+runtime cannot become ready. `INSTALLATION_COMPLETE` may print `READY` only
+after this gate passes.
+
+### 18.4 Physical audio contract
+
+Appliance readiness requires the configured input and output path to be opened
+on the target. For USB-only operation, ALSA card numbers are resolved dynamically
+from configured name matching rather than cached numeric indices. For managed
+Bluetooth, the dedicated `gonken-agent` PipeWire graph is used through ALSA's
+PipeWire default route.
+
+The ready announcement performs a real Piper synthesis/playback operation. A
+runtime that cannot open its physical input or play synthesized speech remains
+in retry/wait state rather than claiming readiness.
+
+### 18.5 Bluetooth prerequisite reconciliation
+
+When X4 Bluetooth is requested, every dependency is explicitly postconditioned:
+
+- BlueZ installed and `bluetooth.service` active;
+- a controller exists;
+- hard rfkill block is rejected with remediation;
+- soft rfkill is unblocked automatically;
+- controller `Powered=yes` is established;
+- lingering `gonken-agent` user manager exists;
+- PipeWire/PipeWire-Pulse/WirePlumber are active and `pactl` responds;
+- the selected device is paired, trusted and connected;
+- an output route is present when the device advertises output;
+- trusted-device autoconnect is enabled.
+
+The package must use distro-global PipeWire user-unit enablement and start those
+units in the lingering user manager; it must not assume it can create per-user
+enablement symlinks under the root-managed service home.
+
+### 18.6 Network bootstrap boundary
+
+The outer HTTPS installer cannot repair a Wi-Fi radio that has no legal WLAN
+country before it has network access. Raspberry Pi Imager therefore remains the
+preferred authority for Wi-Fi SSID/passphrase/country and SSH. The launcher may
+diagnose blocked Wi-Fi but must not guess a regulatory country. Ethernet is an
+accepted initial transport and unused blocked Wi-Fi does not fail installation.
+
+### 18.7 Manual-operation contract
+
+Both automatic and manual paths are required:
+
+- automatic: `gonken-agent.service`, enabled at boot;
+- foreground continuous voice: `gonken-agent run` after stopping the service;
+- one explicit voice turn: `gonken-agent talk --seconds N`;
+- service start/stop/restart/status through systemd;
+- bounded current/live logs through journald;
+- `doctor --probe-ollama --probe-audio` for explicit diagnostics;
+- private support bundle through the maintained collector.
+
+Legacy `orchestrator.py` and `run --legacy-source` are not accepted production
+entry points and must not be recommended to users.
+
+### 18.8 Documentation split
+
+`README.md` is the user-facing path only: prepare Pi, one-command installation,
+Bluetooth option, `READY`, wake phrase and links. Operational commands live in
+`docs/OPERATIONS.md`; detailed install/network recovery lives in
+`docs/INSTALLATION.md`; Bluetooth internals live in `docs/BLUETOOTH_AUDIO.md`;
+engineering authority remains under `docs/development/`.
+
+### 18.9 Pi 4 portability
+
+Raspberry Pi 4 is a future target profile, not an alias for the validated Pi 5
+profile. It requires separate RAM/thermal/inference/wake/audio evidence and may
+need different model/concurrency limits. Do not relax the Pi 5 preflight gate
+until that profile exists and passes its own acceptance campaign.
+
+### 18.10 FIX5 regression gates
+
+Before packaging FIX5:
+
+- unit tests for wake matching, local unstructured Qwen chat, ALSA selection,
+  physical turn cleanup, Bluetooth controller reconciliation and readiness
+  summary;
+- installer-engine interruption/resume suite;
+- CLI/service/manual-operation integration tests;
+- release and normal speech lifecycle tests;
+- Bash syntax, Python compilation and `git diff --check`;
+- consumer-side application of the generated patch to an untouched FIX4
+  checkpoint followed by focused tests.
+
+Physical acceptance remains mandatory after host verification: live wake, spoken
+turn, no-login reboot, Bluetooth reconnect and recovery must be observed on the
+Pi before FIX5 is called a proven appliance release.

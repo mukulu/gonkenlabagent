@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
-# GonKenLab Agent resumable installer (through M6.2).
-#
-# M6.2 installs the governed headless application service. Physical audio and
-# hardware acceptance remain explicitly degraded until later milestones.
+# GonKenLab Agent resumable installer and appliance-readiness convergence.
 
 set -Eeuo pipefail
+
+# Avoid package-manager noise when the image advertises an ungenerated site locale.
+export LANG=C.UTF-8
+export LC_ALL=C.UTF-8
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
@@ -246,7 +247,7 @@ gonken_prerequisite_postcondition() {
     return 69
   fi
   if [[ "${GONKEN_SOURCE_RECORD[platform_mode]}" == "target" ]]; then
-    for command_name in cmake c++ getent groupadd runuser systemd-tmpfiles tar useradd usermod zstd; do
+    for command_name in aplay arecord cmake c++ getent groupadd runuser systemd-tmpfiles tar useradd usermod zstd; do
       command -v "$command_name" >/dev/null 2>&1 || return 1
     done
   fi
@@ -259,7 +260,7 @@ gonken_prerequisite_action() {
   DEBIAN_FRONTEND=noninteractive apt-get update || return 69
   gonken_step_checkpoint "$step_id" "during" || return $?
   DEBIAN_FRONTEND=noninteractive apt-get install -y \
-    build-essential cmake \
+    alsa-utils build-essential cmake \
     ca-certificates git python3-pip python3-setuptools python3-venv \
     tar util-linux zstd || return 69
 }
@@ -468,6 +469,10 @@ gonken_bluetooth_unit_template() {
   printf '%s\n' "$RELEASE_ROOT/current/maintenance/packaging/systemd/gonken-bluetooth-autoconnect.service"
 }
 
+gonken_appliance_manager() {
+  printf '%s\n' "$RELEASE_ROOT/current/maintenance/appliance_manager.py"
+}
+
 readonly BLUETOOTH_RECORD="/etc/gonken-agent/bluetooth-device.record"
 readonly BLUETOOTH_AUDIO_USER="gonken-agent"
 
@@ -648,7 +653,7 @@ gonken_bluetooth_stack_action() {
   printf '[RUNNING] code=BLUETOOTH_PACKAGES message=installing_headless_bluez_pipewire_stack\n'
   DEBIAN_FRONTEND=noninteractive apt-get update || return 69
   DEBIAN_FRONTEND=noninteractive apt-get install -y \
-    bluez pipewire pipewire-pulse pipewire-audio pipewire-alsa \
+    bluez rfkill pipewire pipewire-pulse pipewire-audio pipewire-alsa \
     pulseaudio-utils wireplumber || return 69
   python3 "$(gonken_bluetooth_manager)" prepare \
     --audio-user "$BLUETOOTH_AUDIO_USER"
@@ -672,7 +677,8 @@ gonken_bluetooth_pair_action() {
 
 gonken_bluetooth_autoconnect_postcondition() {
   python3 "$(gonken_bluetooth_manager)" autoconnect-status \
-    --record "$BLUETOOTH_RECORD" >/dev/null 2>&1 || return 1
+    --record "$BLUETOOTH_RECORD" \
+    --unit-template "$(gonken_bluetooth_unit_template)" >/dev/null 2>&1 || return 1
   GONKEN_STEP_EVIDENCE="bluetooth_trusted_device_autoconnect_service"
 }
 
@@ -680,6 +686,15 @@ gonken_bluetooth_autoconnect_action() {
   python3 "$(gonken_bluetooth_manager)" install-autoconnect \
     --record "$BLUETOOTH_RECORD" \
     --unit-template "$(gonken_bluetooth_unit_template)"
+}
+
+gonken_appliance_postcondition() {
+  python3 "$(gonken_appliance_manager)" status >/dev/null 2>&1 || return 1
+  GONKEN_STEP_EVIDENCE="voice_appliance_ready_and_enabled"
+}
+
+gonken_appliance_action() {
+  python3 "$(gonken_appliance_manager)" activate --timeout 180
 }
 
 if ((ENGINE_ONLY == 0)); then
@@ -725,7 +740,7 @@ gonken_register_step \
 
 if ((ENGINE_ONLY == 0)); then
   gonken_register_step \
-    "release_prerequisites" "3" \
+    "release_prerequisites" "4" \
     "gonken_prerequisite_precondition" "gonken_prerequisite_action" "gonken_prerequisite_postcondition" \
     "target_only_apt_bootstrap_prerequisites" \
     "probe_distro_tools_then_install_only_missing_target_prerequisites" \
@@ -802,7 +817,7 @@ if ((ENGINE_ONLY == 0)); then
 
         if [[ "${GONKEN_SOURCE_RECORD[bluetooth_audio]:-disabled}" == "requested" ]]; then
           gonken_register_step \
-            "bluetooth_audio_stack" "1" \
+            "bluetooth_audio_stack" "2" \
             "gonken_app_service_postcondition" "gonken_bluetooth_stack_action" "gonken_bluetooth_stack_postcondition" \
             "optional_bluez_pipewire_wireplumber_headless_audio_stack" \
             "install_only_when_explicitly_requested_and_reuse_when_healthy" \
@@ -816,12 +831,19 @@ if ((ENGINE_ONLY == 0)); then
             "remove_only_the_managed_pairing_record_to_reselect" || exit $?
 
           gonken_register_step \
-            "bluetooth_audio_autoconnect" "1" \
+            "bluetooth_audio_autoconnect" "2" \
             "gonken_bluetooth_pair_postcondition" "gonken_bluetooth_autoconnect_action" "gonken_bluetooth_autoconnect_postcondition" \
             "bounded_trusted_device_reconnect_service" \
             "enable_once_then_retry_connection_when_device_is_powered_later" \
             "disable_extension_service_without_affecting_USB_core" || exit $?
         fi
+
+        gonken_register_step \
+          "appliance_readiness" "1" \
+          "gonken_app_service_postcondition" "gonken_appliance_action" "gonken_appliance_postcondition" \
+          "physical_audio_local_model_wake_runtime_and_enabled_boot_service" \
+          "restart_service_wait_for_content_free_ready_record_and_retry_dependencies" \
+          "service_remains_enabled_and_runtime_recovers_without_reinstalling_models" || exit $?
       fi
     fi
   fi
@@ -877,11 +899,11 @@ python3 "$(gonken_install_summary_manager)" \
   --system-root / \
   --commit "${GONKEN_SOURCE_RECORD[resolved_commit]}" \
   --json
-printf '[OK] code=M3_6_INSTALL_SUMMARY status=DEGRADED ready=false next=TARGET_ACCEPTANCE\n'
-printf '[OK] code=M6_2_SERVICE_COMPLETE status=DEGRADED ready=false next=M8_1_TARGET_DIAGNOSTICS_AND_M9_ACCEPTANCE\n'
+printf '[OK] code=M3_6_INSTALL_SUMMARY status=READY ready=true next=USE_ASSISTANT\n'
+printf '[OK] code=M6_2_SERVICE_COMPLETE status=READY ready=true autostart=enabled\n'
 if [[ "${GONKEN_SOURCE_RECORD[bluetooth_audio]:-disabled}" == "requested" ]]; then
-  printf '[OK] code=X4_BLUETOOTH_SETUP status=EXPERIMENTAL paired=true autoconnect=true usb_fallback=true\n'
+  printf '[OK] code=X4_BLUETOOTH_SETUP status=READY paired=true autoconnect=true usb_fallback=true\n'
 fi
-printf '[OK] code=INSTALLATION_COMPLETE service=gonken-agent.service autostart=enabled core_components=installed\n'
-printf '[INFO] code=INTERACTION_BOUNDARY voice_runtime=physical_audio_and_push_to_talk_acceptance_pending text_diagnostics=available\n'
+printf '[READY] code=INSTALLATION_COMPLETE service=gonken-agent.service autostart=enabled reboot_required=false wake_phrase=Hey_Gonken\n'
+printf '[INFO] code=NEXT_ACTION message=say_Hey_Gonken_or_run_gonken-agent_talk;_see_docs/OPERATIONS.md_for_manual_control\n'
 exit 0

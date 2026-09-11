@@ -55,7 +55,7 @@ and advance independent work. Never equate host fixtures with Pi acceptance.
 - M3.5 must resolve the existing blocked Piper/voice policy and pin and validate the full speech chain. No checksum or dependency lock may be invented.
 - The installer remains fail-closed at speech provisioning until its real prerequisite passes.
 - Private development only: no project redistribution license is granted; legacy media remain quarantined.
-- X1–X4 remain disabled extensions and do not delay core development.
+- Baseline Whisper wake operation is enabled for FIX5 and X4 Bluetooth is opt-in; X1 now denotes the future dedicated low-power wake backend, while X2/X3 remain disabled.
 - The archive contains Git history; its inherited origin points to an earlier scratch checkout, not a reachable repository. Do not push to that path; use the documented maintainer remote when ready.
 
 ## Resume protocol
@@ -116,3 +116,57 @@ known root-owned `0755` target install-state root back to `0700`. Symlinks,
 foreign ownership, group/other-writable state, and generic private directories
 remain fail-closed. The migration preserves every installer record and downloaded
 artifact and emits the observed/repaired mode.
+
+## FIX5 appliance-readiness implementation — 2026-09-12
+
+**Base:** FIX4 `4d777ca95d908f94e83e90da42e11e1097c75171`.
+
+**Real-Pi evidence motivating FIX5:** FIX4 completed immutable release,
+Ollama/Qwen, Whisper/Piper, speech smoke, `gonken-agent.service`, Bluetooth
+pair/trust/connect and Bluetooth autoconnect, but the running service remained a
+diagnostic supervisor and reported physical voice acceptance pending. Manual
+`orchestrator.py`/legacy attempts were not accepted production runtime paths.
+
+### Implemented in FIX5
+
+- production `gonken-agent service` runs the actual local voice appliance;
+- `gonken-agent run` starts the same wake runtime manually;
+- `gonken-agent talk --seconds N` provides one explicit manual voice turn;
+- wake phrase defaults to `Hey Gonken` and initial phrase spotting uses local
+  Whisper only;
+- dynamic ALSA USB selection and managed Bluetooth PipeWire route support;
+- real input/output open probe and real Piper ready announcement;
+- ephemeral `/run/gonken-agent/ready.json` readiness contract;
+- final installer `appliance_readiness` gate and honest READY summary;
+- Bluetooth radio/service/rfkill/power reconciliation before stack acceptance;
+- corrected headless PipeWire user-session startup behavior;
+- ALSA utilities added as governed target prerequisites;
+- local prompt packaged inside each immutable release;
+- streamed launcher normalizes package-manager locale and diagnoses blocked
+  Wi-Fi without guessing WLAN country;
+- user-facing README plus detailed installation, operations, Bluetooth and
+  physical acceptance documentation;
+- Pi 4 captured as a future separate target profile rather than weakening the
+  Pi 5 gate.
+
+### Host verification status
+
+FIX5 host verification currently passes **226/226 unit tests**, the **35-test**
+bootstrap/launcher/CLI/install-engine/support/text/uninstall integration group,
+normal Ollama lifecycle checks, and the normal three-case speech lifecycle
+subset. Static dependency, milestone, release-readiness, Bash, Python compile and
+diff gates pass. The intentionally slow release/speech interruption matrices
+remain represented by their unchanged FIX4 coverage and selected FIX5 reruns;
+physical Pi wake/reboot acceptance remains **UNRUN** until the user installs this
+FIX5 build on the target.
+
+### Exact next target action after FIX5 is pushed
+
+```bash
+cd ~/gonkenlabagent
+git pull --ff-only origin main
+./bootstrap.sh --bluetooth-audio --bluetooth-device <DEPLOYMENT_DEVICE_MAC>
+```
+
+Accept only a final `APPLIANCE_READY`/`INSTALLATION_COMPLETE ... READY`, then
+perform a real `Hey Gonken` spoken turn and reboot/no-login test.

@@ -35,12 +35,12 @@ class CliProcessTests(unittest.TestCase):
         self.assertEqual(status.returncode, 0, status.stderr)
         payload = json.loads(status.stdout)
         self.assertIs(payload["core_runtime_ready"], False)
-        self.assertEqual(set(payload["extensions"].values()), {"disabled"})
+        self.assertEqual(payload["extensions"]["wake_word"], "enabled")
+        self.assertEqual(payload["extensions"]["bluetooth"], "disabled")
 
-    def test_run_process_fails_closed_without_importing_legacy_runtime(self) -> None:
+    def test_run_process_fails_categorically_when_target_voice_dependencies_are_absent(self) -> None:
         result = run_cli("run")
-        self.assertEqual(result.returncode, 3)
-        self.assertIn("not implemented", result.stderr)
+        self.assertIn(result.returncode, {1, 2})
         self.assertNotIn("Traceback", result.stderr)
 
     def test_effective_config_process_is_local_and_redacted(self) -> None:
@@ -75,7 +75,7 @@ class CliProcessTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         payload = json.loads(result.stdout)
         self.assertEqual(payload["service"], "gonken-agent")
-        self.assertEqual(payload["mode"], "headless-supervisor")
+        self.assertEqual(payload["mode"], "voice-appliance")
         self.assertEqual(payload["status"], "DEGRADED")
         self.assertEqual(payload["startup_snapshot"]["status"], "RECORDED")
         self.assertTrue(payload["ready_for_systemd"])

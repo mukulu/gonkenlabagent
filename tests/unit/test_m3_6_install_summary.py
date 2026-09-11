@@ -125,8 +125,23 @@ class InstallSummaryTests(unittest.TestCase):
         components = {row["component"]: row for row in data["components"]}
         self.assertEqual(components["speech_artifacts"]["status"], "READY")
         self.assertEqual(components["app_service"]["code"], "HEADLESS_SERVICE_VALIDATED")
-        self.assertIn("target audio", data["next_action"])
+        self.assertIn("audio device", data["next_action"])
         self.assertNotIn(str(self.system), str(data))
+
+    def test_summary_reports_ready_when_voice_runtime_ready_file_exists(self) -> None:
+        ready = self.system / "run/gonken-agent/ready.json"
+        ready.parent.mkdir(parents=True, exist_ok=True)
+        ready.write_text(
+            '{"status":"READY","code":"VOICE_RUNTIME_READY","wake_phrase":"Hey Gonken","model":"qwen3.5:2b-q4_K_M"}\n',
+            encoding="utf-8",
+        )
+        data = install_summary.build_summary(self.system, COMMIT)
+        self.assertEqual(data["status"], "READY")
+        self.assertTrue(data["ready"])
+        self.assertEqual(data["wake_phrase"], "Hey Gonken")
+        components = {row["component"]: row for row in data["components"]}
+        self.assertEqual(components["input_audio"]["status"], "READY")
+        self.assertEqual(components["wake_runtime"]["code"], "WAKE_STANDBY_READY")
 
     def test_summary_reports_service_degraded_when_unit_differs(self) -> None:
         installed = self.system / "etc/systemd/system/gonken-agent.service"

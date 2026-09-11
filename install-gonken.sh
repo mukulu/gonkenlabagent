@@ -10,6 +10,11 @@
 
 set -Eeuo pipefail
 
+# Keep package-manager output deterministic even when a freshly imaged Pi has
+# locale variables for locales that have not yet been generated.
+export LANG=C.UTF-8
+export LC_ALL=C.UTF-8
+
 DEFAULT_SOURCE_URL="https://github.com/mukulu/gonkenlabagent.git"
 DEFAULT_SOURCE_REF="main"
 SOURCE_URL="${GONKEN_SOURCE_URL:-$DEFAULT_SOURCE_URL}"
@@ -77,6 +82,13 @@ done
   exit 64
 }
 
+if command -v rfkill >/dev/null 2>&1; then
+  wifi_state="$(rfkill list wifi 2>/dev/null || true)"
+  if [[ "$wifi_state" == *"Soft blocked: yes"* ]]; then
+    printf '[INFO] code=WIFI_RF_KILL message=Wi-Fi_is_soft-blocked;_Ethernet_is_valid_for_installation;_for_Wi-Fi_set_WLAN_country_then_enable_radio_see_docs/INSTALLATION.md\n'
+  fi
+fi
+
 if [[ "$(id -u)" == "0" ]]; then
   PRIV=()
 else
@@ -90,9 +102,9 @@ else
 fi
 
 printf '[RUNNING] code=LAUNCHER_BASE_PACKAGES message=refreshing_package_metadata\n'
-DEBIAN_FRONTEND=noninteractive "${PRIV[@]}" apt-get update
+"${PRIV[@]}" env DEBIAN_FRONTEND=noninteractive LANG=C.UTF-8 LC_ALL=C.UTF-8 apt-get update
 printf '[RUNNING] code=LAUNCHER_BASE_PACKAGES message=installing_git_ca_certificates_python3\n'
-DEBIAN_FRONTEND=noninteractive "${PRIV[@]}" apt-get install -y ca-certificates git python3
+"${PRIV[@]}" env DEBIAN_FRONTEND=noninteractive LANG=C.UTF-8 LC_ALL=C.UTF-8 apt-get install -y ca-certificates git python3
 printf '[OK] code=LAUNCHER_BASE_PACKAGES_READY\n'
 
 FRESH_CLONE=0

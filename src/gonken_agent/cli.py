@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import subprocess
 import sys
 from collections.abc import Mapping, Sequence
 from pathlib import Path
@@ -18,19 +19,31 @@ EXIT_UNSUPPORTED = 3
 
 
 def _status() -> dict[str, object]:
+    ready_file = Path("/run/gonken-agent/ready.json")
+    runtime_ready = False
+    wake_phrase = "Hey Gonken"
+    try:
+        if ready_file.is_file() and not ready_file.is_symlink() and ready_file.stat().st_size <= 8192:
+            payload = json.loads(ready_file.read_text(encoding="utf-8"))
+            runtime_ready = payload.get("status") == "READY" and payload.get("code") == "VOICE_RUNTIME_READY"
+            if isinstance(payload.get("wake_phrase"), str) and payload["wake_phrase"].strip():
+                wake_phrase = payload["wake_phrase"]
+    except (OSError, ValueError, json.JSONDecodeError):
+        runtime_ready = False
     return {
         "product": IDENTITY.product_name,
         "package": IDENTITY.package_name,
         "version": __version__,
         "package_foundation": "complete",
         "configuration_foundation": "complete",
-        "core_runtime_ready": False,
+        "core_runtime_ready": runtime_ready,
         "text_diagnostics": "available",
-        "voice_runtime": "provisioning_and_hardware_gates_open",
+        "voice_runtime": "ready" if runtime_ready else "waiting_or_stopped",
+        "wake_phrase": wake_phrase,
         "redistribution_approved": False,
         "redistribution_policy": "prohibited",
         "extensions": {
-            "wake_word": "disabled",
+            "wake_word": "enabled",
             "voice_power": "disabled",
             "lan_dashboard": "disabled",
             "bluetooth": (
@@ -40,6 +53,7 @@ def _status() -> dict[str, object]:
             ),
         },
     }
+
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -73,6 +87,15 @@ def _build_parser() -> argparse.ArgumentParser:
     run_parser.add_argument('--extractive', action='store_true')
     run_parser.add_argument('--telemetry', type=Path)
     run_parser.add_argument('--with-dashboard', action='store_true')
+
+    talk_parser = subparsers.add_parser(
+        'talk', help='run one manual microphone -> local AI -> speaker turn'
+    )
+    config_arguments(talk_parser)
+    talk_parser.add_argument(
+        '--seconds', type=int, default=8,
+        help='bounded microphone capture window in seconds (default: 8)',
+    )
 
     config_parser = subparsers.add_parser(
         "config", help="inspect or migrate validated configuration"
@@ -114,6 +137,16 @@ def _build_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def _service_is_active() -> bool:
+    try:
+        return subprocess.run(
+            ["/usr/bin/systemctl", "is-active", "--quiet", "gonken-agent.service"],
+            check=False, capture_output=True, timeout=3,
+        ).returncode == 0
+    except (OSError, subprocess.TimeoutExpired):
+        return False
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     """Execute the CLI and return a stable process exit code."""
 
@@ -141,9 +174,10 @@ def main(argv: Sequence[str] | None = None) -> int:
             print(json.dumps(status, sort_keys=True))
         else:
             print(f"{status['product']} {status['version']}")
-            print("Voice runtime: provisioning and hardware gates open; text diagnostics available")
+            print(f"Voice runtime: {status['voice_runtime']}")
+            print(f"Wake phrase: {status['wake_phrase']}")
             print("Redistribution: prohibited; no project license is granted")
-            print("Extensions: disabled")
+            print(f"Bluetooth: {status['extensions']['bluetooth']}")
         return 0
     if args.command == "run":
         if args.text_only:
@@ -155,17 +189,34 @@ def main(argv: Sequence[str] | None = None) -> int:
             except (ValueError, OSError, RuntimeError) as exc:
                 print(json.dumps({'status': 'FAILED', 'code': 'TEXT_SESSION_FAILED', 'error_type': type(exc).__name__}), file=sys.stderr)
                 return EXIT_FAILED
-        if not args.legacy_source:
-            print(
-                "The packaged voice runtime is not implemented end to end yet. Use ask for text diagnostics. "
-                "Use --legacy-source only for migration testing.",
-                file=sys.stderr,
-            )
-            return EXIT_UNSUPPORTED
+        if args.legacy_source:
+            try:
+                return run_legacy_source()
+            except CompatibilityError as exc:
+                print(f"Cannot start compatibility runtime: {exc}", file=sys.stderr)
+                return EXIT_FAILED
+        if _service_is_active():
+            print("gonken-agent.service is already running. Say the wake phrase, or stop the service before foreground run.", file=sys.stderr)
+            return 2
+        from .operations import effective
+        from .voice_runtime import run_appliance
         try:
-            return run_legacy_source()
-        except CompatibilityError as exc:
-            print(f"Cannot start compatibility runtime: {exc}", file=sys.stderr)
+            return run_appliance(effective(args), foreground=True)
+        except (ValueError, OSError, RuntimeError) as exc:
+            print(json.dumps({'status':'FAILED','code':'VOICE_RUNTIME_FAILED','error_type':type(exc).__name__}), file=sys.stderr)
+            return EXIT_FAILED
+    if args.command == 'talk':
+        if not 1 <= args.seconds <= 30:
+            parser.error('--seconds must be between 1 and 30')
+        if _service_is_active():
+            print("gonken-agent.service is already running. Say the wake phrase, or stop the service before manual talk.", file=sys.stderr)
+            return 2
+        from .operations import effective
+        from .voice_runtime import run_appliance
+        try:
+            return run_appliance(effective(args), one_turn=True, seconds=args.seconds, foreground=True)
+        except (ValueError, OSError, RuntimeError) as exc:
+            print(json.dumps({'status':'FAILED','code':'VOICE_TALK_FAILED','error_type':type(exc).__name__}), file=sys.stderr)
             return EXIT_FAILED
     if args.command == "config":
         try:

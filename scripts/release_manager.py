@@ -533,6 +533,13 @@ def build_release(
         venv_python = release / ".venv" / "bin" / "python"
         run([str(venv_python), "-m", "pip", "install", "--no-index", "-r", str(lock)])
         run([str(venv_python), "-m", "pip", "install", "--no-index", "--no-deps", str(wheel)])
+        share = release / "share" / "gonken-agent"
+        share.mkdir(parents=True, exist_ok=True, mode=0o755)
+        local_prompt = source / "config" / "local_soul.md"
+        if not local_prompt.is_file() or local_prompt.is_symlink():
+            fail("RELEASE_PROMPT", "source commit lacks the local voice prompt", "restore config/local_soul.md", 65)
+        shutil.copy2(local_prompt, share / "local_soul.md")
+        (share / "local_soul.md").chmod(0o444)
         maintenance = release / "maintenance"
         maintenance.mkdir(mode=0o755)
         maintenance_sources = {
@@ -547,6 +554,7 @@ def build_release(
             source / "scripts" / "install_summary.py": maintenance / "install_summary.py",
             source / "scripts" / "service_manager.py": maintenance / "service_manager.py",
             source / "scripts" / "bluetooth_manager.py": maintenance / "bluetooth_manager.py",
+            source / "scripts" / "appliance_manager.py": maintenance / "appliance_manager.py",
             source / "scripts" / "update_manager.py": maintenance / "update_manager.py",
             source / "scripts" / "uninstall_manager.py": maintenance / "uninstall_manager.py",
             source / "packaging" / "ollama-artifacts.toml": maintenance / "packaging" / "ollama-artifacts.toml",
@@ -575,6 +583,7 @@ def build_release(
             maintenance / "install_summary.py",
             maintenance / "service_manager.py",
             maintenance / "bluetooth_manager.py",
+            maintenance / "appliance_manager.py",
             maintenance / "update_manager.py",
             maintenance / "uninstall_manager.py",
         ):
