@@ -132,6 +132,53 @@ class BluetoothManagerTests(unittest.TestCase):
         self.assertTrue(info["paired"])
         scan.assert_not_called()
 
+
+    def test_headset_profile_prefers_available_msbc_capture_profile(self) -> None:
+        listing = """Card #12
+	Name: bluez_card.AA_BB_CC_DD_EE_FF
+	Profiles:
+		a2dp-sink: High Fidelity Playback (A2DP Sink, codec SBC) (sinks: 1, sources: 0, priority: 40, available: yes)
+		headset-head-unit-cvsd: Headset Head Unit (HSP/HFP, codec CVSD) (sinks: 1, sources: 1, priority: 30, available: yes)
+		headset-head-unit-msbc: Headset Head Unit (HSP/HFP, codec mSBC) (sinks: 1, sources: 1, priority: 35, available: yes)
+"""
+        completed = mock.Mock(returncode=0, stdout=listing, stderr="")
+        with mock.patch.object(bluetooth_manager, "run_as_user", return_value=completed):
+            selected = bluetooth_manager._headset_profile("gonken-agent", "AA:BB:CC:DD:EE:FF")
+        self.assertEqual(selected, ("bluez_card.AA_BB_CC_DD_EE_FF", "headset-head-unit-msbc"))
+
+    def test_stack_status_requires_unblocked_powered_controller(self) -> None:
+        with mock.patch.object(bluetooth_manager, "controller_status", return_value={"controllers": 1, "soft_blocked": True}), \
+             mock.patch.object(bluetooth_manager, "controller_powered", return_value=False), \
+             mock.patch.object(bluetooth_manager, "run", return_value=mock.Mock(returncode=0, stdout="", stderr="")):
+            with self.assertRaises(bluetooth_manager.BluetoothError):
+                bluetooth_manager.stack_status("gonken-agent")
+
+
+    def test_known_fix4_autoconnect_unit_is_upgraded_exactly(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            destination = Path(temporary) / "gonken-bluetooth-autoconnect.service"
+            previous = ROOT / "tests/fixtures/systemd/gonken-bluetooth-autoconnect-pre-fix5.service"
+            current = ROOT / "packaging/systemd/gonken-bluetooth-autoconnect.service"
+            destination.write_text(previous.read_text(encoding="utf-8"), encoding="utf-8")
+            with mock.patch.object(bluetooth_manager, "AUTOCONNECT_UNIT", destination), \
+                 mock.patch.object(bluetooth_manager, "read_device_record", return_value={}), \
+                 mock.patch.object(bluetooth_manager, "run", return_value=mock.Mock(returncode=0, stdout="", stderr="")), \
+                 mock.patch.object(bluetooth_manager.os, "geteuid", return_value=0):
+                bluetooth_manager.install_autoconnect(current, Path("/etc/gonken-agent/bluetooth-device.record"))
+            self.assertEqual(destination.read_text(encoding="utf-8"), current.read_text(encoding="utf-8"))
+
+    def test_autoconnect_status_detects_managed_template_drift(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            destination = Path(temporary) / "gonken-bluetooth-autoconnect.service"
+            previous = ROOT / "tests/fixtures/systemd/gonken-bluetooth-autoconnect-pre-fix5.service"
+            current = ROOT / "packaging/systemd/gonken-bluetooth-autoconnect.service"
+            destination.write_text(previous.read_text(encoding="utf-8"), encoding="utf-8")
+            with mock.patch.object(bluetooth_manager, "AUTOCONNECT_UNIT", destination), \
+                 mock.patch.object(bluetooth_manager, "read_device_record", return_value={}):
+                with self.assertRaises(bluetooth_manager.BluetoothError) as caught:
+                    bluetooth_manager.autoconnect_status(Path("/etc/gonken-agent/bluetooth-device.record"), current)
+            self.assertEqual(caught.exception.status, 1)
+
     def test_autoconnect_unit_is_bounded_to_one_managed_record(self) -> None:
         text = (ROOT / "packaging/systemd/gonken-bluetooth-autoconnect.service").read_text(
             encoding="utf-8"
@@ -141,7 +188,7 @@ class BluetoothManagerTests(unittest.TestCase):
         self.assertIn("NoNewPrivileges=true", text)
         self.assertIn("ProtectSystem=strict", text)
         self.assertIn("ProtectHome=read-only", text)
-        self.assertIn("CapabilityBoundingSet=CAP_SETUID CAP_SETGID", text)
+        self.assertIn("CapabilityBoundingSet=CAP_NET_ADMIN CAP_SETUID CAP_SETGID", text)
         self.assertNotIn("scan", text)
         self.assertNotIn("pair", text)
 

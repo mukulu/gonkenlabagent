@@ -159,7 +159,7 @@ class AuthorityAndPrecedenceTests(unittest.TestCase):
         metadata = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
         self.assertEqual(
             metadata["tool"]["setuptools"]["data-files"]["share/gonken-agent"],
-            ["config/defaults.toml"],
+            ["config/defaults.toml", "config/local_soul.md"],
         )
 
 
@@ -169,7 +169,7 @@ class ValidationTests(unittest.TestCase):
         "identity change": {"assistant.name": "Other"},
         "language": {"assistant.language": "en-CA"},
         "runtime mode": {"runtime.mode": "cloud"},
-        "interaction mode": {"runtime.interaction_mode": "wake_word"},
+        "interaction mode": {"runtime.interaction_mode": "voice_telepathy"},
         "provider": {"llm.provider": "remote"},
         "remote llm": {"llm.base_url": "http://192.168.1.10:11434"},
         "llm path": {"llm.base_url": "http://127.0.0.1:11434/api"},
@@ -191,7 +191,7 @@ class ValidationTests(unittest.TestCase):
         "dashboard port": {"dashboard.port": 70000},
         "relative path": {"paths.state_dir": "var/lib/gonken-agent"},
         "path escape": {"paths.state_dir": "/var/lib/../tmp"},
-        "wake extension": {"extensions.wake_word.enabled": True},
+        "wake extension": {"extensions.wake_word.enabled": False},
         "voice power": {"extensions.voice_power.enabled": True},
         "wake threshold": {"extensions.wake_word.threshold": 1.0},
         "wake gpio conflict": {"extensions.wake_word.monitoring_led_gpio": 17},

@@ -782,3 +782,39 @@ The current full unit discovery contains **204 passing tests**. The focused
 launcher/preflight/service/Bluetooth suites pass in the development environment.
 Physical Bluetooth pairing, PipeWire routing, microphone profile switching and
 no-login reboot reconnection remain target evidence, not host claims.
+
+## FIX5 appliance-readiness matrix — 2026-09-12
+
+| ID | Tier | Test | Expected |
+|---|---|---|---|
+| F5-U1 | host/unit | wake phrase normalization/fuzzy brand-token recognition | exact/punctuated/minor STT spelling accepted; unrelated speech rejected |
+| F5-U2 | host/unit | Ollama conversational request | `/api/chat`, `think=false`, no JSON format for spoken answer |
+| F5-U3 | host/unit | ALSA selector | generic `auto` prefers one USB card over HDMI; no cached card index; ambiguity fails |
+| F5-U4 | host/unit | one voice turn | capture → STT → Qwen → Piper/play; raw capture removed |
+| F5-U5 | host/unit | Bluetooth radio/profile reconciliation | inactive/soft-blocked/unpowered states require repair; HFP capture profile selected when headset input is absent; healthy state passes |
+| F5-U6 | host/unit | install summary with valid ephemeral ready record | status READY and next action is use assistant without falsely closing human wake/reboot milestones |
+| F5-U7 | host/unit | local model readiness warmup | identity plus bounded `think=false` inference must succeed before READY; probe does not enter conversation history |
+| F5-U8 | host/unit | managed Bluetooth service migration | exact FIX4 reconnect-unit hash upgrades; unknown/local edits fail closed |
+| F5-U9 | host/unit | two-stage wake interaction | wake capture triggers `Yes?`; a fresh bounded question window prevents long-question truncation |
+| F5-I1 | host/integration | CLI `run`/`talk` contracts | production appliance path selected; active service prevents competing mic owner |
+| F5-I2 | host/integration | service `--once` | reports voice-appliance service contract without pretending physical acceptance |
+| F5-I3 | host/integration | bootstrap/launcher | defaults official source/main; options pass through; resumability preserved |
+| F5-I4 | host/integration | install-engine interruption | all state/resume tests pass |
+| F5-I5 | host/integration | normal speech lifecycle | pinned Whisper/Piper/model/smoke still passes |
+| F5-S1 | static | Bash/Python/diff gates | clean |
+| F5-C1 | consumer | apply generated FIX5 patch to untouched FIX4 checkpoint | clean `git am`; focused regression tests pass |
+| F5-T1 | Pi 5 | bootstrap with USB audio | final APPLIANCE_READY, audible ready announcement |
+| F5-T2 | Pi 5 | Bluetooth requested with known MAC | controller auto-reconciled, pair/trust/connect/route/autoconnect, final READY |
+| F5-T3 | Pi 5 | real spoken `Hey Gonken` turn | wake → STT → local Qwen → TTS → standby |
+| F5-T4 | Pi 5 | reboot with no login | service starts, BT reconnects when available, ready announcement + wake turn |
+| F5-T5 | Pi 5 | manual operations | start/stop/restart/status/logs/run/talk/doctor all behave as documented |
+| F5-T6 | Pi 5 | dependency late recovery | speaker/BT/Ollama unavailable then restored; service waits/recovers without reinstall |
+
+F5-T1..T6 remain physical evidence gates and cannot be closed by cloud/host
+simulation.
+
+FIX5 full unit discovery contains **226 passing tests**. The focused
+bootstrap/launcher/CLI/install-engine/support/text/uninstall group is **35/35**;
+normal Ollama lifecycle checks and the first three normal speech lifecycle cases
+pass. Static dependency/milestone/release-readiness/Bash/Python/diff gates are
+clean. F5-T1..T6 remain real-Pi evidence gates.

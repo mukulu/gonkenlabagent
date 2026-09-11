@@ -30,6 +30,11 @@ from pathlib import Path
 MAC_RE = re.compile(r"^[0-9A-F]{2}(?::[0-9A-F]{2}){5}$")
 SAFE_NAME_RE = re.compile(r"^[^\x00-\x1f\x7f]{1,120}$")
 ANSI_RE = re.compile(r"\x1b\[[0-9;]*m")
+KNOWN_PREVIOUS_AUTOCONNECT_SHA256 = {
+    "60f406dd6acd24c3213a430aa0c6b196f4e764de6d603b430229ab17055f492b",
+}
+AUTOCONNECT_UNIT = Path("/etc/systemd/system/gonken-bluetooth-autoconnect.service")
+
 RECORD_FIELDS = {
     "format",
     "address",
@@ -183,6 +188,32 @@ def controller_status() -> dict[str, object]:
     }
 
 
+def controller_powered() -> bool:
+    shown = run(["bluetoothctl", "show"], timeout=8, check=False)
+    return any(line.strip() == "Powered: yes" for line in clean_text(shown.stdout).splitlines())
+
+
+def ensure_controller_ready(*, repair: bool) -> None:
+    state = controller_status()
+    active = run(["systemctl", "is-active", "--quiet", "bluetooth.service"], timeout=5, check=False)
+    if repair and os.geteuid() == 0:
+        if active.returncode != 0:
+            run(["systemctl", "start", "bluetooth.service"], timeout=20, check=False)
+        if state["soft_blocked"]:
+            run(["rfkill", "unblock", "bluetooth"], timeout=8, check=False)
+        if not controller_powered():
+            run(["bluetoothctl", "power", "on"], timeout=10, check=False)
+        state = controller_status()
+        active = run(["systemctl", "is-active", "--quiet", "bluetooth.service"], timeout=5, check=False)
+    if active.returncode != 0 or state["soft_blocked"] or not controller_powered():
+        fail(
+            "BLUETOOTH_STACK",
+            "Bluetooth controller is not active, unblocked, and powered",
+            "enable bluetooth.service, unblock the radio, and power on the controller",
+            1,
+        )
+
+
 def user_context(user: str) -> tuple[pwd.struct_passwd, dict[str, str]]:
     try:
         account = pwd.getpwnam(user)
@@ -243,10 +274,7 @@ def atomic_text(path: Path, text: str, *, mode: int, uid: int = 0, gid: int = 0)
 
 
 def stack_status(audio_user: str) -> None:
-    controller_status()
-    active = run(["systemctl", "is-active", "--quiet", "bluetooth.service"], timeout=5, check=False)
-    if active.returncode != 0:
-        fail("BLUETOOTH_STACK", "bluetooth.service is not active", "prepare the optional Bluetooth audio stack", 1)
+    ensure_controller_ready(repair=False)
     _account, _env = user_context(audio_user)
     pipewire = run_as_user(audio_user, ["systemctl", "--user", "is-active", "--quiet", "pipewire.service"], timeout=8, check=False)
     wireplumber = run_as_user(audio_user, ["systemctl", "--user", "is-active", "--quiet", "wireplumber.service"], timeout=8, check=False)
@@ -268,7 +296,7 @@ def prepare(audio_user: str) -> None:
     run(["systemctl", "enable", "--now", "bluetooth.service"], timeout=30)
     run(["rfkill", "unblock", "bluetooth"], timeout=8)
     run(["bluetoothctl", "power", "on"], timeout=10)
-    controller_status()
+    ensure_controller_ready(repair=True)
 
     home = Path(account.pw_dir)
     config_dir = home / ".config" / "wireplumber" / "wireplumber.conf.d"
@@ -300,13 +328,15 @@ def prepare(audio_user: str) -> None:
     run(["systemctl", "start", f"user@{account.pw_uid}.service"], timeout=20)
     # Debian/Raspberry Pi OS ships these user units with PipeWire/WirePlumber.
     run_as_user(audio_user, ["systemctl", "--user", "daemon-reload"], timeout=15)
+    # Package presets already enable the user units globally.  The dedicated
+    # service home is administrator-owned, so do not attempt per-user enablement
+    # symlinks there; start the globally enabled units in the lingering manager.
     run_as_user(
         audio_user,
         [
             "systemctl",
             "--user",
-            "enable",
-            "--now",
+            "start",
             "pipewire.socket",
             "pipewire-pulse.socket",
             "wireplumber.service",
@@ -444,15 +474,71 @@ def pipewire_nodes(audio_user: str, address: str) -> tuple[list[str], list[str]]
     return names(sinks_result.stdout, "bluez_output"), names(sources_result.stdout, "bluez_input")
 
 
-def route_defaults(audio_user: str, address: str, *, wait_seconds: int = 20) -> tuple[list[str], list[str]]:
+def _headset_profile(audio_user: str, address: str) -> tuple[str, str] | None:
+    """Return one available Bluetooth profile that exposes a capture source."""
+    token = address.replace(":", "_").casefold()
+    result = run_as_user(audio_user, ["pactl", "list", "cards"], timeout=10, check=False)
+    text = clean_text(result.stdout)
+    sections = re.split(r"(?m)^Card #[^\n]*\n", text)
+    for section in sections:
+        name_match = re.search(r"(?m)^\s*Name:\s*(\S+)\s*$", section)
+        if not name_match:
+            continue
+        card = name_match.group(1)
+        if "bluez_card" not in card.casefold() or token not in card.casefold():
+            continue
+        candidates: list[tuple[int, str]] = []
+        for raw in section.splitlines():
+            line = raw.strip()
+            match = re.match(r"^([A-Za-z0-9_.+-]+):\s+.*sources:\s*([0-9]+).*available:\s*(yes|unknown)", line, re.I)
+            if not match or int(match.group(2)) < 1:
+                continue
+            profile = match.group(1)
+            lowered = profile.casefold()
+            priority = 0
+            if "msbc" in lowered:
+                priority = 30
+            elif "headset-head-unit" in lowered or "handsfree" in lowered:
+                priority = 20
+            elif "headset" in lowered or "hfp" in lowered or "hsp" in lowered:
+                priority = 10
+            candidates.append((priority, profile))
+        if candidates:
+            candidates.sort(key=lambda item: (item[0], item[1]), reverse=True)
+            return card, candidates[0][1]
+    return None
+
+
+def route_defaults(
+    audio_user: str,
+    address: str,
+    *,
+    wait_seconds: int = 20,
+    require_input: bool = False,
+) -> tuple[list[str], list[str]]:
     deadline = time.monotonic() + wait_seconds
     sinks: list[str] = []
     sources: list[str] = []
     while time.monotonic() < deadline:
         sinks, sources = pipewire_nodes(audio_user, address)
-        if sinks:
+        if sinks and (sources or not require_input):
             break
         time.sleep(0.5)
+    if require_input and not sources:
+        selected = _headset_profile(audio_user, address)
+        if selected:
+            card, profile = selected
+            print(
+                f"[RUNNING] code=BLUETOOTH_HEADSET_PROFILE card={card} profile={profile}",
+                flush=True,
+            )
+            run_as_user(audio_user, ["pactl", "set-card-profile", card, profile], timeout=12, check=False)
+            profile_deadline = time.monotonic() + 12
+            while time.monotonic() < profile_deadline:
+                sinks, sources = pipewire_nodes(audio_user, address)
+                if sources:
+                    break
+                time.sleep(0.5)
     if sinks:
         run_as_user(audio_user, ["pactl", "set-default-sink", sinks[0]], timeout=8, check=False)
     if sources:
@@ -526,7 +612,7 @@ def pair(selector: str, audio_user: str, record: Path, timeout: int) -> None:
         fail("BLUETOOTH_PAIR", "device did not reach paired+trusted state", "return the device to pairing mode and rerun", 75)
     if not info["connected"]:
         fail("BLUETOOTH_CONNECT", "paired device did not connect", "keep the device powered on and rerun pairing", 75)
-    sinks, sources = route_defaults(audio_user, address)
+    sinks, sources = route_defaults(audio_user, address, require_input=bool(info["headset_capable"]))
     if not sinks and info["output_capable"]:
         fail(
             "BLUETOOTH_AUDIO_ROUTE",
@@ -544,6 +630,12 @@ def pair(selector: str, audio_user: str, record: Path, timeout: int) -> None:
 
 
 def connect_record(record: Path, audio_user: str, *, strict: bool) -> bool:
+    try:
+        ensure_controller_ready(repair=True)
+    except BluetoothError:
+        if strict:
+            raise
+        return False
     values = read_device_record(record)
     if values["audio_user"] != audio_user:
         fail("BLUETOOTH_RECORD", "recorded audio user differs from requested user", "rerun Bluetooth pairing", 65)
@@ -561,7 +653,12 @@ def connect_record(record: Path, audio_user: str, *, strict: bool) -> bool:
         if strict:
             fail("BLUETOOTH_CONNECT", "Bluetooth connection did not become active", "power on the paired device and retry", 75)
         return False
-    route_defaults(audio_user, address, wait_seconds=10)
+    route_defaults(
+        audio_user,
+        address,
+        wait_seconds=10,
+        require_input=values.get("headset_capable") == "yes",
+    )
     return True
 
 
@@ -581,30 +678,51 @@ def device_status(record: Path, audio_user: str, *, require_connected: bool) -> 
     )
 
 
+def _autoconnect_payload(unit_template: Path) -> str:
+    if not unit_template.is_file() or unit_template.is_symlink():
+        fail("BLUETOOTH_SERVICE", "autoconnect unit template is missing or unsafe", "restore the immutable release", 65)
+    payload = unit_template.read_text(encoding="utf-8")
+    if "\r" in payload or "bluetooth_manager.py watch" not in payload:
+        fail("BLUETOOTH_SERVICE", "autoconnect unit template is malformed", "restore the immutable release", 65)
+    return payload
+
+
 def install_autoconnect(unit_template: Path, record: Path) -> None:
     if os.geteuid() != 0:
         fail("BLUETOOTH_PRIVILEGE", "autoconnect installation requires root", "run through bootstrap or sudo", 77)
     read_device_record(record)
-    if not unit_template.is_file() or unit_template.is_symlink():
-        fail("BLUETOOTH_SERVICE", "autoconnect unit template is missing or unsafe", "restore the immutable release", 65)
-    destination = Path("/etc/systemd/system/gonken-bluetooth-autoconnect.service")
-    payload = unit_template.read_text(encoding="utf-8")
+    destination = AUTOCONNECT_UNIT
+    payload = _autoconnect_payload(unit_template)
     if destination.exists() and (destination.is_symlink() or not destination.is_file()):
         fail("BLUETOOTH_SERVICE", "autoconnect unit destination is unsafe", "remove the conflicting administrator path", 75)
-    if destination.exists() and destination.read_text(encoding="utf-8") != payload:
-        fail("BLUETOOTH_SERVICE", "existing autoconnect unit differs", "review/remove the conflicting unit before enabling Bluetooth", 75)
-    if not destination.exists():
+    if destination.exists():
+        current = destination.read_text(encoding="utf-8")
+        if current != payload:
+            import hashlib
+            digest = hashlib.sha256(current.encode()).hexdigest()
+            if digest not in KNOWN_PREVIOUS_AUTOCONNECT_SHA256:
+                fail("BLUETOOTH_SERVICE", "existing autoconnect unit differs", "review/remove the conflicting unit before enabling Bluetooth", 75)
+            atomic_text(destination, payload, mode=0o644)
+            print(f"[OK] code=BLUETOOTH_AUTOCONNECT_MANAGED_UPGRADE path={destination}")
+    else:
         atomic_text(destination, payload, mode=0o644)
     run(["systemctl", "daemon-reload"], timeout=20)
     run(["systemctl", "enable", "--now", "gonken-bluetooth-autoconnect.service"], timeout=30)
     print("[OK] code=BLUETOOTH_AUTOCONNECT_INSTALLED")
 
 
-def autoconnect_status(record: Path) -> None:
+def autoconnect_status(record: Path, unit_template: Path) -> None:
     read_device_record(record)
-    destination = Path("/etc/systemd/system/gonken-bluetooth-autoconnect.service")
+    destination = AUTOCONNECT_UNIT
+    expected = _autoconnect_payload(unit_template)
     if not destination.is_file() or destination.is_symlink():
         fail("BLUETOOTH_SERVICE", "autoconnect service is not installed", "rerun Bluetooth setup", 1)
+    try:
+        installed = destination.read_text(encoding="utf-8")
+    except OSError:
+        fail("BLUETOOTH_SERVICE", "autoconnect service cannot be read", "rerun Bluetooth setup", 1)
+    if installed != expected:
+        fail("BLUETOOTH_SERVICE", "autoconnect service requires managed upgrade", "rerun Bluetooth setup", 1)
     enabled = run(["systemctl", "is-enabled", "--quiet", "gonken-bluetooth-autoconnect.service"], timeout=8, check=False)
     active = run(["systemctl", "is-active", "--quiet", "gonken-bluetooth-autoconnect.service"], timeout=8, check=False)
     if enabled.returncode != 0 or active.returncode != 0:
@@ -670,6 +788,7 @@ def parser() -> argparse.ArgumentParser:
 
     service_status = commands.add_parser("autoconnect-status")
     service_status.add_argument("--record", default="/etc/gonken-agent/bluetooth-device.record")
+    service_status.add_argument("--unit-template", required=True)
 
     watch_cmd = commands.add_parser("watch")
     watch_cmd.add_argument("--audio-user", default="gonken-agent")
@@ -699,7 +818,7 @@ def main(argv: list[str] | None = None) -> int:
         elif args.command == "install-autoconnect":
             install_autoconnect(Path(args.unit_template), Path(args.record))
         elif args.command == "autoconnect-status":
-            autoconnect_status(Path(args.record))
+            autoconnect_status(Path(args.record), Path(args.unit_template))
         elif args.command == "watch":
             watch(Path(args.record), args.audio_user, args.interval)
         else:  # pragma: no cover

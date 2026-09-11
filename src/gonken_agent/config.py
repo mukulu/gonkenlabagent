@@ -485,8 +485,8 @@ def _validate_values(config: Config) -> None:
         raise ConfigError("assistant.language supports only en in the initial schema")
     if config.runtime.mode != "offline":
         raise ConfigError("runtime.mode supports only offline")
-    if config.runtime.interaction_mode != "push_to_talk":
-        raise ConfigError("runtime.interaction_mode supports only push_to_talk")
+    if config.runtime.interaction_mode not in {"push_to_talk", "wake_word"}:
+        raise ConfigError("runtime.interaction_mode supports push_to_talk or wake_word")
     if config.llm.provider != "ollama":
         raise ConfigError("llm.provider supports only ollama")
     _validate_loopback_url(config.llm.base_url, "llm.base_url")
@@ -537,8 +537,8 @@ def _validate_values(config: Config) -> None:
             getattr(config.paths, field.name), f"paths.{field.name}", allow_empty=False
         )
     wake = config.extensions.wake_word
-    if wake.enabled:
-        raise ConfigError("extensions.wake_word.enabled is unsupported until X1 acceptance")
+    if config.runtime.interaction_mode == "wake_word" and not wake.enabled:
+        raise ConfigError("wake_word interaction_mode requires extensions.wake_word.enabled=true")
     if config.extensions.voice_power.enabled:
         raise ConfigError("extensions.voice_power.enabled is unsupported until X2 acceptance")
     if not wake.phrase.strip():

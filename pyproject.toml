@@ -29,7 +29,7 @@ package-dir = {"" = "src"}
 include-package-data = false
 
 [tool.setuptools.data-files]
-"share/gonken-agent" = ["config/defaults.toml"]
+"share/gonken-agent" = ["config/defaults.toml", "config/local_soul.md"]
 
 [tool.setuptools.packages.find]
 where = ["src"]

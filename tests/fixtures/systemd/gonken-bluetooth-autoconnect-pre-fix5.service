@@ -17,10 +17,9 @@ ProtectHome=read-only
 ProtectSystem=strict
 ReadOnlyPaths=/etc/gonken-agent/bluetooth-device.record /usr/local/lib/gonken-agent/current
 RestrictAddressFamilies=AF_UNIX
-# The root reconnect helper may clear a Bluetooth software rfkill block and
-# therefore retains CAP_NET_ADMIN, plus only the UID/GID-drop capabilities needed
-# for pactl inside the dedicated audio user session.
-CapabilityBoundingSet=CAP_NET_ADMIN CAP_SETUID CAP_SETGID
+# The root reconnect helper never gains device/network capabilities. It retains
+# only the ability to drop the pactl subprocess to the dedicated audio user.
+CapabilityBoundingSet=CAP_SETUID CAP_SETGID
 
 [Install]
 WantedBy=multi-user.target

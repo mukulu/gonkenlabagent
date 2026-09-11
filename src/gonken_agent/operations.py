@@ -48,6 +48,7 @@ def add_commands(subparsers):
     config_arguments(doctor)
     doctor.add_argument('--index',type=Path)
     doctor.add_argument('--probe-ollama',action='store_true',help='explicit local API probe')
+    doctor.add_argument('--probe-audio',action='store_true',help='open the configured physical input/output paths')
     doctor.add_argument('--write-startup-snapshot',action='store_true',
                         help='write a content-free platform snapshot for support upload')
     doctor.add_argument('--snapshot-dir',type=Path)
@@ -70,10 +71,28 @@ def effective(args):
     return load_config(**kw).config
 
 
-def doctor(config,index_path=None,probe_ollama=False):
+def doctor(config,index_path=None,probe_ollama=False,probe_audio=False):
     rows=[ComponentHealth('config',Readiness.READY,'VALID'), ComponentHealth('privacy',Readiness.READY,'OFFLINE_CONTENT_FREE')]
-    for name in ('whisper','piper','input_audio','output_audio','gpio'):
-        rows.append(ComponentHealth(name,Readiness.DEGRADED,'PROVISIONING_OR_PHYSICAL_VALIDATION_PENDING'))
+    whisper_ready=Path(config.paths.whisper_binary).is_file() and Path(config.paths.whisper_model).is_file()
+    piper_ready=Path('/usr/local/bin/piper').is_file() and Path(config.paths.piper_voice).is_file()
+    rows.append(ComponentHealth('whisper',Readiness.READY if whisper_ready else Readiness.DEGRADED,
+                                'LOCAL_STT_PRESENT' if whisper_ready else 'LOCAL_STT_MISSING'))
+    rows.append(ComponentHealth('piper',Readiness.READY if piper_ready else Readiness.DEGRADED,
+                                'LOCAL_TTS_PRESENT' if piper_ready else 'LOCAL_TTS_MISSING'))
+    if probe_audio:
+        try:
+            from .voice_runtime import AudioBackend
+            AudioBackend(config).probe()
+        except (ValueError,OSError,RuntimeError):
+            rows.extend((ComponentHealth('input_audio',Readiness.DEGRADED,'PHYSICAL_AUDIO_UNAVAILABLE'),
+                         ComponentHealth('output_audio',Readiness.DEGRADED,'PHYSICAL_AUDIO_UNAVAILABLE')))
+        else:
+            rows.extend((ComponentHealth('input_audio',Readiness.READY,'PHYSICAL_INPUT_OPENED'),
+                         ComponentHealth('output_audio',Readiness.READY,'PHYSICAL_OUTPUT_OPENED')))
+    else:
+        rows.extend((ComponentHealth('input_audio',Readiness.DEGRADED,'PHYSICAL_AUDIO_NOT_PROBED'),
+                     ComponentHealth('output_audio',Readiness.DEGRADED,'PHYSICAL_AUDIO_NOT_PROBED')))
+    rows.append(ComponentHealth('gpio',Readiness.DEGRADED,'GPIO_OPTIONAL_NOT_PROBED'))
     if index_path:
         try: load(index_path,config.paths.corpus_dir)
         except (ValueError,OSError): rows.append(ComponentHealth('index',Readiness.FAILED,'INDEX_INVALID_OR_STALE'))
@@ -87,40 +106,32 @@ def doctor(config,index_path=None,probe_ollama=False):
         finally: client.close()
     else: rows.append(ComponentHealth('ollama',Readiness.DEGRADED,'NOT_PROBED'))
     data=summary(rows)
-    data['scope']='voice-appliance-readiness; host implementation is not target acceptance'
+    data['scope']='local software and optional physical audio readiness'
+    ready_file=Path('/run/gonken-agent/ready.json')
+    data['voice_runtime']='ready' if ready_file.is_file() else 'waiting_or_stopped'
     return data
+
 
 
 def service_loop(args):
     config=effective(args)
-    stop=threading.Event()
-    old={}
     try:
-        for sig in (signal.SIGINT,signal.SIGTERM):
-            old[sig]=signal.signal(sig,lambda *_:stop.set())
-        data=doctor(config,args.index,args.probe_ollama)
-        try:
-            snapshot=write_startup_snapshot(config,directory=args.snapshot_dir,
-                                            mode=args.diagnostic_mode,
-                                            retain=args.retain_startup_snapshots)
-            data['startup_snapshot']={'status':snapshot['status'],
-                                      'mode':snapshot['mode'],
-                                      'retention':snapshot['retention']}
-        except (ValueError,OSError):
-            data['startup_snapshot']={'status':'FAILED','mode':args.diagnostic_mode}
-        data['service']='gonken-agent'
-        data['mode']='headless-supervisor'
-        data['ready_for_systemd']=True
-        data['voice_runtime']='degraded_until_physical_audio_acceptance'
+        snapshot=write_startup_snapshot(config,directory=args.snapshot_dir,
+                                        mode=args.diagnostic_mode,
+                                        retain=args.retain_startup_snapshots)
+        snapshot_state={'status':snapshot['status'],'mode':snapshot['mode'],'retention':snapshot['retention']}
+    except (ValueError,OSError):
+        snapshot_state={'status':'FAILED','mode':args.diagnostic_mode}
+    if args.once:
+        data=doctor(config,args.index,args.probe_ollama,False)
+        data.update({'service':'gonken-agent','mode':'voice-appliance','startup_snapshot':snapshot_state,'ready_for_systemd':True})
         print(json.dumps(data,sort_keys=True),flush=True)
-        if args.once:
-            return 0
-        while not stop.is_set():
-            time.sleep(0.5)
-        print(json.dumps({'service':'gonken-agent','status':'STOPPED','code':'SERVICE_STOP_REQUESTED'},sort_keys=True),flush=True)
         return 0
-    finally:
-        for sig,handler in old.items(): signal.signal(sig,handler)
+    print(json.dumps({'service':'gonken-agent','status':'STARTING','mode':'voice-appliance',
+                      'startup_snapshot':snapshot_state},sort_keys=True),flush=True)
+    from .voice_runtime import run_appliance
+    return run_appliance(config, foreground=False)
+
 
 
 def execute(args):
@@ -151,7 +162,7 @@ def execute(args):
                           'checksum':index['checksum'],'calibration':index['calibration']},sort_keys=True))
         return 0
     if args.command=='doctor':
-        data=doctor(config,args.index,args.probe_ollama)
+        data=doctor(config,args.index,args.probe_ollama,getattr(args,'probe_audio',False))
         if args.write_startup_snapshot:
             snapshot=write_startup_snapshot(config,directory=args.snapshot_dir,
                                             mode=args.diagnostic_mode,

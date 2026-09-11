@@ -1,103 +1,172 @@
-# Raspberry Pi Acceptance Run
+# Raspberry Pi acceptance run
 
-This runbook is for the first real Raspberry Pi validation of GonKenLab Agent.
-It assumes Raspberry Pi OS Lite 64-bit, SSH access, and the intended USB
-microphone/speaker connected when available.
+This is the final real-target acceptance procedure. Passing host-side tests is
+not enough; appliance readiness must be demonstrated on a freshly imaged Pi.
 
-## 1. Install From a Clean Pi
+## 1. Fresh-image install
 
-```bash
-sudo apt update
-sudo apt install -y git
-git clone https://github.com/mukulu/gonkenlabagent.git
-cd gonkenlabagent
-./bootstrap.sh --source-url https://github.com/mukulu/gonkenlabagent.git --ref main
-```
+Prepare Raspberry Pi OS Lite 64-bit/Trixie in Raspberry Pi Imager. Configure
+SSH and, if Wi-Fi is used, SSID/passphrase/WLAN country before first boot.
 
-If the run is interrupted by networking, power, or a recoverable package error,
-fix the immediate condition and rerun the same bootstrap command once. Do not
-delete project state before collecting diagnostics.
-
-## 2. Check Service State
+Core USB/default-audio installation:
 
 ```bash
-systemctl status gonken-agent.service --no-pager
-journalctl -u gonken-agent.service -n 100 --no-pager
-systemctl status ollama.service --no-pager
+curl -fsSL https://raw.githubusercontent.com/mukulu/gonkenlabagent/main/install-gonken.sh | bash
 ```
 
-The service may report `DEGRADED` until real audio, GPIO, model, and speech
-conditions are confirmed. `DEGRADED` is acceptable for diagnostic collection;
-`FAILED` should be captured before attempting manual repair.
+Bluetooth installation when the intended device MAC is known:
 
-## 3. Reboot and Recheck
+```bash
+curl -fsSL https://raw.githubusercontent.com/mukulu/gonkenlabagent/main/install-gonken.sh | \
+  bash -s -- --bluetooth-audio --bluetooth-device AA:BB:CC:DD:EE:FF
+```
+
+Do not manually preinstall Ollama, Whisper, Piper, Python packages, PipeWire or
+project virtual environments. The acceptance test is intended to prove that the
+launcher/bootstrap owns those prerequisites.
+
+## 2. Installation-completion gate
+
+Accept only a final `READY` boundary. Record the exact terminal output.
+Expected shape:
+
+```text
+[READY] code=APPLIANCE_READY ... wake_phrase=Hey_Gonken reboot_required=false
+[READY] code=INSTALLATION_COMPLETE ... autostart=enabled ...
+```
+
+The target should also audibly announce readiness when its output path is
+available.
+
+Run:
+
+```bash
+gonken-agent status --json
+gonken-agent doctor --probe-ollama --probe-audio
+systemctl status gonken-agent.service --no-pager -l
+```
+
+## 3. Live voice test
+
+With the service running, say:
+
+```text
+Hey Gonken
+```
+
+Then ask a short question. Record whether:
+
+1. wake phrase was recognized;
+2. the question was understood;
+3. an offline Qwen response was generated;
+4. Piper played the response through the intended output;
+5. the service returned to wake standby;
+6. a second turn also succeeded.
+
+Follow categorical runtime state if required:
+
+```bash
+journalctl -fu gonken-agent.service
+```
+
+No transcript should be persisted by the normal service.
+
+## 4. Manual runtime test
+
+Stop the daemon so it releases the microphone:
+
+```bash
+sudo systemctl stop gonken-agent.service
+```
+
+Test one explicit turn:
+
+```bash
+gonken-agent talk --seconds 8
+```
+
+For exact Bluetooth service-user testing, use the command in
+[OPERATIONS.md](OPERATIONS.md). Restore automatic operation:
+
+```bash
+sudo systemctl start gonken-agent.service
+```
+
+## 5. Reboot/no-login test
 
 ```bash
 sudo reboot
 ```
 
-After reconnecting by SSH:
+Do not log in immediately merely to start the application. Wait for normal boot
+and the ready announcement. If Bluetooth is used, power on the trusted device
+and verify it reconnects automatically.
+
+Afterward, SSH in only for evidence collection:
 
 ```bash
 systemctl is-enabled gonken-agent.service
 systemctl is-active gonken-agent.service
-journalctl -u gonken-agent.service -n 100 --no-pager
+gonken-agent status --json
+journalctl -u gonken-agent.service -b --no-pager -n 100
 ```
 
-## 4. Collect the Support ZIP
+Repeat a real `Hey Gonken` voice interaction.
 
-```bash
-sudo /usr/local/lib/gonken-agent/current/maintenance/collect-support.sh
-```
+## 6. Degraded/recovery tests
 
-Upload the printed ZIP path for review. The bundle is designed to contain
-redacted configuration, categorical health, content-free telemetry, and the
-latest startup hardware/software snapshot. It does not include transcripts,
-answers, raw audio, corpus files, Git history, shell profiles, or arbitrary
-system logs.
+At minimum record these without deleting the installation:
 
-Useful raw files to inspect locally before upload are:
+- boot with Bluetooth device off, then turn it on and verify recovery;
+- temporarily disconnect USB audio where applicable, restore it and verify
+  readiness returns;
+- restart `ollama.service` and verify voice runtime waits/recovers;
+- stop/start/restart `gonken-agent.service`;
+- rerun bootstrap and verify completed model/artifact stages are reused;
+- if Wi-Fi is not used, verify Ethernet-only operation is unaffected by Wi-Fi
+  rfkill state.
 
-```text
-/var/lib/gonken-agent/runtime/startup/latest.json
-/var/lib/gonken-agent/runtime/startup/startup-*.json
-/var/lib/gonken-agent/runtime/telemetry.jsonl
-```
+## 7. Lifecycle/recovery commands
 
-## 5. Exercise Lifecycle Commands
-
-Run these only after the initial install and support ZIP have been captured.
+After the primary voice/reboot evidence is captured, exercise the maintained
+lifecycle helpers:
 
 ```bash
 sudo /usr/local/lib/gonken-agent/current/maintenance/update.sh
 sudo /usr/local/lib/gonken-agent/current/maintenance/rollback.sh
-sudo /usr/local/lib/gonken-agent/current/maintenance/collect-support.sh
 ```
 
-For uninstall/reinstall validation:
+For the dedicated uninstall/reinstall campaign, first preserve support evidence,
+then run:
 
 ```bash
 sudo /usr/local/lib/gonken-agent/current/maintenance/uninstall.sh
-cd ~/gonkenlabagent
-./bootstrap.sh --source-url https://github.com/mukulu/gonkenlabagent.git --ref main
+```
+
+The normal uninstall keeps project data unless its explicit purge contract is
+used. Reinstall with the same one-command launcher and repeat the READY/wake
+gates.
+
+## 8. Support evidence
+
+```bash
 sudo /usr/local/lib/gonken-agent/current/maintenance/collect-support.sh
 ```
 
-## 6. Hardware Notes to Record
+Preserve the printed ZIP and the exact bootstrap/service errors if any. Installer
+state/events remain under the root-owned `/var/lib/gonken-agent/install` tree.
 
-Record these observations alongside the support ZIP:
+## 9. Acceptance decision
 
-- Raspberry Pi model and RAM size.
-- Raspberry Pi OS image date if known.
-- MicroSD size and whether a cooler/fan is installed.
-- Microphone/speaker model and whether it was connected at boot.
-- Button and LED wiring pins.
-- Whether the service returned after reboot without logging in.
-- Whether audio appeared, disappeared, or changed after replug/reboot.
-- Any exact command that produced a failure.
+The build is appliance-ready only when all of these pass on the physical target:
 
-## 7. Acceptance Boundary
+- clean install reaches `READY`;
+- live wake + spoken question + spoken answer succeeds;
+- service starts without interactive login;
+- reboot returns to wake standby;
+- configured Bluetooth reconnects automatically where Bluetooth is in scope;
+- manual start/stop/restart/talk/log procedures work;
+- no Critical/High new defect remains unexplained.
 
-A successful cloud test run means the repository is ready to be tested on the
-Pi. It does not prove physical readiness. Physical acceptance requires the
-uploaded support ZIP and operator notes from this run.
+A Pi 4 is not covered by this Pi 5 acceptance run. It requires a separate target
+profile and physical performance evidence.
