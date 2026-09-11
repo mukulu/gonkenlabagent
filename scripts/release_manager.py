@@ -546,6 +546,7 @@ def build_release(
             source / "scripts" / "speech_manager.py": maintenance / "speech_manager.py",
             source / "scripts" / "install_summary.py": maintenance / "install_summary.py",
             source / "scripts" / "service_manager.py": maintenance / "service_manager.py",
+            source / "scripts" / "bluetooth_manager.py": maintenance / "bluetooth_manager.py",
             source / "scripts" / "update_manager.py": maintenance / "update_manager.py",
             source / "scripts" / "uninstall_manager.py": maintenance / "uninstall_manager.py",
             source / "packaging" / "ollama-artifacts.toml": maintenance / "packaging" / "ollama-artifacts.toml",
@@ -554,6 +555,7 @@ def build_release(
             source / "packaging" / "systemd" / "ollama.service": maintenance / "packaging" / "systemd" / "ollama.service",
             source / "packaging" / "systemd" / "ollama.service.d" / "gonken-agent.conf": maintenance / "packaging" / "systemd" / "ollama.service.d" / "gonken-agent.conf",
             source / "packaging" / "systemd" / "gonken-agent.service": maintenance / "packaging" / "systemd" / "gonken-agent.service",
+            source / "packaging" / "systemd" / "gonken-bluetooth-autoconnect.service": maintenance / "packaging" / "systemd" / "gonken-bluetooth-autoconnect.service",
             source / "packaging" / "tmpfiles" / "gonken-agent.conf": maintenance / "packaging" / "tmpfiles" / "gonken-agent.conf",
         }
         if any(not item.is_file() for item in maintenance_sources):
@@ -572,6 +574,7 @@ def build_release(
             maintenance / "speech_manager.py",
             maintenance / "install_summary.py",
             maintenance / "service_manager.py",
+            maintenance / "bluetooth_manager.py",
             maintenance / "update_manager.py",
             maintenance / "uninstall_manager.py",
         ):

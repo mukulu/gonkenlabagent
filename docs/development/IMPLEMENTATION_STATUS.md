@@ -64,3 +64,37 @@ Inspect Git status/history and this table; read the relevant blueprint and test 
 Select all useful dependency-ready work, implement and verify, then continue without
 asking permission to cross an item boundary. Preserve failed/unrun gates explicitly.
 At checkpoint close run the full applicable suite and verify a clean extracted Git archive.
+
+
+## Continuation 08 FIX3 target evidence — 2026-09-11
+
+The real Raspberry Pi run has now validated the immutable application release,
+Ollama 0.33.3 with `qwen3.5:2b-q4_K_M`, Whisper 1.9.2, Piper 1.8.0, pinned speech
+model downloads and the deterministic Piper-to-Whisper speech smoke. The next
+observed blocker was `gonken-agent.service` failing at systemd namespace setup
+with status `226/NAMESPACE` because optional `/srv/gonken-agent/corpus` did not
+exist. FIX3 changes that path to optional namespace semantics, runs the
+root-owned release reconciliation pre-start through a bounded privileged prefix,
+permits that pre-start namespace to mutate only installer state, resets stale
+service failure state, and supports an exact managed upgrade from the FIX2 unit.
+
+FIX3 also opens X4 Bluetooth as an explicit opt-in extension. The core USB path
+remains unchanged. When requested, bootstrap installs/prepares the headless
+BlueZ/PipeWire/WirePlumber stack for `gonken-agent`, asks the operator to put one
+audio device into pairing mode, pairs/trusts that device, and installs a bounded
+autoconnect helper. Hardware evidence confirms onboard Bluetooth on the current
+Pi 5 and AIRHUG USB audio, but Bluetooth output/microphone/reboot acceptance is
+still unrun.
+
+## FIX3 finalization note — 2026-09-11
+
+The real-Pi `226/NAMESPACE` application-service blocker is repaired in the
+managed unit upgrade path. The installer now also exposes a zero-configuration
+standard bootstrap, a one-command fresh-Pi launcher, and an opt-in generic
+Bluetooth audio extension with explicit device selectors and trusted-device
+reconnect. Host regression evidence is recorded in `TEST_MATRIX.md`.
+
+This finalization is intended for the next physical Pi convergence run. It does
+not convert the still-open M4.2/M4.3/M5.1 physical audio/GPIO acceptance gates
+into host claims: the packaged service remains a governed headless supervisor
+until the real capture/playback/PTT path is physically accepted.

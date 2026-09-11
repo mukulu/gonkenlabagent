@@ -246,7 +246,7 @@ gonken_prerequisite_postcondition() {
     return 69
   fi
   if [[ "${GONKEN_SOURCE_RECORD[platform_mode]}" == "target" ]]; then
-    for command_name in cmake c++ getent groupadd runuser systemd-tmpfiles tar useradd zstd; do
+    for command_name in cmake c++ getent groupadd runuser systemd-tmpfiles tar useradd usermod zstd; do
       command -v "$command_name" >/dev/null 2>&1 || return 1
     done
   fi
@@ -282,7 +282,13 @@ gonken_account_postcondition() {
       || "$home" != "/var/lib/gonken-agent" || "$shell" != "/usr/sbin/nologin" ]]; then
     return 2
   fi
-  GONKEN_STEP_EVIDENCE="service_uid_${uid}_gid_${gid}"
+  local memberships
+  memberships="$(id -nG gonken-agent 2>/dev/null)" || return 2
+  [[ " $memberships " == *" audio "* ]] || return 1
+  if getent group gpio >/dev/null 2>&1; then
+    [[ " $memberships " == *" gpio "* ]] || return 1
+  fi
+  GONKEN_STEP_EVIDENCE="service_uid_${uid}_gid_${gid}_audio_gpio_access"
 }
 
 gonken_account_action() {
@@ -293,6 +299,15 @@ gonken_account_action() {
   getent passwd gonken-agent >/dev/null 2>&1 || useradd --system \
     --gid gonken-agent --home-dir /var/lib/gonken-agent \
     --shell /usr/sbin/nologin --no-create-home gonken-agent || return 73
+  local groups="audio"
+  getent group audio >/dev/null 2>&1 || {
+    gonken_error "INSTALL_ACCOUNT" "required audio group is missing" "repair Raspberry Pi OS account/group database"
+    return 73
+  }
+  if getent group gpio >/dev/null 2>&1; then
+    groups="audio,gpio"
+  fi
+  usermod -a -G "$groups" gonken-agent || return 73
 }
 
 gonken_layout_precondition() {
@@ -444,6 +459,17 @@ gonken_service_unit_template() {
 gonken_service_tmpfiles_template() {
   printf '%s\n' "$RELEASE_ROOT/current/maintenance/packaging/tmpfiles/gonken-agent.conf"
 }
+
+gonken_bluetooth_manager() {
+  printf '%s\n' "$RELEASE_ROOT/current/maintenance/bluetooth_manager.py"
+}
+
+gonken_bluetooth_unit_template() {
+  printf '%s\n' "$RELEASE_ROOT/current/maintenance/packaging/systemd/gonken-bluetooth-autoconnect.service"
+}
+
+readonly BLUETOOTH_RECORD="/etc/gonken-agent/bluetooth-device.record"
+readonly BLUETOOTH_AUDIO_USER="gonken-agent"
 
 gonken_ollama_template_arguments() {
   printf '%s\n' \
@@ -612,6 +638,50 @@ gonken_app_service_action() {
     --systemd-tmpfiles /usr/bin/systemd-tmpfiles
 }
 
+gonken_bluetooth_stack_postcondition() {
+  python3 "$(gonken_bluetooth_manager)" stack-status \
+    --audio-user "$BLUETOOTH_AUDIO_USER" >/dev/null 2>&1 || return 1
+  GONKEN_STEP_EVIDENCE="bluetooth_stack_pipewire_bluez_headless"
+}
+
+gonken_bluetooth_stack_action() {
+  printf '[RUNNING] code=BLUETOOTH_PACKAGES message=installing_headless_bluez_pipewire_stack\n'
+  DEBIAN_FRONTEND=noninteractive apt-get update || return 69
+  DEBIAN_FRONTEND=noninteractive apt-get install -y \
+    bluez pipewire pipewire-pulse pipewire-audio pipewire-alsa \
+    pulseaudio-utils wireplumber || return 69
+  python3 "$(gonken_bluetooth_manager)" prepare \
+    --audio-user "$BLUETOOTH_AUDIO_USER"
+}
+
+gonken_bluetooth_pair_postcondition() {
+  python3 "$(gonken_bluetooth_manager)" status \
+    --audio-user "$BLUETOOTH_AUDIO_USER" \
+    --record "$BLUETOOTH_RECORD" >/dev/null 2>&1 || return 1
+  GONKEN_STEP_EVIDENCE="bluetooth_device_paired_trusted"
+}
+
+gonken_bluetooth_pair_action() {
+  local selector="${GONKEN_SOURCE_RECORD[bluetooth_device]:-}"
+  python3 "$(gonken_bluetooth_manager)" pair \
+    --audio-user "$BLUETOOTH_AUDIO_USER" \
+    --record "$BLUETOOTH_RECORD" \
+    --selector "$selector" \
+    --timeout 120
+}
+
+gonken_bluetooth_autoconnect_postcondition() {
+  python3 "$(gonken_bluetooth_manager)" autoconnect-status \
+    --record "$BLUETOOTH_RECORD" >/dev/null 2>&1 || return 1
+  GONKEN_STEP_EVIDENCE="bluetooth_trusted_device_autoconnect_service"
+}
+
+gonken_bluetooth_autoconnect_action() {
+  python3 "$(gonken_bluetooth_manager)" install-autoconnect \
+    --record "$BLUETOOTH_RECORD" \
+    --unit-template "$(gonken_bluetooth_unit_template)"
+}
+
 if ((ENGINE_ONLY == 0)); then
   SERVICE_HOME="$(dirname -- "$INSTALL_STATE_ROOT")" || exit 73
   if [[ -L "$SERVICE_HOME" || (-e "$SERVICE_HOME" && ! -d "$SERVICE_HOME") ]]; then
@@ -653,7 +723,7 @@ if ((ENGINE_ONLY == 0)); then
     "apt_is_convergent_and_not_project_transactional" || exit $?
 
   gonken_register_step \
-    "runtime_account" "1" \
+    "runtime_account" "2" \
     "gonken_account_precondition" "gonken_account_action" "gonken_account_postcondition" \
     "target_only_system_group_and_nonlogin_user" \
     "skip_exact_account_or_create_missing_account_once" \
@@ -719,7 +789,30 @@ if ((ENGINE_ONLY == 0)); then
       gonken_register_step         "speech_smoke" "1"         "gonken_speech_models_postcondition" "gonken_speech_smoke_action" "gonken_speech_smoke_postcondition"         "content_free_real_tts_then_stt_smoke_record"         "rerun_smoke_when_validation_record_is_missing_or_drifted"         "smoke_samples_are_temporary_and_not_retained" || exit $?
 
       if ((SPEECH_ONLY == 0)); then
-        gonken_register_step         "application_service" "1"         "gonken_speech_smoke_postcondition" "gonken_app_service_action" "gonken_app_service_postcondition"         "exact_systemd_unit_tmpfiles_and_degraded_headless_supervisor"         "refuse_conflicts_then_install_tmpfiles_enable_and_restart_service"         "no_privilege_or_power_grants_are_added" || exit $?
+        gonken_register_step         "application_service" "2"         "gonken_speech_smoke_postcondition" "gonken_app_service_action" "gonken_app_service_postcondition"         "exact_systemd_unit_tmpfiles_root_reconcile_and_degraded_headless_supervisor"         "upgrade_known_managed_unit_then_enable_start_and_capture_failure_context"         "no_privilege_or_power_grants_are_added_to_long_running_service" || exit $?
+
+        if [[ "${GONKEN_SOURCE_RECORD[bluetooth_audio]:-disabled}" == "requested" ]]; then
+          gonken_register_step \
+            "bluetooth_audio_stack" "1" \
+            "gonken_app_service_postcondition" "gonken_bluetooth_stack_action" "gonken_bluetooth_stack_postcondition" \
+            "optional_bluez_pipewire_wireplumber_headless_audio_stack" \
+            "install_only_when_explicitly_requested_and_reuse_when_healthy" \
+            "USB_audio_remains_the_supported_fallback" || exit $?
+
+          gonken_register_step \
+            "bluetooth_audio_pairing" "1" \
+            "gonken_bluetooth_stack_postcondition" "gonken_bluetooth_pair_action" "gonken_bluetooth_pair_postcondition" \
+            "one_explicit_trusted_audio_device_record" \
+            "guide_pairing_when_missing_and_never_select_ambiguous_devices" \
+            "remove_only_the_managed_pairing_record_to_reselect" || exit $?
+
+          gonken_register_step \
+            "bluetooth_audio_autoconnect" "1" \
+            "gonken_bluetooth_pair_postcondition" "gonken_bluetooth_autoconnect_action" "gonken_bluetooth_autoconnect_postcondition" \
+            "bounded_trusted_device_reconnect_service" \
+            "enable_once_then_retry_connection_when_device_is_powered_later" \
+            "disable_extension_service_without_affecting_USB_core" || exit $?
+        fi
       fi
     fi
   fi
@@ -775,6 +868,11 @@ python3 "$(gonken_install_summary_manager)" \
   --system-root / \
   --commit "${GONKEN_SOURCE_RECORD[resolved_commit]}" \
   --json
-printf '[OK] code=M3_6_INSTALL_SUMMARY status=DEGRADED ready=false next=M6_1_APPLICATION_SERVICE\n'
+printf '[OK] code=M3_6_INSTALL_SUMMARY status=DEGRADED ready=false next=TARGET_ACCEPTANCE\n'
 printf '[OK] code=M6_2_SERVICE_COMPLETE status=DEGRADED ready=false next=M8_1_TARGET_DIAGNOSTICS_AND_M9_ACCEPTANCE\n'
+if [[ "${GONKEN_SOURCE_RECORD[bluetooth_audio]:-disabled}" == "requested" ]]; then
+  printf '[OK] code=X4_BLUETOOTH_SETUP status=EXPERIMENTAL paired=true autoconnect=true usb_fallback=true\n'
+fi
+printf '[OK] code=INSTALLATION_COMPLETE service=gonken-agent.service autostart=enabled core_components=installed\n'
+printf '[INFO] code=INTERACTION_BOUNDARY voice_runtime=physical_audio_and_push_to_talk_acceptance_pending text_diagnostics=available\n'
 exit 0

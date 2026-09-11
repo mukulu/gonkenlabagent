@@ -15,6 +15,9 @@ from pathlib import Path
 
 SERVICE_NAME = "gonken-agent.service"
 TMPFILES_NAME = "gonken-agent.conf"
+KNOWN_PREVIOUS_UNIT_SHA256 = {
+    "9e4ed270fb4af9128d324640d06b80d6fcdb2076b2c67af319ac6b41498983a6",
+}
 FORBIDDEN_TEXT = (
     "sudo",
     "sudoers",
@@ -29,12 +32,14 @@ REQUIRED_LINES = (
     "Type=exec",
     "User=gonken-agent",
     "Group=gonken-agent",
-    "ExecStartPre=/usr/local/lib/gonken-agent/current/maintenance/reconcile-release.sh",
+    "ExecStartPre=+/usr/local/lib/gonken-agent/current/maintenance/reconcile-release.sh",
     "ExecStart=/usr/local/lib/gonken-agent/current/.venv/bin/gonken-agent service",
     "Restart=on-failure",
     "NoNewPrivileges=true",
     "PrivateTmp=true",
-    "ProtectHome=true",
+    "ProtectHome=read-only",
+    "Environment=XDG_RUNTIME_DIR=/run/user/%U",
+    "Environment=DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/%U/bus",
     "ProtectSystem=full",
     "CapabilityBoundingSet=",
     "PrivateDevices=false",
@@ -121,8 +126,10 @@ def validate_unit_payload(payload: bytes) -> None:
     for required in REQUIRED_LINES:
         if required not in text:
             fail("SERVICE_TEMPLATE", f"service unit lacks required line: {required}", "restore the governed unit template", 65)
-    if not re.search(r"(?m)^ReadWritePaths=/var/lib/gonken-agent/runtime /var/cache/gonken-agent /run/gonken-agent$", text):
-        fail("SERVICE_HARDENING", "service writable paths are not restricted to runtime/cache/run", "restore the governed hardening block", 65)
+    if not re.search(r"(?m)^ReadWritePaths=/var/lib/gonken-agent/install /var/lib/gonken-agent/runtime /var/cache/gonken-agent /run/gonken-agent$", text):
+        fail("SERVICE_HARDENING", "service writable namespace does not match install-reconcile/runtime/cache/run contract", "restore the governed hardening block", 65)
+    if "ReadOnlyPaths=-/srv/gonken-agent/corpus" not in text:
+        fail("SERVICE_HARDENING", "optional corpus path is not fail-open-on-absence/read-only-on-presence", "restore the governed corpus mount contract", 65)
 
 
 def validate_tmpfiles_payload(payload: bytes) -> None:
@@ -156,11 +163,22 @@ def run_tool(tool: Path, *arguments: str, optional: bool = False) -> subprocess.
     return result
 
 
-def write_if_exact_or_absent(path: Path, payload: bytes) -> None:
-    if path.exists() and (not path.is_file() or path.is_symlink() or path.read_bytes() != payload):
-        fail("SERVICE_CONFLICT", f"existing managed file differs: {path}", "review and remove or migrate it explicitly", 75)
-    if not path.exists():
+def write_if_exact_or_absent(
+    path: Path, payload: bytes, *, known_previous_sha256: set[str] | None = None
+) -> None:
+    if path.exists():
+        if not path.is_file() or path.is_symlink():
+            fail("SERVICE_CONFLICT", f"existing managed path is unsafe: {path}", "review and remove it explicitly", 75)
+        current = path.read_bytes()
+        if current == payload:
+            return
+        current_sha = hashlib.sha256(current).hexdigest()
+        if current_sha not in (known_previous_sha256 or set()):
+            fail("SERVICE_CONFLICT", f"existing managed file differs: {path}", "review and remove or migrate it explicitly", 75)
         durable_bytes(path, payload)
+        print(f"[OK] code=SERVICE_MANAGED_UPGRADE path={path}")
+        return
+    durable_bytes(path, payload)
 
 
 def validate_installed(root: Path, unit_template: Path, tmpfiles_template: Path) -> dict[str, str]:
@@ -175,14 +193,50 @@ def validate_installed(root: Path, unit_template: Path, tmpfiles_template: Path)
     }
 
 
+def _bounded_service_failure(systemctl: Path) -> str:
+    details: list[str] = []
+    status = subprocess.run(
+        [str(systemctl), "status", SERVICE_NAME, "--no-pager", "-l"],
+        check=False, capture_output=True, text=True,
+    )
+    if status.stdout or status.stderr:
+        details.append((status.stdout or status.stderr).strip())
+    journalctl = Path("/usr/bin/journalctl")
+    if journalctl.exists():
+        journal = subprocess.run(
+            [str(journalctl), "-u", SERVICE_NAME, "-b", "--no-pager", "-n", "40"],
+            check=False, capture_output=True, text=True,
+        )
+        if journal.stdout or journal.stderr:
+            details.append((journal.stdout or journal.stderr).strip())
+    return " | ".join(" ".join(item.split()) for item in details)[:1800]
+
+
 def install(root: Path, unit_template: Path, tmpfiles_template: Path, systemctl: Path, tmpfiles_tool: Path) -> None:
     paths = layout(root)
     unit, tmpfiles = service_files(unit_template, tmpfiles_template)
-    write_if_exact_or_absent(paths["unit"], unit)
+    write_if_exact_or_absent(
+        paths["unit"], unit,
+        known_previous_sha256=KNOWN_PREVIOUS_UNIT_SHA256,
+    )
     write_if_exact_or_absent(paths["tmpfiles"], tmpfiles)
     run_tool(tmpfiles_tool, "--create", str(paths["tmpfiles"]), optional=root != Path("/"))
     run_tool(systemctl, "daemon-reload")
-    run_tool(systemctl, "enable", "--now", SERVICE_NAME)
+    run_tool(systemctl, "enable", SERVICE_NAME)
+    run_tool(systemctl, "reset-failed", SERVICE_NAME)
+    started = subprocess.run(
+        [str(systemctl), "start", SERVICE_NAME],
+        check=False, capture_output=True, text=True,
+    )
+    if started.returncode != 0:
+        detail = _bounded_service_failure(systemctl)
+        primary = (started.stderr or started.stdout).strip().replace("\n", " ")
+        fail(
+            "SERVICE_START",
+            f"service start failed ({started.returncode}): {(primary + ' | ' + detail).strip(' |')[:2000]}",
+            "inspect the captured service/journal detail, correct the cause, and rerun bootstrap",
+            started.returncode if 1 <= started.returncode <= 125 else 74,
+        )
     print(f"[OK] code=SERVICE_INSTALLED unit={SERVICE_NAME}")
 
 

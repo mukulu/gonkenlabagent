@@ -13,6 +13,7 @@ ROOT = Path(__file__).resolve().parents[2]
 MANAGER = ROOT / "scripts/service_manager.py"
 UNIT = ROOT / "packaging/systemd/gonken-agent.service"
 TMPFILES = ROOT / "packaging/tmpfiles/gonken-agent.conf"
+PREVIOUS_UNIT = ROOT / "tests/fixtures/systemd/gonken-agent-pre-fix3.service"
 
 
 class ServiceManagerFixture:
@@ -77,7 +78,10 @@ class ServiceManagerTests(unittest.TestCase):
         for required in (
             "Type=exec",
             "User=gonken-agent",
+            "ExecStartPre=+/usr/local/lib/gonken-agent/current/maintenance/reconcile-release.sh",
             "ExecStart=/usr/local/lib/gonken-agent/current/.venv/bin/gonken-agent service",
+            "ReadWritePaths=/var/lib/gonken-agent/install /var/lib/gonken-agent/runtime /var/cache/gonken-agent /run/gonken-agent",
+            "ReadOnlyPaths=-/srv/gonken-agent/corpus",
             "NoNewPrivileges=true",
             "CapabilityBoundingSet=",
             "PrivateDevices=false",
@@ -86,6 +90,12 @@ class ServiceManagerTests(unittest.TestCase):
         lowered = text.lower()
         for forbidden in ("sudo", "sudoers", "polkit", "poweroff", "reboot", "privateDevices=true".lower()):
             self.assertNotIn(forbidden, lowered)
+
+    def test_optional_corpus_does_not_make_namespace_start_fatal(self) -> None:
+        text = UNIT.read_text(encoding="utf-8")
+        self.assertIn("ReadOnlyPaths=-/srv/gonken-agent/corpus", text)
+        self.assertNotIn("ReadOnlyPaths=/srv/gonken-agent/corpus\n", text)
+        self.assertIn("ExecStartPre=+", text)
 
     def test_install_status_remove_are_exact_and_reversible(self) -> None:
         fixture = self.fixture()
@@ -110,9 +120,23 @@ class ServiceManagerTests(unittest.TestCase):
         self.assertFalse(tmpfiles.exists())
         log = fixture.systemctl_log.read_text(encoding="utf-8")
         self.assertIn("daemon-reload", log)
-        self.assertIn("enable --now gonken-agent.service", log)
+        self.assertIn("enable gonken-agent.service", log)
+        self.assertIn("reset-failed gonken-agent.service", log)
+        self.assertIn("start gonken-agent.service", log)
         self.assertIn("stop gonken-agent.service", log)
         self.assertIn("disable gonken-agent.service", log)
+
+
+    def test_known_previous_managed_unit_is_upgraded_in_place(self) -> None:
+        fixture = self.fixture()
+        unit = fixture.system_root / "etc/systemd/system/gonken-agent.service"
+        unit.parent.mkdir(parents=True, exist_ok=True)
+        unit.write_bytes(PREVIOUS_UNIT.read_bytes())
+        unit.chmod(0o644)
+        installed = fixture.run("install")
+        self.assertEqual(installed.returncode, 0, installed.stderr)
+        self.assertIn("SERVICE_MANAGED_UPGRADE", installed.stdout)
+        self.assertEqual(unit.read_bytes(), UNIT.read_bytes())
 
     def test_conflicting_installed_unit_fails_closed(self) -> None:
         fixture = self.fixture()

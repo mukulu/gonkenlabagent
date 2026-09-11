@@ -1,0 +1,25 @@
+[Unit]
+Description=GonKenLab Agent trusted Bluetooth audio reconnect helper
+Documentation=man:systemd.service(5)
+Wants=bluetooth.service
+After=bluetooth.service
+ConditionPathExists=/etc/gonken-agent/bluetooth-device.record
+ConditionPathIsDirectory=/usr/local/lib/gonken-agent/current
+
+[Service]
+Type=simple
+ExecStart=/usr/local/lib/gonken-agent/current/maintenance/bluetooth_manager.py watch --record /etc/gonken-agent/bluetooth-device.record --audio-user gonken-agent
+Restart=always
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=read-only
+ProtectSystem=strict
+ReadOnlyPaths=/etc/gonken-agent/bluetooth-device.record /usr/local/lib/gonken-agent/current
+RestrictAddressFamilies=AF_UNIX
+# The root reconnect helper never gains device/network capabilities. It retains
+# only the ability to drop the pactl subprocess to the dedicated audio user.
+CapabilityBoundingSet=CAP_SETUID CAP_SETGID
+
+[Install]
+WantedBy=multi-user.target

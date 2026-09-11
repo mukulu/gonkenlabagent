@@ -24,11 +24,19 @@ COMMANDS = (
     "arecord",
     "aplay",
     "pactl",
+    "bluetoothctl",
+    "rfkill",
+    "wpctl",
     "ollama",
     "whisper-cli",
     "piper",
 )
-SERVICES = ("gonken-agent.service", "ollama.service")
+SERVICES = (
+    "gonken-agent.service",
+    "ollama.service",
+    "bluetooth.service",
+    "gonken-bluetooth-autoconnect.service",
+)
 
 
 def default_snapshot_dir(config) -> Path:
@@ -221,12 +229,33 @@ def _systemctl(action: str, service: str) -> str:
     return "UNKNOWN_OR_NOT_" + action.split("-")[-1].upper()
 
 
+def _bluetooth_audio_state() -> dict[str, object]:
+    state: dict[str, object] = {
+        "controller_count": 0,
+        "soft_blocked": None,
+        "hard_blocked": None,
+        "configured": Path("/etc/gonken-agent/bluetooth-device.record").is_file(),
+    }
+    if shutil.which("rfkill"):
+        result = _run(["rfkill", "list", "bluetooth"], timeout=5)
+        text = "\n".join(result.get("stdout", []))
+        state["soft_blocked"] = "Soft blocked: yes" in text
+        state["hard_blocked"] = "Hard blocked: yes" in text
+    if shutil.which("bluetoothctl"):
+        result = _run(["bluetoothctl", "list"], timeout=5)
+        state["controller_count"] = sum(
+            1 for line in result.get("stdout", []) if line.strip().startswith("Controller ")
+        )
+    return state
+
+
 def _audio(mode: str) -> dict[str, object]:
     cards = _bounded_lines(Path("/proc/asound/cards"), 40 if mode == "debug" else 12)
     return {
         "proc_asound_cards": cards,
         "capture_devices": _run(["arecord", "-l"], timeout=5) if shutil.which("arecord") else {"available": False},
         "playback_devices": _run(["aplay", "-l"], timeout=5) if shutil.which("aplay") else {"available": False},
+        "bluetooth": _bluetooth_audio_state(),
     }
 
 

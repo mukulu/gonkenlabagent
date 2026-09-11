@@ -33,7 +33,11 @@ def _status() -> dict[str, object]:
             "wake_word": "disabled",
             "voice_power": "disabled",
             "lan_dashboard": "disabled",
-            "bluetooth": "disabled",
+            "bluetooth": (
+                "configured"
+                if Path("/etc/gonken-agent/bluetooth-device.record").is_file()
+                else "disabled"
+            ),
         },
     }
 
