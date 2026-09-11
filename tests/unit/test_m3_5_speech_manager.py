@@ -4,6 +4,7 @@ import hashlib
 import importlib.util
 import json
 import os
+import stat
 import tempfile
 import unittest
 import wave
@@ -59,6 +60,25 @@ class SpeechManagerUnitTests(unittest.TestCase):
                 speech_manager._download(source.as_uri(), destination, "0" * 64, 7, "fixture")
             self.assertEqual(raised.exception.code, "SPEECH_CHECKSUM")
             self.assertFalse((destination.parent / ".artifact.part").exists())
+
+    def test_freeze_tree_normalizes_runtime_for_unprivileged_service(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary) / "release"
+            executable = root / ".venv/bin/python"
+            executable.parent.mkdir(parents=True)
+            executable.write_text("#!/bin/sh\n", encoding="utf-8")
+            data = root / "model.bin"
+            data.write_bytes(b"model")
+            root.chmod(0o700)
+            (root / ".venv").chmod(0o700)
+            executable.parent.chmod(0o700)
+            executable.chmod(0o700)
+            data.chmod(0o600)
+            speech_manager.freeze_tree(root)
+            self.assertEqual(stat.S_IMODE((root / ".venv").stat().st_mode), 0o555)
+            self.assertEqual(stat.S_IMODE(executable.parent.stat().st_mode), 0o555)
+            self.assertEqual(stat.S_IMODE(executable.stat().st_mode), 0o555)
+            self.assertEqual(stat.S_IMODE(data.stat().st_mode), 0o444)
 
     def test_manifest_rejects_unknown_field(self) -> None:
         source = ROOT / "packaging/speech-artifacts.toml"

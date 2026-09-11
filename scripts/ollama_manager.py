@@ -274,6 +274,21 @@ def safe_extract(archive: Path, destination: Path) -> None:
         fail("OLLAMA_ARCHIVE", f"archive extraction failed: {exc}", "clear the verified cache only after inspection and rerun", 65)
 
 
+def freeze_runtime_tree(path: Path, *, keep_root_writable: bool = False) -> None:
+    """Make an immutable runtime tree service-readable regardless of caller umask."""
+    for item in sorted(path.rglob("*"), key=lambda entry: len(entry.parts), reverse=True):
+        if item.is_symlink():
+            continue
+        mode = stat.S_IMODE(item.stat().st_mode)
+        if item.is_dir():
+            item.chmod(0o555)
+        elif item.is_file():
+            item.chmod(0o555 if mode & 0o111 else 0o444)
+        else:
+            fail("OLLAMA_BINARY", f"unsupported runtime filesystem object: {item}", "rebuild the pinned release", 74)
+    path.chmod(0o755 if keep_root_writable else 0o555)
+
+
 def _download(url: str, destination: Path, expected: str) -> None:
     if destination.is_symlink():
         fail("OLLAMA_DOWNLOAD", "download cache path is a symlink", "remove the unsafe path after inspection", 73)
@@ -281,6 +296,7 @@ def _download(url: str, destination: Path, expected: str) -> None:
         return
     partial = destination.with_suffix(destination.suffix + ".part")
     offset = partial.stat().st_size if partial.is_file() and not partial.is_symlink() else 0
+    print(f"[RUNNING] code=OLLAMA_DOWNLOAD artifact={destination.name} resume_bytes={offset}", flush=True)
     maybe_interrupt("binary_download", "before")
     parsed = urllib.parse.urlparse(url)
     try:
@@ -302,13 +318,19 @@ def _download(url: str, destination: Path, expected: str) -> None:
         mode = "ab" if offset else "wb"
         with response, partial.open(mode) as output:
             interrupted = False
+            downloaded = offset
+            next_report = ((downloaded // (64 * 1024 * 1024)) + 1) * (64 * 1024 * 1024)
             while True:
                 block = response.read(1024 * 1024)
                 if not block:
                     break
                 output.write(block)
+                downloaded += len(block)
                 output.flush()
                 os.fsync(output.fileno())
+                if downloaded >= next_report:
+                    print(f"[PROGRESS] code=OLLAMA_DOWNLOAD artifact={destination.name} downloaded_mib={downloaded // (1024 * 1024)}", flush=True)
+                    next_report += 64 * 1024 * 1024
                 if not interrupted:
                     interrupted = True
                     maybe_interrupt("binary_download", "during")
@@ -319,6 +341,7 @@ def _download(url: str, destination: Path, expected: str) -> None:
         partial.unlink(missing_ok=True)
         fail("OLLAMA_CHECKSUM", "downloaded artifact checksum differs", "do not install it; verify the official release and manifest", 65)
     os.replace(partial, destination)
+    print(f"[OK] code=OLLAMA_DOWNLOAD_COMPLETE artifact={destination.name} bytes={destination.stat().st_size}", flush=True)
 
 
 def _atomic_symlink(path: Path, target: str) -> None:
@@ -428,13 +451,9 @@ def install_binary(root: Path, manifest: dict[str, str], zstd: Path) -> None:
             f"payload_sha256={payload_digest}\n"
         )
         (candidate / "artifact.record").write_text(record, encoding="utf-8")
-        for item in sorted(candidate.rglob("*"), key=lambda entry: len(entry.parts), reverse=True):
-            if not item.is_symlink():
-                item.chmod(stat.S_IMODE(item.stat().st_mode) & ~0o222)
-        # Keep the candidate root owner-writable through the rename. Some
-        # hardened filesystems reject moving a non-writable directory; the
-        # final path is made immutable immediately after the atomic switch.
-        candidate.chmod(0o755)
+        # Normalize readability/traversal explicitly so a restrictive caller
+        # umask can never produce a root-only runtime tree.
+        freeze_runtime_tree(candidate, keep_root_writable=True)
         maybe_interrupt("binary_finalize", "before")
         os.replace(candidate, paths["release"])
         maybe_interrupt("binary_finalize", "during")
@@ -551,9 +570,12 @@ def installed_model(endpoint: str, model: str, prefix: str) -> dict[str, object]
 
 
 def pull_model(endpoint: str, model: str) -> int:
+    print(f"[RUNNING] code=OLLAMA_MODEL_PULL model={model}", flush=True)
     maybe_interrupt("model_pull", "before")
     response = _api(endpoint, "/api/pull", {"model": model, "stream": True}, stream=True)
     total = 0
+    completed = 0
+    last_percent = -1
     seen_success = False
     try:
         for index, line in enumerate(response):
@@ -564,7 +586,17 @@ def pull_model(endpoint: str, model: str) -> int:
                 raise ValueError("non-object event")
             if isinstance(event.get("total"), int):
                 total = max(total, event["total"])
-            if event.get("status") == "success":
+            if isinstance(event.get("completed"), int):
+                completed = max(completed, event["completed"])
+            if total > 0 and completed >= 0:
+                percent = min(100, int(completed * 100 / total))
+                if percent >= last_percent + 5 or percent == 100:
+                    print(f"[PROGRESS] code=OLLAMA_MODEL_PULL model={model} percent={percent} completed={completed} total={total}", flush=True)
+                    last_percent = percent
+            status = event.get("status")
+            if isinstance(status, str) and status and total == 0:
+                print(f"[RUNNING] code=OLLAMA_MODEL_PULL model={model} status={status.replace(' ', '_')}", flush=True)
+            if status == "success":
                 seen_success = True
     except (OSError, UnicodeError, json.JSONDecodeError, ValueError) as exc:
         fail("OLLAMA_PULL", f"model pull stream failed: {exc}", "restore connectivity and rerun; Ollama resumes blobs", 69)
@@ -573,23 +605,41 @@ def pull_model(endpoint: str, model: str) -> int:
     if not seen_success:
         fail("OLLAMA_PULL", "model pull did not report success", "inspect the service journal and rerun", 69)
     maybe_interrupt("model_pull", "after")
+    print(f"[OK] code=OLLAMA_MODEL_PULL_COMPLETE model={model} total={total}", flush=True)
     return total
 
 
 def smoke_model(endpoint: str, model: str, context_tokens: int) -> dict[str, int]:
+    print(f"[RUNNING] code=OLLAMA_MODEL_SMOKE model={model} think=false", flush=True)
     maybe_interrupt("model_smoke", "before")
-    payload = _api(endpoint, "/api/generate", {
+    payload = _api(endpoint, "/api/chat", {
         "model": model,
-        "prompt": "Reply with the single word ready.",
+        "messages": [{"role": "user", "content": "Reply with the single word ready."}],
         "stream": False,
+        "think": False,
         "keep_alive": 0,
         "options": {"temperature": 0, "num_ctx": context_tokens, "num_predict": 8, "seed": 0},
     })
     maybe_interrupt("model_smoke", "during")
-    if not isinstance(payload, dict) or payload.get("done") is not True or not isinstance(payload.get("response"), str) or not payload["response"].strip():
-        fail("OLLAMA_SMOKE", "deterministic inference smoke did not complete", "inspect memory pressure and the Ollama journal", 69)
+    message = payload.get("message") if isinstance(payload, dict) else None
+    content = message.get("content") if isinstance(message, dict) else None
+    if (
+        not isinstance(payload, dict)
+        or payload.get("done") is not True
+        or not isinstance(content, str)
+        or not content.strip()
+    ):
+        reason = payload.get("done_reason") if isinstance(payload, dict) else "malformed"
+        thinking = message.get("thinking") if isinstance(message, dict) else None
+        fail(
+            "OLLAMA_SMOKE",
+            f"deterministic non-thinking inference smoke did not complete (done_reason={reason}, thinking_present={bool(thinking)})",
+            "inspect memory pressure and the Ollama journal",
+            69,
+        )
     metrics = {"total_ns": int(payload.get("total_duration", 0)), "eval_count": int(payload.get("eval_count", 0))}
     maybe_interrupt("model_smoke", "after")
+    print(f"[OK] code=OLLAMA_MODEL_SMOKE model={model} eval_count={metrics['eval_count']}", flush=True)
     return metrics
 
 

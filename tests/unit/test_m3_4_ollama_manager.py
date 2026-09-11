@@ -3,6 +3,7 @@ from __future__ import annotations
 import importlib.util
 import io
 import os
+import stat
 import tarfile
 import tempfile
 import unittest
@@ -104,6 +105,47 @@ class OllamaInputContractTests(unittest.TestCase):
                     ollama_manager.installed_model(
                         "http://127.0.0.1:11434", "qwen3.5:2b-q4_K_M", "124a03c34777"
                     )
+
+    def test_qwen_smoke_explicitly_disables_thinking_and_uses_chat(self) -> None:
+        captured: dict[str, object] = {}
+
+        def fake_api(endpoint, path, payload=None, *, stream=False):
+            captured.update({"endpoint": endpoint, "path": path, "payload": payload, "stream": stream})
+            return {
+                "model": "qwen3.5:2b-q4_K_M",
+                "done": True,
+                "done_reason": "stop",
+                "message": {"role": "assistant", "content": "ready"},
+                "total_duration": 12,
+                "eval_count": 2,
+            }
+
+        with mock.patch.object(ollama_manager, "_api", side_effect=fake_api):
+            metrics = ollama_manager.smoke_model(
+                "http://127.0.0.1:11434", "qwen3.5:2b-q4_K_M", 2048
+            )
+        self.assertEqual(captured["path"], "/api/chat")
+        self.assertIs(captured["payload"]["think"], False)
+        self.assertEqual(captured["payload"]["options"]["num_predict"], 8)
+        self.assertEqual(metrics["eval_count"], 2)
+
+    def test_runtime_freeze_normalizes_root_only_modes(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary) / "release"
+            binary = root / "bin/ollama"
+            binary.parent.mkdir(parents=True)
+            binary.write_bytes(b"binary")
+            root.chmod(0o700)
+            binary.parent.chmod(0o700)
+            binary.chmod(0o700)
+            data = root / "metadata"
+            data.write_text("data", encoding="utf-8")
+            data.chmod(0o600)
+            ollama_manager.freeze_runtime_tree(root)
+            self.assertEqual(stat.S_IMODE(root.stat().st_mode), 0o555)
+            self.assertEqual(stat.S_IMODE(binary.parent.stat().st_mode), 0o555)
+            self.assertEqual(stat.S_IMODE(binary.stat().st_mode), 0o555)
+            self.assertEqual(stat.S_IMODE(data.stat().st_mode), 0o444)
 
     def test_redirected_root_requires_explicit_failure_test_gate(self) -> None:
         with mock.patch.dict(os.environ, {}, clear=True):

@@ -247,6 +247,7 @@ def maintenance_lock(state_root: Path):
 def init_layout(release_root: Path, state_root: Path, bin_root: Path) -> None:
     ensure_real_directory(release_root, 0o755)
     ensure_real_directory(release_root / "releases", 0o755)
+    ensure_real_directory(state_root.parent, 0o755)
     ensure_real_directory(state_root, 0o700)
     ensure_real_directory(bin_root, 0o755)
     entrypoint = bin_root / "gonken-agent"
@@ -355,12 +356,23 @@ def payload_sha256(path: Path) -> str:
 
 
 def freeze_tree(path: Path, *, keep_root_writable: bool = False) -> None:
+    """Freeze a code release while keeping it readable/traversable by service users.
+
+    The final modes are explicit rather than inherited from the caller's umask.
+    This prevents root-built virtual environments from becoming inaccessible to
+    the unprivileged runtime account.
+    """
     for item in sorted(path.rglob("*"), key=lambda entry: len(entry.parts), reverse=True):
         if item.is_symlink():
             continue
         mode = stat.S_IMODE(item.stat().st_mode)
-        item.chmod(mode & ~0o222)
-    path.chmod(0o755 if keep_root_writable else stat.S_IMODE(path.stat().st_mode) & ~0o222)
+        if item.is_dir():
+            item.chmod(0o555)
+        elif item.is_file():
+            item.chmod(0o555 if mode & 0o111 else 0o444)
+        else:
+            fail("RELEASE_PAYLOAD", f"unsupported release filesystem object: {item}", "rebuild the candidate", 74)
+    path.chmod(0o755 if keep_root_writable else 0o555)
 
 
 def finalize_candidate(release: Path, final: Path) -> None:

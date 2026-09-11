@@ -65,6 +65,7 @@ class RecordAndPointerTests(unittest.TestCase):
             state = root / "var/lib/gonken-agent/install"
             binary = root / "usr/local/bin"
             release_manager.init_layout(release, state, binary)
+            self.assertEqual(stat.S_IMODE(state.parent.stat().st_mode), 0o755)
             self.assertEqual(stat.S_IMODE(state.stat().st_mode), 0o700)
             entrypoint = binary / "gonken-agent"
             self.assertTrue(entrypoint.is_symlink())
@@ -88,6 +89,31 @@ class RecordAndPointerTests(unittest.TestCase):
             self.assertEqual(marker.name, "marker")
             self.assertEqual((final / "marker").read_text(), "complete\n")
             self.assertEqual(stat.S_IMODE((final / "marker").stat().st_mode) & 0o222, 0)
+
+    def test_finalization_normalizes_restrictive_umask_modes_for_service_access(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            releases = Path(temporary) / "releases"
+            releases.mkdir()
+            workspace = releases / f".candidate.{'d' * 40}.fixture"
+            candidate = workspace / "release"
+            bin_dir = candidate / ".venv/bin"
+            bin_dir.mkdir(parents=True)
+            executable = bin_dir / "gonken-agent"
+            data = candidate / "module.py"
+            executable.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+            data.write_text("VALUE = 1\n", encoding="utf-8")
+            # Reproduce the real-Pi failure modes created under leaked umask 077.
+            candidate.chmod(0o700)
+            (candidate / ".venv").chmod(0o700)
+            bin_dir.chmod(0o700)
+            executable.chmod(0o700)
+            data.chmod(0o600)
+            final = releases / ("d" * 40)
+            release_manager.finalize_candidate(candidate, final)
+            self.assertEqual(stat.S_IMODE((final / ".venv").stat().st_mode), 0o555)
+            self.assertEqual(stat.S_IMODE((final / ".venv/bin").stat().st_mode), 0o555)
+            self.assertEqual(stat.S_IMODE((final / ".venv/bin/gonken-agent").stat().st_mode), 0o555)
+            self.assertEqual(stat.S_IMODE((final / "module.py").stat().st_mode), 0o444)
 
     def test_source_archive_rejects_traversal_and_links(self) -> None:
         cases = (("../escape", b"payload", False), ("link", b"", True))

@@ -413,13 +413,12 @@ gonken_create_staging() {
     fi
   done
 
-  umask 077
-  staging_dir="$(mktemp -d -- "${staging_parent%/}/gonken-agent-bootstrap.XXXXXXXX")" || {
+  staging_dir="$(umask 077; mktemp -d -- "${staging_parent%/}/gonken-agent-bootstrap.XXXXXXXX")" || {
     gonken_error "PREFLIGHT_STAGING" "cannot create private staging directory" "check staging filesystem permissions and space"
     return 1
   }
   manifest_temp="$staging_dir/source.record.tmp"
-  if ! printf '%s\n' "$@" >"$manifest_temp"; then
+  if ! (umask 077; printf '%s\n' "$@" >"$manifest_temp"); then
     rm -f -- "$manifest_temp"
     rmdir -- "$staging_dir" 2>/dev/null || true
     gonken_error "PREFLIGHT_STAGING" "cannot write source manifest" "check staging filesystem health"
