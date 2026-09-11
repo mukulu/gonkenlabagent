@@ -171,6 +171,7 @@ class SpeechLifecycleProcessTests(unittest.TestCase):
         repeat = fixture.run("run-smoke")
         self.assertEqual(repeat.returncode, 0, repeat.stderr)
         record = fixture.system_root / "var/lib/gonken-agent/install/speech.record"
+        self.assertEqual(stat.S_IMODE(record.parent.stat().st_mode), 0o700)
         self.assertEqual(stat.S_IMODE(record.stat().st_mode), 0o600)
         self.assertIn("validation=passed", record.read_text(encoding="utf-8"))
 

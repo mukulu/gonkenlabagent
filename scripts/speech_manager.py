@@ -109,8 +109,10 @@ def ensure_directory(path: Path, mode: int = 0o755) -> None:
     path.chmod(mode)
 
 
-def durable_bytes(path: Path, payload: bytes, mode: int = 0o644) -> None:
-    ensure_directory(path.parent)
+def durable_bytes(
+    path: Path, payload: bytes, mode: int = 0o644, *, parent_mode: int = 0o755
+) -> None:
+    ensure_directory(path.parent, parent_mode)
     if path.is_symlink() or (path.exists() and not path.is_file()):
         fail("SPEECH_LAYOUT", f"unsafe file conflict: {path}", "move the conflict after administrator review", 75)
     temporary = path.parent / f".{path.name}.tmp.{os.getpid()}"
@@ -247,8 +249,19 @@ def validate_aarch64(path: Path, root: Path) -> str:
     return "aarch64"
 
 
-def write_kv_record(path: Path, values: dict[str, str], fields: tuple[str, ...]) -> None:
-    durable_bytes(path, "".join(f"{key}={values[key]}\n" for key in fields).encode(), 0o600)
+def write_kv_record(
+    path: Path,
+    values: dict[str, str],
+    fields: tuple[str, ...],
+    *,
+    parent_mode: int = 0o755,
+) -> None:
+    durable_bytes(
+        path,
+        "".join(f"{key}={values[key]}\n" for key in fields).encode(),
+        0o600,
+        parent_mode=parent_mode,
+    )
 
 
 def read_kv_record(path: Path, fields: tuple[str, ...], format_value: str) -> dict[str, str]:
@@ -654,7 +667,9 @@ def run_smoke(root: Path, manifest_path: Path, manifest: dict[str, Any], whisper
         "stt_required_tokens": ",".join(required),
         "validated_epoch": str(int(time.time())), "validation": "passed",
     }
-    write_kv_record(paths["record"], values, RECORD_FIELDS)
+    # Installer validation state is deliberately root-private.  Do not let the
+    # generic artifact-record writer widen /var/lib/gonken-agent/install.
+    write_kv_record(paths["record"], values, RECORD_FIELDS, parent_mode=0o700)
     maybe_interrupt("speech_smoke", "after")
     print(f"[OK] code=SPEECH_SMOKE_PASSED voice={manifest['piper_voice']['id']} rate={rate} frames={frames}")
 

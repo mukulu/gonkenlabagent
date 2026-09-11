@@ -317,6 +317,7 @@ gonken_revalidate_source_record() {
 gonken_prepare_private_directory() {
   local path="$1"
   local label="$2"
+  local migration_policy="${3:-strict}"
   local mode owner effective_uid
   effective_uid="$(id -u)" || return 73
   gonken_validate_absolute_path "$path" "$label" || return 73
@@ -327,11 +328,26 @@ gonken_prepare_private_directory() {
     }
     mode="$(stat -c %a -- "$path" 2>/dev/null)" || return 73
     owner="$(stat -c %u -- "$path" 2>/dev/null)" || return 73
-    [[ "$owner" == "$effective_uid" \
-      && "$mode" =~ ^[0-7]{3,4}$ && $((8#$mode & 077)) -eq 0 ]] || {
-      gonken_error "INSTALL_STATE" "$label has unsafe ownership or grants group/other access" "use an effective-user-owned mode-0700 directory"
-      return 73
-    }
+    if [[ "$owner" == "$effective_uid" \
+        && "$mode" =~ ^[0-7]{3,4}$ && $((8#$mode & 077)) -eq 0 ]]; then
+      return 0
+    fi
+    # One historical speech-record writer accidentally normalized the exact
+    # root-owned installer state directory to 0755.  A caller may opt in to
+    # repairing that single known-safe legacy mode.  Generic private paths
+    # remain fail-closed, as do foreign ownership and group/other-writable modes.
+    if [[ "$migration_policy" == "repair-owned-0755" \
+        && "$owner" == "$effective_uid" && "$mode" == "755" ]]; then
+      chmod 0700 "$path" || return 73
+      printf '[OK] code=INSTALL_STATE_REPAIRED path=%s old_mode=755 new_mode=700 owner_uid=%s\n' \
+        "$path" "$owner"
+      return 0
+    fi
+    gonken_error \
+      "INSTALL_STATE" \
+      "$label has unsafe ownership or mode (uid=$owner mode=$mode)" \
+      "use an effective-user-owned mode-0700 directory"
+    return 73
   else
     local parent
     parent="$(dirname -- "$path")" || return 73

@@ -694,7 +694,16 @@ if ((ENGINE_ONLY == 0)); then
     exit 73
   fi
   chmod 0755 "$SERVICE_HOME" || exit 73
-  gonken_prepare_private_directory "$INSTALL_STATE_ROOT" "private install state root" || exit $?
+  if [[ "${GONKEN_SOURCE_RECORD[platform_mode]}" == "target" \
+      && "$INSTALL_STATE_ROOT" == "/var/lib/gonken-agent/install" ]]; then
+    # FIX4 migration: repair only the known historical 0755 drift of the
+    # root-owned managed installer state.  New installs and all other private
+    # directories remain strictly mode 0700.
+    gonken_prepare_private_directory \
+      "$INSTALL_STATE_ROOT" "private install state root" "repair-owned-0755" || exit $?
+  else
+    gonken_prepare_private_directory "$INSTALL_STATE_ROOT" "private install state root" || exit $?
+  fi
 fi
 
 gonken_engine_initialize "$STATE_DIR" "$LOG_DIR" || exit $?
