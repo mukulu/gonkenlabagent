@@ -51,6 +51,21 @@ class CliProcessTests(unittest.TestCase):
         self.assertEqual(payload["config"]["llm"]["model"], "qwen3.5:2b-q4_K_M")
         self.assertNotIn(str(ROOT), serialized)
 
+    def test_effective_config_process_can_explicitly_show_installer_paths(self) -> None:
+        result = run_cli(
+            "config", "show", "--effective", "--no-site", "--json", "--show-paths"
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        payload = json.loads(result.stdout)
+        self.assertEqual(
+            payload["config"]["paths"]["whisper_binary"],
+            "/usr/local/bin/whisper-cli",
+        )
+        self.assertEqual(
+            payload["config"]["paths"]["whisper_model"],
+            "/var/lib/gonken-agent/models/whisper/base.en-q5_1.bin",
+        )
+
     def test_service_process_once_is_content_free_and_degraded(self) -> None:
         snapshot_dir = ROOT / ".pytest-cli-startup-snapshots"
         if snapshot_dir.exists():

@@ -83,6 +83,10 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     show_parser.add_argument("--json", action="store_true", dest="as_json")
     show_parser.add_argument(
+        "--show-paths", action="store_true",
+        help="include effective filesystem paths (default output redacts paths)",
+    )
+    show_parser.add_argument(
         "--site", type=Path, help="site TOML (default: /etc/gonken-agent/config.toml)"
     )
     show_parser.add_argument("--no-site", action="store_true")
@@ -173,12 +177,12 @@ def main(argv: Sequence[str] | None = None) -> int:
                     effective = load_config(cli_overrides=overrides)
                 if args.as_json:
                     print(json.dumps({
-                        "config": effective.as_dict(redact=True),
+                        "config": effective.as_dict(redact=not args.show_paths),
                         "sources": effective.source_dict(),
                     }, sort_keys=True))
                 else:
                     _print_effective_config(
-                        effective.as_dict(redact=True), effective.sources
+                        effective.as_dict(redact=not args.show_paths), effective.sources
                     )
                 return 0
             if args.config_command == "migrate":

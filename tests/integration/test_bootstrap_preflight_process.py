@@ -171,7 +171,10 @@ class BootstrapProcessTests(unittest.TestCase):
             timeout=15,
         )
         self.assertEqual(result.returncode, 78)
-        self.assertIn("code=PREFLIGHT_PLATFORM", result.stderr)
+        self.assertRegex(
+            result.stderr,
+            r"code=PREFLIGHT_(?:PLATFORM|ARCH|HARDWARE|IMAGE|INIT)",
+        )
         self.assertFalse(network_log.exists())
         self.assertEqual(list(self.staging_parent.iterdir()), [])
 

@@ -145,6 +145,16 @@ class AuthorityAndPrecedenceTests(unittest.TestCase):
         self.assertNotIn("OLLAMA_MODEL:-", installer)
         self.assertNotIn("OLLAMA_URL:-", installer)
 
+    def test_resumable_installer_explicitly_requests_unredacted_speech_paths(self) -> None:
+        installer = (ROOT / "scripts" / "install.sh").read_text(encoding="utf-8")
+        self.assertIn(
+            'config show --effective --json --show-paths',
+            installer,
+        )
+        self.assertIn('value["paths"]["whisper_binary"]', installer)
+        self.assertIn('value["paths"]["whisper_model"]', installer)
+        self.assertIn('value["paths"]["piper_voice"]', installer)
+
     def test_defaults_are_declared_as_wheel_data(self) -> None:
         metadata = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
         self.assertEqual(
@@ -260,6 +270,33 @@ class EffectiveOutputTests(unittest.TestCase):
         self.assertEqual(payload["config"]["llm"]["model"], "one-shot-model")
         self.assertEqual(payload["sources"]["llm"]["model"], "cli:llm.model")
         self.assertEqual(payload["config"]["paths"]["state_dir"], REDACTED)
+
+    def test_cli_show_paths_is_explicit_and_preserves_default_redaction(self) -> None:
+        redacted_output = io.StringIO()
+        with contextlib.redirect_stdout(redacted_output):
+            redacted_result = cli.main([
+                "config", "show", "--effective", "--no-site", "--json",
+            ])
+        shown_output = io.StringIO()
+        with contextlib.redirect_stdout(shown_output):
+            shown_result = cli.main([
+                "config", "show", "--effective", "--no-site", "--json",
+                "--show-paths",
+            ])
+        redacted = json.loads(redacted_output.getvalue())
+        shown = json.loads(shown_output.getvalue())
+
+        self.assertEqual(redacted_result, 0)
+        self.assertEqual(shown_result, 0)
+        self.assertEqual(redacted["config"]["paths"]["whisper_model"], REDACTED)
+        self.assertEqual(
+            shown["config"]["paths"]["whisper_model"],
+            "/var/lib/gonken-agent/models/whisper/base.en-q5_1.bin",
+        )
+        self.assertEqual(
+            shown["config"]["paths"]["piper_voice"],
+            "/var/lib/gonken-agent/models/piper/en_US-ljspeech-medium/en_US-ljspeech-medium.onnx",
+        )
 
     def test_cli_config_error_is_stable_and_nonzero(self) -> None:
         error = io.StringIO()
