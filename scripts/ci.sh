@@ -15,6 +15,7 @@ echo "[T0] dependency lock drift"
 "$PYTHON_BIN" "$SCRIPT_DIR/dependencies.py" render --check
 
 "$PYTHON_BIN" "$SCRIPT_DIR/milestone_status.py" --check
+"$PYTHON_BIN" "$SCRIPT_DIR/release_readiness.py" --check --allow-dirty >/dev/null
 
 echo "[T0] source/config syntax"
 bash -n bootstrap.sh setup.sh scripts/ci.sh scripts/install.sh \

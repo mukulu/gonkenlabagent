@@ -705,3 +705,26 @@ This closes M8.1 and M9.3 at the host software tier. It does not establish
 physical Pi readiness, USB audio correctness, GPIO wiring, reboot persistence,
 thermal behavior, power-loss recovery or live speech quality. Those observations
 must come from the target support ZIP and operator notes after installation.
+
+## M9.1/M9.2/M9.3 private release-candidate readiness — 2026-09-11
+
+Focused command before full regression:
+
+```bash
+python scripts/release_readiness.py --json --allow-dirty
+PYTHONPATH=src python -m unittest tests.unit.test_release_readiness
+```
+
+| Case | Evidence | Result / boundary |
+|---|---|---|
+| M9.2-T001 | `scripts/release_readiness.py` | Reports `READY_FOR_TARGET_ACCEPTANCE` only when required host foundations are host-verified, no required milestone is missing, no high-risk secret pattern is found and the real checkpoint tree is clean |
+| M9.2-T002 | `scripts/release_readiness.py --allow-dirty` | Allows pre-commit CI to test readiness semantics without weakening the strict committed-checkpoint behavior |
+| M9.2-T003 | `tests.unit.test_release_readiness` | JSON and human reports preserve the exact boundary: ready for Pi acceptance testing, with target gates still listed |
+| M9.3-T002 | `docs/RASPBERRY_PI_ACCEPTANCE_RUN.md` | Provides clean-Pi install, service status, journal review, reboot, support ZIP, update, rollback, uninstall/reinstall and operator-note steps |
+| M9.1-T002 | `docs/RASPBERRY_PI_ACCEPTANCE_RUN.md` | Converts cloud-blocked hardware validation into an executable target campaign with uploadable evidence |
+| M9.5-T001 | `scripts/ci.sh` | CI now includes milestone drift and release-readiness gates before unit/integration suites |
+
+This establishes private release-candidate readiness for Raspberry Pi testing at
+the host tier. It does not approve public redistribution and does not establish
+real USB audio, GPIO, reboot, thermal, power-loss, model latency or live speech
+acceptance.
