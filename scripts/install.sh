@@ -505,7 +505,7 @@ gonken_ollama_model_action() {
 
 gonken_load_effective_speech_config() {
   local config_json
-  config_json="$("$BIN_ROOT/gonken-agent" config show --effective --json)" || return 65
+  config_json="$("$BIN_ROOT/gonken-agent" config show --effective --json --show-paths)" || return 65
   mapfile -t SPEECH_EFFECTIVE < <(python3 -c '
 import json, sys
 value = json.load(sys.stdin)["config"]
@@ -516,15 +516,29 @@ print(value["paths"]["whisper_binary"])
 print(value["paths"]["whisper_model"])
 print(value["paths"]["piper_voice"])
 ' <<<"$config_json") || return 65
-  [[ "${#SPEECH_EFFECTIVE[@]}" == "6" ]] || return 65
+  if [[ "${#SPEECH_EFFECTIVE[@]}" != "6" ]]; then
+    gonken_error "SPEECH_CONFIG" "effective speech configuration output is incomplete" "restore the validated packaged configuration and rerun"
+    return 65
+  fi
   SPEECH_STT_MODEL="${SPEECH_EFFECTIVE[0]}"
   SPEECH_STT_THREADS="${SPEECH_EFFECTIVE[1]}"
   SPEECH_TTS_VOICE="${SPEECH_EFFECTIVE[2]}"
   SPEECH_WHISPER_BINARY="${SPEECH_EFFECTIVE[3]}"
   SPEECH_WHISPER_MODEL="${SPEECH_EFFECTIVE[4]}"
   SPEECH_PIPER_VOICE="${SPEECH_EFFECTIVE[5]}"
-  [[ "$SPEECH_STT_MODEL" == "base.en-q5_1"     && "$SPEECH_TTS_VOICE" == "en_US-ljspeech-medium"     && "$SPEECH_WHISPER_BINARY" == "/usr/local/bin/whisper-cli"     && "$SPEECH_WHISPER_MODEL" == "/var/lib/gonken-agent/models/whisper/base.en-q5_1.bin"     && "$SPEECH_PIPER_VOICE" == "/var/lib/gonken-agent/models/piper/en_US-ljspeech-medium/en_US-ljspeech-medium.onnx" ]] || return 65
-  [[ "$SPEECH_STT_THREADS" =~ ^[0-9]+$ && "$SPEECH_STT_THREADS" -ge 1 && "$SPEECH_STT_THREADS" -le 16 ]] || return 65
+  if [[ "$SPEECH_STT_MODEL" != "base.en-q5_1" \
+      || "$SPEECH_TTS_VOICE" != "en_US-ljspeech-medium" \
+      || "$SPEECH_WHISPER_BINARY" != "/usr/local/bin/whisper-cli" \
+      || "$SPEECH_WHISPER_MODEL" != "/var/lib/gonken-agent/models/whisper/base.en-q5_1.bin" \
+      || "$SPEECH_PIPER_VOICE" != "/var/lib/gonken-agent/models/piper/en_US-ljspeech-medium/en_US-ljspeech-medium.onnx" ]]; then
+    gonken_error "SPEECH_CONFIG" "effective speech model or runtime paths differ from the pinned installer contract" "review /etc/gonken-agent/config.toml and restore the supported speech defaults"
+    return 65
+  fi
+  if [[ ! "$SPEECH_STT_THREADS" =~ ^[0-9]+$ \
+      || "$SPEECH_STT_THREADS" -lt 1 || "$SPEECH_STT_THREADS" -gt 16 ]]; then
+    gonken_error "SPEECH_CONFIG" "effective STT thread count is outside the supported range" "set stt.threads between 1 and 16 and rerun"
+    return 65
+  fi
 }
 
 gonken_speech_model_arguments() {
