@@ -13,7 +13,10 @@ User=gonken-agent
 Group=gonken-agent
 WorkingDirectory=/usr/local/lib/gonken-agent/current
 EnvironmentFile=-/etc/gonken-agent/environment
-ExecStartPre=/usr/local/lib/gonken-agent/current/maintenance/reconcile-release.sh
+# Release reconciliation owns root-only activation state. The '+' prefix keeps
+# this bounded immutable helper privileged while the long-running service stays
+# on the dedicated non-login account.
+ExecStartPre=+/usr/local/lib/gonken-agent/current/maintenance/reconcile-release.sh
 ExecStart=/usr/local/lib/gonken-agent/current/.venv/bin/gonken-agent service --diagnostic-mode debug
 Restart=on-failure
 RestartSec=5
@@ -23,10 +26,20 @@ CacheDirectory=gonken-agent
 UMask=0027
 NoNewPrivileges=true
 PrivateTmp=true
-ProtectHome=true
+ProtectHome=read-only
 ProtectSystem=full
-ReadWritePaths=/var/lib/gonken-agent/runtime /var/cache/gonken-agent /run/gonken-agent
-ReadOnlyPaths=/srv/gonken-agent/corpus
+# When the optional Bluetooth extension is enabled, a lingering PipeWire user
+# session lives below /run/user/<uid>. These variables are harmless when that
+# extension is absent and let the same service reach its own local audio graph.
+Environment=XDG_RUNTIME_DIR=/run/user/%U
+Environment=DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/%U/bus
+# The main service account still cannot mutate install state because the
+# directory remains root:root 0700; this mount allowance exists so the bounded
+# privileged ExecStartPre can finish an interrupted activation journal.
+ReadWritePaths=/var/lib/gonken-agent/install /var/lib/gonken-agent/runtime /var/cache/gonken-agent /run/gonken-agent
+# Corpus provisioning is optional. '-' means absence is not a namespace setup
+# failure; if the corpus exists it is exposed read-only to the service.
+ReadOnlyPaths=-/srv/gonken-agent/corpus
 RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
 CapabilityBoundingSet=
 PrivateDevices=false

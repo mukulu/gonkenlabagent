@@ -171,21 +171,25 @@ gonken_private_file_permissions() {
 gonken_load_source_record() {
   local path="$1"
   local key invoking_uid
-  local -a fields=(
+  local -a required_fields=(
     format source_url requested_ref resolved_commit platform_mode invoking_user
     kernel_name architecture userspace_bits python_version os_id os_version_id
     os_codename os_build_id os_release_sha256 pi_issue_sha256
     rpi_image_reference pi_model pid1 systemd_version free_kib memory_kib
     observed_epoch existing_checkout
   )
+  local -a optional_fields=(bluetooth_audio bluetooth_device)
+  local -a fields=("${required_fields[@]}" "${optional_fields[@]}")
   gonken_validate_absolute_path "$path" "source record" || return 65
   gonken_read_record "$path" fields GONKEN_SOURCE_RECORD || return $?
-  for key in "${fields[@]}"; do
+  for key in "${required_fields[@]}"; do
     if [[ ! -v "GONKEN_SOURCE_RECORD[$key]" ]]; then
       gonken_error "INSTALL_RECORD" "source record is missing field: $key" "rerun bootstrap to create a complete record"
       return 65
     fi
   done
+  GONKEN_SOURCE_RECORD[bluetooth_audio]="${GONKEN_SOURCE_RECORD[bluetooth_audio]:-disabled}"
+  GONKEN_SOURCE_RECORD[bluetooth_device]="${GONKEN_SOURCE_RECORD[bluetooth_device]:-}"
   [[ "${GONKEN_SOURCE_RECORD[format]}" == "gonken-bootstrap-source-v1" ]] || {
     gonken_error "INSTALL_RECORD_VERSION" "unsupported source record format" "rerun the matching supported bootstrap"
     return 65
@@ -199,6 +203,22 @@ gonken_load_source_record() {
     gonken_error "INSTALL_RECORD" "source record has an invalid platform mode" "rerun bootstrap on a supported target or development host"
     return 65
   }
+  [[ "${GONKEN_SOURCE_RECORD[bluetooth_audio]}" == "disabled" \
+      || "${GONKEN_SOURCE_RECORD[bluetooth_audio]}" == "requested" ]] || {
+    gonken_error "INSTALL_RECORD" "source record has an invalid Bluetooth feature request" "rerun bootstrap with or without --bluetooth-audio"
+    return 65
+  }
+  if [[ "${GONKEN_SOURCE_RECORD[bluetooth_audio]}" == "requested" \
+      && "${GONKEN_SOURCE_RECORD[platform_mode]}" != "target" ]]; then
+    gonken_error "INSTALL_RECORD" "Bluetooth audio setup is target-only" "omit Bluetooth options on development hosts"
+    return 65
+  fi
+  if ((${#GONKEN_SOURCE_RECORD[bluetooth_device]} > 120)) \
+      || [[ "${GONKEN_SOURCE_RECORD[bluetooth_device]}" == *$'\n'* \
+        || "${GONKEN_SOURCE_RECORD[bluetooth_device]}" == *$'\r'* ]]; then
+    gonken_error "INSTALL_RECORD" "recorded Bluetooth selector is unsafe" "rerun bootstrap with a short name or MAC selector"
+    return 65
+  fi
   [[ "${GONKEN_SOURCE_RECORD[invoking_user]}" =~ ^(root|[a-z_][a-z0-9_-]*[$]?)$ ]] || {
     gonken_error "INSTALL_RECORD" "source record has an invalid invoking user" "rerun bootstrap from a real local account"
     return 65

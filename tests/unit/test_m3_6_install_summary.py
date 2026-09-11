@@ -88,6 +88,13 @@ class InstallSummaryTests(unittest.TestCase):
                 "validation": "passed",
             },
         )
+        service_template = self.release / "maintenance/packaging/systemd/gonken-agent.service"
+        service_template.parent.mkdir(parents=True, exist_ok=True)
+        service_template.write_text("[Unit]\nDescription=fixture\n", encoding="utf-8")
+        installed_service = self.system / "etc/systemd/system/gonken-agent.service"
+        installed_service.parent.mkdir(parents=True, exist_ok=True)
+        installed_service.write_bytes(service_template.read_bytes())
+
         write_record(
             self.system / "var/lib/gonken-agent/install/speech.record",
             install_summary.SPEECH_FIELDS,
@@ -114,12 +121,21 @@ class InstallSummaryTests(unittest.TestCase):
         self.assertEqual(data["status"], "DEGRADED")
         self.assertFalse(data["ready"])
         self.assertEqual(data["code"], "M3_6_INSTALL_SUMMARY")
-        self.assertEqual(data["completed_milestones"], ["M3.3", "M3.4", "M3.5"])
+        self.assertEqual(data["completed_milestones"], ["M3.3", "M3.4", "M3.5", "M6.2"])
         components = {row["component"]: row for row in data["components"]}
         self.assertEqual(components["speech_artifacts"]["status"], "READY")
-        self.assertEqual(components["app_service"]["code"], "M6_SERVICE_NOT_IMPLEMENTED")
-        self.assertIn("M6.1 application service", data["next_action"])
+        self.assertEqual(components["app_service"]["code"], "HEADLESS_SERVICE_VALIDATED")
+        self.assertIn("target audio", data["next_action"])
         self.assertNotIn(str(self.system), str(data))
+
+    def test_summary_reports_service_degraded_when_unit_differs(self) -> None:
+        installed = self.system / "etc/systemd/system/gonken-agent.service"
+        installed.write_text("[Unit]\nDescription=drift\n", encoding="utf-8")
+        data = install_summary.build_summary(self.system, COMMIT)
+        components = {row["component"]: row for row in data["components"]}
+        self.assertEqual(components["app_service"]["status"], "DEGRADED")
+        self.assertEqual(components["app_service"]["code"], "HEADLESS_SERVICE_NOT_READY")
+        self.assertNotIn("M6.2", data["completed_milestones"])
 
     def test_records_are_closed_schema_private_and_policy_checked(self) -> None:
         record = self.system / "var/lib/gonken-agent/install/speech.record"

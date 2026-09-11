@@ -8,6 +8,7 @@ import json
 import os
 import re
 import stat
+import subprocess
 import sys
 from pathlib import Path
 
@@ -134,6 +135,37 @@ def validate_speech(root: Path) -> dict[str, str]:
     return record
 
 
+
+def validate_service(root: Path, commit: str) -> bool:
+    release_root = mapped(root, "/usr/local/lib/gonken-agent")
+    expected = release_root / "releases" / commit / "maintenance" / "packaging" / "systemd" / "gonken-agent.service"
+    installed = mapped(root, "/etc/systemd/system/gonken-agent.service")
+    if (
+        not expected.is_file()
+        or expected.is_symlink()
+        or not installed.is_file()
+        or installed.is_symlink()
+    ):
+        return False
+    try:
+        if installed.read_bytes() != expected.read_bytes():
+            return False
+    except OSError:
+        return False
+    if root != Path("/"):
+        return True
+    for command in (
+        ["/usr/bin/systemctl", "is-enabled", "--quiet", "gonken-agent.service"],
+        ["/usr/bin/systemctl", "is-active", "--quiet", "gonken-agent.service"],
+    ):
+        try:
+            result = subprocess.run(command, check=False, capture_output=True, timeout=8)
+        except (OSError, subprocess.TimeoutExpired):
+            return False
+        if result.returncode != 0:
+            return False
+    return True
+
 def component(name: str, status: str, code: str) -> dict[str, str]:
     if status not in {"READY", "DEGRADED", "FAILED"} or not SAFE_CODE_RE.fullmatch(code):
         fail("SUMMARY_COMPONENT", "invalid summary component", "repair the summary implementation", 70)
@@ -144,11 +176,15 @@ def build_summary(root: Path, commit: str) -> dict[str, object]:
     release = validate_release(root, commit)
     ollama = validate_ollama(root)
     speech = validate_speech(root)
+    service_ready = validate_service(root, commit)
+    milestones = ["M3.3", "M3.4", "M3.5"]
+    if service_ready:
+        milestones.append("M6.2")
     return {
         "status": "DEGRADED",
         "ready": False,
         "code": "M3_6_INSTALL_SUMMARY",
-        "completed_milestones": ["M3.3", "M3.4", "M3.5"],
+        "completed_milestones": milestones,
         "active_commit": release["commit"],
         "release_profile": release["profile"],
         "ollama_model": ollama["model"],
@@ -160,15 +196,15 @@ def build_summary(root: Path, commit: str) -> dict[str, object]:
             component("release", "READY", "ACTIVE_RELEASE_VALIDATED"),
             component("ollama", "READY", "LOCAL_MODEL_VALIDATED"),
             component("speech_artifacts", "READY", "PINNED_SPEECH_SMOKE_VALIDATED"),
-            component("app_service", "DEGRADED", "M6_SERVICE_NOT_IMPLEMENTED"),
+            component("app_service", "READY" if service_ready else "DEGRADED", "HEADLESS_SERVICE_VALIDATED" if service_ready else "HEADLESS_SERVICE_NOT_READY"),
             component("input_audio", "DEGRADED", "PHYSICAL_ACCEPTANCE_NOT_RUN"),
             component("output_audio", "DEGRADED", "PHYSICAL_ACCEPTANCE_NOT_RUN"),
             component("gpio", "DEGRADED", "PHYSICAL_ACCEPTANCE_NOT_RUN"),
         ],
-        "next_action": "Implement M6.1 application service and M6.2 service lifecycle before claiming boot readiness.",
+        "next_action": "Run target audio, GPIO, reboot, thermal, and end-to-end acceptance before claiming appliance readiness.",
         "limitations": [
             "No Raspberry Pi hardware acceptance is implied by this summary.",
-            "No microphone, speaker, GPIO, reboot, thermal, or service behavior is accepted yet.",
+            "No microphone, speaker, GPIO, reboot, thermal, or end-to-end voice behavior is accepted yet.",
         ],
     }
 
@@ -193,7 +229,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.json:
             print(json.dumps(summary, sort_keys=True))
         else:
-            print(f"[OK] code={summary['code']} status={summary['status']} ready=false next=M6_1_APPLICATION_SERVICE")
+            print(f"[OK] code={summary['code']} status={summary['status']} ready=false next=TARGET_ACCEPTANCE")
     except SummaryError as error:
         emit_error(error)
         return error.status

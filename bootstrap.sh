@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# GonKenLab Agent bootstrap and validated installer handoff (through M3.3).
+# GonKenLab Agent bootstrap and validated installer handoff.
 #
 # Preflight remains mutation-free. A normal target invocation crosses the
 # already-validated noninteractive sudo boundary before installed-system work.
@@ -26,23 +26,32 @@ PLATFORM_MODE="target"
 STAGING_PARENT="/var/tmp"
 EXISTING_CHECKOUT=""
 EXISTING_CHECKOUT_EXPLICIT=0
+BLUETOOTH_AUDIO="disabled"
+BLUETOOTH_DEVICE=""
 
 usage() {
   cat <<'EOF'
 Usage: ./bootstrap.sh [OPTIONS]
 
-Preflight-only performs no installation. A normal invocation continues through
-the accepted immutable-release milestone and stops before model provisioning.
+Preflight-only performs no installation. A normal target invocation performs the
+complete governed install through local model, speech artifacts and system service.
+The official repository and main branch are defaults, so ./bootstrap.sh is enough
+for the standard installation.
 
 Options:
   --preflight-only          Return success after writing the source manifest.
   --development-host       Validate the documented Linux development-host
                            contract instead of Raspberry Pi production target.
-  --source-url URL         HTTPS Git source (file:// allowed only for
-                           --development-host validation).
+  --source-url URL         HTTPS Git source (default: official repository; file://
+                           allowed only for --development-host validation).
   --ref REF                Advertised remote branch or tag (default: main).
   --existing-checkout PATH Validate an existing/empty absolute checkout path.
   --staging-parent PATH    Existing absolute staging parent (default: /var/tmp).
+  --bluetooth-audio        Opt in to headless PipeWire/BlueZ setup, pairing,
+                           and trusted-device auto-reconnect after core install.
+  --bluetooth-device VALUE Optional Bluetooth name substring or exact MAC.
+                           Without it, exactly one unpaired audio device must
+                           appear during the guided pairing checkpoint.
   -h, --help               Show this help.
 EOF
 }
@@ -57,7 +66,11 @@ while (($#)); do
       PLATFORM_MODE="development"
       shift
       ;;
-    --source-url|--ref|--existing-checkout|--staging-parent)
+    --bluetooth-audio)
+      BLUETOOTH_AUDIO="requested"
+      shift
+      ;;
+    --source-url|--ref|--existing-checkout|--staging-parent|--bluetooth-device)
       option="$1"
       (($# >= 2)) || {
         usage >&2
@@ -73,6 +86,10 @@ while (($#)); do
           EXISTING_CHECKOUT_EXPLICIT=1
           ;;
         --staging-parent) STAGING_PARENT="$value" ;;
+        --bluetooth-device)
+          BLUETOOTH_DEVICE="$value"
+          BLUETOOTH_AUDIO="requested"
+          ;;
       esac
       shift 2
       ;;
@@ -90,6 +107,17 @@ done
 
 if ((EXISTING_CHECKOUT_EXPLICIT == 0)) && [[ -d "$SCRIPT_DIR/.git" ]]; then
   EXISTING_CHECKOUT="$SCRIPT_DIR"
+fi
+
+if [[ "$PLATFORM_MODE" != "target" && "$BLUETOOTH_AUDIO" == "requested" ]]; then
+  gonken_error "PREFLIGHT_BLUETOOTH" "Bluetooth audio setup is target-only" "omit Bluetooth options on development hosts" || true
+  exit 64
+fi
+if [[ -n "$BLUETOOTH_DEVICE" ]]; then
+  if ((${#BLUETOOTH_DEVICE} > 120)) || [[ "$BLUETOOTH_DEVICE" == *$'\n'* || "$BLUETOOTH_DEVICE" == *$'\r'* ]]; then
+    gonken_error "PREFLIGHT_BLUETOOTH" "Bluetooth selector is unsafe or too long" "use an exact MAC address or short device-name substring" || true
+    exit 64
+  fi
 fi
 
 gonken_validate_absolute_path "$STAGING_PARENT" "staging parent" || exit 78
@@ -203,7 +231,9 @@ gonken_create_staging "$STAGING_PARENT" \
   "free_kib=$free_kib" \
   "memory_kib=$memory_kib" \
   "observed_epoch=$clock_epoch" \
-  "existing_checkout=$EXISTING_CHECKOUT" || exit 73
+  "existing_checkout=$EXISTING_CHECKOUT" \
+  "bluetooth_audio=$BLUETOOTH_AUDIO" \
+  "bluetooth_device=$BLUETOOTH_DEVICE" || exit 73
 
 printf '[OK] code=PREFLIGHT_COMPLETE staging=%s\n' "$GONKEN_STAGING_DIR"
 printf '[OK] source_commit=%s privilege_mode=%s platform_mode=%s\n' \

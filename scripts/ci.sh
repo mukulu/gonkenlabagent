@@ -18,7 +18,7 @@ echo "[T0] dependency lock drift"
 "$PYTHON_BIN" "$SCRIPT_DIR/release_readiness.py" --check --allow-dirty >/dev/null
 
 echo "[T0] source/config syntax"
-bash -n bootstrap.sh setup.sh scripts/ci.sh scripts/install.sh \
+bash -n bootstrap.sh install-gonken.sh setup.sh scripts/ci.sh scripts/install.sh \
   scripts/lib/common.sh scripts/lib/install_engine.sh scripts/reconcile-release.sh \
   scripts/update.sh scripts/collect-support.sh scripts/rollback.sh scripts/uninstall.sh \
   tests/fixtures/install_engine_harness.sh

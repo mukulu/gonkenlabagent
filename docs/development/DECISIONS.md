@@ -687,3 +687,73 @@ transport checks are repeated.
 - **Consequence:** M9.2 can close for private target-acceptance readiness at the
   host tier. Public redistribution, third-party artifact licensing and target
   hardening remain later release decisions.
+
+
+## D-074 — Keep Bluetooth audio opt-in, headless, and independently recoverable
+
+- **Status:** Accepted
+- **Date:** 2026-09-11
+- **Decision:** Bluetooth audio is an X4 extension selected only with
+  `--bluetooth-audio` (optionally `--bluetooth-device NAME_OR_MAC`). Bootstrap
+  prepares BlueZ plus a dedicated lingering `gonken-agent` PipeWire/WirePlumber
+  user session, pauses at an explicit pairing action, trusts exactly one
+  verified audio device, and installs a bounded reconnect helper for that
+  recorded device. USB audio remains the core fallback.
+- **Reason:** The target evidence confirms onboard Bluetooth and a USB AIRHUG
+  audio path. Automatic discovery is useful, but silently pairing an arbitrary
+  nearby device would be unsafe and a mandatory Bluetooth stack would make the
+  reliable USB path more fragile.
+- **Consequence:** Fresh installs remain unattended through the core path. An
+  operator requesting Bluetooth receives one deliberate pairing checkpoint;
+  later boots may reconnect only the recorded trusted device. Physical A2DP,
+  HFP/HSP microphone/profile switching and reboot reconnect remain target gates.
+
+## D-075 — Optional filesystem resources must not make systemd namespace setup fatal
+
+- **Status:** Accepted
+- **Date:** 2026-09-11
+- **Decision:** Optional paths in service namespace directives use systemd's
+  non-fatal `-` prefix. Release reconciliation is a bounded privileged
+  `ExecStartPre=+` operation with explicit write access to root-owned installer
+  state; the long-running service remains the unprivileged `gonken-agent` user.
+- **Reason:** The physical Pi proved that `ReadOnlyPaths=/srv/gonken-agent/corpus`
+  fails the service at `226/NAMESPACE` when the optional corpus directory is not
+  present, before the pre-start helper can execute.
+- **Consequence:** The known FIX2 unit is upgraded in place by exact hash;
+  administrator-modified units still fail closed. Service-start failures now
+  include bounded status/journal context and stale systemd failure counters are
+  reset before retry.
+
+## D-076 — Make the official source/ref and first-install path zero-configuration defaults
+
+- **Status:** Accepted
+- **Date:** 2026-09-11
+- **Decision:** `bootstrap.sh` defaults to the official GonKenLab Agent HTTPS
+  repository and `main`. A root-level `install-gonken.sh` is the thin streamed
+  first-install/update launcher: it prepares only `ca-certificates`, Git and
+  Python, creates/updates a clean checkout, then delegates all governed target
+  mutation to `bootstrap.sh`. Unknown launcher arguments pass through unchanged.
+- **Reason:** The release URL/ref are project defaults rather than information a
+  normal user should repeatedly type. The outer launcher removes clone/APT
+  mechanics from onboarding without duplicating the installer state machine.
+- **Consequence:** The normal checkout command is `./bootstrap.sh`; the fresh-Pi
+  command is one HTTPS launcher. Custom forks/refs remain explicit options.
+  A dirty or diverged checkout fails closed instead of being overwritten.
+
+## D-077 — Bluetooth identity is deployment input and audio-session access is explicit
+
+- **Status:** Accepted
+- **Date:** 2026-09-11
+- **Decision:** An exact Bluetooth MAC or name substring may be supplied only as
+  bootstrap input. A known exact MAC is checked directly in BlueZ before any
+  discovery scan. The dedicated headless PipeWire/WirePlumber user session is
+  reachable from the app/reconnect services through its own `/run/user/<uid>`
+  namespace; the reconnect helper retains only `CAP_SETUID`/`CAP_SETGID` so it
+  can execute `pactl` as the dedicated audio user.
+- **Reason:** Device-specific identities must not become repository constants.
+  Also, `ProtectHome=true` would hide `/run/user` and an empty capability set
+  would prevent the reconnect helper from dropping to `gonken-agent`, making a
+  nominally paired Bluetooth device unusable by the headless audio session.
+- **Consequence:** Bluetooth remains opt-in and USB remains fallback, but the
+  implementation now has a coherent no-login session/reconnect path suitable
+  for real-Pi validation.

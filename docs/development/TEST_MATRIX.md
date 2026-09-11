@@ -728,3 +728,57 @@ This establishes private release-candidate readiness for Raspberry Pi testing at
 the host tier. It does not approve public redistribution and does not establish
 real USB audio, GPIO, reboot, thermal, power-loss, model latency or live speech
 acceptance.
+
+
+## FIX3 real-Pi service recovery and optional Bluetooth extension — 2026-09-11
+
+Host verification commands include:
+
+```bash
+bash -n bootstrap.sh scripts/install.sh scripts/lib/install_engine.sh
+python3 -m py_compile scripts/bluetooth_manager.py scripts/service_manager.py scripts/install_summary.py
+PYTHONPATH=src python3 -m unittest discover -s tests/unit -p 'test_*.py'
+PYTHONPATH=src python3 -m unittest tests.integration.test_install_engine_process
+PYTHONPATH=src python3 -m unittest tests.integration.test_bootstrap_preflight_process tests.integration.test_cli_process
+```
+
+| Case | Evidence | Result / boundary |
+|---|---|---|
+| FIX3-SVC-001 | real Pi journal | FIX2 failed before `ExecStartPre` with `226/NAMESPACE` because `/srv/gonken-agent/corpus` was absent |
+| FIX3-SVC-002 | `tests.unit.test_m6_service_manager` | Optional corpus uses `ReadOnlyPaths=-...`; root-only reconciliation uses bounded `ExecStartPre=+`; exact FIX2 unit upgrades in place |
+| FIX3-SVC-003 | `scripts/service_manager.py` | Start retry resets systemd failure state and captures bounded service/journal diagnostics on failure |
+| FIX3-BT-001 | `tests.unit.test_x4_bluetooth_manager` | Device parsing, capability classification, closed-schema trusted-device record and pairing verification are host-tested |
+| FIX3-BT-002 | `packaging/systemd/gonken-bluetooth-autoconnect.service` | Reconnect service is limited to the one root-controlled device record; it does not scan or pair at boot |
+| FIX3-BT-003 | bootstrap integration | Bluetooth is target-only and opt-in; default source record keeps it disabled so USB remains non-blocking |
+| FIX3-BT-004 | target acceptance pending | Onboard controller, A2DP output, HFP/HSP microphone/profile switching and reboot reconnect must be proven on the Pi |
+
+The unit suite after FIX3 contains **203 passing tests** in the current host
+environment. Core install-engine integration is **10/10**; CLI/preflight/support
+and normal release/Ollama/speech lifecycles also pass when run separately.
+
+## FIX3 final onboarding/service/Bluetooth hardening — 2026-09-11
+
+Additional focused commands:
+
+```bash
+bash -n bootstrap.sh install-gonken.sh scripts/install.sh scripts/lib/install_engine.sh
+PYTHONPATH=src python3 -m unittest discover -s tests/unit -p 'test_*.py'
+PYTHONPATH=src python3 -m unittest \
+  tests.integration.test_first_install_launcher \
+  tests.integration.test_bootstrap_preflight_process \
+  tests.integration.test_install_engine_process
+```
+
+| Case | Evidence | Result / boundary |
+|---|---|---|
+| FIX3-ONBOARD-001 | `install-gonken.sh` + `tests.integration.test_first_install_launcher` | First install prepares APT/Git/Python, creates a clean checkout and forwards optional Bluetooth parameters to governed bootstrap |
+| FIX3-ONBOARD-002 | `bootstrap.sh` | Official HTTPS repository and `main` are defaults; standard invocation is `./bootstrap.sh` |
+| FIX3-ONBOARD-003 | `install-gonken.sh` | Existing dirty/diverged checkout fails closed; launcher never silently destroys local work |
+| FIX3-BT-005 | `tests.unit.test_x4_bluetooth_manager` | Exact known MAC is reused directly from BlueZ before scanning; source remains device-agnostic |
+| FIX3-BT-006 | systemd unit contracts | Application/reconnect namespaces can reach the dedicated `/run/user/<uid>` PipeWire session; reconnect helper retains only UID/GID-drop capabilities |
+| FIX3-DOC-001 | `README.md`, `docs/INSTALLATION.md`, `docs/BLUETOOTH_AUDIO.md` | README keeps the simple path first and moves implementation/troubleshooting detail to focused documents |
+
+The current full unit discovery contains **204 passing tests**. The focused
+launcher/preflight/service/Bluetooth suites pass in the development environment.
+Physical Bluetooth pairing, PipeWire routing, microphone profile switching and
+no-login reboot reconnection remain target evidence, not host claims.
