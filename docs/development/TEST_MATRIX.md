@@ -681,3 +681,27 @@ PYTHONPATH=src python -m unittest tests.unit.test_m8_uninstall_manager tests.int
 This closes M8.3 at the host software tier only. Real Raspberry Pi uninstall,
 reinstall using retained data, user/group disposition, service stop/disable
 failure behavior, and clean-image lifecycle acceptance remain target gates.
+
+## M8.1/M9.1/M9.3 target diagnostics and onboarding — 2026-09-11
+
+Focused command before full regression:
+
+```bash
+bash -n scripts/collect-support.sh scripts/ci.sh
+PYTHONPATH=src python -m unittest tests.unit.test_diagnostics_snapshot tests.unit.test_support_export tests.unit.test_m3_3_release_manager tests.integration.test_cli_process tests.integration.test_support_collection_process
+```
+
+| Case | Evidence | Result / boundary |
+|---|---|---|
+| M8.1-T001 | `src/gonken_agent/diagnostics.py` | Startup snapshot records platform, process IDs/groups, memory, thermal, filesystem roles, command availability, systemd service state, audio enumeration, GPIO devices, local Ollama endpoint and selected configuration without interaction content or external network probes |
+| M8.1-T002 | `tests.unit.test_diagnostics_snapshot` | Debug mode writes `latest.json` plus bounded retained `startup-*.json` history; production mode writes only `latest.json` by default; unsafe snapshot inputs are rejected |
+| M8.1-T003 | `gonken-agent service --once --snapshot-dir ...` | Service startup records a content-free snapshot and reports only categorical snapshot status in the systemd-facing JSON |
+| M8.1-T004 | `src/gonken_agent/support.py` and `tests.unit.test_support_export` | Support ZIP can include an allow-listed validated `startup_snapshot.json` alongside redacted configuration, health and content-free telemetry |
+| M8.1-T005 | `scripts/collect-support.sh` and `tests.integration.test_support_collection_process` | Installed maintenance wrapper uses the release-local `gonken-agent` entry point and creates one uploadable private support ZIP from the default latest startup snapshot and telemetry paths when present |
+| M9.3-T001 | `README.md` | README now begins with Raspberry Pi OS Lite setup, SSH, clone/bootstrap, service status, journal check, support ZIP creation, update, rollback, uninstall and configuration guidance before development-internal details |
+| M9.1-T001 | `D-072` and `MILESTONES.json` | Physical clean-install acceptance is no longer treated as cloud-blocking software work; it is represented as a target-run campaign whose evidence will come from uploaded support ZIPs and real Pi observations |
+
+This closes M8.1 and M9.3 at the host software tier. It does not establish
+physical Pi readiness, USB audio correctness, GPIO wiring, reboot persistence,
+thermal behavior, power-loss recovery or live speech quality. Those observations
+must come from the target support ZIP and operator notes after installation.

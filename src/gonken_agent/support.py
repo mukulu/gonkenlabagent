@@ -8,9 +8,10 @@ from pathlib import Path
 from . import __version__
 from .health import COMPONENTS
 from .telemetry import validate_event
+from .diagnostics import load_snapshot
 
 
-def create_bundle(output, effective_config, health, telemetry_path=None, allowed_source_ids=()):
+def create_bundle(output, effective_config, health, telemetry_path=None, allowed_source_ids=(), startup_snapshot=None):
     output=Path(output).absolute()
     if output.exists() or output.is_symlink() or output.parent.resolve()!=output.parent:
         raise ValueError('support output must be a new file in a safe directory')
@@ -41,6 +42,8 @@ def create_bundle(output, effective_config, health, telemetry_path=None, allowed
         'health.json':{'components':rows},
         'telemetry.json':{'content_logging':False,'events':events},
     }
+    if startup_snapshot is not None:
+        files['startup_snapshot.json']=load_snapshot(startup_snapshot)
     fd,temporary=tempfile.mkstemp(prefix='.support-',dir=output.parent)
     os.close(fd)
     try:

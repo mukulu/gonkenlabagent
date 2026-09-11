@@ -13,6 +13,7 @@ from .runtime import Coordinator, signal_handlers
 from .text_pipeline import TextPipeline
 from .telemetry import Telemetry
 from .dashboard import Snapshot, server
+from .diagnostics import default_snapshot_dir, write_startup_snapshot
 
 
 def config_arguments(parser):
@@ -42,15 +43,24 @@ def add_commands(subparsers):
     support.add_argument('--output',type=Path,required=True)
     support.add_argument('--index',type=Path)
     support.add_argument('--telemetry',type=Path)
+    support.add_argument('--startup-snapshot',type=Path)
     doctor=subparsers.add_parser('doctor',help='report software/voice readiness without mutation')
     config_arguments(doctor)
     doctor.add_argument('--index',type=Path)
     doctor.add_argument('--probe-ollama',action='store_true',help='explicit local API probe')
+    doctor.add_argument('--write-startup-snapshot',action='store_true',
+                        help='write a content-free platform snapshot for support upload')
+    doctor.add_argument('--snapshot-dir',type=Path)
+    doctor.add_argument('--diagnostic-mode',choices=['debug','production'],default='debug')
+    doctor.add_argument('--retain-startup-snapshots',type=int)
     service=subparsers.add_parser('service',help='run the governed headless service supervisor')
     config_arguments(service)
     service.add_argument('--index',type=Path)
     service.add_argument('--probe-ollama',action='store_true',help='explicit local API probe')
     service.add_argument('--once',action='store_true',help='emit one content-free service status and exit')
+    service.add_argument('--snapshot-dir',type=Path)
+    service.add_argument('--diagnostic-mode',choices=['debug','production'],default='debug')
+    service.add_argument('--retain-startup-snapshots',type=int)
 
 
 def effective(args):
@@ -89,6 +99,15 @@ def service_loop(args):
         for sig in (signal.SIGINT,signal.SIGTERM):
             old[sig]=signal.signal(sig,lambda *_:stop.set())
         data=doctor(config,args.index,args.probe_ollama)
+        try:
+            snapshot=write_startup_snapshot(config,directory=args.snapshot_dir,
+                                            mode=args.diagnostic_mode,
+                                            retain=args.retain_startup_snapshots)
+            data['startup_snapshot']={'status':snapshot['status'],
+                                      'mode':snapshot['mode'],
+                                      'retention':snapshot['retention']}
+        except (ValueError,OSError):
+            data['startup_snapshot']={'status':'FAILED','mode':args.diagnostic_mode}
         data['service']='gonken-agent'
         data['mode']='headless-supervisor'
         data['ready_for_systemd']=True
@@ -117,7 +136,7 @@ def execute(args):
         effective_config=load_config(**kw)
         ids=[]
         if args.index:ids=[c['id'] for c in load(args.index,corpus)['chunks']]
-        result=create_bundle(args.output,effective_config,doctor(config,args.index),args.telemetry,ids)
+        result=create_bundle(args.output,effective_config,doctor(config,args.index),args.telemetry,ids,args.startup_snapshot)
         print(json.dumps(result,sort_keys=True))
         return 0
     if args.command=='index':
@@ -133,6 +152,14 @@ def execute(args):
         return 0
     if args.command=='doctor':
         data=doctor(config,args.index,args.probe_ollama)
+        if args.write_startup_snapshot:
+            snapshot=write_startup_snapshot(config,directory=args.snapshot_dir,
+                                            mode=args.diagnostic_mode,
+                                            retain=args.retain_startup_snapshots)
+            data['startup_snapshot']={'status':snapshot['status'],
+                                      'mode':snapshot['mode'],
+                                      'retention':snapshot['retention'],
+                                      'default_dir': str(default_snapshot_dir(config))}
         print(json.dumps(data,sort_keys=True))
         return data['exit_code']
     if args.command=='ask':

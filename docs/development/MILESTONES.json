@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "checkpoint_scope": "Continuation 06: M8.2 explicit update/rollback lifecycle and maintenance-wrapper correction",
+  "checkpoint_scope": "Continuation 07: target diagnostic snapshots, support upload workflow and end-user onboarding",
   "baseline_commit": "459f8da3ffb1dd084f9947988c117ae6da10ae1b",
   "milestones": [
     {
@@ -182,10 +182,10 @@
     {
       "id": "M8.1",
       "title": "Doctor and support bundle",
-      "software": "partial",
+      "software": "host-verified",
       "target": "not-run",
-      "evidence": "tests/unit/test_support_export.py; TEST_MATRIX.md continuation-support",
-      "remaining": "Categorical doctor and private allow-listed support ZIP tested. Detailed target versions/services/audio/GPIO/resource probes remain open."
+      "evidence": "TEST_MATRIX.md continuation-07; src/gonken_agent/diagnostics.py; src/gonken_agent/support.py; scripts/collect-support.sh; tests/unit/test_diagnostics_snapshot.py; tests/unit/test_support_export.py; tests/integration/test_cli_process.py",
+      "remaining": "Content-free startup snapshot capture, bounded debug retention, production latest-only mode, service startup recording and support ZIP inclusion are host-tested. Real target snapshot contents must be uploaded after Raspberry Pi installation to confirm USB audio, GPIO, systemd, thermal and resource observations."
     },
     {
       "id": "M8.2",
@@ -206,26 +206,26 @@
     {
       "id": "M9.1",
       "title": "Clean-install and failure campaign",
-      "software": "blocked",
+      "software": "partial",
       "target": "not-run",
-      "evidence": "TEST_MATRIX.md continuation-01 full regression",
-      "remaining": "Full clean-image failure campaign requires physical Pi and post-lifecycle target validation. Host unit/integration suites remain passing through M8.3 and M8.2 update/rollback."
+      "evidence": "TEST_MATRIX.md continuation-07; README.md; scripts/collect-support.sh; src/gonken_agent/diagnostics.py",
+      "remaining": "Cloud cannot perform physical clean-image acceptance. The repository now records startup hardware/software evidence and support ZIPs for uploaded target logs; the actual clean-install, reboot, power-loss and hardware campaign remains target-run work."
     },
     {
       "id": "M9.2",
       "title": "Security/license review",
       "software": "partial",
       "target": "not-run",
-      "evidence": "CONTINUATION_01_REPORT.md; D-050/D-051 and D-060\u2013D-064",
-      "remaining": "New-code review, inherited identity invariant, privacy tests, privilege-pattern service checks, uninstall protection tests and credential-pattern scan pass. Target hardening, artifact licenses and redistribution approval remain open."
+      "evidence": "TEST_MATRIX.md continuation-07; CONTINUATION_01_REPORT.md; D-050/D-051, D-060-D-064 and D-072",
+      "remaining": "New-code review, inherited identity invariant, privacy tests, privilege-pattern service checks, uninstall protection tests, credential-pattern scan and content-free diagnostic snapshot tests pass. Target hardening, artifact licenses and redistribution approval remain open."
     },
     {
       "id": "M9.3",
       "title": "Documentation and onboarding",
-      "software": "partial",
+      "software": "host-verified",
       "target": "not-run",
-      "evidence": "TEST_MATRIX.md continuation-grounding; text runtime guide",
-      "remaining": "Text diagnostic onboarding commands and service lifecycle source contracts are tested. Target installation/service/hardware operational guide remains open."
+      "evidence": "README.md; scripts/collect-support.sh; TEST_MATRIX.md continuation-07; docs/development/IMPLEMENTATION_STATUS.md",
+      "remaining": "README now begins with end-user Raspberry Pi OS, SSH, bootstrap, service check, log/support export, update/rollback/uninstall and configuration guidance. Target screenshots/operator feedback remain future refinements after a real Pi run."
     },
     {
       "id": "M9.4",
@@ -240,8 +240,8 @@
       "title": "Portable Git handoff",
       "software": "host-verified",
       "target": "not-applicable",
-      "evidence": "CONTINUATION_01_REPORT.md; checkpoint/continuation-01",
-      "remaining": "Private checkpoint transport verified: ZIP integrity, extracted branch/tag/HEAD, executable modes, clean Git and strict object checks. Core release gates remain open."
+      "evidence": "CONTINUATION_01_REPORT.md; checkpoint/continuation-01 through checkpoint/continuation-06",
+      "remaining": "Private checkpoint transport has been repeatedly verified through ZIP integrity, extracted branch/tag/HEAD, executable modes, clean Git and strict object checks. Continuation-07 checkpoint pending until this diagnostic/onboarding work is committed and packaged."
     }
   ]
 }

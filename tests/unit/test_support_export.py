@@ -47,3 +47,14 @@ class SupportTests(unittest.TestCase):
         output=self.root/'support.zip';self.health['components'][0]['detail']='secret transcript'
         create_bundle(output,self.config,self.health)
         with zipfile.ZipFile(output) as z:self.assertNotIn(b'secret',z.read('health.json'))
+    def test_startup_snapshot_is_allow_listed_member(self):
+        from gonken_agent.diagnostics import write_startup_snapshot
+        snapshot_dir=self.root/'snapshots'
+        snapshot=write_startup_snapshot(self.config.config,directory=snapshot_dir,retain=1)
+        output=self.root/'support.zip'
+        create_bundle(output,self.config,self.health,startup_snapshot=snapshot['latest'])
+        with zipfile.ZipFile(output) as z:
+            self.assertIn('startup_snapshot.json',z.namelist())
+            payload=json.loads(z.read('startup_snapshot.json'))
+            self.assertEqual(payload['schema'],1)
+            self.assertFalse(payload['privacy']['content_logging'])

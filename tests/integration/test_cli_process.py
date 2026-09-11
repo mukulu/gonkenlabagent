@@ -52,15 +52,23 @@ class CliProcessTests(unittest.TestCase):
         self.assertNotIn(str(ROOT), serialized)
 
     def test_service_process_once_is_content_free_and_degraded(self) -> None:
-        result = run_cli("service", "--no-site", "--once")
+        snapshot_dir = ROOT / ".pytest-cli-startup-snapshots"
+        if snapshot_dir.exists():
+            import shutil
+            shutil.rmtree(snapshot_dir)
+        result = run_cli("service", "--no-site", "--once", "--snapshot-dir", str(snapshot_dir))
         self.assertEqual(result.returncode, 0, result.stderr)
         payload = json.loads(result.stdout)
         self.assertEqual(payload["service"], "gonken-agent")
         self.assertEqual(payload["mode"], "headless-supervisor")
         self.assertEqual(payload["status"], "DEGRADED")
+        self.assertEqual(payload["startup_snapshot"]["status"], "RECORDED")
         self.assertTrue(payload["ready_for_systemd"])
         self.assertIn("service", json.dumps(payload))
         self.assertNotIn(str(ROOT), json.dumps(payload))
+        self.assertTrue((snapshot_dir / "latest.json").is_file())
+        import shutil
+        shutil.rmtree(snapshot_dir)
 
 
 if __name__ == "__main__":

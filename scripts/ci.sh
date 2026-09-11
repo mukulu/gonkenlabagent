@@ -19,7 +19,7 @@ echo "[T0] dependency lock drift"
 echo "[T0] source/config syntax"
 bash -n bootstrap.sh setup.sh scripts/ci.sh scripts/install.sh \
   scripts/lib/common.sh scripts/lib/install_engine.sh scripts/reconcile-release.sh \
-  scripts/update.sh scripts/rollback.sh scripts/uninstall.sh \
+  scripts/update.sh scripts/collect-support.sh scripts/rollback.sh scripts/uninstall.sh \
   tests/fixtures/install_engine_harness.sh
 "$PYTHON_BIN" -m compileall -q \
   src tests/unit tests/integration tests/hardware scripts \

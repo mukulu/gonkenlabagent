@@ -1,15 +1,123 @@
 # GonKenLab Agent
 
-GonKenLab Agent is being rebuilt as a headless Raspberry Pi 5 4GB appliance
-for local, source-grounded spoken access to a bounded AI-lab corpus. The
-release path will use local Whisper speech recognition, local retrieval,
-Qwen 3.5 2B through loopback-only Ollama, local Piper speech synthesis, and a
-physical push-to-talk control with an explicit recording indicator.
+GonKenLab Agent is a privacy-oriented Raspberry Pi assistant for local,
+source-grounded AI-lab use. It is designed to run without cloud services: local
+speech recognition, local retrieval, Qwen 3.5 2B through loopback-only Ollama,
+local speech synthesis, and a physical push-to-talk control.
 
-This branch is an implementation workstream, not an install-ready release.
-The inspected prototype remains reachable through a compatibility launcher,
-but its installer, runtime, cloud routing, continuous wake detector, and UI are
-not accepted release behavior.
+## Quick Raspberry Pi Setup
+
+Use a Raspberry Pi 5 with Raspberry Pi OS Lite 64-bit, a microSD card, network
+for installation, and the intended USB microphone/speaker connected before the
+first run if available. The assistant is installed as a headless system service,
+so automatic desktop login is not required.
+
+1. Flash Raspberry Pi OS Lite 64-bit to the microSD card with Raspberry Pi
+   Imager.
+2. In Raspberry Pi Imager, set hostname, Wi-Fi or Ethernet, username/password,
+   locale, and enable SSH.
+3. Boot the Pi and connect by SSH.
+4. Install Git if the image does not already have it:
+
+```bash
+sudo apt update
+sudo apt install -y git
+```
+
+5. Clone the repository and start the bootstrap:
+
+```bash
+git clone https://github.com/mukulu/gonkenlabagent.git
+cd gonkenlabagent
+./bootstrap.sh --source-url https://github.com/mukulu/gonkenlabagent.git --ref main
+```
+
+The bootstrap performs the supported platform checks, installs the application
+release, provisions Ollama and the selected model, provisions speech artifacts,
+installs the headless service, and records structured diagnostics. It is designed
+to be rerun after a recoverable failure such as interrupted networking or a
+reboot during installation.
+
+## After Installation
+
+Check the service:
+
+```bash
+systemctl status gonken-agent.service
+```
+
+View recent service logs:
+
+```bash
+journalctl -u gonken-agent.service -n 100 --no-pager
+```
+
+Create a private diagnostic ZIP to upload for troubleshooting:
+
+```bash
+sudo /usr/local/lib/gonken-agent/current/maintenance/collect-support.sh
+```
+
+The command prints the support ZIP path. By default, service startup also writes
+a content-free hardware/software snapshot at:
+
+```text
+/var/lib/gonken-agent/runtime/startup/latest.json
+```
+
+In the current default debug mode, the service keeps a bounded history of recent
+startup snapshots in the same directory. This helps compare cases where USB
+audio, GPIO, services, memory, or thermal state differs between reboots. For
+production-style operation, the service can be started with
+`--diagnostic-mode production`, which keeps only the latest startup snapshot
+unless a retention value is explicitly supplied.
+
+Update, rollback, and uninstall are explicit administrator actions:
+
+```bash
+sudo /usr/local/lib/gonken-agent/current/maintenance/update.sh
+sudo /usr/local/lib/gonken-agent/current/maintenance/rollback.sh
+sudo /usr/local/lib/gonken-agent/current/maintenance/uninstall.sh
+```
+
+Uninstall keeps project data by default. Data purge requires a separate explicit
+confirmation flag documented by `uninstall.sh --help`.
+
+## Configuration
+
+The main site configuration file is:
+
+```text
+/etc/gonken-agent/config.toml
+```
+
+Most users should not need to edit it during first installation. The important
+defaults are:
+
+- local Ollama model: `qwen3.5:2b-q4_K_M`;
+- microphone and speaker match text: `AIRHUG`;
+- push-to-talk GPIO: `17`;
+- recording LED GPIO: `27`;
+- dashboard bind address: `127.0.0.1`.
+
+To inspect the effective configuration without exposing absolute filesystem
+paths:
+
+```bash
+gonken-agent config show --effective --json
+```
+
+## Current Release Boundary
+
+This branch is still a private engineering workstream. The installer, immutable
+release lifecycle, service installation, update, rollback, uninstall, diagnostic
+snapshot, support export, and host-side automated tests are implemented. Physical
+Raspberry Pi acceptance must still be established from logs and a real target
+run, especially for USB audio behavior, GPIO wiring, reboot persistence, thermal
+state, and live speech quality.
+
+If the Pi run fails, rerun the bootstrap once after correcting obvious network or
+power issues, then upload the support ZIP created by `collect-support.sh`.
 
 ## Development authority
 
