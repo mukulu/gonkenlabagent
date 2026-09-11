@@ -117,6 +117,45 @@ class AtomicRecordTests(unittest.TestCase):
         self.assertEqual(parent_mode, 0o755)
         self.assertEqual(private_mode, 0o700)
 
+    def test_known_owned_0755_private_state_can_be_repaired_explicitly(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            private = Path(temporary) / "install"
+            private.mkdir()
+            private.chmod(0o755)
+            result = run_engine(
+                f"gonken_prepare_private_directory {shlex.quote(str(private))} "
+                "state repair-owned-0755"
+            )
+            mode = stat.S_IMODE(private.stat().st_mode)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(mode, 0o700)
+        self.assertIn("code=INSTALL_STATE_REPAIRED", result.stdout)
+
+    def test_private_state_0755_still_fails_without_explicit_migration(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            private = Path(temporary) / "install"
+            private.mkdir()
+            private.chmod(0o755)
+            result = run_engine(
+                f"gonken_prepare_private_directory {shlex.quote(str(private))} state"
+            )
+        self.assertEqual(result.returncode, 73)
+        self.assertIn("uid=", result.stderr)
+        self.assertIn("mode=755", result.stderr)
+
+    def test_known_migration_refuses_group_writable_state(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            private = Path(temporary) / "install"
+            private.mkdir()
+            private.chmod(0o775)
+            result = run_engine(
+                f"gonken_prepare_private_directory {shlex.quote(str(private))} "
+                "state repair-owned-0755"
+            )
+            mode = stat.S_IMODE(private.stat().st_mode)
+        self.assertEqual(result.returncode, 73)
+        self.assertEqual(mode, 0o775)
+
     def test_atomic_record_rejects_symlink_destination(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

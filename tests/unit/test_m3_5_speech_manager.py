@@ -61,6 +61,20 @@ class SpeechManagerUnitTests(unittest.TestCase):
             self.assertEqual(raised.exception.code, "SPEECH_CHECKSUM")
             self.assertFalse((destination.parent / ".artifact.part").exists())
 
+    def test_private_speech_record_does_not_widen_install_state_parent(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            state = Path(temporary) / "install"
+            state.mkdir()
+            state.chmod(0o700)
+            record = state / "speech.record"
+            values = {field: "x" for field in speech_manager.RECORD_FIELDS}
+            values["format"] = "gonken-speech-install-v1"
+            speech_manager.write_kv_record(
+                record, values, speech_manager.RECORD_FIELDS, parent_mode=0o700
+            )
+            self.assertEqual(stat.S_IMODE(state.stat().st_mode), 0o700)
+            self.assertEqual(stat.S_IMODE(record.stat().st_mode), 0o600)
+
     def test_freeze_tree_normalizes_runtime_for_unprivileged_service(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary) / "release"

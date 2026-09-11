@@ -98,3 +98,21 @@ This finalization is intended for the next physical Pi convergence run. It does
 not convert the still-open M4.2/M4.3/M5.1 physical audio/GPIO acceptance gates
 into host claims: the packaged service remains a governed headless supervisor
 until the real capture/playback/PTT path is physically accepted.
+
+## Continuation 08 FIX4 target evidence — 2026-09-12
+
+The first FIX3 physical-Pi rerun stopped before the step engine with
+`INSTALL_STATE`: `/var/lib/gonken-agent/install` was `0755 root:root` while its
+engine/log subdirectories remained `0700` and installer records remained `0600`.
+Root execution failed identically, proving this was an installer-state metadata
+invariant rather than a sudo privilege problem.
+
+Forensic source review identified the writer: the successful FIX2 speech smoke
+used the generic speech `durable_bytes()` helper to write `speech.record`; that
+helper re-normalized the record parent with its generic artifact default of
+`0755`. FIX4 gives private speech validation records an explicit `0700` parent
+contract and adds a narrowly-scoped upgrade migration that may repair only the
+known root-owned `0755` target install-state root back to `0700`. Symlinks,
+foreign ownership, group/other-writable state, and generic private directories
+remain fail-closed. The migration preserves every installer record and downloaded
+artifact and emits the observed/repaired mode.
