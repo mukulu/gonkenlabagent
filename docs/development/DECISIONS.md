@@ -652,3 +652,21 @@ transport checks are repeated.
 - **Consequence:** M8.2 closes at the host software tier for explicit
   update/rollback mechanics. Real target update/rollback, service restart
   failures and future schema migrators remain acceptance gates.
+
+## D-072 — Treat target hardware uncertainty as captured evidence, not a cloud blocker
+
+- **Status:** Accepted
+- **Date:** 2026-09-11
+- **Decision:** The headless service records a content-free startup hardware and
+  software snapshot by default. Debug mode keeps a bounded recent history;
+  production mode keeps only the latest snapshot unless retention is explicitly
+  requested. `collect-support.sh` packages the latest startup snapshot, health,
+  redacted configuration and content-free telemetry into one private support ZIP.
+- **Reason:** The development cloud cannot validate USB audio enumeration,
+  GPIO, Pi thermal state, reboot behavior, or real systemd journals. Waiting for
+  unavailable hardware would delay independent software work, while unstructured
+  raw logs would weaken privacy and make uploaded evidence harder to review.
+- **Consequence:** M8.1 and M9.3 can close at the host software tier for
+  diagnostic capture and operator guidance. M9.1 remains a real target campaign,
+  but later sessions can use uploaded support ZIPs as evidence for the next
+  repair cycle.

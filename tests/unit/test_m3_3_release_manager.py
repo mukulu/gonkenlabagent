@@ -166,6 +166,7 @@ class IntegrityAndPrivilegeTests(unittest.TestCase):
             '"service_manager.py"',
             '"update.sh"',
             '"update_manager.py"',
+            '"collect-support.sh"',
             '"rollback.sh"',
             '"uninstall.sh"',
             '"uninstall_manager.py"',
