@@ -86,6 +86,37 @@ class AtomicRecordTests(unittest.TestCase):
         self.assertEqual(mode, 0o600)
         self.assertEqual(leftovers, [])
 
+    def test_atomic_record_preserves_callers_umask(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            root.chmod(0o700)
+            destination = root / "state.record"
+            result = run_engine(
+                "umask 0022; before=$(umask); "
+                f"gonken_atomic_record {shlex.quote(str(destination))} 0600 format=test-v1; "
+                "after=$(umask); printf '%s|%s\\n' \"$before\" \"$after\""
+            )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        before, after = result.stdout.strip().split("|")
+        self.assertEqual(after, before)
+
+    def test_private_directory_keeps_parent_traversable_and_preserves_umask(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary) / "service-home"
+            private = root / "install"
+            result = run_engine(
+                "umask 0022; before=$(umask); "
+                f"gonken_prepare_private_directory {shlex.quote(str(private))} state; "
+                "after=$(umask); printf '%s|%s\\n' \"$before\" \"$after\""
+            )
+            parent_mode = stat.S_IMODE(root.stat().st_mode)
+            private_mode = stat.S_IMODE(private.stat().st_mode)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        before, after = result.stdout.strip().split("|")
+        self.assertEqual(after, before)
+        self.assertEqual(parent_mode, 0o755)
+        self.assertEqual(private_mode, 0o700)
+
     def test_atomic_record_rejects_symlink_destination(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

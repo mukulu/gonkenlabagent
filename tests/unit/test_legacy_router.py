@@ -88,9 +88,25 @@ assert 'brain.ollama_client' not in sys.modules
         self.assertEqual(final_messages[-1]["content"], "hello 5")
 
     def test_fake_boundary_does_not_load_network_or_hardware_modules(self) -> None:
-        forbidden = {"httpx", "sounddevice", "numpy", "openwakeword", "pygame"}
-        loaded = forbidden.intersection(sys.modules)
-        self.assertEqual(loaded, set())
+        script = f"""
+import sys
+forbidden = {{"httpx", "sounddevice", "numpy", "openwakeword", "pygame"}}
+before = forbidden.intersection(sys.modules)
+sys.path.insert(0, {str(ROOT)!r})
+from brain.router import Router
+from tests.fixtures.router_fakes import FakeChatClient, FakeChatResponse
+Router(FakeChatClient(FakeChatResponse("ok"))).route("hello")
+loaded = sorted(forbidden.intersection(sys.modules) - before)
+if loaded:
+    raise SystemExit('optional dependencies imported by fake router boundary: ' + ', '.join(loaded))
+"""
+        result = subprocess.run(
+            [sys.executable, "-I", "-c", script],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr or result.stdout)
 
 
 if __name__ == "__main__":

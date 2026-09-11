@@ -379,6 +379,18 @@ class SourceAndCheckoutTests(unittest.TestCase):
         self.assertIn(f"resolved_commit={commit}", content)
         self.assertIn("platform_mode=development", content)
 
+    def test_private_staging_does_not_leak_umask(self) -> None:
+        parent = self.root / "staging-umask"
+        parent.mkdir()
+        result = run_common(
+            "umask 0022; before=$(umask); "
+            f"gonken_create_staging {shlex.quote(str(parent))} format=test-v1; "
+            "after=$(umask); printf '%s|%s\\n' \"$before\" \"$after\""
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        before, after = result.stdout.strip().split("|")
+        self.assertEqual(after, before)
+
 
 if __name__ == "__main__":
     unittest.main()

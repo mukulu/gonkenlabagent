@@ -598,6 +598,21 @@ gonken_app_service_action() {
     --systemd-tmpfiles /usr/bin/systemd-tmpfiles
 }
 
+if ((ENGINE_ONLY == 0)); then
+  SERVICE_HOME="$(dirname -- "$INSTALL_STATE_ROOT")" || exit 73
+  if [[ -L "$SERVICE_HOME" || (-e "$SERVICE_HOME" && ! -d "$SERVICE_HOME") ]]; then
+    gonken_error "INSTALL_LAYOUT" "service home is not a real directory: $SERVICE_HOME" "replace the unsafe path after inspection"
+    exit 73
+  fi
+  mkdir -p -- "$SERVICE_HOME" || exit 73
+  if [[ "${GONKEN_SOURCE_RECORD[platform_mode]}" == "target" && "$(stat -c %u -- "$SERVICE_HOME")" != "0" ]]; then
+    gonken_error "INSTALL_LAYOUT" "target service home must be root-owned: $SERVICE_HOME" "restore root ownership before installation"
+    exit 73
+  fi
+  chmod 0755 "$SERVICE_HOME" || exit 73
+  gonken_prepare_private_directory "$INSTALL_STATE_ROOT" "private install state root" || exit $?
+fi
+
 gonken_engine_initialize "$STATE_DIR" "$LOG_DIR" || exit $?
 gonken_prepare_private_directory "$STATE_DIR/artifacts" "installer artifact directory" || exit $?
 

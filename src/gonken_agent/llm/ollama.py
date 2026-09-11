@@ -111,7 +111,7 @@ class OllamaClient:
 
     def chat(self, messages, cancel):
         data = self.request('POST', '/api/chat', {'model': self.config.model,
-            'messages': messages, 'stream': False, 'format': 'json', 'keep_alive': self.config.keep_alive,
+            'messages': messages, 'stream': False, 'think': False, 'format': 'json', 'keep_alive': self.config.keep_alive,
             'options': {'num_ctx': self.config.context_tokens, 'num_predict': self.config.max_output_tokens, 'temperature': 0}}, cancel)
         if data.get('model') != self.config.model or data.get('done') is not True:
             raise OllamaError('OLLAMA_MODEL_OR_COMPLETION_MISMATCH')

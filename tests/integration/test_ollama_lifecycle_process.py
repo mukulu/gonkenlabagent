@@ -77,11 +77,16 @@ class ApiHandler(http.server.BaseHTTPRequestHandler):
             self.send_header("Content-Length", str(len(lines)))
             self.end_headers()
             self.wfile.write(lines)
-        elif self.path == "/api/generate":
+        elif self.path == "/api/chat":
             assert request["stream"] is False
+            assert request["think"] is False
             assert request["options"]["temperature"] == 0
             assert request["options"]["num_ctx"] == 2048
-            self._json({"response": "ready", "done": True, "total_duration": 1234, "eval_count": 1})
+            self._json({
+                "message": {"role": "assistant", "content": "ready"},
+                "done": True, "done_reason": "stop",
+                "total_duration": 1234, "eval_count": 1,
+            })
         else:
             self.send_error(404)
 

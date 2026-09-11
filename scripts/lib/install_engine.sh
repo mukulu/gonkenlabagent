@@ -94,8 +94,7 @@ gonken_atomic_record() {
     }
   done
 
-  umask 077
-  temporary="$(mktemp -- "$directory/.gonken-tmp.XXXXXXXX")" || {
+  temporary="$(umask 077; mktemp -- "$directory/.gonken-tmp.XXXXXXXX")" || {
     gonken_error "INSTALL_STATE" "cannot create same-directory temporary record" "check installer state filesystem permissions and space"
     return 73
   }
@@ -314,8 +313,13 @@ gonken_prepare_private_directory() {
       return 73
     }
   else
-    umask 077
-    mkdir -p -- "$path" || {
+    local parent
+    parent="$(dirname -- "$path")" || return 73
+    mkdir -p -- "$parent" || {
+      gonken_error "INSTALL_STATE" "cannot create parent for $label" "check parent ownership, permissions, and space"
+      return 73
+    }
+    (umask 077; mkdir -- "$path") || {
       gonken_error "INSTALL_STATE" "cannot create $label" "check parent ownership, permissions, and space"
       return 73
     }
@@ -644,6 +648,8 @@ gonken_run_step() {
 
   gonken_write_step_state "$step_id" "running" "action_required" || return $?
   gonken_log_event "info" "INSTALL_STEP_ACTION" "$step_id" "postcondition_missing_action_started" || return $?
+  printf '[RUNNING] code=INSTALL_STEP_ACTION step=%s version=%s\n' \
+    "$step_id" "${GONKEN_STEP_VERSION[$step_id]}"
   gonken_step_checkpoint "$step_id" "before" || return $?
   if "$action" "$step_id"; then
     :

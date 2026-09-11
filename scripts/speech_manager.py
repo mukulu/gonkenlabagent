@@ -153,9 +153,17 @@ def remove_tree(path: Path) -> None:
 
 
 def freeze_tree(path: Path, *, keep_root_writable: bool = False) -> None:
+    """Freeze public runtime/model artifacts with explicit service-readable modes."""
     for item in sorted(path.rglob("*"), key=lambda entry: len(entry.parts), reverse=True):
-        if not item.is_symlink():
-            item.chmod(stat.S_IMODE(item.stat().st_mode) & ~0o222)
+        if item.is_symlink():
+            continue
+        mode = stat.S_IMODE(item.stat().st_mode)
+        if item.is_dir():
+            item.chmod(0o555)
+        elif item.is_file():
+            item.chmod(0o555 if mode & 0o111 else 0o444)
+        else:
+            fail("SPEECH_LAYOUT", f"unsupported immutable object: {item}", "rebuild the checked artifact", 74)
     path.chmod(0o755 if keep_root_writable else 0o555)
 
 
@@ -320,6 +328,7 @@ def install_whisper(root: Path, manifest: dict[str, Any], git: Path, cmake: Path
             archive = workspace / "source.tar"
             source = workspace / "source"
             source.mkdir()
+            print(f"[RUNNING] code=WHISPER_SOURCE_FETCH version={manifest['whisper']['version']}", flush=True)
             run([str(git), "init", "--bare", "--quiet", str(bare)])
             run([str(git), f"--git-dir={bare}", "fetch", "--quiet", "--depth=1", "--", repository, manifest["whisper"]["release_tag"]])
             fetched = run([str(git), f"--git-dir={bare}", "rev-parse", "FETCH_HEAD^{commit}"]).stdout.strip().lower()
@@ -334,7 +343,9 @@ def install_whisper(root: Path, manifest: dict[str, Any], git: Path, cmake: Path
             maybe_interrupt("whisper_build", "before")
             build = workspace / "build"
             arguments = [str(cmake), "-S", str(source), "-B", str(build), *manifest["whisper"]["cmake_arguments"]]
+            print(f"[RUNNING] code=WHISPER_BUILD phase=configure version={manifest['whisper']['version']}", flush=True)
             run(arguments)
+            print(f"[RUNNING] code=WHISPER_BUILD phase=compile jobs=2 target=whisper-cli", flush=True)
             run([str(cmake), "--build", str(build), "--config", "Release", "--parallel", "2", "--target", "whisper-cli"])
             source_binary = build / "bin/whisper-cli"
             maybe_interrupt("whisper_build", "during")
@@ -438,8 +449,10 @@ def install_piper(root: Path, manifest_path: Path, manifest: dict[str, Any]) -> 
             shutil.copy2(require_absolute(fixture, "Piper test fixture"), python)
             python.chmod(0o755)
         else:
+            print(f"[RUNNING] code=PIPER_INSTALL phase=venv version={manifest['piper']['version']}", flush=True)
             venv.EnvBuilder(with_pip=True, symlinks=True).create(candidate / ".venv")
             python = candidate / ".venv/bin/python"
+            print(f"[RUNNING] code=PIPER_INSTALL phase=packages lock={lock.name}", flush=True)
             run([str(python), "-m", "pip", "install", "--disable-pip-version-check", "--require-hashes", "--only-binary=:all:", "--requirement", str(lock)])
             run([str(python), "-m", "pip", "check"])
         maybe_interrupt("piper_install", "during")
@@ -491,6 +504,7 @@ def _download(url: str, destination: Path, digest: str, size: int, operation: st
     if offset > size:
         part.unlink()
         offset = 0
+    print(f"[RUNNING] code=SPEECH_DOWNLOAD operation={operation} artifact={destination.name} resume_bytes={offset} total={size}", flush=True)
     maybe_interrupt(operation, "before")
     request = urllib.request.Request(url, headers={"Range": f"bytes={offset}-"} if offset else {})
     try:
@@ -498,11 +512,18 @@ def _download(url: str, destination: Path, digest: str, size: int, operation: st
             append = offset > 0 and getattr(response, "status", None) == 206
             with part.open("ab" if append else "wb") as handle:
                 first = True
+                downloaded = offset if append else 0
+                last_percent = -1
                 while True:
                     chunk = response.read(1024 * 1024)
                     if not chunk:
                         break
                     handle.write(chunk)
+                    downloaded += len(chunk)
+                    percent = min(100, int(downloaded * 100 / size)) if size else 0
+                    if percent >= last_percent + 10 or percent == 100:
+                        print(f"[PROGRESS] code=SPEECH_DOWNLOAD operation={operation} artifact={destination.name} percent={percent} downloaded={downloaded} total={size}", flush=True)
+                        last_percent = percent
                     if first:
                         maybe_interrupt(operation, "during")
                         first = False
@@ -515,6 +536,7 @@ def _download(url: str, destination: Path, digest: str, size: int, operation: st
         fail("SPEECH_CHECKSUM", f"download identity differs: {destination.name}", "review the immutable source and manifest before retrying", 75)
     os.replace(part, destination)
     maybe_interrupt(operation, "after")
+    print(f"[OK] code=SPEECH_DOWNLOAD_COMPLETE operation={operation} artifact={destination.name} bytes={size}", flush=True)
 
 
 def validate_models(root: Path, manifest: dict[str, Any], whisper_model_path: Path, piper_voice_path: Path) -> dict[str, str]:

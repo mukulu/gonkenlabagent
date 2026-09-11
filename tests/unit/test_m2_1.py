@@ -67,12 +67,13 @@ class PackageTests(unittest.TestCase):
         source = ROOT / "src"
         script = f"""
 import sys
+forbidden = {OPTIONAL_ROOTS!r}
+before = forbidden.intersection(sys.modules)
 sys.path.insert(0, {str(source)!r})
 import gonken_agent
-forbidden = {OPTIONAL_ROOTS!r}
-loaded = sorted(forbidden.intersection(sys.modules))
+loaded = sorted(forbidden.intersection(sys.modules) - before)
 if loaded:
-    raise SystemExit('optional dependencies imported: ' + ', '.join(loaded))
+    raise SystemExit('optional dependencies imported by gonken_agent: ' + ', '.join(loaded))
 """
         result = subprocess.run(
             [sys.executable, "-I", "-c", script],
