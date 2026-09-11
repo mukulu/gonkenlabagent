@@ -7,6 +7,7 @@ import unittest
 from pathlib import Path
 from types import SimpleNamespace
 from unittest import mock
+from unittest.mock import PropertyMock
 
 from gonken_agent.llm.ollama import OllamaClient
 from gonken_agent.audio.process import ProcessFailure
@@ -14,6 +15,7 @@ from gonken_agent.voice_runtime import (
     AudioBackend,
     ConversationBrain,
     VoiceAppliance,
+    VoiceRuntimeError,
     _wake_remainder,
 )
 
@@ -32,7 +34,7 @@ class VoiceWakeTests(unittest.TestCase):
             "card 3: HDMI [vc4-hdmi-0], device 0: MAI PCM i2s-hifi-0 [MAI PCM i2s-hifi-0]\n"
         )
         parsed = AudioBackend._parse_cards(output)
-        self.assertEqual(parsed[0][0], "plughw:CARD=2,DEV=0")
+        self.assertEqual(parsed[0][0], "plughw:CARD=AIRHUG,DEV=0")
         self.assertIn("AIRHUG", parsed[0][1])
 
     def test_auto_selector_prefers_one_usb_card_over_hdmi(self) -> None:
@@ -44,7 +46,7 @@ class VoiceWakeTests(unittest.TestCase):
         completed = SimpleNamespace(returncode=0, stdout=output, stderr="")
         with mock.patch("gonken_agent.voice_runtime._safe_run", return_value=completed):
             selected = appliance._select(Path("/usr/bin/arecord"), "auto")
-        self.assertEqual(selected, "plughw:CARD=2,DEV=0")
+        self.assertEqual(selected, "plughw:CARD=USB,DEV=0")
 
     def test_auto_selector_fails_closed_for_multiple_usb_cards(self) -> None:
         output = (
@@ -56,6 +58,91 @@ class VoiceWakeTests(unittest.TestCase):
         with mock.patch("gonken_agent.voice_runtime._safe_run", return_value=completed):
             with self.assertRaisesRegex(RuntimeError, "AUDIO_DEVICE_AMBIGUOUS"):
                 appliance._select(Path("/usr/bin/arecord"), "auto")
+
+    def test_bluetooth_record_does_not_force_broken_default_when_usb_capture_exists(self) -> None:
+        backend = AudioBackend.__new__(AudioBackend)
+        backend.config = SimpleNamespace(audio=SimpleNamespace(input_match="auto", output_match="auto"))
+        backend.arecord = Path("/usr/bin/arecord")
+        backend.aplay = Path("/usr/bin/aplay")
+        backend.pactl = Path("/usr/bin/pactl")
+        backend.parecord = Path("/usr/bin/parecord")
+        backend.paplay = Path("/usr/bin/paplay")
+        backend.input_device = backend.output_device = ""
+        backend.input_mode = backend.output_mode = backend.mode = ""
+        backend._alsa_input_fallback = backend._alsa_output_fallback = None
+        with mock.patch.object(AudioBackend, "bluetooth_configured", new_callable=PropertyMock, return_value=True), \
+             mock.patch.object(backend, "_alsa_candidate", side_effect=["plughw:CARD=A01,DEV=0", "plughw:CARD=A01,DEV=0"]), \
+             mock.patch.object(backend, "_pulse_default", side_effect=[None, "bluez_output.AA_BB"]):
+            backend.refresh()
+        self.assertEqual(backend.input_mode, "alsa-usb")
+        self.assertEqual(backend.input_device, "plughw:CARD=A01,DEV=0")
+        self.assertEqual(backend.output_mode, "pipewire-pulse")
+        self.assertEqual(backend.output_device, "bluez_output.AA_BB")
+        self.assertEqual(backend.mode, "alsa-usb+pipewire-pulse")
+
+    def test_managed_bluetooth_ignores_unrelated_pulse_default_endpoint(self) -> None:
+        backend = AudioBackend.__new__(AudioBackend)
+        backend.pactl = Path("/usr/bin/pactl")
+        backend.parecord = Path("/usr/bin/parecord")
+        backend.paplay = Path("/usr/bin/paplay")
+        completed = [
+            SimpleNamespace(returncode=0, stdout="Server Name: PulseAudio (on PipeWire)\n", stderr=""),
+            SimpleNamespace(returncode=0, stdout="alsa_output.platform-hdmi.stereo\n", stderr=""),
+        ]
+        with mock.patch.object(AudioBackend, "bluetooth_configured", new_callable=PropertyMock, return_value=True), \
+             mock.patch.object(backend, "_managed_bluetooth_token", return_value="41_42_06_42_05_80"), \
+             mock.patch("gonken_agent.voice_runtime._safe_run", side_effect=completed):
+            self.assertIsNone(backend._pulse_default("output"))
+
+    def test_bluetooth_pulse_is_used_for_both_directions_when_routes_are_ready(self) -> None:
+        backend = AudioBackend.__new__(AudioBackend)
+        backend.config = SimpleNamespace(audio=SimpleNamespace(input_match="auto", output_match="auto"))
+        backend.arecord = Path("/usr/bin/arecord")
+        backend.aplay = Path("/usr/bin/aplay")
+        backend.pactl = Path("/usr/bin/pactl")
+        backend.parecord = Path("/usr/bin/parecord")
+        backend.paplay = Path("/usr/bin/paplay")
+        backend.input_device = backend.output_device = ""
+        backend.input_mode = backend.output_mode = backend.mode = ""
+        backend._alsa_input_fallback = backend._alsa_output_fallback = None
+        with mock.patch.object(AudioBackend, "bluetooth_configured", new_callable=PropertyMock, return_value=True), \
+             mock.patch.object(backend, "_alsa_candidate", side_effect=[None, None]), \
+             mock.patch.object(backend, "_pulse_default", side_effect=["bluez_input.AA_BB", "bluez_output.AA_BB"]):
+            backend.refresh()
+        self.assertEqual(backend.input_mode, "pipewire-pulse")
+        self.assertEqual(backend.output_mode, "pipewire-pulse")
+        self.assertEqual(backend.mode, "pipewire-pulse")
+
+    def test_capture_falls_back_from_pulse_to_direct_usb_once(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            backend = AudioBackend.__new__(AudioBackend)
+            backend.runtime_dir = Path(temporary)
+            backend.input_mode = "pipewire-pulse"
+            backend.output_mode = "pipewire-pulse"
+            backend.input_device = "bluez_input.AA_BB"
+            backend.output_device = "bluez_output.AA_BB"
+            backend.mode = "pipewire-pulse"
+            backend._alsa_input_fallback = "plughw:CARD=A01,DEV=0"
+            backend._alsa_output_fallback = None
+            calls = []
+            def fake_record(path, _seconds):
+                calls.append((backend.input_mode, backend.input_device))
+                if len(calls) == 1:
+                    raise RuntimeError("simulated pulse disconnect")
+                path.write_bytes(b"fixture")
+            backend._record_to = fake_record
+            with self.assertRaises(RuntimeError):
+                # Non-VoiceRuntimeError is deliberately not hidden by fallback.
+                backend.capture(1)
+            backend._record_to = mock.Mock(side_effect=[VoiceRuntimeError("AUDIO_CAPTURE_FAILED"), None])
+            path = backend.capture(1)
+            try:
+                self.assertEqual(backend.input_mode, "alsa-usb")
+                self.assertEqual(backend.input_device, "plughw:CARD=A01,DEV=0")
+                self.assertEqual(backend._record_to.call_count, 2)
+            finally:
+                path.unlink(missing_ok=True)
+
 
 
 class _FakeConnection:

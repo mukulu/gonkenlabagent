@@ -170,3 +170,33 @@ git pull --ff-only origin main
 
 Accept only a final `APPLIANCE_READY`/`INSTALLATION_COMPLETE ... READY`, then
 perform a real `Hey Gonken` spoken turn and reboot/no-login test.
+
+## Continuation 08 FIX6 target evidence — 2026-09-12
+
+FIX5 reached the new physical `appliance_readiness` gate on the real Pi but
+remained in `[WAITING] code=AUDIO_CAPTURE_FAILED` for the full 180-second window.
+The uploaded support snapshot simultaneously proved that the service account saw
+one valid AIRHUG USB capture device and one valid AIRHUG USB playback device,
+while Bluetooth was configured and unblocked. This isolated a runtime routing
+regression rather than missing hardware/model dependencies.
+
+Forensic review found that FIX5 treated the mere presence of
+`/etc/gonken-agent/bluetooth-device.record` as authority to force both directions
+through ALSA `default`, even though Bluetooth capture had not been revalidated and
+a valid direct USB microphone existed. FIX6 replaces that assumption with
+independent adaptive input/output selection: verified PipeWire/Pulse defaults are
+preferred; one unambiguous direct ALSA USB path is the fallback; mixed
+USB-input/Bluetooth-output is supported; a disappearing Pulse route gets one
+bounded direct-ALSA retry. Bluetooth pairing is version-bumped, revalidates the
+connected output route, and actively attempts a headset capture profile without
+blocking a valid mixed USB-input/Bluetooth-output topology; the later appliance
+gate remains authoritative for real microphone capture.
+
+FIX6 also exports richer content-free ALSA/PipeWire route diagnostics and makes
+the default sudo support bundle land in the invoking administrator's home with
+usable ownership. Host verification passes **235/235 unit tests**, the **35/35**
+quick integration group, four normal Ollama lifecycle checks, three normal speech
+lifecycle checks, and the static dependency/milestone/release-readiness/Bash/
+Python/diff gates. Selected normal release lifecycle cases passed before the
+known long rollback-service fixture exceeded the aggregate execution window.
+Physical wake/reboot acceptance remains UNRUN until FIX6 is installed on the Pi.

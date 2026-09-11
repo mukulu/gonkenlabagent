@@ -23,6 +23,8 @@ COMMANDS = (
     "journalctl",
     "arecord",
     "aplay",
+    "parecord",
+    "paplay",
     "pactl",
     "bluetoothctl",
     "rfkill",
@@ -251,12 +253,24 @@ def _bluetooth_audio_state() -> dict[str, object]:
 
 def _audio(mode: str) -> dict[str, object]:
     cards = _bounded_lines(Path("/proc/asound/cards"), 40 if mode == "debug" else 12)
-    return {
+    data: dict[str, object] = {
         "proc_asound_cards": cards,
         "capture_devices": _run(["arecord", "-l"], timeout=5) if shutil.which("arecord") else {"available": False},
         "playback_devices": _run(["aplay", "-l"], timeout=5) if shutil.which("aplay") else {"available": False},
         "bluetooth": _bluetooth_audio_state(),
     }
+    if mode == "debug":
+        data["capture_pcms"] = _run(["arecord", "-L"], timeout=5) if shutil.which("arecord") else {"available": False}
+        data["playback_pcms"] = _run(["aplay", "-L"], timeout=5) if shutil.which("aplay") else {"available": False}
+        if shutil.which("pactl"):
+            data["pipewire_pulse_info"] = _run(["pactl", "info"], timeout=5)
+            data["pipewire_default_source"] = _run(["pactl", "get-default-source"], timeout=5)
+            data["pipewire_default_sink"] = _run(["pactl", "get-default-sink"], timeout=5)
+            data["pipewire_sources"] = _run(["pactl", "list", "sources", "short"], timeout=5)
+            data["pipewire_sinks"] = _run(["pactl", "list", "sinks", "short"], timeout=5)
+        if shutil.which("wpctl"):
+            data["wireplumber_status"] = _run(["wpctl", "status", "-n"], timeout=5)
+    return data
 
 
 def _gpio(mode: str) -> dict[str, object]:

@@ -662,7 +662,7 @@ gonken_bluetooth_stack_action() {
 gonken_bluetooth_pair_postcondition() {
   python3 "$(gonken_bluetooth_manager)" status \
     --audio-user "$BLUETOOTH_AUDIO_USER" \
-    --record "$BLUETOOTH_RECORD" >/dev/null 2>&1 || return 1
+    --record "$BLUETOOTH_RECORD" --require-connected >/dev/null 2>&1 || return 1
   GONKEN_STEP_EVIDENCE="bluetooth_device_paired_trusted"
 }
 
@@ -824,7 +824,7 @@ if ((ENGINE_ONLY == 0)); then
             "USB_audio_remains_the_supported_fallback" || exit $?
 
           gonken_register_step \
-            "bluetooth_audio_pairing" "1" \
+            "bluetooth_audio_pairing" "2" \
             "gonken_bluetooth_stack_postcondition" "gonken_bluetooth_pair_action" "gonken_bluetooth_pair_postcondition" \
             "one_explicit_trusted_audio_device_record" \
             "guide_pairing_when_missing_and_never_select_ambiguous_devices" \
@@ -839,7 +839,7 @@ if ((ENGINE_ONLY == 0)); then
         fi
 
         gonken_register_step \
-          "appliance_readiness" "1" \
+          "appliance_readiness" "2" \
           "gonken_app_service_postcondition" "gonken_appliance_action" "gonken_appliance_postcondition" \
           "physical_audio_local_model_wake_runtime_and_enabled_boot_service" \
           "restart_service_wait_for_content_free_ready_record_and_retry_dependencies" \

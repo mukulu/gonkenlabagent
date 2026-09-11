@@ -38,9 +38,19 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
+DEFAULT_OUTPUT=0
 if [[ -z "$OUTPUT" ]]; then
-  mkdir -p /var/lib/gonken-agent/support
-  OUTPUT="/var/lib/gonken-agent/support/gonken-support-$(date -u +%Y%m%dT%H%M%SZ).zip"
+  DEFAULT_OUTPUT=1
+  if [[ -n "${SUDO_USER:-}" && "${SUDO_USER}" != "root" ]]; then
+    caller_home="$(getent passwd "$SUDO_USER" 2>/dev/null | cut -d: -f6)"
+    if [[ -n "$caller_home" && -d "$caller_home" ]]; then
+      OUTPUT="$caller_home/gonken-support-$(date -u +%Y%m%dT%H%M%SZ).zip"
+    fi
+  fi
+  if [[ -z "$OUTPUT" ]]; then
+    mkdir -p /var/lib/gonken-agent/support
+    OUTPUT="/var/lib/gonken-agent/support/gonken-support-$(date -u +%Y%m%dT%H%M%SZ).zip"
+  fi
 fi
 
 args=(support --output "$OUTPUT")
@@ -50,4 +60,7 @@ if [[ -f "$TELEMETRY" ]]; then args+=(--telemetry "$TELEMETRY"); fi
 if [[ -f "$STARTUP_SNAPSHOT" ]]; then args+=(--startup-snapshot "$STARTUP_SNAPSHOT"); fi
 
 "$GONKEN_AGENT" "${args[@]}"
+if ((DEFAULT_OUTPUT == 1)) && [[ -n "${SUDO_UID:-}" && -n "${SUDO_GID:-}" && -f "$OUTPUT" ]]; then
+  chown "$SUDO_UID:$SUDO_GID" "$OUTPUT" || true
+fi
 echo "$OUTPUT"

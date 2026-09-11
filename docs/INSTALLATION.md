@@ -187,3 +187,21 @@ not changed by GonKenLab Agent.
 but it executes the current HTTPS-hosted launcher immediately. Environments
 requiring change review should download/pin/review the launcher and source
 commit before execution.
+
+## Physical audio readiness
+
+Bootstrap does not treat a Bluetooth bond or an ALSA device listing as proof that
+voice capture works. The final readiness gate opens a real capture path and a real
+playback path. Bluetooth setup revalidates the connected PipeWire output and
+actively attempts an HFP/HSP capture profile for headset-capable devices; if that
+Bluetooth capture route is unavailable, final readiness may still use one
+unambiguous direct USB microphone.
+
+The runtime is transport-adaptive: managed Bluetooth/PipeWire endpoints are
+preferred when usable, while an unambiguous direct USB input/output may be used as
+a fallback for one direction. This prevents a stale Bluetooth record from forcing
+a broken `default` ALSA route and allows recovery when one transport disappears.
+
+If readiness still fails, collect the support bundle described in
+[OPERATIONS.md](OPERATIONS.md); the debug snapshot now contains bounded ALSA and
+PipeWire/Pulse route metadata.

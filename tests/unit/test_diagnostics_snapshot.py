@@ -5,6 +5,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from gonken_agent.config import load_config
+from gonken_agent import diagnostics
 from gonken_agent.diagnostics import collect_snapshot, load_snapshot, write_startup_snapshot
 
 
@@ -56,6 +57,20 @@ class StartupSnapshotTests(unittest.TestCase):
         self.assertEqual(result["retention"], 0)
         self.assertEqual(list(snapshot_dir.glob("startup-*.json")), [])
         self.assertTrue((snapshot_dir / "latest.json").is_file())
+
+    def test_debug_audio_snapshot_includes_bounded_pipewire_route_metadata(self):
+        completed = {"available": True, "exit_code": 0, "stdout": ["fixture"], "stderr": []}
+        with patch("gonken_agent.diagnostics.shutil.which", return_value="/usr/bin/fixture"), \
+             patch("gonken_agent.diagnostics._run", return_value=completed), \
+             patch("gonken_agent.diagnostics._bounded_lines", return_value=[]), \
+             patch("gonken_agent.diagnostics._bluetooth_audio_state", return_value={"configured": True}):
+            audio = diagnostics._audio("debug")
+        for key in (
+            "capture_pcms", "playback_pcms", "pipewire_pulse_info",
+            "pipewire_default_source", "pipewire_default_sink",
+            "pipewire_sources", "pipewire_sinks", "wireplumber_status",
+        ):
+            self.assertIn(key, audio)
 
     def test_unsafe_snapshot_input_rejected(self):
         bad = self.root / "bad.json"

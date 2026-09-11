@@ -18,6 +18,7 @@ import contextlib
 import os
 import pwd
 import re
+import shutil
 import signal
 import stat
 import subprocess
@@ -275,6 +276,14 @@ def atomic_text(path: Path, text: str, *, mode: int, uid: int = 0, gid: int = 0)
 
 def stack_status(audio_user: str) -> None:
     ensure_controller_ready(repair=False)
+    missing_audio_tools = [name for name in ("pactl", "parecord", "paplay") if shutil.which(name) is None]
+    if missing_audio_tools:
+        fail(
+            "BLUETOOTH_AUDIO_TOOLS",
+            f"headless Bluetooth audio tools are missing: {','.join(missing_audio_tools)}",
+            "install pulseaudio-utils and rerun Bluetooth stack preparation",
+            1,
+        )
     _account, _env = user_context(audio_user)
     pipewire = run_as_user(audio_user, ["systemctl", "--user", "is-active", "--quiet", "pipewire.service"], timeout=8, check=False)
     wireplumber = run_as_user(audio_user, ["systemctl", "--user", "is-active", "--quiet", "wireplumber.service"], timeout=8, check=False)
@@ -620,8 +629,15 @@ def pair(selector: str, audio_user: str, record: Path, timeout: int) -> None:
             f"inspect WirePlumber for user {audio_user} and Bluetooth profiles",
             69,
         )
+    # A headset-capable device may still expose playback only on a particular
+    # firmware/profile combination.  Pairing owns Bluetooth identity/output; it
+    # does not prove the appliance input path.  The appliance-readiness gate
+    # independently requires a working microphone and can safely use one
+    # unambiguous direct USB capture device when the Bluetooth HFP/HSP source
+    # is unavailable.  This keeps mixed USB-input/Bluetooth-output deployments
+    # usable without weakening final physical readiness.
     write_device_record(record, address=address, name=name, audio_user=audio_user, info=info)
-    source_state = "ready" if sources else "autoswitch_or_not_advertised"
+    source_state = "ready" if sources else "direct_audio_fallback_pending"
     print(
         f"[OK] code=BLUETOOTH_AUDIO_PAIRED address={address} name={safe_record_name(name)} "
         f"output={'ready' if sinks else 'not_advertised'} microphone={source_state}",
@@ -672,6 +688,18 @@ def device_status(record: Path, audio_user: str, *, require_connected: bool) -> 
     if require_connected and not info["connected"]:
         fail("BLUETOOTH_CONNECT", "recorded device is not connected", "power on the device or let autoconnect retry", 1)
     sinks, sources = pipewire_nodes(audio_user, values["address"])
+    if require_connected and values.get("output_capable") == "yes" and not sinks:
+        fail(
+            "BLUETOOTH_AUDIO_ROUTE",
+            "recorded Bluetooth device is connected but has no PipeWire output node",
+            "reconnect the device and rerun Bluetooth routing",
+            1,
+        )
+    # Do not make the Bluetooth identity postcondition equivalent to full
+    # appliance input readiness.  A deployment may intentionally use a direct
+    # USB microphone with Bluetooth output.  The later appliance-readiness
+    # boundary performs an actual capture and therefore remains the authority
+    # for whether any input path is usable.
     state = "connected" if info["connected"] else "paired_offline"
     print(
         f"[OK] code=BLUETOOTH_AUDIO_STATUS state={state} output_nodes={len(sinks)} input_nodes={len(sources)}"
