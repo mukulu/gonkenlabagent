@@ -214,8 +214,13 @@ Create the project allow-listed support ZIP:
 sudo /usr/local/lib/gonken-agent/current/maintenance/collect-support.sh
 ```
 
-The command prints the resulting ZIP path. Normal support export is designed to
-exclude transcripts, prompts, answers, pairing secrets and raw audio.
+The command prints the resulting ZIP path. When invoked through `sudo` without
+`--output`, the maintenance wrapper now places the bundle in the invoking
+administrator's home directory and returns ownership to that user, so a second
+`sudo mv` step is unnecessary. Normal support export is designed to exclude
+transcripts, prompts, answers, pairing secrets and raw audio. Debug snapshots
+include bounded ALSA and PipeWire/Pulse route metadata so capture-routing failures
+can be diagnosed without storing speech content.
 
 When diagnosing an installer failure, also preserve the exact terminal error;
 the installer keeps structured state/events under the root-owned
@@ -258,3 +263,32 @@ runtime. Do not install `numpy` or other packages globally merely to make those
 legacy paths run. Raspberry Pi OS Trixie intentionally protects the system
 Python under PEP 668; the supported application uses its managed immutable
 virtual environment.
+
+## Audio readiness and fallback diagnostics
+
+The production runtime resolves capture and playback independently. For a managed
+Bluetooth deployment it prefers the dedicated PipeWire/Pulse default source/sink.
+If one direction is unavailable and exactly one direct USB audio path is usable,
+that direction falls back to the USB device. This is intentional and allows a
+USB microphone + Bluetooth speaker configuration.
+
+Inspect the service-user audio graph with:
+
+```bash
+UID_GA="$(id -u gonken-agent)"
+sudo runuser -u gonken-agent -- env \
+  HOME=/var/lib/gonken-agent \
+  XDG_RUNTIME_DIR="/run/user/$UID_GA" \
+  DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$UID_GA/bus" \
+  sh -c 'pactl info; pactl get-default-source; pactl get-default-sink; pactl list sources short; pactl list sinks short'
+
+arecord -l
+aplay -l
+```
+
+`AUDIO_CAPTURE_FAILED` and `AUDIO_PLAYBACK_FAILED` journal events include only a
+bounded command/device diagnostic, not captured speech. For a Bluetooth headset,
+bootstrap attempts a microphone-capable profile but does not confuse pairing with
+full appliance readiness: a playback-only Bluetooth route may coexist with an
+accepted direct USB microphone, while the final readiness gate must prove that
+some real capture path works.

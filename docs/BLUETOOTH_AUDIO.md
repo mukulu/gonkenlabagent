@@ -103,11 +103,16 @@ when advertised), then sets the resulting Bluetooth sink/source as the dedicated
 service user's defaults. This makes the fully wireless microphone + speaker path
 explicit rather than relying only on opportunistic profile autoswitch.
 
-The current managed Bluetooth mode treats the selected Bluetooth headset as the
-default input/output pair. A mixed USB-microphone + Bluetooth-output topology is
-architecturally possible, but it is not silently selected by FIX5. Use explicit
-site/manual routing for such a deployment until independent managed input/output
-selection is promoted into a later configuration contract.
+The runtime resolves input and output independently. It prefers the managed
+PipeWire/Pulse Bluetooth default when that endpoint is actually usable. If a
+Bluetooth capture source is unavailable but exactly one direct USB microphone is
+present, capture falls back to that USB device while Bluetooth playback remains
+active. The reverse fallback is also bounded. This makes
+`USB microphone + Bluetooth speaker` a supported resilience path without
+hard-coding any device identity. Fully wireless headset operation still requires
+a real HFP/HSP capture source and is proven by the final appliance-readiness
+gate; pairing itself remains valid when a separate direct microphone provides the
+accepted input path.
 
 ## Manual inspection
 

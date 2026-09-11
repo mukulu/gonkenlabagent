@@ -30,14 +30,20 @@ from .audio.process import ProcessFailure
 from .llm.ollama import OllamaClient, OllamaError
 
 
-class VoiceRuntimeError(RuntimeError):
-    """Categorical appliance-runtime failure."""
+def _diagnostic_text(value: object) -> str:
+    text = " ".join(str(value).replace("\r", " ").replace("\n", " ").split())
+    return "".join(ch if ch.isprintable() else "?" for ch in text)[:320]
 
-    def __init__(self, code: str):
+
+class VoiceRuntimeError(RuntimeError):
+    """Categorical appliance-runtime failure with bounded content-free detail."""
+
+    def __init__(self, code: str, detail: str = ""):
         if not re.fullmatch(r"[A-Z0-9_]{3,64}", code):
             code = "VOICE_RUNTIME_FAILED"
         super().__init__(code)
         self.code = code
+        self.detail = _diagnostic_text(detail)
 
 
 def _which(name: str) -> Path:
@@ -50,11 +56,21 @@ def _which(name: str) -> Path:
     return path
 
 
+def _optional_which(name: str) -> Path | None:
+    value = shutil.which(name)
+    if not value:
+        return None
+    path = Path(value)
+    if not path.is_absolute() or not path.is_file() or not os.access(path, os.X_OK):
+        return None
+    return path
+
+
 def _safe_run(args: list[str], *, timeout: float = 20.0) -> subprocess.CompletedProcess[str]:
     try:
         return subprocess.run(args, check=False, capture_output=True, text=True, timeout=timeout)
     except (OSError, subprocess.TimeoutExpired) as exc:
-        raise VoiceRuntimeError("AUDIO_COMMAND_FAILED") from exc
+        raise VoiceRuntimeError("AUDIO_COMMAND_FAILED", f"{args[0]} {type(exc).__name__}") from exc
 
 
 def _normalize_words(text: str) -> list[str]:
@@ -98,27 +114,57 @@ def _wake_remainder(text: str, phrase: str) -> str | None:
 
 
 class AudioBackend:
-    """Resolve ALSA devices on every recovery attempt and use plug conversion.
+    """Adaptive physical audio backend.
 
-    Bluetooth is intentionally routed through the dedicated PipeWire ALSA
-    default when its managed device record exists.  USB-only operation resolves
-    a matching physical ALSA card at runtime, avoiding cached numeric indices.
+    Bluetooth setup owns the PipeWire/Pulse default sink/source.  A mere
+    Bluetooth record is not enough to force ALSA ``default``: that was the FIX5
+    regression seen on the real Pi, where a valid USB microphone was present
+    while the PipeWire capture route was not usable.  FIX6 resolves input and
+    output independently:
+
+    * prefer the managed PipeWire/Pulse endpoint when it is actually available;
+    * otherwise use one unambiguous direct ALSA USB device;
+    * allow mixed USB-input/Bluetooth-output operation;
+    * retry once through the direct ALSA fallback if a Pulse endpoint disappears.
     """
 
     def __init__(self, config, *, runtime_dir: Path | None = None):
         self.config = config
         self.arecord = _which("arecord")
         self.aplay = _which("aplay")
+        self.pactl = _optional_which("pactl")
+        self.parecord = _optional_which("parecord")
+        self.paplay = _optional_which("paplay")
         self.runtime_dir = Path(runtime_dir or config.paths.runtime_dir)
         self.runtime_dir.mkdir(parents=True, exist_ok=True)
-        self.input_device = "default"
-        self.output_device = "default"
-        self.mode = "default"
+        self.input_device = ""
+        self.output_device = ""
+        self.input_mode = ""
+        self.output_mode = ""
+        self.mode = ""
+        self._alsa_input_fallback: str | None = None
+        self._alsa_output_fallback: str | None = None
         self.refresh()
 
     @property
     def bluetooth_configured(self) -> bool:
         return Path("/etc/gonken-agent/bluetooth-device.record").is_file()
+
+    def _managed_bluetooth_token(self) -> str | None:
+        path = Path("/etc/gonken-agent/bluetooth-device.record")
+        if not path.is_file() or path.is_symlink():
+            return None
+        try:
+            if path.stat().st_size > 8192:
+                return None
+            for line in path.read_text(encoding="utf-8").splitlines():
+                if line.startswith("address="):
+                    address = line.partition("=")[2].strip()
+                    if re.fullmatch(r"(?i)(?:[0-9a-f]{2}:){5}[0-9a-f]{2}", address):
+                        return address.replace(":", "_").casefold()
+        except (OSError, UnicodeError):
+            return None
+        return None
 
     @staticmethod
     def _parse_cards(output: str) -> list[tuple[str, str, str]]:
@@ -132,8 +178,10 @@ class AudioBackend:
             if not match:
                 continue
             card, short, long_name, device, tail = match.groups()
+            card_id = short.strip()
+            locator = card_id if re.fullmatch(r"[A-Za-z0-9_]+", card_id) else card
             text = " ".join((short.strip(), long_name.strip(), tail.strip()))
-            rows.append((f"plughw:CARD={card},DEV={device}", text, device))
+            rows.append((f"plughw:CARD={locator},DEV={device}", text, device))
         return rows
 
     @staticmethod
@@ -156,16 +204,12 @@ class AudioBackend:
         result = _safe_run([str(tool), "-l"], timeout=8)
         rows = self._parse_cards(result.stdout + result.stderr)
         if not selector or selector.casefold() == "auto":
-            # Prefer one physical USB card and deliberately ignore HDMI/video
-            # outputs.  This keeps the default portable without hard-coding a
-            # product name such as AIRHUG.  Multiple USB cards require an
-            # explicit site selector rather than silently choosing one.
             usb = [row for row in rows if "usb" in row[1].casefold()]
             selected = self._one_card(usb)
             if selected:
                 return selected
             if len({row[0].split(",", 1)[0] for row in usb}) > 1:
-                raise VoiceRuntimeError("AUDIO_DEVICE_AMBIGUOUS")
+                raise VoiceRuntimeError("AUDIO_DEVICE_AMBIGUOUS", "multiple USB audio cards")
             non_hdmi = [
                 row for row in rows
                 if not any(token in row[1].casefold() for token in ("hdmi", "displayport", "vc4"))
@@ -174,30 +218,84 @@ class AudioBackend:
             if selected:
                 return selected
             if rows:
-                raise VoiceRuntimeError("AUDIO_DEVICE_AMBIGUOUS")
-            raise VoiceRuntimeError("AUDIO_DEVICE_NOT_FOUND")
+                raise VoiceRuntimeError("AUDIO_DEVICE_AMBIGUOUS", "multiple non-HDMI audio cards")
+            raise VoiceRuntimeError("AUDIO_DEVICE_NOT_FOUND", f"{tool.name} reported no usable devices")
         matches = [row for row in rows if selector.casefold() in row[1].casefold()]
         if not matches:
-            raise VoiceRuntimeError("AUDIO_DEVICE_NOT_FOUND")
+            raise VoiceRuntimeError("AUDIO_DEVICE_NOT_FOUND", f"selector={selector}")
         selected = self._one_card(matches)
         if selected:
             return selected
-        raise VoiceRuntimeError("AUDIO_DEVICE_AMBIGUOUS")
+        raise VoiceRuntimeError("AUDIO_DEVICE_AMBIGUOUS", f"selector={selector}")
+
+    def _alsa_candidate(self, direction: str) -> str | None:
+        tool = self.arecord if direction == "input" else self.aplay
+        selector = self.config.audio.input_match if direction == "input" else self.config.audio.output_match
+        try:
+            return self._select(tool, selector)
+        except VoiceRuntimeError as exc:
+            if exc.code in {"AUDIO_DEVICE_NOT_FOUND", "AUDIO_DEVICE_AMBIGUOUS"}:
+                return None
+            raise
+
+    def _pulse_default(self, direction: str) -> str | None:
+        if not self.bluetooth_configured or self.pactl is None:
+            return None
+        if direction == "input" and self.parecord is None:
+            return None
+        if direction == "output" and self.paplay is None:
+            return None
+        info = _safe_run([str(self.pactl), "info"], timeout=8)
+        if info.returncode != 0:
+            return None
+        noun = "source" if direction == "input" else "sink"
+        result = _safe_run([str(self.pactl), f"get-default-{noun}"], timeout=8)
+        if result.returncode != 0:
+            return None
+        name = result.stdout.strip().splitlines()[0] if result.stdout.strip() else ""
+        lowered = name.casefold()
+        if not name or "auto_null" in lowered or (direction == "input" and lowered.endswith(".monitor")):
+            return None
+        # A managed Bluetooth record must not make an arbitrary desktop/HDMI
+        # Pulse default authoritative.  Only the endpoint belonging to that
+        # exact trusted Bluetooth identity is preferred here.  A USB path is
+        # resolved separately and remains the deterministic fallback.
+        token = self._managed_bluetooth_token()
+        if token is None or token not in lowered or "bluez_" not in lowered:
+            return None
+        listing = _safe_run([str(self.pactl), "list", noun + "s", "short"], timeout=8)
+        if listing.returncode != 0:
+            return None
+        available = {line.split()[1] for line in listing.stdout.splitlines() if len(line.split()) >= 2}
+        return name if name in available else None
 
     def refresh(self) -> None:
-        if self.bluetooth_configured:
-            # PipeWire's ALSA compatibility plugin follows the default sink/source
-            # selected by the Bluetooth manager and can trigger HFP autoswitch.
-            self.input_device = self.output_device = "default"
-            self.mode = "pipewire-default"
-            return
-        self.input_device = self._select(self.arecord, self.config.audio.input_match)
-        self.output_device = self._select(self.aplay, self.config.audio.output_match)
-        self.mode = "alsa-usb"
+        alsa_input = self._alsa_candidate("input")
+        alsa_output = self._alsa_candidate("output")
+        self._alsa_input_fallback = alsa_input
+        self._alsa_output_fallback = alsa_output
+        pulse_input = self._pulse_default("input")
+        pulse_output = self._pulse_default("output")
 
-    def _record_to(self, destination: Path, seconds: int) -> None:
-        if not 1 <= seconds <= 30:
-            raise ValueError("capture seconds must be 1..30")
+        if pulse_input:
+            self.input_mode, self.input_device = "pipewire-pulse", pulse_input
+        elif alsa_input:
+            self.input_mode, self.input_device = "alsa-usb", alsa_input
+        else:
+            code = "AUDIO_BLUETOOTH_SOURCE_UNAVAILABLE" if self.bluetooth_configured else "AUDIO_INPUT_NOT_FOUND"
+            raise VoiceRuntimeError(code, "no usable Pulse default source or direct ALSA input")
+
+        if pulse_output:
+            self.output_mode, self.output_device = "pipewire-pulse", pulse_output
+        elif alsa_output:
+            self.output_mode, self.output_device = "alsa-usb", alsa_output
+        else:
+            code = "AUDIO_BLUETOOTH_SINK_UNAVAILABLE" if self.bluetooth_configured else "AUDIO_OUTPUT_NOT_FOUND"
+            raise VoiceRuntimeError(code, "no usable Pulse default sink or direct ALSA output")
+
+        self.mode = self.input_mode if self.input_mode == self.output_mode else f"{self.input_mode}+{self.output_mode}"
+
+    def _alsa_record_to(self, destination: Path, seconds: int) -> None:
         args = [
             str(self.arecord), "-q", "-D", self.input_device,
             "-t", "wav", "-f", "S16_LE", "-r", str(self.config.audio.processing_rate),
@@ -205,30 +303,105 @@ class AudioBackend:
         ]
         result = _safe_run(args, timeout=seconds + 8)
         if result.returncode != 0:
-            raise VoiceRuntimeError("AUDIO_CAPTURE_FAILED")
-        metadata = validate_wav(destination, max_seconds=seconds + 1)
+            detail = result.stderr or result.stdout or "arecord returned nonzero"
+            raise VoiceRuntimeError("AUDIO_CAPTURE_FAILED", f"backend=alsa device={self.input_device} {_diagnostic_text(detail)}")
+
+    def _pulse_record_to(self, destination: Path, seconds: int) -> None:
+        if self.parecord is None:
+            raise VoiceRuntimeError("PARECORD_MISSING")
+        args = [
+            str(self.parecord), f"--device={self.input_device}", "--file-format=wav",
+            "--format=s16le", f"--rate={self.config.audio.processing_rate}", "--channels=1",
+            str(destination),
+        ]
+        try:
+            process = subprocess.Popen(args, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True)
+        except OSError as exc:
+            raise VoiceRuntimeError("AUDIO_CAPTURE_FAILED", f"parecord {type(exc).__name__}") from exc
+        started = time.monotonic()
+        stderr = ""
+        try:
+            while time.monotonic() - started < seconds:
+                if process.poll() is not None:
+                    stderr = process.stderr.read() if process.stderr else ""
+                    raise VoiceRuntimeError("AUDIO_CAPTURE_FAILED", f"backend=pulse device={self.input_device} {_diagnostic_text(stderr)}")
+                time.sleep(0.05)
+            process.send_signal(signal.SIGINT)
+            try:
+                _stdout, stderr = process.communicate(timeout=5)
+            except subprocess.TimeoutExpired:
+                process.kill()
+                _stdout, stderr = process.communicate(timeout=3)
+        finally:
+            if process.poll() is None:
+                process.kill()
+                process.wait(timeout=3)
+        if not destination.is_file() or destination.stat().st_size < 44:
+            raise VoiceRuntimeError("AUDIO_CAPTURE_FAILED", f"backend=pulse device={self.input_device} {_diagnostic_text(stderr)}")
+
+    def _record_to(self, destination: Path, seconds: int) -> None:
+        if not 1 <= seconds <= 30:
+            raise ValueError("capture seconds must be 1..30")
+        if self.input_mode == "pipewire-pulse":
+            self._pulse_record_to(destination, seconds)
+        else:
+            self._alsa_record_to(destination, seconds)
+        try:
+            metadata = validate_wav(destination, max_seconds=seconds + 1)
+        except Exception as exc:
+            raise VoiceRuntimeError("AUDIO_CAPTURE_INVALID", f"backend={self.input_mode} device={self.input_device} {type(exc).__name__}") from exc
         if metadata["rate"] != self.config.audio.processing_rate:
-            raise VoiceRuntimeError("AUDIO_CAPTURE_RATE_MISMATCH")
+            raise VoiceRuntimeError("AUDIO_CAPTURE_RATE_MISMATCH", f"expected={self.config.audio.processing_rate} observed={metadata['rate']}")
 
     def capture(self, seconds: int) -> Path:
         descriptor, name = tempfile.mkstemp(prefix="voice-", suffix=".wav", dir=self.runtime_dir)
         os.close(descriptor)
         path = Path(name)
         try:
-            self._record_to(path, seconds)
+            try:
+                self._record_to(path, seconds)
+            except VoiceRuntimeError:
+                if self.input_mode != "pipewire-pulse" or not self._alsa_input_fallback:
+                    raise
+                path.unlink(missing_ok=True)
+                path.touch(mode=0o600)
+                self.input_mode = "alsa-usb"
+                self.input_device = self._alsa_input_fallback
+                self.mode = self.input_mode if self.input_mode == self.output_mode else f"{self.input_mode}+{self.output_mode}"
+                self._record_to(path, seconds)
             return path
         except BaseException:
             path.unlink(missing_ok=True)
             raise
 
+    def _alsa_play(self, wav_path: Path) -> None:
+        result = _safe_run([str(self.aplay), "-q", "-D", self.output_device, str(wav_path)], timeout=70)
+        if result.returncode != 0:
+            detail = result.stderr or result.stdout or "aplay returned nonzero"
+            raise VoiceRuntimeError("AUDIO_PLAYBACK_FAILED", f"backend=alsa device={self.output_device} {_diagnostic_text(detail)}")
+
+    def _pulse_play(self, wav_path: Path) -> None:
+        if self.paplay is None:
+            raise VoiceRuntimeError("PAPLAY_MISSING")
+        result = _safe_run([str(self.paplay), f"--device={self.output_device}", str(wav_path)], timeout=70)
+        if result.returncode != 0:
+            detail = result.stderr or result.stdout or "paplay returned nonzero"
+            raise VoiceRuntimeError("AUDIO_PLAYBACK_FAILED", f"backend=pulse device={self.output_device} {_diagnostic_text(detail)}")
+
     def play(self, wav_path: Path) -> None:
         validate_wav(wav_path)
-        result = _safe_run(
-            [str(self.aplay), "-q", "-D", self.output_device, str(wav_path)],
-            timeout=70,
-        )
-        if result.returncode != 0:
-            raise VoiceRuntimeError("AUDIO_PLAYBACK_FAILED")
+        try:
+            if self.output_mode == "pipewire-pulse":
+                self._pulse_play(wav_path)
+            else:
+                self._alsa_play(wav_path)
+        except VoiceRuntimeError:
+            if self.output_mode != "pipewire-pulse" or not self._alsa_output_fallback:
+                raise
+            self.output_mode = "alsa-usb"
+            self.output_device = self._alsa_output_fallback
+            self.mode = self.input_mode if self.input_mode == self.output_mode else f"{self.input_mode}+{self.output_mode}"
+            self._alsa_play(wav_path)
 
     def probe(self) -> dict[str, str]:
         self.refresh()
@@ -246,7 +419,13 @@ class AudioBackend:
             self.play(path)
         finally:
             path.unlink(missing_ok=True)
-        return {"backend": self.mode, "input": "ready", "output": "ready"}
+        return {
+            "backend": self.mode,
+            "input": "ready",
+            "output": "ready",
+            "input_backend": self.input_mode,
+            "output_backend": self.output_mode,
+        }
 
 
 class ConversationBrain:
@@ -411,9 +590,14 @@ class VoiceAppliance:
             except Exception as exc:
                 self._clear_ready()
                 code = exc.code if isinstance(exc, VoiceRuntimeError) else "VOICE_DEPENDENCY_WAIT"
-                if code != self._last_wait_code:
-                    self._event("WAITING", code, retry_seconds=int(delay))
-                    self._last_wait_code = code
+                detail = exc.detail if isinstance(exc, VoiceRuntimeError) else _diagnostic_text(type(exc).__name__)
+                fingerprint = f"{code}:{detail}"
+                if fingerprint != self._last_wait_code:
+                    fields: dict[str, object] = {"retry_seconds": int(delay)}
+                    if detail:
+                        fields["detail"] = detail
+                    self._event("WAITING", code, **fields)
+                    self._last_wait_code = fingerprint
                 self.stop.wait(delay)
                 delay = min(30.0, delay * 1.5)
         return False
@@ -471,7 +655,11 @@ class VoiceAppliance:
                     break
                 self._clear_ready()
                 code = exc.code if isinstance(exc, VoiceRuntimeError) else "VOICE_RUNTIME_RECOVERY"
-                self._event("WAITING", code, retry_seconds=5)
+                detail = exc.detail if isinstance(exc, VoiceRuntimeError) else _diagnostic_text(type(exc).__name__)
+                fields: dict[str, object] = {"retry_seconds": 5}
+                if detail:
+                    fields["detail"] = detail
+                self._event("WAITING", code, **fields)
                 self.stop.wait(5)
                 if not self.wait_until_ready():
                     break

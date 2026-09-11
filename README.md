@@ -49,7 +49,10 @@ Put a new device into pairing mode when the installer asks. The MAC above is an
 example only; no device identity is hard-coded in GonKenLab Agent.
 
 A unique name can also be used, or omit `--bluetooth-device` for guided
-discovery. See [Headless Bluetooth audio](docs/BLUETOOTH_AUDIO.md).
+discovery. A headset with a working HFP/HSP microphone can run fully wireless;
+when a usable USB microphone is also present the runtime can fall back to it
+without giving up Bluetooth playback. See
+[Headless Bluetooth audio](docs/BLUETOOTH_AUDIO.md).
 
 Already cloned? The standard command is simply:
 

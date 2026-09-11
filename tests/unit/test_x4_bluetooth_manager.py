@@ -69,7 +69,7 @@ class BluetoothManagerTests(unittest.TestCase):
                 bluetooth_manager.read_device_record(path)
 
     @mock.patch.object(bluetooth_manager, "write_device_record")
-    @mock.patch.object(bluetooth_manager, "route_defaults", return_value=(["bluez_output.fixture"], []))
+    @mock.patch.object(bluetooth_manager, "route_defaults", return_value=(["bluez_output.fixture"], ["bluez_input.fixture"]))
     @mock.patch.object(bluetooth_manager, "bluetooth_info")
     @mock.patch.object(bluetooth_manager, "resolve_candidate")
     @mock.patch.object(bluetooth_manager, "run")
@@ -154,6 +154,50 @@ class BluetoothManagerTests(unittest.TestCase):
                 bluetooth_manager.stack_status("gonken-agent")
 
 
+
+    def test_connected_headset_status_allows_capture_to_be_proven_by_appliance_gate(self) -> None:
+        values = {
+            "format": "gonken-bluetooth-audio-v1",
+            "address": "AA:BB:CC:DD:EE:FF",
+            "name": "Lab Headset",
+            "audio_user": "gonken-agent",
+            "paired_epoch": "1",
+            "output_capable": "yes",
+            "headset_capable": "yes",
+        }
+        info = {
+            "paired": True, "trusted": True, "connected": True,
+            "output_capable": True, "headset_capable": True, "name": "Lab Headset",
+        }
+        with mock.patch.object(bluetooth_manager, "read_device_record", return_value=values), \
+             mock.patch.object(bluetooth_manager, "bluetooth_info", return_value=(info, "")), \
+             mock.patch.object(bluetooth_manager, "pipewire_nodes", return_value=(["bluez_output.fixture"], [])):
+            bluetooth_manager.device_status(
+                Path("/etc/gonken-agent/bluetooth-device.record"),
+                "gonken-agent",
+                require_connected=True,
+            )
+
+    @mock.patch.object(bluetooth_manager, "write_device_record")
+    def test_pairing_allows_output_only_headset_for_direct_microphone_fallback(self, write_record) -> None:
+        initial = {
+            "paired": True, "trusted": True, "connected": True,
+            "output_capable": True, "headset_capable": True, "name": "Lab Headset",
+        }
+        with mock.patch.object(bluetooth_manager, "stack_status"), \
+             mock.patch.object(bluetooth_manager, "resolve_candidate", return_value=("AA:BB:CC:DD:EE:FF", "Lab Headset", initial)), \
+             mock.patch.object(bluetooth_manager, "bluetooth_info", return_value=(initial, "")), \
+             mock.patch.object(bluetooth_manager, "route_defaults", return_value=(["bluez_output.fixture"], [])), \
+             mock.patch.object(bluetooth_manager, "run", return_value=mock.Mock(returncode=0, stdout="", stderr="")), \
+             mock.patch.object(bluetooth_manager.os, "geteuid", return_value=0):
+            bluetooth_manager.pair(
+                "AA:BB:CC:DD:EE:FF",
+                "gonken-agent",
+                Path("/etc/gonken-agent/bluetooth-device.record"),
+                120,
+            )
+        write_record.assert_called_once()
+
     def test_known_fix4_autoconnect_unit_is_upgraded_exactly(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             destination = Path(temporary) / "gonken-bluetooth-autoconnect.service"
@@ -178,6 +222,11 @@ class BluetoothManagerTests(unittest.TestCase):
                 with self.assertRaises(bluetooth_manager.BluetoothError) as caught:
                     bluetooth_manager.autoconnect_status(Path("/etc/gonken-agent/bluetooth-device.record"), current)
             self.assertEqual(caught.exception.status, 1)
+
+    def test_fix6_pairing_step_revalidates_connected_output_route(self) -> None:
+        install = (ROOT / "scripts/install.sh").read_text(encoding="utf-8")
+        self.assertIn('"bluetooth_audio_pairing" "2"', install)
+        self.assertIn('--require-connected', install)
 
     def test_autoconnect_unit_is_bounded_to_one_managed_record(self) -> None:
         text = (ROOT / "packaging/systemd/gonken-bluetooth-autoconnect.service").read_text(

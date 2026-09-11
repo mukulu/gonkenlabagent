@@ -818,3 +818,21 @@ bootstrap/launcher/CLI/install-engine/support/text/uninstall group is **35/35**;
 normal Ollama lifecycle checks and the first three normal speech lifecycle cases
 pass. Static dependency/milestone/release-readiness/Bash/Python/diff gates are
 clean. F5-T1..T6 remain real-Pi evidence gates.
+
+## FIX6 adaptive-audio regression gates
+
+| ID | Layer | Scenario | Required result |
+|---|---|---|---|
+| F6-H1 | unit | Bluetooth record exists, Pulse source missing, one USB mic exists | USB capture selected; Bluetooth/Pulse output may remain selected |
+| F6-H2 | unit | Bluetooth Pulse source+sink both ready | both directions use PipeWire/Pulse |
+| F6-H3 | unit | selected Pulse capture disappears and one USB mic exists | one bounded fallback to direct ALSA capture |
+| F6-H4 | unit | connected headset has output but no Bluetooth capture source | pairing remains valid; appliance gate must prove another input path or remain not-ready |
+| F6-H5 | support | debug startup snapshot | bounded ALSA PCM + Pulse defaults/sinks/sources included; no speech content |
+| F6-T1 | Pi 5 | current AIRHUG USB+Bluetooth state | appliance reaches READY using a working per-direction route |
+| F6-T2 | Pi 5 | AIRHUG fully wireless HFP/HSP | capture + playback + wake turn pass without USB |
+| F6-T3 | Pi 5 | reboot/no login | reconnect, READY announcement and wake turn pass |
+
+F6-H1..H5 are host gates. Current FIX6 host discovery is **235/235 unit tests**
+plus **35/35** quick integration tests, four normal Ollama lifecycle checks, three
+normal speech lifecycle checks, and clean static dependency/milestone/release-
+readiness/Bash/Python/diff gates. F6-T1..T3 remain physical evidence gates.

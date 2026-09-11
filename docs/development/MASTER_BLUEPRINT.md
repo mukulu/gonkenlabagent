@@ -1272,3 +1272,56 @@ Before packaging FIX5:
 Physical acceptance remains mandatory after host verification: live wake, spoken
 turn, no-login reboot, Bluetooth reconnect and recovery must be observed on the
 Pi before FIX5 is called a proven appliance release.
+
+
+## 19. FIX6 adaptive physical-audio reconciliation (2026-09-12)
+
+### 19.1 Evidence
+
+The first FIX5 physical appliance gate timed out on `AUDIO_CAPTURE_FAILED` even
+though its content-free startup snapshot enumerated a usable USB microphone and
+USB speaker. Bluetooth was also configured. The failure therefore came from
+transport routing, not absence of audio hardware.
+
+### 19.2 Runtime rule
+
+Audio input and output are independent resources. For each direction the runtime
+must evaluate current route evidence in this order:
+
+```text
+managed Bluetooth requested
+  -> dedicated PipeWire/Pulse endpoint exists and is usable? -> prefer it
+  -> otherwise exactly one eligible direct ALSA USB path?    -> use fallback
+  -> otherwise wait with categorical route diagnostics
+```
+
+A Bluetooth record is identity/configuration evidence only; it is never proof
+that a current capture/playback route exists. Numeric ALSA indexes remain
+non-authoritative. A Pulse endpoint that fails after selection may trigger one
+direct-ALSA fallback attempt when an unambiguous fallback is available.
+
+### 19.3 Pairing/readiness rule
+
+A headset-capable Bluetooth device must expose the required Bluetooth output before
+its pairing step can satisfy. Bootstrap must attempt an available HFP/HSP profile
+when microphone capability is advertised, but pairing is not the authority for
+whole-appliance input readiness: one unambiguous direct USB microphone may supply
+the accepted input path when the Bluetooth capture source is unavailable. The
+final appliance-readiness boundary must perform the real capture. Pairing and
+appliance-readiness step versions advance when this contract changes so old
+advisory completion records cannot suppress revalidation.
+
+### 19.4 Diagnostics
+
+Content-free debug snapshots include hardware PCM inventories plus PipeWire/Pulse
+server/default-source/default-sink/source/sink summaries. Runtime audio command
+failures expose bounded stderr/device/backend metadata but never recorded speech.
+The default sudo support-export workflow returns a user-owned archive in the
+invoking administrator's home.
+
+### 19.5 Acceptance
+
+FIX6 is not physically accepted until the current Pi reaches `APPLIANCE_READY`,
+completes a real `Hey Gonken` turn, and repeats that behavior after reboot with no
+interactive login. A later clean-card campaign must then reproduce the same
+result from the one-command installer.
