@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "checkpoint_scope": "Continuation 07: target diagnostic snapshots, support upload workflow and end-user onboarding",
+  "checkpoint_scope": "Continuation 08: private release-candidate readiness and Raspberry Pi acceptance runbook",
   "baseline_commit": "459f8da3ffb1dd084f9947988c117ae6da10ae1b",
   "milestones": [
     {
@@ -208,24 +208,24 @@
       "title": "Clean-install and failure campaign",
       "software": "partial",
       "target": "not-run",
-      "evidence": "TEST_MATRIX.md continuation-07; README.md; scripts/collect-support.sh; src/gonken_agent/diagnostics.py",
-      "remaining": "Cloud cannot perform physical clean-image acceptance. The repository now records startup hardware/software evidence and support ZIPs for uploaded target logs; the actual clean-install, reboot, power-loss and hardware campaign remains target-run work."
+      "evidence": "TEST_MATRIX.md continuation-08; docs/RASPBERRY_PI_ACCEPTANCE_RUN.md; README.md; scripts/release_readiness.py; scripts/collect-support.sh; src/gonken_agent/diagnostics.py",
+      "remaining": "Cloud cannot perform physical clean-image acceptance. The repository now provides a target acceptance runbook, startup hardware/software evidence capture, support ZIP export and release-readiness reporting; actual clean-install, reboot, power-loss, hotplug, latency, thermal and hardware observations remain target-run work."
     },
     {
       "id": "M9.2",
       "title": "Security/license review",
-      "software": "partial",
+      "software": "host-verified",
       "target": "not-run",
-      "evidence": "TEST_MATRIX.md continuation-07; CONTINUATION_01_REPORT.md; D-050/D-051, D-060-D-064 and D-072",
-      "remaining": "New-code review, inherited identity invariant, privacy tests, privilege-pattern service checks, uninstall protection tests, credential-pattern scan and content-free diagnostic snapshot tests pass. Target hardening, artifact licenses and redistribution approval remain open."
+      "evidence": "TEST_MATRIX.md continuation-08; scripts/release_readiness.py; tests/unit/test_release_readiness.py; CONTINUATION_01_REPORT.md; D-050/D-051, D-060-D-064, D-072 and D-073",
+      "remaining": "Private target-acceptance readiness now has host-verified status, secret-pattern scanning over active release paths, privacy tests, privilege-pattern service checks, uninstall protection tests and content-free diagnostic snapshot tests. Public redistribution approval, third-party artifact licensing and target hardening observations remain later release gates."
     },
     {
       "id": "M9.3",
       "title": "Documentation and onboarding",
       "software": "host-verified",
       "target": "not-run",
-      "evidence": "README.md; scripts/collect-support.sh; TEST_MATRIX.md continuation-07; docs/development/IMPLEMENTATION_STATUS.md",
-      "remaining": "README now begins with end-user Raspberry Pi OS, SSH, bootstrap, service check, log/support export, update/rollback/uninstall and configuration guidance. Target screenshots/operator feedback remain future refinements after a real Pi run."
+      "evidence": "README.md; docs/RASPBERRY_PI_ACCEPTANCE_RUN.md; scripts/collect-support.sh; TEST_MATRIX.md continuation-08; docs/development/IMPLEMENTATION_STATUS.md",
+      "remaining": "README and target runbook cover end-user Raspberry Pi OS, SSH, bootstrap, service check, log/support export, update, rollback, uninstall, configuration and acceptance evidence collection. Target screenshots/operator feedback remain future refinements after a real Pi run."
     },
     {
       "id": "M9.4",
@@ -240,8 +240,8 @@
       "title": "Portable Git handoff",
       "software": "host-verified",
       "target": "not-applicable",
-      "evidence": "CONTINUATION_01_REPORT.md; checkpoint/continuation-01 through checkpoint/continuation-06",
-      "remaining": "Private checkpoint transport has been repeatedly verified through ZIP integrity, extracted branch/tag/HEAD, executable modes, clean Git and strict object checks. Continuation-07 checkpoint pending until this diagnostic/onboarding work is committed and packaged."
+      "evidence": "CONTINUATION_01_REPORT.md; checkpoint/continuation-01 through checkpoint/continuation-08; scripts/release_readiness.py; docs/RASPBERRY_PI_ACCEPTANCE_RUN.md",
+      "remaining": "Private checkpoint transport has been repeatedly verified through ZIP integrity, extracted branch/tag/HEAD, executable modes, clean Git and strict object checks. Continuation-08 is the private release-candidate handoff for Raspberry Pi acceptance testing; public release remains gated by target evidence and licensing decisions."
     }
   ]
 }

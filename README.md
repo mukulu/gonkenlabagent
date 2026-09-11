@@ -118,6 +118,9 @@ state, and live speech quality.
 
 If the Pi run fails, rerun the bootstrap once after correcting obvious network or
 power issues, then upload the support ZIP created by `collect-support.sh`.
+Use [the Raspberry Pi acceptance runbook](docs/RASPBERRY_PI_ACCEPTANCE_RUN.md)
+for the first clean install, reboot, update, rollback, uninstall and diagnostic
+collection pass.
 
 ## Development authority
 

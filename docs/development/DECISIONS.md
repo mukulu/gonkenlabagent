@@ -670,3 +670,20 @@ transport checks are repeated.
   diagnostic capture and operator guidance. M9.1 remains a real target campaign,
   but later sessions can use uploaded support ZIPs as evidence for the next
   repair cycle.
+
+## D-073 — Declare a private release-candidate readiness gate before Pi testing
+
+- **Status:** Accepted
+- **Date:** 2026-09-11
+- **Decision:** `scripts/release_readiness.py` is the repository-level gate for
+  moving from cloud development to private Raspberry Pi acceptance testing. It
+  requires all declared host-ready foundations to be host-verified, scans active
+  release paths for high-risk secret patterns, reports dirty-tree state, and
+  lists every remaining target gate as unrun evidence.
+- **Reason:** “Ready to test on the Pi” is different from “accepted on the Pi”
+  and also different from “approved for public release.” The project needs a
+  strict but honest boundary that lets implementation proceed to real hardware
+  without erasing the missing physical evidence.
+- **Consequence:** M9.2 can close for private target-acceptance readiness at the
+  host tier. Public redistribution, third-party artifact licensing and target
+  hardening remain later release decisions.
