@@ -55,10 +55,13 @@ class ApplianceManagerTests(unittest.TestCase):
         self.assertIn(("is-enabled", "--quiet", module.SERVICE), calls)
         self.assertIn(("is-active", "--quiet", module.SERVICE), calls)
 
-    def test_fix6_installer_revalidates_physical_readiness_contract(self) -> None:
+    def test_fix7_installer_revalidates_service_and_physical_readiness_contract(self) -> None:
         install = (ROOT / "scripts/install.sh").read_text(encoding="utf-8")
-        self.assertIn('"appliance_readiness" "2"', install)
+        self.assertIn('"application_service" "3"', install)
+        self.assertIn('"appliance_readiness" "3"', install)
         self.assertIn('"bluetooth_audio_pairing" "2"', install)
+        self.assertIn('installed-status', install)
+        self.assertIn('--service-uid', install)
 
     def test_activate_restarts_enabled_service_then_waits_for_ready(self) -> None:
         module = load_module()

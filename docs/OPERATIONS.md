@@ -266,11 +266,13 @@ virtual environment.
 
 ## Audio readiness and fallback diagnostics
 
-The production runtime resolves capture and playback independently. For a managed
-Bluetooth deployment it prefers the dedicated PipeWire/Pulse default source/sink.
-If one direction is unavailable and exactly one direct USB audio path is usable,
-that direction falls back to the USB device. This is intentional and allows a
-USB microphone + Bluetooth speaker configuration.
+The production runtime resolves capture and playback independently and rechecks
+routes while waiting for readiness. Its automatic policy is **wired first**: a
+usable PipeWire/Pulse USB endpoint is preferred, then one unambiguous direct ALSA
+USB endpoint, then the exact configured Bluetooth endpoint. Thus plugging the
+AIRHUG (or another generic USB audio device) while Bluetooth is also connected
+causes the usable wired route to win without deleting the Bluetooth bond. Mixed
+USB/Bluetooth directions remain valid.
 
 Inspect the service-user audio graph with:
 
@@ -292,3 +294,22 @@ bootstrap attempts a microphone-capable profile but does not confuse pairing wit
 full appliance readiness: a playback-only Bluetooth route may coexist with an
 accepted direct USB microphone, while the final readiness gate must prove that
 some real capture path works.
+
+
+## Service-user audio environment
+
+The system service must talk to the `gonken-agent` user audio session rather than
+the root system-manager session. Installation therefore generates
+`/etc/gonken-agent/runtime-environment` from the actual numeric UID of the
+`gonken-agent` account and loads it through the service unit. Do not replace this
+with systemd `%U`: in a system unit that specifier refers to the system manager
+(PID 1) and can resolve to UID 0 rather than the `User=gonken-agent` account.
+
+If audio tools unexpectedly try `/run/user/0`, rerun the current bootstrap so the
+governed service unit/runtime environment is repaired, then inspect:
+
+```bash
+systemctl cat gonken-agent.service
+sudo cat /etc/gonken-agent/runtime-environment
+id -u gonken-agent
+```

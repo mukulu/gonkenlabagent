@@ -14,6 +14,7 @@ MANAGER = ROOT / "scripts/service_manager.py"
 UNIT = ROOT / "packaging/systemd/gonken-agent.service"
 TMPFILES = ROOT / "packaging/tmpfiles/gonken-agent.conf"
 PREVIOUS_UNIT = ROOT / "tests/fixtures/systemd/gonken-agent-pre-fix3.service"
+PRE_FIX7_UNIT = ROOT / "tests/fixtures/systemd/gonken-agent-pre-fix7.service"
 
 
 class ServiceManagerFixture:
@@ -50,6 +51,8 @@ class ServiceManagerFixture:
             str(self.systemctl),
             "--systemd-tmpfiles",
             str(self.tmpfiles),
+            "--service-uid",
+            "999",
         ]
 
     def run(self, action: str, *, tool_log: Path | None = None) -> subprocess.CompletedProcess[str]:
@@ -80,6 +83,7 @@ class ServiceManagerTests(unittest.TestCase):
             "User=gonken-agent",
             "ExecStartPre=+/usr/local/lib/gonken-agent/current/maintenance/reconcile-release.sh",
             "ExecStart=/usr/local/lib/gonken-agent/current/.venv/bin/gonken-agent service",
+            "EnvironmentFile=-/etc/gonken-agent/runtime-environment",
             "ReadWritePaths=/var/lib/gonken-agent/install /var/lib/gonken-agent/runtime /var/cache/gonken-agent /run/gonken-agent",
             "ReadOnlyPaths=-/srv/gonken-agent/corpus",
             "NoNewPrivileges=true",
@@ -106,6 +110,12 @@ class ServiceManagerTests(unittest.TestCase):
         tmpfiles = fixture.system_root / "etc/tmpfiles.d/gonken-agent.conf"
         self.assertEqual(unit.read_bytes(), UNIT.read_bytes())
         self.assertEqual(tmpfiles.read_bytes(), TMPFILES.read_bytes())
+        runtime_env = fixture.system_root / "etc/gonken-agent/runtime-environment"
+        self.assertEqual(
+            runtime_env.read_text(encoding="utf-8"),
+            "XDG_RUNTIME_DIR=/run/user/999\nDBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/999/bus\n",
+        )
+        self.assertEqual(stat.S_IMODE(runtime_env.stat().st_mode), 0o644)
         self.assertEqual(stat.S_IMODE(unit.stat().st_mode), 0o644)
 
         repeat = fixture.run("install")
@@ -127,6 +137,30 @@ class ServiceManagerTests(unittest.TestCase):
         self.assertIn("disable gonken-agent.service", log)
 
 
+
+    def test_installed_status_is_not_race_sensitive_to_runtime_activity(self) -> None:
+        fixture = self.fixture()
+        installed = fixture.run("install")
+        self.assertEqual(installed.returncode, 0, installed.stderr)
+        fixture.systemctl.write_text(
+            "#!/bin/sh\n"
+            "printf '%s\\n' \"$*\" >>\"$GONKEN_FAKE_TOOL_LOG\"\n"
+            "case \"$1\" in is-active) exit 1;; *) exit 0;; esac\n",
+            encoding="utf-8",
+        )
+        fixture.systemctl.chmod(0o755)
+        structural = fixture.run("installed-status")
+        self.assertEqual(structural.returncode, 0, structural.stderr)
+        active = fixture.run("status")
+        self.assertNotEqual(active.returncode, 0)
+        self.assertIn("SERVICE_COMMAND", active.stderr)
+
+    def test_system_unit_never_uses_manager_uid_specifier_for_audio(self) -> None:
+        text = UNIT.read_text(encoding="utf-8")
+        self.assertNotIn("%U", text)
+        self.assertNotIn("/run/user/0", text)
+        self.assertIn("EnvironmentFile=-/etc/gonken-agent/runtime-environment", text)
+
     def test_known_previous_managed_unit_is_upgraded_in_place(self) -> None:
         fixture = self.fixture()
         unit = fixture.system_root / "etc/systemd/system/gonken-agent.service"
@@ -137,6 +171,19 @@ class ServiceManagerTests(unittest.TestCase):
         self.assertEqual(installed.returncode, 0, installed.stderr)
         self.assertIn("SERVICE_MANAGED_UPGRADE", installed.stdout)
         self.assertEqual(unit.read_bytes(), UNIT.read_bytes())
+
+    def test_fix6_managed_unit_is_upgraded_to_generated_runtime_environment(self) -> None:
+        fixture = self.fixture()
+        unit = fixture.system_root / "etc/systemd/system/gonken-agent.service"
+        unit.parent.mkdir(parents=True, exist_ok=True)
+        unit.write_bytes(PRE_FIX7_UNIT.read_bytes())
+        unit.chmod(0o644)
+        installed = fixture.run("install")
+        self.assertEqual(installed.returncode, 0, installed.stderr)
+        self.assertIn("SERVICE_MANAGED_UPGRADE", installed.stdout)
+        self.assertNotIn(b"%U", unit.read_bytes())
+        runtime_env = fixture.system_root / "etc/gonken-agent/runtime-environment"
+        self.assertIn(b"/run/user/999", runtime_env.read_bytes())
 
     def test_conflicting_installed_unit_fails_closed(self) -> None:
         fixture = self.fixture()

@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import os
 import shutil
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -68,11 +69,28 @@ def load_service_payloads(unit_template: Path, tmpfiles_template: Path) -> tuple
     return service_manager.service_files(unit_template, tmpfiles_template)
 
 
-def service_paths(root: Path) -> tuple[Path, Path]:
+def service_paths(root: Path) -> tuple[Path, Path, Path]:
     return (
         mapped(root, "/etc/systemd/system/gonken-agent.service"),
         mapped(root, "/etc/tmpfiles.d/gonken-agent.conf"),
+        mapped(root, "/etc/gonken-agent/runtime-environment"),
     )
+
+
+def validate_runtime_environment_or_absent(path: Path) -> bool:
+    if not path.exists() and not path.is_symlink():
+        return False
+    if not path.is_file() or path.is_symlink() or path.stat().st_size > 4096:
+        fail("UNINSTALL_CONFLICT", f"managed runtime environment differs: {path}", "review administrator changes before uninstalling", 75)
+    text = path.read_text(encoding="utf-8", errors="strict")
+    match = re.fullmatch(
+        r"XDG_RUNTIME_DIR=/run/user/([1-9][0-9]*)\n"
+        r"DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/\1/bus\n",
+        text,
+    )
+    if match is None:
+        fail("UNINSTALL_CONFLICT", f"managed runtime environment differs: {path}", "review administrator changes before uninstalling", 75)
+    return True
 
 
 def validate_managed_or_absent(path: Path, payload: bytes) -> bool:
@@ -116,9 +134,10 @@ def uninstall(root: Path, unit_template: Path, tmpfiles_template: Path, systemct
     if purge_data and confirm_purge != PURGE_CONFIRMATION:
         fail("UNINSTALL_PURGE_CONFIRMATION", "purge requires the exact confirmation phrase", f"use --confirm-purge {PURGE_CONFIRMATION}", 64)
     unit_payload, tmpfiles_payload = load_service_payloads(unit_template, tmpfiles_template)
-    unit_path, tmpfiles_path = service_paths(root)
+    unit_path, tmpfiles_path, runtime_env_path = service_paths(root)
     service_installed = validate_managed_or_absent(unit_path, unit_payload)
     validate_managed_or_absent(tmpfiles_path, tmpfiles_payload)
+    runtime_env_installed = validate_runtime_environment_or_absent(runtime_env_path)
 
     removed: list[str] = []
     if service_installed:
@@ -128,6 +147,9 @@ def uninstall(root: Path, unit_template: Path, tmpfiles_template: Path, systemct
         removed.append("/etc/systemd/system/gonken-agent.service")
     if remove_if_managed(tmpfiles_path, tmpfiles_payload):
         removed.append("/etc/tmpfiles.d/gonken-agent.conf")
+    if runtime_env_installed:
+        runtime_env_path.unlink()
+        removed.append("/etc/gonken-agent/runtime-environment")
     if service_installed:
         run_tool(systemctl, "daemon-reload")
     if remove_entrypoint(root):

@@ -200,3 +200,33 @@ lifecycle checks, and the static dependency/milestone/release-readiness/Bash/
 Python/diff gates. Selected normal release lifecycle cases passed before the
 known long rollback-service fixture exceeded the aggregate execution window.
 Physical wake/reboot acceptance remains UNRUN until FIX6 is installed on the Pi.
+
+
+## Continuation 08 FIX7 target evidence — 2026-09-12
+
+FIX6 reaches all prerequisite component postconditions on the Pi but terminates
+before the readiness action with `INSTALL_PRECONDITION`. This is now isolated to
+a contract error: `appliance_readiness` inherited an application-service
+postcondition that required `systemctl is-active`, even though readiness activation
+is itself responsible for converging/restarting the service. FIX7 splits
+installed+enabled structural status from active runtime status and advances both
+application-service and appliance-readiness step versions to force revalidation.
+
+The same support bundle revealed a second real-target defect: the service process
+had euid 999 but its Pulse/WirePlumber probes attempted `/run/user/0`. FIX6 used
+systemd `%U` in a system unit, which refers to the system manager identity rather
+than safely deriving `User=gonken-agent`. FIX7 generates the user-session audio
+environment from the actual runtime-account UID and safely upgrades the exact
+known FIX6 governed unit.
+
+Automatic audio discovery is now lazy and wired-first: usable USB routes are
+preferred, then the exact configured Bluetooth route; input/output may differ,
+and Bluetooth remains available when USB is unplugged. This is intended to reuse
+the user's already-connected Wi-Fi/Bluetooth and currently plugged USB audio
+rather than treating them as mutually exclusive provisioning modes.
+
+Host verification: **240/240 unit tests**, **35/35 quick integration tests**, four
+normal Ollama lifecycle tests, three normal speech lifecycle tests, representative
+release low-space/rollback tests, and static dependency/milestone/release-
+readiness/Bash/Python/diff gates pass. Physical `APPLIANCE_READY`, spoken turn and
+reboot/no-login acceptance remain the next target gate.

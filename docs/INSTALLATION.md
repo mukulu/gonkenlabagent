@@ -197,10 +197,12 @@ actively attempts an HFP/HSP capture profile for headset-capable devices; if tha
 Bluetooth capture route is unavailable, final readiness may still use one
 unambiguous direct USB microphone.
 
-The runtime is transport-adaptive: managed Bluetooth/PipeWire endpoints are
-preferred when usable, while an unambiguous direct USB input/output may be used as
-a fallback for one direction. This prevents a stale Bluetooth record from forcing
-a broken `default` ALSA route and allows recovery when one transport disappears.
+The runtime is transport-adaptive and reuses what is already connected. For each
+direction it prefers a usable **wired USB** route first (PipeWire/Pulse USB when
+visible, otherwise an unambiguous direct ALSA USB path), then the exact configured
+Bluetooth endpoint. Input and output are selected independently, so mixed routes
+remain valid. This prevents a stale Bluetooth record from forcing a broken default
+route and lets an already-connected wired device win without disabling Bluetooth.
 
 If readiness still fails, collect the support bundle described in
 [OPERATIONS.md](OPERATIONS.md); the debug snapshot now contains bounded ALSA and

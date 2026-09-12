@@ -28,6 +28,7 @@ class UninstallFixture:
         self.systemctl.chmod(0o755)
         self.unit = self.system_root / "etc/systemd/system/gonken-agent.service"
         self.tmpfiles = self.system_root / "etc/tmpfiles.d/gonken-agent.conf"
+        self.runtime_env = self.system_root / "etc/gonken-agent/runtime-environment"
         self.release = self.system_root / "usr/local/lib/gonken-agent"
         self.entrypoint = self.system_root / "usr/local/bin/gonken-agent"
         self.state = self.system_root / "var/lib/gonken-agent"
@@ -40,6 +41,11 @@ class UninstallFixture:
         self.unit.write_bytes(UNIT.read_bytes())
         self.tmpfiles.parent.mkdir(parents=True, exist_ok=True)
         self.tmpfiles.write_bytes(TMPFILES.read_bytes())
+        self.runtime_env.parent.mkdir(parents=True, exist_ok=True)
+        self.runtime_env.write_text(
+            "XDG_RUNTIME_DIR=/run/user/999\nDBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/999/bus\n",
+            encoding="utf-8",
+        )
         (self.release / "releases" / ("a" * 40)).mkdir(parents=True)
         (self.system_root / "usr/local/bin").mkdir(parents=True, exist_ok=True)
         self.entrypoint.symlink_to("../lib/gonken-agent/current/.venv/bin/gonken-agent")
@@ -90,6 +96,7 @@ class UninstallManagerTests(unittest.TestCase):
         self.assertIn("UNINSTALL_COMPLETE", result.stdout)
         self.assertFalse(fixture.unit.exists())
         self.assertFalse(fixture.tmpfiles.exists())
+        self.assertFalse(fixture.runtime_env.exists())
         self.assertFalse(fixture.entrypoint.exists())
         self.assertFalse(fixture.release.exists())
         self.assertTrue(fixture.state.exists())

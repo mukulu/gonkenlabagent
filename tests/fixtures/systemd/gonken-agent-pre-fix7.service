@@ -13,7 +13,6 @@ User=gonken-agent
 Group=gonken-agent
 WorkingDirectory=/usr/local/lib/gonken-agent/current
 EnvironmentFile=-/etc/gonken-agent/environment
-EnvironmentFile=-/etc/gonken-agent/runtime-environment
 # Release reconciliation owns root-only activation state. The '+' prefix keeps
 # this bounded immutable helper privileged while the long-running service stays
 # on the dedicated non-login account.
@@ -29,10 +28,11 @@ NoNewPrivileges=true
 PrivateTmp=true
 ProtectHome=read-only
 ProtectSystem=full
-# The generated runtime-environment file contains the numeric service UID for
-# XDG_RUNTIME_DIR/DBus. Do not use the system-manager UID specifier here: PID 1
-# would expand it to UID 0 rather than the User= account. This lets headless
-# PipeWire work at boot.
+# When the optional Bluetooth extension is enabled, a lingering PipeWire user
+# session lives below /run/user/<uid>. These variables are harmless when that
+# extension is absent and let the same service reach its own local audio graph.
+Environment=XDG_RUNTIME_DIR=/run/user/%U
+Environment=DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/%U/bus
 # The main service account still cannot mutate install state because the
 # directory remains root:root 0700; this mount allowance exists so the bounded
 # privileged ExecStartPre can finish an interrupted activation journal.

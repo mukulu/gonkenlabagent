@@ -142,9 +142,11 @@ class AudioBackend:
         self.input_mode = ""
         self.output_mode = ""
         self.mode = ""
-        self._alsa_input_fallback: str | None = None
-        self._alsa_output_fallback: str | None = None
-        self.refresh()
+        self._input_candidates: list[tuple[str, str]] = []
+        self._output_candidates: list[tuple[str, str]] = []
+        # Do not resolve physical devices in the constructor.  At boot the
+        # service can legitimately start before USB enumeration or Bluetooth
+        # reconnection completes; readiness owns the bounded retry loop.
 
     @property
     def bluetooth_configured(self) -> bool:
@@ -238,62 +240,122 @@ class AudioBackend:
                 return None
             raise
 
-    def _pulse_default(self, direction: str) -> str | None:
-        if not self.bluetooth_configured or self.pactl is None:
-            return None
+    def _pulse_names(self, direction: str) -> list[str]:
+        if self.pactl is None:
+            return []
         if direction == "input" and self.parecord is None:
-            return None
+            return []
         if direction == "output" and self.paplay is None:
-            return None
+            return []
         info = _safe_run([str(self.pactl), "info"], timeout=8)
         if info.returncode != 0:
-            return None
-        noun = "source" if direction == "input" else "sink"
-        result = _safe_run([str(self.pactl), f"get-default-{noun}"], timeout=8)
-        if result.returncode != 0:
-            return None
-        name = result.stdout.strip().splitlines()[0] if result.stdout.strip() else ""
-        lowered = name.casefold()
-        if not name or "auto_null" in lowered or (direction == "input" and lowered.endswith(".monitor")):
-            return None
-        # A managed Bluetooth record must not make an arbitrary desktop/HDMI
-        # Pulse default authoritative.  Only the endpoint belonging to that
-        # exact trusted Bluetooth identity is preferred here.  A USB path is
-        # resolved separately and remains the deterministic fallback.
-        token = self._managed_bluetooth_token()
-        if token is None or token not in lowered or "bluez_" not in lowered:
-            return None
-        listing = _safe_run([str(self.pactl), "list", noun + "s", "short"], timeout=8)
+            return []
+        noun = "sources" if direction == "input" else "sinks"
+        listing = _safe_run([str(self.pactl), "list", noun, "short"], timeout=8)
         if listing.returncode != 0:
+            return []
+        names: list[str] = []
+        for line in listing.stdout.splitlines():
+            fields = line.split()
+            if len(fields) < 2:
+                continue
+            name = fields[1]
+            lowered = name.casefold()
+            if direction == "input" and lowered.endswith(".monitor"):
+                continue
+            names.append(name)
+        return names
+
+    def _pulse_usb_candidate(self, direction: str) -> str | None:
+        # Prefer a wired PipeWire/Pulse USB node when exactly one exists.  This
+        # avoids fighting PipeWire for direct ALSA ownership while preserving
+        # the project's wired-first policy.
+        prefix = "alsa_input" if direction == "input" else "alsa_output"
+        candidates = [
+            name for name in self._pulse_names(direction)
+            if "usb" in name.casefold() and prefix in name.casefold()
+        ]
+        return candidates[0] if len(candidates) == 1 else None
+
+    def _pulse_bluetooth_candidate(self, direction: str) -> str | None:
+        if not self.bluetooth_configured:
             return None
-        available = {line.split()[1] for line in listing.stdout.splitlines() if len(line.split()) >= 2}
-        return name if name in available else None
+        token = self._managed_bluetooth_token()
+        if token is None:
+            return None
+        prefix = "bluez_input" if direction == "input" else "bluez_output"
+        candidates = [
+            name for name in self._pulse_names(direction)
+            if prefix in name.casefold() and token in name.casefold()
+        ]
+        return candidates[0] if len(candidates) == 1 else None
+
+    @staticmethod
+    def _dedupe_routes(routes: list[tuple[str, str]]) -> list[tuple[str, str]]:
+        output: list[tuple[str, str]] = []
+        seen: set[tuple[str, str]] = set()
+        for route in routes:
+            if route not in seen:
+                output.append(route)
+                seen.add(route)
+        return output
+
+    def _route_candidates(self, direction: str) -> list[tuple[str, str]]:
+        selector = (
+            self.config.audio.input_match if direction == "input"
+            else self.config.audio.output_match
+        ).strip()
+        alsa = self._alsa_candidate(direction)
+        pulse_usb = self._pulse_usb_candidate(direction)
+        pulse_bluetooth = self._pulse_bluetooth_candidate(direction)
+        routes: list[tuple[str, str]] = []
+
+        if not selector or selector.casefold() == "auto":
+            # Deterministic policy: connected wired audio first, then the exact
+            # configured/connected Bluetooth endpoint.  Keep both Pulse USB and
+            # direct ALSA USB as candidates because one may be busy/unavailable
+            # while the other is usable on a particular Pi image.
+            if pulse_usb:
+                routes.append(("pipewire-usb", pulse_usb))
+            if alsa:
+                routes.append(("alsa-usb", alsa))
+            if pulse_bluetooth:
+                routes.append(("pipewire-bluetooth", pulse_bluetooth))
+        else:
+            # An explicit site selector outranks automatic transport preference.
+            if alsa:
+                routes.append(("alsa-selected", alsa))
+            if pulse_bluetooth:
+                routes.append(("pipewire-bluetooth", pulse_bluetooth))
+
+        return self._dedupe_routes(routes)
+
+    def _apply_route(self, direction: str, route: tuple[str, str]) -> None:
+        mode, device = route
+        if direction == "input":
+            self.input_mode, self.input_device = mode, device
+        else:
+            self.output_mode, self.output_device = mode, device
+        self.mode = (
+            self.input_mode if self.input_mode == self.output_mode
+            else f"{self.input_mode}+{self.output_mode}"
+        )
 
     def refresh(self) -> None:
-        alsa_input = self._alsa_candidate("input")
-        alsa_output = self._alsa_candidate("output")
-        self._alsa_input_fallback = alsa_input
-        self._alsa_output_fallback = alsa_output
-        pulse_input = self._pulse_default("input")
-        pulse_output = self._pulse_default("output")
-
-        if pulse_input:
-            self.input_mode, self.input_device = "pipewire-pulse", pulse_input
-        elif alsa_input:
-            self.input_mode, self.input_device = "alsa-usb", alsa_input
-        else:
-            code = "AUDIO_BLUETOOTH_SOURCE_UNAVAILABLE" if self.bluetooth_configured else "AUDIO_INPUT_NOT_FOUND"
-            raise VoiceRuntimeError(code, "no usable Pulse default source or direct ALSA input")
-
-        if pulse_output:
-            self.output_mode, self.output_device = "pipewire-pulse", pulse_output
-        elif alsa_output:
-            self.output_mode, self.output_device = "alsa-usb", alsa_output
-        else:
-            code = "AUDIO_BLUETOOTH_SINK_UNAVAILABLE" if self.bluetooth_configured else "AUDIO_OUTPUT_NOT_FOUND"
-            raise VoiceRuntimeError(code, "no usable Pulse default sink or direct ALSA output")
-
-        self.mode = self.input_mode if self.input_mode == self.output_mode else f"{self.input_mode}+{self.output_mode}"
+        self._input_candidates = self._route_candidates("input")
+        self._output_candidates = self._route_candidates("output")
+        if not self._input_candidates:
+            code = "AUDIO_INPUT_NOT_FOUND"
+            if self.bluetooth_configured:
+                code = "AUDIO_INPUT_NOT_FOUND_USB_OR_BLUETOOTH"
+            raise VoiceRuntimeError(code, "no usable wired or configured Bluetooth capture route")
+        if not self._output_candidates:
+            code = "AUDIO_OUTPUT_NOT_FOUND"
+            if self.bluetooth_configured:
+                code = "AUDIO_OUTPUT_NOT_FOUND_USB_OR_BLUETOOTH"
+            raise VoiceRuntimeError(code, "no usable wired or configured Bluetooth playback route")
+        self._apply_route("input", self._input_candidates[0])
+        self._apply_route("output", self._output_candidates[0])
 
     def _alsa_record_to(self, destination: Path, seconds: int) -> None:
         args = [
@@ -342,7 +404,7 @@ class AudioBackend:
     def _record_to(self, destination: Path, seconds: int) -> None:
         if not 1 <= seconds <= 30:
             raise ValueError("capture seconds must be 1..30")
-        if self.input_mode == "pipewire-pulse":
+        if self.input_mode.startswith("pipewire-"):
             self._pulse_record_to(destination, seconds)
         else:
             self._alsa_record_to(destination, seconds)
@@ -354,22 +416,26 @@ class AudioBackend:
             raise VoiceRuntimeError("AUDIO_CAPTURE_RATE_MISMATCH", f"expected={self.config.audio.processing_rate} observed={metadata['rate']}")
 
     def capture(self, seconds: int) -> Path:
+        if not self._input_candidates:
+            self.refresh()
         descriptor, name = tempfile.mkstemp(prefix="voice-", suffix=".wav", dir=self.runtime_dir)
         os.close(descriptor)
         path = Path(name)
+        failures: list[str] = []
         try:
-            try:
-                self._record_to(path, seconds)
-            except VoiceRuntimeError:
-                if self.input_mode != "pipewire-pulse" or not self._alsa_input_fallback:
-                    raise
+            for route in list(self._input_candidates):
+                self._apply_route("input", route)
                 path.unlink(missing_ok=True)
                 path.touch(mode=0o600)
-                self.input_mode = "alsa-usb"
-                self.input_device = self._alsa_input_fallback
-                self.mode = self.input_mode if self.input_mode == self.output_mode else f"{self.input_mode}+{self.output_mode}"
-                self._record_to(path, seconds)
-            return path
+                try:
+                    self._record_to(path, seconds)
+                    return path
+                except VoiceRuntimeError as exc:
+                    failures.append(f"{route[0]}:{exc.code}")
+            raise VoiceRuntimeError(
+                "AUDIO_CAPTURE_FAILED",
+                "routes=" + ",".join(failures)[:240],
+            )
         except BaseException:
             path.unlink(missing_ok=True)
             raise
@@ -390,18 +456,23 @@ class AudioBackend:
 
     def play(self, wav_path: Path) -> None:
         validate_wav(wav_path)
-        try:
-            if self.output_mode == "pipewire-pulse":
-                self._pulse_play(wav_path)
-            else:
-                self._alsa_play(wav_path)
-        except VoiceRuntimeError:
-            if self.output_mode != "pipewire-pulse" or not self._alsa_output_fallback:
-                raise
-            self.output_mode = "alsa-usb"
-            self.output_device = self._alsa_output_fallback
-            self.mode = self.input_mode if self.input_mode == self.output_mode else f"{self.input_mode}+{self.output_mode}"
-            self._alsa_play(wav_path)
+        if not self._output_candidates:
+            self.refresh()
+        failures: list[str] = []
+        for route in list(self._output_candidates):
+            self._apply_route("output", route)
+            try:
+                if self.output_mode.startswith("pipewire-"):
+                    self._pulse_play(wav_path)
+                else:
+                    self._alsa_play(wav_path)
+                return
+            except VoiceRuntimeError as exc:
+                failures.append(f"{route[0]}:{exc.code}")
+        raise VoiceRuntimeError(
+            "AUDIO_PLAYBACK_FAILED",
+            "routes=" + ",".join(failures)[:240],
+        )
 
     def probe(self) -> dict[str, str]:
         self.refresh()

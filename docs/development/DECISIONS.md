@@ -880,3 +880,43 @@ transport checks are repeated.
 - **Consequence:** Fully wireless voice operation is deterministic when the
   headset supports HFP/HSP; unexpected locally edited systemd units are never
   overwritten silently.
+
+
+## D-087 — Separate installed service structure from appliance runtime readiness
+
+- **Status:** Accepted
+- **Date:** 2026-09-12
+- **Decision:** Installer preconditions for `application_service` and
+  `appliance_readiness` validate governed files and boot enablement without
+  requiring the process to already be active. `appliance_manager activate` owns
+  restart/convergence and physical READY.
+- **Reason:** FIX6 failed immediately at `INSTALL_PRECONDITION`, preventing the
+  action intended to repair/start a transient service.
+- **Consequence:** A service waiting for late audio can be converged rather than
+  rejected before readiness logic runs.
+
+## D-088 — Generate the service-user PipeWire environment from the real UID
+
+- **Status:** Accepted
+- **Date:** 2026-09-12
+- **Decision:** The system service loads a generated governed runtime-environment
+  file containing `/run/user/<gonken-agent-uid>` and its D-Bus path. `%U` is
+  forbidden in the governed system unit for this purpose.
+- **Reason:** Real support evidence showed euid 999 while Pulse/WirePlumber tried
+  `/run/user/0`, whereas a manual run with `/run/user/999` successfully reached
+  wake standby and completed voice turns.
+- **Consequence:** Headless audio no longer depends on an incorrect system-manager
+  UID expansion; upgrades and uninstall manage the generated file explicitly.
+
+## D-089 — Prefer existing wired audio while retaining Bluetooth fallback
+
+- **Status:** Accepted
+- **Date:** 2026-09-12
+- **Decision:** `auto` routing prefers usable USB for each direction, then the
+  exact configured Bluetooth endpoint. Discovery is delayed/retried rather than
+  treated as a constructor-time invariant.
+- **Reason:** The target can expose the same AIRHUG through USB and Bluetooth and
+  can boot before one transport is enumerated. Provisioning identity must not
+  override actual route availability.
+- **Consequence:** Existing connections are reused, wired wins when present, and
+  Bluetooth becomes automatic fallback without unpairing or reinstalling.

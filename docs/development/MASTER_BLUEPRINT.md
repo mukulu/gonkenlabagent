@@ -1325,3 +1325,55 @@ FIX6 is not physically accepted until the current Pi reaches `APPLIANCE_READY`,
 completes a real `Hey Gonken` turn, and repeats that behavior after reboot with no
 interactive login. A later clean-card campaign must then reproduce the same
 result from the one-command installer.
+
+
+## 20. FIX7 boot/audio convergence and service-environment correction (2026-09-12)
+
+### 20.1 Real-target evidence
+
+FIX6 completed service/Bluetooth installation but stopped immediately at
+`INSTALL_PRECONDITION` for `appliance_readiness`. The same target had already
+proved the production voice core manually when run as `gonken-agent` with
+`XDG_RUNTIME_DIR=/run/user/<gonken-agent-uid>` and the matching session bus. The
+FIX6 support snapshot showed the service process itself ran as UID 999 while
+Pulse/WirePlumber commands nevertheless attempted `/run/user/0`.
+
+### 20.2 Structural service precondition
+
+The application-service boundary and appliance-readiness precondition must prove
+the governed unit/tmpfiles/runtime-environment files and boot enablement, not
+require the long-running process to already be active. `appliance_manager
+activate` owns start/restart and the wait for physical `READY`. This prevents a
+transient audio/service state from blocking the very action responsible for
+repairing it.
+
+### 20.3 Correct user-session environment
+
+Never use system-unit `%U` as the service-account UID. The installer resolves the
+actual `gonken-agent` UID and generates `/etc/gonken-agent/runtime-environment`
+with its `XDG_RUNTIME_DIR` and D-Bus session path. The generated file contains no
+secrets, is validated as governed state, participates in exact managed upgrades,
+and is removed by uninstall.
+
+### 20.4 Wired-first, existing-connection policy
+
+Audio capture and playback are independent and dynamically rediscovered. For
+`auto`, each direction uses the first proven route in this order:
+
+1. connected PipeWire/Pulse USB endpoint;
+2. one unambiguous direct ALSA USB endpoint;
+3. the exact configured/connected Bluetooth endpoint.
+
+Existing BlueZ bonds/connections are reused. USB presence never causes Bluetooth
+unpairing; Bluetooth remains the fallback. Constructor-time hardware absence is
+not fatal: route discovery is deferred into readiness/recovery so boot may race
+USB enumeration or Bluetooth reconnection without entering a restart storm.
+
+### 20.5 FIX7 evidence gate
+
+Host gates cover structural-vs-active service semantics, generated runtime UID
+environment, managed FIX6 unit migration, wired-first ordering, USB-to-Bluetooth
+fall-through, lazy route discovery, uninstall cleanup, full unit discovery, quick
+integrations, normal Ollama/speech lifecycle and static checks. Real Pi closure
+requires bootstrap `READY`, a spoken wake turn, then reboot/no-login return to
+wake standby.

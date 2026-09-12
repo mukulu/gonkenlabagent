@@ -624,23 +624,39 @@ gonken_speech_smoke_action() {
   python3 "$(gonken_speech_manager)" run-smoke     --manifest "$(gonken_speech_manifest)" --system-root /     "${arguments[@]}" --threads "$SPEECH_STT_THREADS"
 }
 
+gonken_service_uid() {
+  id -u -- "$SERVICE_USER" 2>/dev/null
+}
+
 gonken_app_service_postcondition() {
-  python3 "$(gonken_service_manager)" status \
+  local service_uid
+  service_uid="$(gonken_service_uid)" || return 1
+  # The service-install boundary proves governed files + boot enablement.  It
+  # intentionally does not require the long-running process to be active here:
+  # physical audio can make the voice process transiently restart while the
+  # later appliance-readiness action is specifically responsible for converging
+  # it to active+READY.  Using active state as this precondition caused the
+  # real-Pi FIX6 INSTALL_PRECONDITION race.
+  python3 "$(gonken_service_manager)" installed-status \
     --system-root / \
     --unit-template "$(gonken_service_unit_template)" \
     --tmpfiles-template "$(gonken_service_tmpfiles_template)" \
     --systemctl /usr/bin/systemctl \
-    --systemd-tmpfiles /usr/bin/systemd-tmpfiles >/dev/null 2>&1 || return 1
-  GONKEN_STEP_EVIDENCE="gonken_agent_service_enabled_headless_degraded"
+    --systemd-tmpfiles /usr/bin/systemd-tmpfiles \
+    --service-uid "$service_uid" >/dev/null 2>&1 || return 1
+  GONKEN_STEP_EVIDENCE="gonken_agent_service_installed_enabled"
 }
 
 gonken_app_service_action() {
+  local service_uid
+  service_uid="$(gonken_service_uid)" || return 73
   python3 "$(gonken_service_manager)" install \
     --system-root / \
     --unit-template "$(gonken_service_unit_template)" \
     --tmpfiles-template "$(gonken_service_tmpfiles_template)" \
     --systemctl /usr/bin/systemctl \
-    --systemd-tmpfiles /usr/bin/systemd-tmpfiles
+    --systemd-tmpfiles /usr/bin/systemd-tmpfiles \
+    --service-uid "$service_uid"
 }
 
 gonken_bluetooth_stack_postcondition() {
@@ -813,7 +829,7 @@ if ((ENGINE_ONLY == 0)); then
       gonken_register_step         "speech_smoke" "1"         "gonken_speech_models_postcondition" "gonken_speech_smoke_action" "gonken_speech_smoke_postcondition"         "content_free_real_tts_then_stt_smoke_record"         "rerun_smoke_when_validation_record_is_missing_or_drifted"         "smoke_samples_are_temporary_and_not_retained" || exit $?
 
       if ((SPEECH_ONLY == 0)); then
-        gonken_register_step         "application_service" "2"         "gonken_speech_smoke_postcondition" "gonken_app_service_action" "gonken_app_service_postcondition"         "exact_systemd_unit_tmpfiles_root_reconcile_and_degraded_headless_supervisor"         "upgrade_known_managed_unit_then_enable_start_and_capture_failure_context"         "no_privilege_or_power_grants_are_added_to_long_running_service" || exit $?
+        gonken_register_step         "application_service" "3"         "gonken_speech_smoke_postcondition" "gonken_app_service_action" "gonken_app_service_postcondition"         "exact_systemd_unit_tmpfiles_runtime_env_root_reconcile_and_boot_enablement"         "upgrade_known_managed_unit_generate_service_uid_audio_env_then_enable_start"         "no_privilege_or_power_grants_are_added_to_long_running_service" || exit $?
 
         if [[ "${GONKEN_SOURCE_RECORD[bluetooth_audio]:-disabled}" == "requested" ]]; then
           gonken_register_step \
@@ -839,7 +855,7 @@ if ((ENGINE_ONLY == 0)); then
         fi
 
         gonken_register_step \
-          "appliance_readiness" "2" \
+          "appliance_readiness" "3" \
           "gonken_app_service_postcondition" "gonken_appliance_action" "gonken_appliance_postcondition" \
           "physical_audio_local_model_wake_runtime_and_enabled_boot_service" \
           "restart_service_wait_for_content_free_ready_record_and_retry_dependencies" \
