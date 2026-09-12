@@ -103,16 +103,14 @@ when advertised), then sets the resulting Bluetooth sink/source as the dedicated
 service user's defaults. This makes the fully wireless microphone + speaker path
 explicit rather than relying only on opportunistic profile autoswitch.
 
-The runtime resolves input and output independently. It prefers the managed
-PipeWire/Pulse Bluetooth default when that endpoint is actually usable. If a
-Bluetooth capture source is unavailable but exactly one direct USB microphone is
-present, capture falls back to that USB device while Bluetooth playback remains
-active. The reverse fallback is also bounded. This makes
-`USB microphone + Bluetooth speaker` a supported resilience path without
-hard-coding any device identity. Fully wireless headset operation still requires
-a real HFP/HSP capture source and is proven by the final appliance-readiness
-gate; pairing itself remains valid when a separate direct microphone provides the
-accepted input path.
+The runtime resolves input and output independently and **prefers an already
+usable wired USB route**. For each direction it tries: PipeWire/Pulse USB, then
+one unambiguous direct ALSA USB endpoint, then the exact configured Bluetooth
+endpoint. The Bluetooth bond remains available as fallback and is not removed
+merely because USB is connected. This supports USB+USB, USB microphone + Bluetooth
+speaker, Bluetooth microphone + USB speaker, and fully wireless operation when
+the headset exposes a real HFP/HSP capture source. Final appliance readiness, not
+pairing alone, proves the routes actually work.
 
 ## Manual inspection
 

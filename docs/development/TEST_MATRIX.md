@@ -836,3 +836,29 @@ F6-H1..H5 are host gates. Current FIX6 host discovery is **235/235 unit tests**
 plus **35/35** quick integration tests, four normal Ollama lifecycle checks, three
 normal speech lifecycle checks, and clean static dependency/milestone/release-
 readiness/Bash/Python/diff gates. F6-T1..T3 remain physical evidence gates.
+
+
+## FIX7 service-session and wired-first regression gates
+
+| ID | Layer | Scenario | Required result |
+|---|---|---|---|
+| F7-H1 | unit | governed service installed/enabled but inactive | structural `installed-status` passes; readiness action remains allowed |
+| F7-H2 | unit | FIX6 systemd unit uses `%U` | exact known unit upgrades; generated runtime environment uses actual service UID |
+| F7-H3 | unit | arbitrary edited unit/runtime environment | fail closed; do not overwrite |
+| F7-H4 | unit | connected USB and configured Bluetooth both usable | USB selected first independently for input/output |
+| F7-H5 | unit | preferred USB route fails/disappears | fall through to exact connected Bluetooth route |
+| F7-H6 | unit | no audio endpoint at process construction | process can enter bounded readiness retry; no constructor crash/restart storm |
+| F7-H7 | uninstall | generated runtime environment exists | validated and removed with governed service files |
+| F7-I1 | integration | bootstrap/launcher/install engine/support/text/uninstall | 35/35 quick group passes |
+| F7-I2 | integration | normal Ollama lifecycle | 4/4 pass |
+| F7-I3 | integration | normal speech lifecycle subset | 3/3 pass |
+| F7-I4 | integration | representative release low-space/rollback | pass |
+| F7-S1 | static | dependency/milestone/readiness/Bash/Python/diff | pass |
+| F7-T1 | Pi 5 | USB + Bluetooth already connected before bootstrap | installer reuses both, chooses wired route first and reaches READY |
+| F7-T2 | Pi 5 | USB absent, trusted Bluetooth connected | exact Bluetooth route reaches READY |
+| F7-T3 | Pi 5 | reboot/no login with late audio enumeration | service converges to ready announcement/wake standby without SSH |
+
+Current FIX7 host discovery: **240/240 unit tests**, **35/35 quick integrations**,
+4 normal Ollama lifecycle tests, 3 normal speech lifecycle tests, representative
+release low-space/rollback checks, and clean static gates. F7-T1..T3 remain
+physical evidence gates.

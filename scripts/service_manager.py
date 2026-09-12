@@ -15,8 +15,12 @@ from pathlib import Path
 
 SERVICE_NAME = "gonken-agent.service"
 TMPFILES_NAME = "gonken-agent.conf"
+RUNTIME_ENV_NAME = "runtime-environment"
 KNOWN_PREVIOUS_UNIT_SHA256 = {
     "9e4ed270fb4af9128d324640d06b80d6fcdb2076b2c67af319ac6b41498983a6",
+    # FIX3-FIX6 unit. It used system-manager %U, which expands to UID 0 and
+    # therefore pointed the User=gonken-agent process at /run/user/0.
+    "7d7fcbace70989cdd1f64296a447743a633aa7a4fcc8801825f32777e28bb6ef",
 }
 FORBIDDEN_TEXT = (
     "sudo",
@@ -32,14 +36,14 @@ REQUIRED_LINES = (
     "Type=exec",
     "User=gonken-agent",
     "Group=gonken-agent",
+    "EnvironmentFile=-/etc/gonken-agent/environment",
+    "EnvironmentFile=-/etc/gonken-agent/runtime-environment",
     "ExecStartPre=+/usr/local/lib/gonken-agent/current/maintenance/reconcile-release.sh",
     "ExecStart=/usr/local/lib/gonken-agent/current/.venv/bin/gonken-agent service",
     "Restart=on-failure",
     "NoNewPrivileges=true",
     "PrivateTmp=true",
     "ProtectHome=read-only",
-    "Environment=XDG_RUNTIME_DIR=/run/user/%U",
-    "Environment=DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/%U/bus",
     "ProtectSystem=full",
     "CapabilityBoundingSet=",
     "PrivateDevices=false",
@@ -67,6 +71,15 @@ def require_absolute(value: str, label: str) -> Path:
     if not path.is_absolute() or "\n" in value or "\r" in value or ".." in path.parts:
         fail("SERVICE_PATH", f"{label} must be an absolute normalized path", "supply a safe absolute path", 64)
     return path
+
+
+def require_uid(value: str) -> int:
+    if not re.fullmatch(r"[0-9]{1,10}", value):
+        fail("SERVICE_UID", "service UID must be numeric", "pass the UID resolved for gonken-agent", 64)
+    uid = int(value)
+    if uid <= 0 or uid > 2**31 - 1:
+        fail("SERVICE_UID", "service UID must be a non-root local UID", "repair the gonken-agent account and rerun", 64)
+    return uid
 
 
 def mapped(root: Path, absolute: str) -> Path:
@@ -105,7 +118,16 @@ def layout(root: Path) -> dict[str, Path]:
     return {
         "unit": mapped(root, f"/etc/systemd/system/{SERVICE_NAME}"),
         "tmpfiles": mapped(root, f"/etc/tmpfiles.d/{TMPFILES_NAME}"),
+        "runtime_env": mapped(root, f"/etc/gonken-agent/{RUNTIME_ENV_NAME}"),
     }
+
+
+def runtime_environment(service_uid: int) -> bytes:
+    runtime = f"/run/user/{service_uid}"
+    return (
+        f"XDG_RUNTIME_DIR={runtime}\n"
+        f"DBUS_SESSION_BUS_ADDRESS=unix:path={runtime}/bus\n"
+    ).encode("utf-8")
 
 
 def read_template(path: Path, label: str) -> bytes:
@@ -126,6 +148,10 @@ def validate_unit_payload(payload: bytes) -> None:
     for required in REQUIRED_LINES:
         if required not in text:
             fail("SERVICE_TEMPLATE", f"service unit lacks required line: {required}", "restore the governed unit template", 65)
+    # %U in a system unit is the UID of PID 1's service manager (0), not User=.
+    # Keeping this fail-closed prevents a recurrence of the real Pi PipeWire bug.
+    if "%U" in text or "/run/user/0" in text:
+        fail("SERVICE_RUNTIME_ENV", "system-manager UID specifier is forbidden for service-user audio", "use the generated runtime-environment file", 65)
     if not re.search(r"(?m)^ReadWritePaths=/var/lib/gonken-agent/install /var/lib/gonken-agent/runtime /var/cache/gonken-agent /run/gonken-agent$", text):
         fail("SERVICE_HARDENING", "service writable namespace does not match install-reconcile/runtime/cache/run contract", "restore the governed hardening block", 65)
     if "ReadOnlyPaths=-/srv/gonken-agent/corpus" not in text:
@@ -181,15 +207,50 @@ def write_if_exact_or_absent(
     durable_bytes(path, payload)
 
 
-def validate_installed(root: Path, unit_template: Path, tmpfiles_template: Path) -> dict[str, str]:
+
+
+def write_runtime_environment(path: Path, service_uid: int) -> None:
+    expected = runtime_environment(service_uid)
+    if path.exists() or path.is_symlink():
+        if not path.is_file() or path.is_symlink() or path.stat().st_size > 4096:
+            fail("SERVICE_CONFLICT", f"existing managed runtime environment is unsafe: {path}", "review and remove it explicitly", 75)
+        current = path.read_bytes()
+        if current == expected:
+            path.chmod(0o644)
+            return
+        try:
+            text = current.decode("utf-8")
+        except UnicodeDecodeError:
+            text = ""
+        managed = re.fullmatch(
+            r"XDG_RUNTIME_DIR=/run/user/([1-9][0-9]*)\n"
+            r"DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/\1/bus\n",
+            text,
+        )
+        if managed is None:
+            fail("SERVICE_CONFLICT", f"existing managed runtime environment differs: {path}", "review and remove it explicitly", 75)
+        durable_bytes(path, expected, mode=0o644)
+        print(f"[OK] code=SERVICE_RUNTIME_ENV_UPGRADE path={path} runtime_uid={service_uid}")
+        return
+    durable_bytes(path, expected, mode=0o644)
+
+def validate_installed(root: Path, unit_template: Path, tmpfiles_template: Path, service_uid: int) -> dict[str, str]:
     paths = layout(root)
     unit, tmpfiles = service_files(unit_template, tmpfiles_template)
-    for destination, payload in ((paths["unit"], unit), (paths["tmpfiles"], tmpfiles)):
+    runtime_env = runtime_environment(service_uid)
+    for destination, payload in (
+        (paths["unit"], unit),
+        (paths["tmpfiles"], tmpfiles),
+        (paths["runtime_env"], runtime_env),
+    ):
         if not destination.is_file() or destination.is_symlink() or destination.read_bytes() != payload:
             fail("SERVICE_INSTALLED", f"installed file differs: {destination}", "rerun service installation or inspect conflicts", 74)
+    if (paths["runtime_env"].stat().st_mode & 0o777) != 0o644:
+        fail("SERVICE_RUNTIME_ENV", "runtime environment file mode differs", "rerun service installation", 74)
     return {
         "unit_sha256": hashlib.sha256(unit).hexdigest(),
         "tmpfiles_sha256": hashlib.sha256(tmpfiles).hexdigest(),
+        "runtime_env_sha256": hashlib.sha256(runtime_env).hexdigest(),
     }
 
 
@@ -212,7 +273,10 @@ def _bounded_service_failure(systemctl: Path) -> str:
     return " | ".join(" ".join(item.split()) for item in details)[:1800]
 
 
-def install(root: Path, unit_template: Path, tmpfiles_template: Path, systemctl: Path, tmpfiles_tool: Path) -> None:
+def install(
+    root: Path, unit_template: Path, tmpfiles_template: Path, systemctl: Path,
+    tmpfiles_tool: Path, service_uid: int,
+) -> None:
     paths = layout(root)
     unit, tmpfiles = service_files(unit_template, tmpfiles_template)
     write_if_exact_or_absent(
@@ -220,6 +284,9 @@ def install(root: Path, unit_template: Path, tmpfiles_template: Path, systemctl:
         known_previous_sha256=KNOWN_PREVIOUS_UNIT_SHA256,
     )
     write_if_exact_or_absent(paths["tmpfiles"], tmpfiles)
+    # This file is generated from the runtime account instead of embedding a
+    # target-specific UID in source. It contains no secrets.
+    write_runtime_environment(paths["runtime_env"], service_uid)
     run_tool(tmpfiles_tool, "--create", str(paths["tmpfiles"]), optional=root != Path("/"))
     run_tool(systemctl, "daemon-reload")
     run_tool(systemctl, "enable", SERVICE_NAME)
@@ -237,22 +304,27 @@ def install(root: Path, unit_template: Path, tmpfiles_template: Path, systemctl:
             "inspect the captured service/journal detail, correct the cause, and rerun bootstrap",
             started.returncode if 1 <= started.returncode <= 125 else 74,
         )
-    print(f"[OK] code=SERVICE_INSTALLED unit={SERVICE_NAME}")
+    print(f"[OK] code=SERVICE_INSTALLED unit={SERVICE_NAME} runtime_uid={service_uid}")
 
 
-def status(root: Path, unit_template: Path, tmpfiles_template: Path, systemctl: Path) -> None:
-    validate_installed(root, unit_template, tmpfiles_template)
+def installed_status(root: Path, unit_template: Path, tmpfiles_template: Path, systemctl: Path, service_uid: int) -> None:
+    validate_installed(root, unit_template, tmpfiles_template, service_uid)
     run_tool(systemctl, "is-enabled", "--quiet", SERVICE_NAME)
+    print(f"[OK] code=SERVICE_INSTALLED_STATUS unit={SERVICE_NAME} runtime_uid={service_uid}")
+
+
+def status(root: Path, unit_template: Path, tmpfiles_template: Path, systemctl: Path, service_uid: int) -> None:
+    installed_status(root, unit_template, tmpfiles_template, systemctl, service_uid)
     run_tool(systemctl, "is-active", "--quiet", SERVICE_NAME)
     print(f"[OK] code=SERVICE_HEALTHY unit={SERVICE_NAME}")
 
 
-def remove(root: Path, unit_template: Path, tmpfiles_template: Path, systemctl: Path) -> None:
+def remove(root: Path, unit_template: Path, tmpfiles_template: Path, systemctl: Path, service_uid: int) -> None:
     paths = layout(root)
-    validate_installed(root, unit_template, tmpfiles_template)
+    validate_installed(root, unit_template, tmpfiles_template, service_uid)
     run_tool(systemctl, "stop", SERVICE_NAME)
     run_tool(systemctl, "disable", SERVICE_NAME)
-    for path in (paths["unit"], paths["tmpfiles"]):
+    for path in (paths["unit"], paths["tmpfiles"], paths["runtime_env"]):
         path.unlink()
     run_tool(systemctl, "daemon-reload")
     print(f"[OK] code=SERVICE_REMOVED unit={SERVICE_NAME}")
@@ -266,8 +338,9 @@ def parser() -> argparse.ArgumentParser:
     common.add_argument("--tmpfiles-template", required=True)
     common.add_argument("--systemctl", default="/usr/bin/systemctl")
     common.add_argument("--systemd-tmpfiles", default="/usr/bin/systemd-tmpfiles")
+    common.add_argument("--service-uid", required=True)
     commands = result.add_subparsers(dest="command", required=True)
-    for name in ("install", "status", "remove"):
+    for name in ("install", "installed-status", "status", "remove"):
         commands.add_parser(name, parents=[common])
     return result
 
@@ -279,16 +352,19 @@ def main(argv: list[str] | None = None) -> int:
         test_mode(root)
         if root == Path("/") and args.command in {"install", "remove"} and os.geteuid() != 0:
             fail("SERVICE_PRIVILEGE", "production service mutation requires root", "run through the validated bootstrap privilege transition", 77)
+        service_uid = require_uid(args.service_uid)
         unit = require_absolute(args.unit_template, "unit template")
         tmpfiles = require_absolute(args.tmpfiles_template, "tmpfiles template")
         systemctl = require_absolute(args.systemctl, "systemctl")
         tmpfiles_tool = require_absolute(args.systemd_tmpfiles, "systemd-tmpfiles")
         if args.command == "install":
-            install(root, unit, tmpfiles, systemctl, tmpfiles_tool)
+            install(root, unit, tmpfiles, systemctl, tmpfiles_tool, service_uid)
+        elif args.command == "installed-status":
+            installed_status(root, unit, tmpfiles, systemctl, service_uid)
         elif args.command == "status":
-            status(root, unit, tmpfiles, systemctl)
+            status(root, unit, tmpfiles, systemctl, service_uid)
         else:
-            remove(root, unit, tmpfiles, systemctl)
+            remove(root, unit, tmpfiles, systemctl, service_uid)
     except ServiceError as error:
         emit_error(error)
         return error.exit_code

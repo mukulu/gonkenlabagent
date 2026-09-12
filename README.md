@@ -49,9 +49,12 @@ Put a new device into pairing mode when the installer asks. The MAC above is an
 example only; no device identity is hard-coded in GonKenLab Agent.
 
 A unique name can also be used, or omit `--bluetooth-device` for guided
-discovery. A headset with a working HFP/HSP microphone can run fully wireless;
-when a usable USB microphone is also present the runtime can fall back to it
-without giving up Bluetooth playback. See
+discovery. Existing paired/trusted/connected devices are reused rather than
+paired again. Audio is resolved independently for input and output and **wired
+USB is preferred when it is already usable**; the configured connected Bluetooth
+device is the fallback. A headset with a working HFP/HSP microphone can therefore
+run fully wireless, while USB microphone/speaker paths take priority whenever
+they are present and functional. See
 [Headless Bluetooth audio](docs/BLUETOOTH_AUDIO.md).
 
 Already cloned? The standard command is simply:
