@@ -1,0 +1,34 @@
+[dependency lock drift]
+verified 5 installable dependency profiles
+rc_dependencies=0
+[milestone status]
+rc_milestone=0
+[release readiness allow-dirty]
+Status: READY_FOR_TARGET_ACCEPTANCE
+Branch: v09-environment-foundation
+Commit: 91a2647a6416ab061484e2bf1e993da44fa1cfc1
+Dirty tree: True
+Host verified required items: 19/19
+Target gates remaining: 24
+- M3.1: Bootstrap preflight
+- M3.2: Step engine and install state
+- M3.3: Immutable application release
+- M3.4: Ollama lifecycle and selected model
+- M3.5: Whisper and Piper artifacts
+- M3.6: Install summary
+- M4.1: Coordinator/state/health
+- M4.2: Audio discovery and recovery
+- M4.3: Resampling/STT/TTS lifecycle
+- M5.1: Push-to-talk and recording indication
+- M5.2: Offline boundary
+- M6.1: Application service
+rc_release=0
+[bash syntax]
+rc_bash=0
+[compileall]
+rc_compile=0
+[toml/json parse]
+parse_ok
+rc_parse=0
+[diff check]
+rc_diff=0

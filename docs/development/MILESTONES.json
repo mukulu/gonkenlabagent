@@ -270,10 +270,10 @@
     {
       "id": "M10.4",
       "title": "Deterministic controller core",
-      "software": "pending",
+      "software": "host-verified",
       "target": "not-run",
-      "evidence": "",
-      "remaining": "Before controller work, inspect or classify the existing Ollama lifecycle integration timeout, then implement state-machine tests and pure controller logic with fakes only."
+      "evidence": "src/gonken_agent/environment/controller.py; tests/unit/test_v09_environment_controller.py; docs/development/evidence/v09/wp_c_controller_affected_tests.log; docs/development/evidence/v09/wp_c_full_unit.log",
+      "remaining": "Host validation covers pure deterministic controller semantics only: MANUAL, SEMI_AUTOMATIC, AUTOMATIC, DISABLED, dwell, hysteresis, median valid samples, staleness safe-off, recovery and policy-update stop behavior. No hardware adapter, daemon, IPC, CLI, voice, installer or physical Pi actuation is implemented yet."
     },
     {
       "id": "M10.5",
@@ -281,7 +281,7 @@
       "software": "pending",
       "target": "not-run",
       "evidence": "",
-      "remaining": "Blocked on M10.4 controller core. No socket/service code is implemented yet."
+      "remaining": "Ready after M10.4 controller core. Next batch should define protocol/client/server tests and implement the local AF_UNIX service boundary without importing hardware in host tests."
     },
     {
       "id": "M10.6",

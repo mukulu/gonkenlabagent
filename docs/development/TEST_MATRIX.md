@@ -885,3 +885,13 @@ Additional checkpoint-close evidence:
 | M10.CI-T001 | `python3 -m unittest discover -s tests/integration -t . -v` | TIMEOUT / INTERRUPTED | Integration run reached `test_ollama_lifecycle_process.OllamaLifecycleProcessTests.test_every_download_extract_readiness_pull_and_smoke_boundary_recovers`; log preserved. |
 | M10.CI-T002 | Isolated `test_every_download_extract_readiness_pull_and_smoke_boundary_recovers` under a 120s watchdog | TIMEOUT / INTERRUPTED | Existing Ollama lifecycle interruption/recovery test exceeded the bounded container run. This is recorded as NEEDS_MANUAL_REVIEW and not blamed on the new environment code without further evidence. |
 | M10.CI-T003 | Static gates in `docs/development/evidence/v09/wp_b_static_gates.log` | PASS | Dependency lock rendering, milestone drift, release-readiness allow-dirty, Bash syntax, Python compileall, TOML/JSON parsing and `git diff --check` all passed. |
+
+## V09 deterministic controller core evidence — 2026-09-15
+
+| ID | Command / artifact | Result | Evidence boundary |
+|---|---|---|---|
+| M10.4-T001 | `PYTHONPATH=src python3 -m unittest -v tests.unit.test_v09_environment_controller tests.unit.test_v09_environment_policy tests.unit.test_v09_environment_config tests.unit.test_m2_2_config` | PASS, 50/50 | Host-only standard-library tests for pure controller/domain/policy/config behavior. No hardware imports, GPIO, I2C, daemon, socket, CLI or voice action is exercised. |
+| M10.4-T002 | `PYTHONPATH=src python3 -m unittest discover -s tests/unit -v` | PASS, 262/262 | Full host unit suite after M10.4 controller changes. Does not include integration or physical Pi evidence. |
+| M10.4-T003 | Recheck of isolated Ollama lifecycle interruption/recovery test under watchdog | TIMEOUT / INTERRUPTED | Existing integration fixture can leave `ollama_manager.py install-binary` alive in this container. Classified as non-V09 integration risk requiring manual review; M10.4 controller has no dependency on Ollama. |
+
+M10.4 physical acceptance remains **not-run**. The controller core is pure state-machine software; it does not prove SHT31 reads, relay polarity, Pi 5 gpiochip mapping, fan power switching or voice/CLI result correctness.
