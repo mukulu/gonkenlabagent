@@ -895,3 +895,13 @@ Additional checkpoint-close evidence:
 | M10.4-T003 | Recheck of isolated Ollama lifecycle interruption/recovery test under watchdog | TIMEOUT / INTERRUPTED | Existing integration fixture can leave `ollama_manager.py install-binary` alive in this container. Classified as non-V09 integration risk requiring manual review; M10.4 controller has no dependency on Ollama. |
 
 M10.4 physical acceptance remains **not-run**. The controller core is pure state-machine software; it does not prove SHT31 reads, relay polarity, Pi 5 gpiochip mapping, fan power switching or voice/CLI result correctness.
+
+## V09 local service and IPC foundation evidence — 2026-09-15
+
+| ID | Command / artifact | Result | Evidence boundary |
+|---|---|---|---|
+| M10.5-T001 | `PYTHONPATH=src python3 -m unittest -v tests.unit.test_v09_environment_ipc tests.unit.test_v09_environment_controller tests.unit.test_v09_environment_policy tests.unit.test_v09_environment_config tests.unit.test_m2_2_config` | PASS, 59/59 | Host-only tests for bounded protocol, host-fake service core, AF_UNIX server/client, controller/domain/policy/config regression. No physical hardware, systemd service, CLI or voice route is exercised. |
+| M10.5-T002 | `PYTHONPATH=src python3 -m unittest discover -s tests/unit -v` | PASS, 271/271 | Full host unit suite after M10.5 IPC changes. Does not include deterministic integration suite or physical Pi evidence. |
+| M10.5-T003 | Static gates in `docs/development/evidence/v09/wp_d_static_gates.log` | PASS | Dependency lock rendering, milestone drift, release-readiness allow-dirty, Bash syntax, Python compileall, TOML/JSON parsing and `git diff --check` passed. |
+
+M10.5 physical acceptance remains **not-run**. The new service path uses host-fake sensor/service metadata and explicitly reports `physical_evidence=false`; it does not prove SHT31 reads, relay polarity, Pi 5 gpiochip mapping, fan motion, fan speed, systemd convergence, or voice/CLI user-facing behavior. Broad integration remains under the existing Ollama lifecycle timeout caveat recorded at M10.4.

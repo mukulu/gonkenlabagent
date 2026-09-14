@@ -278,10 +278,10 @@
     {
       "id": "M10.5",
       "title": "Local environment service and IPC",
-      "software": "pending",
+      "software": "host-verified",
       "target": "not-run",
-      "evidence": "",
-      "remaining": "Ready after M10.4 controller core. Next batch should define protocol/client/server tests and implement the local AF_UNIX service boundary without importing hardware in host tests."
+      "evidence": "src/gonken_agent/environment/protocol.py; src/gonken_agent/environment/service.py; src/gonken_agent/environment/server.py; src/gonken_agent/environment/client.py; tests/unit/test_v09_environment_ipc.py; docs/development/evidence/v09/wp_d_ipc_affected_tests.log; docs/development/evidence/v09/wp_d_full_unit.log; docs/development/evidence/v09/wp_d_static_gates.log",
+      "remaining": "Host validation covers bounded JSON protocol validation, host-fake service core, AF_UNIX server/client, socket mode, closed operation parameters, client error propagation and no hardware/shell imports. It does not implement production SHT31/libgpiod adapters, systemd unit installation, CLI command, voice action, dashboard, or real Pi actuation."
     },
     {
       "id": "M10.6",
@@ -289,7 +289,7 @@
       "software": "pending",
       "target": "not-run",
       "evidence": "",
-      "remaining": "Blocked on M10.5 service/client contract. No environment CLI or voice action is implemented yet."
+      "remaining": "Ready after M10.5 IPC foundation. Next batch should integrate a safe env CLI surface and then diagnostics/installer/voice routes while continuing to use the single-owner service/client boundary."
     },
     {
       "id": "M10.7",

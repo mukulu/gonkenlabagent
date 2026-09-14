@@ -44,8 +44,8 @@ Checkpoint scope: **V09 environment-control foundation from FIX7 checkpoint**
 | M10.2 — Static environment configuration schema | host-verified | not-run | config/defaults.toml; src/gonken_agent/config.py; tests/unit/test_v09_environment_config.py; tests/unit/test_m2_2_config.py; docs/development/evidence/v09/wp_b_config_policy_tests_rerun.log; docs/development/evidence/v09/wp_b_full_unit.log; docs/development/evidence/v09/wp_b_static_gates.log Host validation covers schema-2 defaults, disabled environment section, schema-1 site migration and static bounds. Target install migration remains open. Full integration/CI remains NEEDS_MANUAL_REVIEW due existing Ollama lifecycle timeout in this environment. |
 | M10.3 — Environment domain and mutable policy foundation | host-verified | not-run | src/gonken_agent/environment/domain.py; src/gonken_agent/environment/policy.py; tests/unit/test_v09_environment_policy.py; docs/development/evidence/v09/wp_b_config_policy_tests_rerun.log Pure host tests cover domain/policy contracts only. Controller, IPC, CLI, voice, installer, diagnostics and physical HIL remain open. |
 | M10.4 — Deterministic controller core | host-verified | not-run | src/gonken_agent/environment/controller.py; tests/unit/test_v09_environment_controller.py; docs/development/evidence/v09/wp_c_controller_affected_tests.log; docs/development/evidence/v09/wp_c_full_unit.log Host validation covers pure deterministic controller semantics only: MANUAL, SEMI_AUTOMATIC, AUTOMATIC, DISABLED, dwell, hysteresis, median valid samples, staleness safe-off, recovery and policy-update stop behavior. No hardware adapter, daemon, IPC, CLI, voice, installer or physical Pi actuation is implemented yet. |
-| M10.5 — Local environment service and IPC | pending | not-run |  Ready after M10.4 controller core. Next batch should define protocol/client/server tests and implement the local AF_UNIX service boundary without importing hardware in host tests. |
-| M10.6 — CLI, voice, installer, diagnostics and documentation integration | pending | not-run |  Blocked on M10.5 service/client contract. No environment CLI or voice action is implemented yet. |
+| M10.5 — Local environment service and IPC | host-verified | not-run | src/gonken_agent/environment/protocol.py; src/gonken_agent/environment/service.py; src/gonken_agent/environment/server.py; src/gonken_agent/environment/client.py; tests/unit/test_v09_environment_ipc.py; docs/development/evidence/v09/wp_d_ipc_affected_tests.log; docs/development/evidence/v09/wp_d_full_unit.log; docs/development/evidence/v09/wp_d_static_gates.log Host validation covers bounded JSON protocol validation, host-fake service core, AF_UNIX server/client, socket mode, closed operation parameters, client error propagation and no hardware/shell imports. It does not implement production SHT31/libgpiod adapters, systemd unit installation, CLI command, voice action, dashboard, or real Pi actuation. |
+| M10.6 — CLI, voice, installer, diagnostics and documentation integration | pending | not-run |  Ready after M10.5 IPC foundation. Next batch should integrate a safe env CLI surface and then diagnostics/installer/voice routes while continuing to use the single-owner service/client boundary. |
 | M10.7 — Real Raspberry Pi HIL and release acceptance | pending | not-run |  Requires physical Pi, SHT31, relay, PENGLIN adapters, ELUTENG fan, audio and wake/latency evidence. Host tests cannot close this gate. |
 <!-- /MILESTONES -->
 
@@ -237,3 +237,23 @@ normal Ollama lifecycle tests, three normal speech lifecycle tests, representati
 release low-space/rollback tests, and static dependency/milestone/release-
 readiness/Bash/Python/diff gates pass. Physical `APPLIANCE_READY`, spoken turn and
 reboot/no-login acceptance remain the next target gate.
+
+## V09 Checkpoint 03 — local service and IPC foundation — 2026-09-15
+
+**Base:** V09 Checkpoint 02 `2780d9e38b978be508ee13259e97f3380307e826`.
+
+### Implemented in M10.5
+
+- bounded protocol v1 in `src/gonken_agent/environment/protocol.py` with fixed operation allowlist, top-level unknown-field rejection, request/response size caps and stable error mapping;
+- host-testable `EnvironmentServiceCore` in `src/gonken_agent/environment/service.py` that translates `status.get`, `sensor.read`, `health.get`, `fan.set`, `mode.set`, `policy.get`, `policy.update` and non-destructive `probe.run` into controller/policy actions;
+- `EnvironmentUnixServer` in `src/gonken_agent/environment/server.py` using AF_UNIX, `0660` socket mode, one bounded newline-delimited JSON request per connection and refusal to replace a non-socket path;
+- `EnvironmentClient` in `src/gonken_agent/environment/client.py` for local callers;
+- unit coverage in `tests/unit/test_v09_environment_ipc.py` for protocol rejection, closed operation parameters, host-fake status/health/sensor reads, client error propagation, policy generation conflict, disabled-mode rejection and Unix socket lifecycle.
+
+### Evidence
+
+M10.5 affected tests pass **59/59** and the full host unit suite passes **271/271**. Static gates pass. The service reports `physical_evidence=false` and `hardware_backend=host_fake`, so this checkpoint is not hardware acceptance.
+
+### Remaining
+
+M10.6 should add the operator-facing `gonken-agent env` CLI over this client boundary, then extend diagnostics/installer/service wiring and deterministic voice-domain actions. Production hardware adapters and real Raspberry Pi HIL remain open under M10.7.
