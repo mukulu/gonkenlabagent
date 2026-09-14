@@ -1,0 +1,7 @@
+record_id,status,claim,evidence,limitation,next_action
+V09-E001,FACT,V09 work began from FIX7 commit 3b25b81c5bc7d4e24268726ad7f7b71296215a03,docs/development/evidence/v09/wp_a_input_evidence.txt,Does not prove V09 behavior,Continue with host-verifiable implementation
+V09-E002,FACT,Focused 60-test slice passed after V09 foundation changes,docs/development/evidence/v09/wp_a_focused_60_tests_after_v09_foundation.log,Host unit evidence only,Run broader CI at checkpoint close
+V09-E003,FACT,V09 schema/domain/policy affected tests passed 42/42,docs/development/evidence/v09/wp_b_config_policy_tests_rerun.log,No controller/service/hardware coverage,Proceed to M10.4 controller tests
+V09-E004,OBSERVATION,Broad CI baseline attempt was interrupted by timeout,docs/development/evidence/v09/wp_a_ci_baseline.log,Not a PASS and not a product FAIL,Preserve log and rerun bounded CI after checkpoint
+V09-E005,FACT,The apparent slow CLI-run integration test passed in isolation,docs/development/evidence/v09/wp_a_isolated_cli_run_test.log,Does not prove all integration tests pass,Use as isolation evidence only
+V09-E006,UNRESOLVED,Real Raspberry Pi environment acceptance is not started,MILESTONES.json M10.7,Requires physical Pi and purchased hardware,Run WP-L/M10.7 on target later

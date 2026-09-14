@@ -1377,3 +1377,70 @@ fall-through, lazy route discovery, uninstall cleanup, full unit discovery, quic
 integrations, normal Ollama/speech lifecycle and static checks. Real Pi closure
 requires bootstrap `READY`, a spoken wake turn, then reboot/no-login return to
 wake standby.
+
+
+## 21. V09 room-environment subsystem implementation line (2026-09-15)
+
+### 21.1 Governing V09 blueprint
+
+V09 is governed by `GONKEN-V09-BP-GOLD-2026-09-15`, supplied as
+`GONKEN_NEXT_COMPREHENSIVE_IMPLEMENTATION_BLUEPRINT(2).md`.  The local source
+checkpoint for this branch is FIX7 commit
+`3b25b81c5bc7d4e24268726ad7f7b71296215a03` on `fix7-appliance-resilience`.
+The first implementation branch is `v09-environment-foundation` and the Python
+development line is `0.2.0.dev0`.
+
+The V09 governing rule is unchanged from the blueprint: AI may interpret or
+express intent, but deterministic software owns policy and deterministic hardware
+code owns actuation.  Host/mock evidence must not be promoted to physical
+Raspberry Pi acceptance.
+
+### 21.2 V09 milestone structure
+
+The M10 series implements the V09 environment subsystem.  Physical Raspberry Pi
+and electrical acceptance remain target-gated until M10.7.
+
+#### M10.1 V09 baseline audit and branch identity
+
+Pin the FIX7 baseline, record source package hashes, create the V09 branch, run
+the focused baseline host slice, attempt broad CI under a bounded watchdog, and
+record any timeout or interrupted evidence without converting it into false PASS.
+
+#### M10.2 Static environment configuration schema
+
+Bump the static configuration authority from schema 1 to schema 2; add a disabled
+`extensions.environment` section with SHT31, relay, socket, policy and hard-bound
+fields; preserve typed source attribution; and accept schema-1 site files as
+migration inputs without downgrading the effective schema.
+
+#### M10.3 Environment domain and mutable policy foundation
+
+Add pure dependency-free environment domain and policy objects: modes,
+capabilities, sensor-reading quality, static policy bounds, mutable policy schema
+1, generation-conflict handling, closed JSON mapping and atomic policy-file
+persistence.  This milestone must not import hardware libraries or actuate GPIO.
+
+#### M10.4 Deterministic controller core
+
+Implement the tested MANUAL, SEMI_AUTOMATIC, AUTOMATIC and DISABLED state
+machine, including hysteresis, dwell, median valid samples, stale-sensor safe-off,
+recovery, reason codes and threshold-change semantics.
+
+#### M10.5 Local environment service and IPC
+
+Implement the single-owner `gonken-environment.service`, bounded AF_UNIX JSON v1
+protocol, client library, service lifecycle, permissions model and in-process
+degraded states for absent hardware.
+
+#### M10.6 CLI, voice, installer, diagnostics and documentation integration
+
+Expose `gonken-agent env` commands, deterministic voice environment intents,
+result-derived spoken responses, schema migration/install hooks, systemd unit,
+support-bundle fields, read-only dashboard status and operator documentation.
+
+#### M10.7 Real Raspberry Pi HIL and release acceptance
+
+Run the physical SHT31, relay, PENGLIN USB switching, ELUTENG fan, voice, wake,
+latency, reboot/no-login, update/rollback and fault-injection campaign on the
+pinned Pi/hardware/config.  This is the first milestone allowed to close physical
+environment acceptance.

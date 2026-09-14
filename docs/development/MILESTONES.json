@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "checkpoint_scope": "Continuation 08: private release-candidate readiness and Raspberry Pi acceptance runbook",
-  "baseline_commit": "459f8da3ffb1dd084f9947988c117ae6da10ae1b",
+  "checkpoint_scope": "V09 environment-control foundation from FIX7 checkpoint",
+  "baseline_commit": "3b25b81c5bc7d4e24268726ad7f7b71296215a03",
   "milestones": [
     {
       "id": "M2.1",
@@ -242,6 +242,62 @@
       "target": "not-applicable",
       "evidence": "CONTINUATION_01_REPORT.md; checkpoint/continuation-01 through checkpoint/continuation-08; scripts/release_readiness.py; docs/RASPBERRY_PI_ACCEPTANCE_RUN.md",
       "remaining": "Private checkpoint transport has been repeatedly verified through ZIP integrity, extracted branch/tag/HEAD, executable modes, clean Git and strict object checks. Continuation-08 is the private release-candidate handoff for Raspberry Pi acceptance testing; public release remains gated by target evidence and licensing decisions."
+    },
+    {
+      "id": "M10.1",
+      "title": "V09 baseline audit and branch identity",
+      "software": "host-verified",
+      "target": "not-run",
+      "evidence": "docs/development/evidence/v09/wp_a_input_evidence.txt; docs/development/evidence/v09/wp_a_focused_60_tests_after_v09_foundation.log; docs/development/evidence/v09/wp_a_isolated_cli_run_test.log",
+      "remaining": "Broad CI baseline attempt was interrupted by timeout at the integration stage; the apparent slow CLI-run test passed alone. Real Raspberry Pi evidence remains open."
+    },
+    {
+      "id": "M10.2",
+      "title": "Static environment configuration schema",
+      "software": "host-verified",
+      "target": "not-run",
+      "evidence": "config/defaults.toml; src/gonken_agent/config.py; tests/unit/test_v09_environment_config.py; tests/unit/test_m2_2_config.py; docs/development/evidence/v09/wp_b_config_policy_tests_rerun.log; docs/development/evidence/v09/wp_b_full_unit.log; docs/development/evidence/v09/wp_b_static_gates.log",
+      "remaining": "Host validation covers schema-2 defaults, disabled environment section, schema-1 site migration and static bounds. Target install migration remains open. Full integration/CI remains NEEDS_MANUAL_REVIEW due existing Ollama lifecycle timeout in this environment."
+    },
+    {
+      "id": "M10.3",
+      "title": "Environment domain and mutable policy foundation",
+      "software": "host-verified",
+      "target": "not-run",
+      "evidence": "src/gonken_agent/environment/domain.py; src/gonken_agent/environment/policy.py; tests/unit/test_v09_environment_policy.py; docs/development/evidence/v09/wp_b_config_policy_tests_rerun.log",
+      "remaining": "Pure host tests cover domain/policy contracts only. Controller, IPC, CLI, voice, installer, diagnostics and physical HIL remain open."
+    },
+    {
+      "id": "M10.4",
+      "title": "Deterministic controller core",
+      "software": "pending",
+      "target": "not-run",
+      "evidence": "",
+      "remaining": "Before controller work, inspect or classify the existing Ollama lifecycle integration timeout, then implement state-machine tests and pure controller logic with fakes only."
+    },
+    {
+      "id": "M10.5",
+      "title": "Local environment service and IPC",
+      "software": "pending",
+      "target": "not-run",
+      "evidence": "",
+      "remaining": "Blocked on M10.4 controller core. No socket/service code is implemented yet."
+    },
+    {
+      "id": "M10.6",
+      "title": "CLI, voice, installer, diagnostics and documentation integration",
+      "software": "pending",
+      "target": "not-run",
+      "evidence": "",
+      "remaining": "Blocked on M10.5 service/client contract. No environment CLI or voice action is implemented yet."
+    },
+    {
+      "id": "M10.7",
+      "title": "Real Raspberry Pi HIL and release acceptance",
+      "software": "pending",
+      "target": "not-run",
+      "evidence": "",
+      "remaining": "Requires physical Pi, SHT31, relay, PENGLIN adapters, ELUTENG fan, audio and wake/latency evidence. Host tests cannot close this gate."
     }
   ]
 }

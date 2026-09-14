@@ -1,4 +1,4 @@
-schema_version = 1
+schema_version = 2
 
 [assistant]
 name = "GonKenLab Agent"
@@ -68,3 +68,25 @@ monitoring_led_gpio = 22
 
 [extensions.voice_power]
 enabled = false
+
+[extensions.environment]
+enabled = false
+sensor_backend = "sht31"
+i2c_bus = 1
+i2c_address = 0x44
+sensor_repeatability = "high"
+poll_interval_seconds = 2.0
+stale_after_seconds = 10.0
+valid_samples_to_recover = 3
+relay_backend = "libgpiod"
+relay_bcm = 23
+relay_active_high = true
+safe_state = "off"
+socket_path = "/run/gonken-environment/control.sock"
+policy_path = "/var/lib/gonken-environment/policy.json"
+temperature_policy_min_c = -10.0
+temperature_policy_max_c = 60.0
+minimum_hysteresis_c = 0.5
+maximum_hysteresis_c = 15.0
+minimum_dwell_seconds = 5
+maximum_dwell_seconds = 3600

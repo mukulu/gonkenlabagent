@@ -29,7 +29,7 @@ class CliProcessTests(unittest.TestCase):
     def test_version_and_status_process_contracts(self) -> None:
         version = run_cli("version")
         self.assertEqual(version.returncode, 0, version.stderr)
-        self.assertEqual(version.stdout.strip(), "0.1.0.dev1")
+        self.assertEqual(version.stdout.strip(), "0.2.0.dev0")
 
         status = run_cli("status", "--json")
         self.assertEqual(status.returncode, 0, status.stderr)

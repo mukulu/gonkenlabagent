@@ -6,7 +6,7 @@ Historical implementation detail remains in Git, `TEST_MATRIX.md` and `DECISIONS
 M0/M1 audit and architecture review are complete; the table covers every core implementation item.
 
 <!-- MILESTONES -->
-Checkpoint scope: **Continuation 08: private release-candidate readiness and Raspberry Pi acceptance runbook**
+Checkpoint scope: **V09 environment-control foundation from FIX7 checkpoint**
 
 | Item | Software | Target acceptance | Evidence / remaining work |
 |---|---|---|---|
@@ -40,6 +40,13 @@ Checkpoint scope: **Continuation 08: private release-candidate readiness and Ras
 | M9.3 — Documentation and onboarding | host-verified | not-run | README.md; docs/RASPBERRY_PI_ACCEPTANCE_RUN.md; scripts/collect-support.sh; TEST_MATRIX.md continuation-08; docs/development/IMPLEMENTATION_STATUS.md README and target runbook cover end-user Raspberry Pi OS, SSH, bootstrap, service check, log/support export, update, rollback, uninstall, configuration and acceptance evidence collection. Target screenshots/operator feedback remain future refinements after a real Pi run. |
 | M9.4 — Development-artifact disposition | host-verified | not-applicable | D-065 Development evidence retained with concise current status; no history removed. Review again before public release. |
 | M9.5 — Portable Git handoff | host-verified | not-applicable | CONTINUATION_01_REPORT.md; checkpoint/continuation-01 through checkpoint/continuation-08; scripts/release_readiness.py; docs/RASPBERRY_PI_ACCEPTANCE_RUN.md Private checkpoint transport has been repeatedly verified through ZIP integrity, extracted branch/tag/HEAD, executable modes, clean Git and strict object checks. Continuation-08 is the private release-candidate handoff for Raspberry Pi acceptance testing; public release remains gated by target evidence and licensing decisions. |
+| M10.1 — V09 baseline audit and branch identity | host-verified | not-run | docs/development/evidence/v09/wp_a_input_evidence.txt; docs/development/evidence/v09/wp_a_focused_60_tests_after_v09_foundation.log; docs/development/evidence/v09/wp_a_isolated_cli_run_test.log Broad CI baseline attempt was interrupted by timeout at the integration stage; the apparent slow CLI-run test passed alone. Real Raspberry Pi evidence remains open. |
+| M10.2 — Static environment configuration schema | host-verified | not-run | config/defaults.toml; src/gonken_agent/config.py; tests/unit/test_v09_environment_config.py; tests/unit/test_m2_2_config.py; docs/development/evidence/v09/wp_b_config_policy_tests_rerun.log; docs/development/evidence/v09/wp_b_full_unit.log; docs/development/evidence/v09/wp_b_static_gates.log Host validation covers schema-2 defaults, disabled environment section, schema-1 site migration and static bounds. Target install migration remains open. Full integration/CI remains NEEDS_MANUAL_REVIEW due existing Ollama lifecycle timeout in this environment. |
+| M10.3 — Environment domain and mutable policy foundation | host-verified | not-run | src/gonken_agent/environment/domain.py; src/gonken_agent/environment/policy.py; tests/unit/test_v09_environment_policy.py; docs/development/evidence/v09/wp_b_config_policy_tests_rerun.log Pure host tests cover domain/policy contracts only. Controller, IPC, CLI, voice, installer, diagnostics and physical HIL remain open. |
+| M10.4 — Deterministic controller core | pending | not-run |  Before controller work, inspect or classify the existing Ollama lifecycle integration timeout, then implement state-machine tests and pure controller logic with fakes only. |
+| M10.5 — Local environment service and IPC | pending | not-run |  Blocked on M10.4 controller core. No socket/service code is implemented yet. |
+| M10.6 — CLI, voice, installer, diagnostics and documentation integration | pending | not-run |  Blocked on M10.5 service/client contract. No environment CLI or voice action is implemented yet. |
+| M10.7 — Real Raspberry Pi HIL and release acceptance | pending | not-run |  Requires physical Pi, SHT31, relay, PENGLIN adapters, ELUTENG fan, audio and wake/latency evidence. Host tests cannot close this gate. |
 <!-- /MILESTONES -->
 
 ## Workflow

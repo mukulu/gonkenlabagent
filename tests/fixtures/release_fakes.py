@@ -63,7 +63,7 @@ if [ "$count" -ge {fail_after_calls} ]; then exit 41; fi
         "#!/bin/sh\nset -eu\n"
         + counter_logic
         + "case ${1:-} in\n"
-        + "  version) printf '%s\\n' '0.1.0.dev1' ;;\n"
+        + "  version) printf '%s\\n' '0.2.0.dev0' ;;\n"
         + "  status) printf '%s\\n' '"
         + json.dumps({"product": "GonKenLab Agent"}, separators=(",", ":"))
         + "' ;;\n"
@@ -92,7 +92,7 @@ if [ "$count" -ge {fail_after_calls} ]; then exit 41; fi
         "commit": commit,
         "profile": "dev-py312",
         "python_version": "3.12.14",
-        "package_version": "0.1.0.dev1",
+        "package_version": "0.2.0.dev0",
         "lock_sha256": "0" * 64,
         "wheel_sha256": "1" * 64,
         "build_backend": "fixture",

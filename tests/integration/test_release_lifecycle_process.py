@@ -137,7 +137,7 @@ class EndToEndReleaseTests(unittest.TestCase):
                 capture_output=True,
                 text=True,
             ).stdout.strip(),
-            "0.1.0.dev1",
+            "0.2.0.dev0",
         )
         journal = system_root / "var/lib/gonken-agent/install/activation.record"
         self.assertIn("phase=post_verified", journal.read_text(encoding="utf-8"))

@@ -1,0 +1,1 @@
+test_every_download_extract_readiness_pull_and_smoke_boundary_recovers (tests.integration.test_ollama_lifecycle_process.OllamaLifecycleProcessTests.test_every_download_extract_readiness_pull_and_smoke_boundary_recovers) ... Terminating isolated ollama lifecycle process tree after timeout

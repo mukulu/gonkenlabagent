@@ -1,0 +1,6 @@
+test_run_process_fails_categorically_when_target_voice_dependencies_are_absent (tests.integration.test_cli_process.CliProcessTests.test_run_process_fails_categorically_when_target_voice_dependencies_are_absent) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.592s
+
+OK
