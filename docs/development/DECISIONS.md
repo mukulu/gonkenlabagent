@@ -920,3 +920,36 @@ transport checks are repeated.
   override actual route availability.
 - **Consequence:** Existing connections are reused, wired wins when present, and
   Bluetooth becomes automatic fallback without unpairing or reinstalling.
+
+
+## D-080 — Start V09 as an environment-control implementation line
+
+- **Status:** Accepted
+- **Date:** 2026-09-15
+- **Decision:** Start the V09 implementation branch from FIX7 commit `3b25b81c5bc7d4e24268726ad7f7b71296215a03`, bump the development version to `0.2.0.dev0`, and record V09 work under M10 milestones.
+- **Reason:** The V09 blueprint is a substantial new cyber-physical scope and must not be hidden inside the FIX7 release-candidate status.
+- **Consequence:** FIX7 target-acceptance evidence remains historically useful, but V09 completion and physical acceptance require fresh M10 evidence.
+
+## D-081 — Add static environment schema as disabled-by-default schema 2
+
+- **Status:** Accepted
+- **Date:** 2026-09-15
+- **Decision:** Static TOML schema 2 adds `extensions.environment` with disabled defaults for SHT31, libgpiod relay, socket path, mutable policy path and hard policy bounds. Schema-1 site files are accepted as migration inputs without downgrading the effective schema.
+- **Reason:** Generic upgrades must not unexpectedly actuate hardware, and static/admin authority must remain separate from mutable fan policy.
+- **Consequence:** Target installation still needs a real migration/provisioning pass before environment hardware is enabled.
+
+## D-082 — Use daemon-owned mutable environment policy JSON schema 1
+
+- **Status:** Accepted
+- **Date:** 2026-09-15
+- **Decision:** The mutable environment policy is represented as schema-1 JSON with generation, mode, start/stop thresholds and dwell values, constrained by static bounds and persisted by same-directory atomic replacement.
+- **Reason:** Ordinary CLI/voice policy changes should not edit root-owned static configuration or expand the hardware safety envelope.
+- **Consequence:** Policy corruption, generation conflicts and invalid threshold/dwell values fail closed; controller and service integration remain later milestones.
+
+## D-083 — Preserve the purchased fan capability boundary
+
+- **Status:** Accepted
+- **Date:** 2026-09-15
+- **Decision:** V09 domain objects report power control only; they do not claim software speed control or observed blade motion with the current relay/PENGLIN/ELUTENG hardware.
+- **Reason:** The relay can command USB 5V power, but no tachometer, current sensor, airflow sensor or electronic speed-control path is present.
+- **Consequence:** Later CLI/voice responses and diagnostics must derive from relay/controller results and must not claim physical RPM or software speed selection.

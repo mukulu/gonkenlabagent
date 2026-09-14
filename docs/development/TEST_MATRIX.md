@@ -862,3 +862,26 @@ Current FIX7 host discovery: **240/240 unit tests**, **35/35 quick integrations*
 4 normal Ollama lifecycle tests, 3 normal speech lifecycle tests, representative
 release low-space/rollback checks, and clean static gates. F7-T1..T3 remain
 physical evidence gates.
+
+
+## V09 environment-control foundation evidence — 2026-09-15
+
+| ID | Command / artifact | Result | Evidence boundary |
+|---|---|---|---|
+| M10.1-T001 | `git rev-parse HEAD`; `sha256sum` over supplied blueprint/checkpoint packages | PASS | Confirms implementation began from FIX7 commit `3b25b81c5bc7d4e24268726ad7f7b71296215a03` and records source hashes in `docs/development/evidence/v09/wp_a_input_evidence.txt`. |
+| M10.1-T002 | `python3 -m unittest -v tests.unit.test_m2_2_config tests.unit.test_voice_appliance tests.unit.test_m6_service_manager tests.unit.test_diagnostics_snapshot tests.unit.test_release_readiness` | PASS, 60/60 | Host standard-library slice only; no Raspberry Pi or physical environment evidence. |
+| M10.1-T003 | `timeout 180s bash scripts/ci.sh` | TIMEOUT / INTERRUPTED | Broad CI reached the deterministic integration suite before the container-side timeout. Log preserved at `docs/development/evidence/v09/wp_a_ci_baseline.log`; not a release FAIL and not a PASS. |
+| M10.1-T004 | `python3 -m unittest -v tests.integration.test_cli_process.CliProcessTests.test_run_process_fails_categorically_when_target_voice_dependencies_are_absent` | PASS | Isolated the apparent slow stage after the interrupted broad CI attempt; result preserved in `docs/development/evidence/v09/wp_a_isolated_cli_run_test.log`. |
+| M10.2-T001 | `python3 -m unittest -v tests.unit.test_m2_2_config tests.unit.test_v09_environment_config tests.unit.test_v09_environment_policy` | PASS, 42/42 | Host tests cover schema-2 defaults, schema-1 site migration, environment static bounds, GPIO collision rejection and policy/domain objects. |
+| M10.3-T001 | `tests/unit/test_v09_environment_policy.py` | PASS | Confirms capability boundary (`software_speed_control=false`, `fan_motion_observed=false`), sensor quality/staleness, policy validation, generation conflict and atomic JSON persistence. |
+
+V09 physical environment acceptance remains **not-run**. No host test in this section proves SHT31 detection, relay polarity, fan movement, Pi 5 gpiochip mapping, wake false-trigger behavior or reboot/no-login convergence.
+
+Additional checkpoint-close evidence:
+
+| ID | Command / artifact | Result | Evidence boundary |
+|---|---|---|---|
+| M10.2-T002 | `python3 -m unittest discover -s tests/unit -t . -v` | PASS, 254/254 | Full host unit suite after V09 schema/domain/policy changes. |
+| M10.CI-T001 | `python3 -m unittest discover -s tests/integration -t . -v` | TIMEOUT / INTERRUPTED | Integration run reached `test_ollama_lifecycle_process.OllamaLifecycleProcessTests.test_every_download_extract_readiness_pull_and_smoke_boundary_recovers`; log preserved. |
+| M10.CI-T002 | Isolated `test_every_download_extract_readiness_pull_and_smoke_boundary_recovers` under a 120s watchdog | TIMEOUT / INTERRUPTED | Existing Ollama lifecycle interruption/recovery test exceeded the bounded container run. This is recorded as NEEDS_MANUAL_REVIEW and not blamed on the new environment code without further evidence. |
+| M10.CI-T003 | Static gates in `docs/development/evidence/v09/wp_b_static_gates.log` | PASS | Dependency lock rendering, milestone drift, release-readiness allow-dirty, Bash syntax, Python compileall, TOML/JSON parsing and `git diff --check` all passed. |

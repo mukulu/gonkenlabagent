@@ -1,0 +1,36 @@
+[post-commit state]
+?? docs/development/evidence/v09/wp_b_post_commit_integrity.log
+[milestone]
+[version]
+0.2.0.dev0
+[release readiness json]
+{
+  "checkpoint_scope": "V09 environment-control foundation from FIX7 checkpoint",
+  "git": {
+    "branch": "v09-environment-foundation",
+    "commit": "d0811437675acd91344c69d1a21069ab9257880b",
+    "dirty": true
+  },
+  "host_verified": [
+    "M2.1",
+    "M2.2",
+    "M2.3",
+    "M2.4",
+    "M3.1",
+    "M3.2",
+    "M3.3",
+    "M3.4",
+    "M3.5",
+    "M3.6",
+    "M4.1",
+    "M6.1",
+    "M6.2",
+    "M8.1",
+    "M8.2",
+    "M8.3",
+    "M9.3",
+    "M9.4",
+    "M9.5"
+  ],
+  "missing_milestones": [],
+  "next_action": "Run the documented Raspberry Pi bootstrap, then upload the support ZIP from collect-support.sh.",

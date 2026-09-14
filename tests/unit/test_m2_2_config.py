@@ -165,7 +165,7 @@ class AuthorityAndPrecedenceTests(unittest.TestCase):
 
 class ValidationTests(unittest.TestCase):
     INVALID_OVERRIDES = {
-        "newer schema": {"schema_version": 2},
+        "newer schema": {"schema_version": 3},
         "identity change": {"assistant.name": "Other"},
         "language": {"assistant.language": "en-CA"},
         "runtime mode": {"runtime.mode": "cloud"},
@@ -195,6 +195,20 @@ class ValidationTests(unittest.TestCase):
         "voice power": {"extensions.voice_power.enabled": True},
         "wake threshold": {"extensions.wake_word.threshold": 1.0},
         "wake gpio conflict": {"extensions.wake_word.monitoring_led_gpio": 17},
+
+        "environment backend": {"extensions.environment.sensor_backend": "dht22"},
+        "environment address": {"extensions.environment.i2c_address": 0x40},
+        "environment repeatability": {"extensions.environment.sensor_repeatability": "ultra"},
+        "environment poll interval": {"extensions.environment.poll_interval_seconds": 0.1},
+        "environment stale": {"extensions.environment.stale_after_seconds": 1.0},
+        "environment recover samples": {"extensions.environment.valid_samples_to_recover": 0},
+        "environment relay backend": {"extensions.environment.relay_backend": "gpiozero"},
+        "environment relay conflict": {"extensions.environment.relay_bcm": 17},
+        "environment safe state": {"extensions.environment.safe_state": "on"},
+        "environment socket path": {"extensions.environment.socket_path": "run/control.sock"},
+        "environment temperature bounds": {"extensions.environment.temperature_policy_max_c": -20.0},
+        "environment hysteresis bounds": {"extensions.environment.minimum_hysteresis_c": 20.0},
+        "environment dwell bounds": {"extensions.environment.minimum_dwell_seconds": 99999},
     }
 
     def test_invalid_values_are_rejected(self) -> None:

@@ -48,7 +48,7 @@ class InstallSummaryTests(unittest.TestCase):
                 "commit": COMMIT,
                 "profile": "core-pi-trixie-py313",
                 "python_version": "3.13.5",
-                "package_version": "0.1.0.dev1",
+                "package_version": "0.2.0.dev0",
                 "lock_sha256": SHA,
                 "wheel_sha256": SHA,
                 "build_backend": "setuptools",

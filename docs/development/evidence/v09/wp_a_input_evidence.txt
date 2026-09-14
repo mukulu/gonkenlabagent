@@ -1,0 +1,9 @@
+Repository:
+3b25b81c5bc7d4e24268726ad7f7b71296215a03
+fix7-appliance-resilience
+Blueprint SHA256:
+77303461569208e3b19caffc6d0693184fb54472bae091b58cbc0352dc6e2d94  /mnt/data/GONKEN_NEXT_COMPREHENSIVE_IMPLEMENTATION_BLUEPRINT(2).md
+Checkpoint ZIP SHA256:
+619717681f92ad57bbf9b97517ec66d218aa47e8f40ec54acd42a821d7cb9fd4  /mnt/data/gonkenlabagent-checkpoint-continuation-08-fix7-private.zip
+Prompt V3 Package SHA256:
+a4a3a8ba96eb5a410a8f740d5671ca20348f18cf5405b0c35c7c386b28fdf4cd  /mnt/data/GonKenAgent_V8_FIX7_to_Next_Blueprint_Generator_Master_Prompt_V3_GOLD_Package.zip
