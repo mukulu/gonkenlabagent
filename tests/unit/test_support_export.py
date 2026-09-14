@@ -16,6 +16,8 @@ class SupportTests(unittest.TestCase):
         self.root=Path(self.temp.name)
         self.config=load_config(site_path=None,environ={},cli_overrides={'paths.corpus_dir':'/srv/private-person/corpus'})
         self.health=doctor(self.config.config)
+        self.assertIn('environment', self.health)
+        self.assertIn('environment', {row['component'] for row in self.health['components']})
     def test_bundle_exact_members_redacted_paths_no_raw_files(self):
         (self.root/'.env').write_text('SECRET=private-token')
         output=self.root/'support.zip'
@@ -23,7 +25,7 @@ class SupportTests(unittest.TestCase):
         create_bundle(output,self.config,self.health,telemetry)
         with zipfile.ZipFile(output) as z:
             self.assertIsNone(z.testzip())
-            self.assertEqual(set(z.namelist()),{'environment.json','configuration.json','health.json','telemetry.json'})
+            self.assertEqual(set(z.namelist()),{'environment.json','configuration.json','health.json','telemetry.json','environment_control.json','environment_health.json'})
             raw=b''.join(z.read(name) for name in z.namelist())
         self.assertNotIn(b'private-person',raw);self.assertNotIn(b'private-token',raw)
         self.assertNotIn(str(self.root).encode(),raw)
@@ -56,5 +58,10 @@ class SupportTests(unittest.TestCase):
         with zipfile.ZipFile(output) as z:
             self.assertIn('startup_snapshot.json',z.namelist())
             payload=json.loads(z.read('startup_snapshot.json'))
+            self.assertIn('environment_control.json', z.namelist())
+            self.assertIn('environment_health.json', z.namelist())
+            env=json.loads(z.read('environment_control.json'))
+            self.assertFalse(env['physical_evidence'])
+            self.assertFalse(env['capabilities']['software_speed_control'])
             self.assertEqual(payload['schema'],1)
             self.assertFalse(payload['privacy']['content_logging'])

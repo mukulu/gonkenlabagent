@@ -993,3 +993,12 @@ transport checks are repeated.
 - **Decision:** `gonken-agent env` accepts JSON output flags at the parent level and at leaf commands, including the blueprint-style `gonken-agent env status --json`.
 - **Reason:** The V09 operator examples include `gonken-agent env status --json`; rejecting that form would create avoidable mismatch between implementation and operator documentation.
 - **Consequence:** New env CLI tests cover both `env --json status` and `env status --json` for the status command, and later documentation should prefer the blueprint-style leaf form.
+
+
+## D-095 — Make environment observability non-destructive and evidence-scoped
+
+- **Status:** Accepted
+- **Date:** 2026-09-15
+- **Decision:** Diagnostics, `doctor`, support bundles and the read-only dashboard may report environment static configuration, path/socket presence, service status, read-only daemon health and capability flags, but routine observability must not toggle the relay, scan arbitrary I2C devices, open GPIO lines, mutate policy, or imply physical acceptance.
+- **Reason:** The V09 blueprint requires useful support evidence while preventing false-green hardware claims and avoiding unsafe ordinary diagnostic behavior.
+- **Consequence:** Environment observability can explain disabled/unavailable/degraded state and preserve `physical_evidence=false`; production hardware proof remains M10.7 HIL work.

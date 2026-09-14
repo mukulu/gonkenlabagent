@@ -288,8 +288,8 @@
       "title": "CLI, voice, installer, diagnostics and documentation integration",
       "software": "partial",
       "target": "not-run",
-      "evidence": "src/gonken_agent/cli.py; tests/unit/test_v09_environment_cli.py; docs/development/evidence/v09/wp_e_cli_affected_tests.log; docs/development/evidence/v09/wp_e_full_unit.log; docs/development/evidence/v09/wp_e_static_gates.log; docs/development/evidence/v09/wp_e_integration_subset.log",
-      "remaining": "CLI sub-batch is host-verified for status, temperature, humidity, fan on/off, mode set, policy show/set, health, probe and JSON output through EnvironmentClient. M10.6 remains partial: voice intents, installer/systemd environment unit wiring, diagnostics/support/dashboard fields and operator documentation still remain. Real Pi evidence remains open."
+      "evidence": "src/gonken_agent/cli.py; src/gonken_agent/diagnostics.py; src/gonken_agent/health.py; src/gonken_agent/operations.py; src/gonken_agent/support.py; src/gonken_agent/dashboard.py; tests/unit/test_v09_environment_cli.py; tests/unit/test_diagnostics_snapshot.py; tests/unit/test_support_export.py; tests/unit/test_grounding_observability.py; tests/integration/test_text_runtime_process.py; docs/development/evidence/v09/wp_e_cli_affected_tests.log; docs/development/evidence/v09/wp_f_observability_affected_tests.log; docs/development/evidence/v09/wp_f_full_unit.log; docs/development/evidence/v09/wp_f_static_gates.log; docs/development/evidence/v09/wp_f_integration_subset.log",
+      "remaining": "CLI and diagnostics/support/dashboard sub-batches are host-verified through the shared environment client/observability boundaries. M10.6 remains partial: installer/systemd environment unit wiring, deterministic voice intents, watch-mode/operator documentation and production SHT31/libgpiod hardware adapters remain. Real Pi evidence remains open."
     },
     {
       "id": "M10.7",

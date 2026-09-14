@@ -32,12 +32,15 @@ COMMANDS = (
     "ollama",
     "whisper-cli",
     "piper",
+    "i2cdetect",
+    "gpioinfo",
 )
 SERVICES = (
     "gonken-agent.service",
     "ollama.service",
     "bluetooth.service",
     "gonken-bluetooth-autoconnect.service",
+    "gonken-environment.service",
 )
 
 
@@ -61,6 +64,7 @@ def collect_snapshot(config, *, mode: str = "debug") -> dict[str, object]:
         "services": _services(),
         "audio": _audio(mode),
         "gpio": _gpio(mode),
+        "environment": collect_environment_diagnostics(config, mode=mode),
         "network": {
             "external_probe": False,
             "ollama_host": urlsplit(config.llm.base_url).hostname,
@@ -82,6 +86,68 @@ def collect_snapshot(config, *, mode: str = "debug") -> dict[str, object]:
             "raw_audio_retention": config.privacy.raw_audio_retention,
         },
     }
+
+
+def collect_environment_diagnostics(config, *, mode: str = "debug", client_factory=None) -> dict[str, object]:
+    """Return content-free room-environment diagnostic facts.
+
+    This routine is deliberately non-destructive.  It may inspect local paths,
+    command availability, service status and the environment daemon's read-only
+    health endpoint, but it never toggles a relay, scans arbitrary I2C devices,
+    opens GPIO lines, mutates policy, or claims physical target acceptance.
+    """
+
+    if mode not in {"debug", "production"}:
+        raise ValueError("diagnostic mode must be debug or production")
+    env = config.extensions.environment
+    socket_path = Path(env.socket_path)
+    policy_path = Path(env.policy_path)
+    payload: dict[str, object] = {
+        "schema": 1,
+        "enabled": env.enabled,
+        "target_acceptance": "not_established_by_diagnostics",
+        "physical_evidence": False,
+        "static": {
+            "sensor_backend": env.sensor_backend,
+            "i2c_bus": env.i2c_bus,
+            "i2c_address_hex": f"0x{env.i2c_address:02x}",
+            "sensor_repeatability": env.sensor_repeatability,
+            "poll_interval_seconds": env.poll_interval_seconds,
+            "stale_after_seconds": env.stale_after_seconds,
+            "valid_samples_to_recover": env.valid_samples_to_recover,
+            "relay_backend": env.relay_backend,
+            "relay_bcm": env.relay_bcm,
+            "relay_active_high": env.relay_active_high,
+            "safe_state": env.safe_state,
+            "temperature_policy_min_c": env.temperature_policy_min_c,
+            "temperature_policy_max_c": env.temperature_policy_max_c,
+            "minimum_hysteresis_c": env.minimum_hysteresis_c,
+            "maximum_hysteresis_c": env.maximum_hysteresis_c,
+            "minimum_dwell_seconds": env.minimum_dwell_seconds,
+            "maximum_dwell_seconds": env.maximum_dwell_seconds,
+        },
+        "capabilities": {
+            "power_control": True,
+            "software_speed_control": False,
+            "fan_motion_observed": False,
+        },
+        "devices": {
+            "i2c_device": _device_status(Path(f"/dev/i2c-{env.i2c_bus}")),
+            "i2c_device_names": sorted(path.name for path in Path("/dev").glob("i2c-*"))[:16],
+            "gpiochip_names": sorted(path.name for path in Path("/dev").glob("gpiochip*"))[:16],
+            "i2cdetect_available": shutil.which("i2cdetect") is not None,
+            "gpioinfo_available": shutil.which("gpioinfo") is not None,
+        },
+        "paths": {
+            "socket": _path_summary(socket_path, expect_socket=True),
+            "policy": _path_summary(policy_path, expect_socket=False),
+        },
+        "service": _single_service("gonken-environment.service"),
+        "ipc": _environment_ipc(socket_path, client_factory=client_factory),
+    }
+    if mode == "debug":
+        payload["debug_note"] = "non_destructive_no_i2c_scan_no_gpio_toggle"
+    return payload
 
 
 def write_startup_snapshot(
@@ -135,6 +201,79 @@ def _validate_snapshot(data: object) -> None:
     for required in ("platform", "resources", "commands", "audio", "gpio", "services"):
         if required not in data:
             raise ValueError("startup snapshot is incomplete")
+
+
+def _device_status(path: Path) -> dict[str, object]:
+    try:
+        return {
+            "exists": path.exists(),
+            "is_character_device": path.is_char_device() if path.exists() and not path.is_symlink() else False,
+            "is_symlink": path.is_symlink(),
+        }
+    except OSError:
+        return {"exists": False, "is_character_device": False, "is_symlink": False}
+
+
+def _path_summary(path: Path, *, expect_socket: bool) -> dict[str, object]:
+    try:
+        parent = path.parent
+        exists = path.exists()
+        return {
+            "configured": bool(str(path)),
+            "exists": exists,
+            "parent_exists": parent.exists(),
+            "is_symlink": path.is_symlink(),
+            "is_socket": path.is_socket() if exists and not path.is_symlink() else False,
+            "is_file": path.is_file() if exists and not path.is_symlink() else False,
+            "expected_type": "socket" if expect_socket else "file",
+        }
+    except OSError:
+        return {
+            "configured": bool(str(path)),
+            "exists": False,
+            "parent_exists": False,
+            "is_symlink": False,
+            "is_socket": False,
+            "is_file": False,
+            "expected_type": "socket" if expect_socket else "file",
+        }
+
+
+def _environment_ipc(socket_path: Path, *, client_factory=None) -> dict[str, object]:
+    try:
+        if socket_path.is_symlink():
+            return {"status": "UNAVAILABLE", "code": "SOCKET_SYMLINK_REFUSED"}
+        if not socket_path.exists():
+            return {"status": "UNAVAILABLE", "code": "SOCKET_MISSING"}
+        if not socket_path.is_socket():
+            return {"status": "UNAVAILABLE", "code": "SOCKET_NOT_UNIX_SOCKET"}
+    except OSError:
+        return {"status": "UNAVAILABLE", "code": "SOCKET_INSPECTION_FAILED"}
+    try:
+        if client_factory is None:
+            from .environment import EnvironmentClient
+            client = EnvironmentClient(socket_path, timeout_seconds=0.5)
+        else:
+            client = client_factory(socket_path)
+        health = client.health()
+    except Exception as exc:
+        code = getattr(exc, "code", type(exc).__name__)
+        return {"status": "UNAVAILABLE", "code": _safe_text(str(code))}
+    return {
+        "status": "READY",
+        "code": "READ_ONLY_HEALTH_OK",
+        "overall": health.get("overall", "UNKNOWN") if isinstance(health, dict) else "UNKNOWN",
+        "sensor": health.get("sensor", "unknown") if isinstance(health, dict) else "unknown",
+        "actuator": health.get("actuator", "unknown") if isinstance(health, dict) else "unknown",
+        "controller": health.get("controller", "unknown") if isinstance(health, dict) else "unknown",
+        "physical_evidence": bool(health.get("physical_evidence", False)) if isinstance(health, dict) else False,
+    }
+
+
+def _single_service(service: str) -> dict[str, str]:
+    if shutil.which("systemctl") is None:
+        return {"active": "UNKNOWN_NO_SYSTEMCTL", "enabled": "UNKNOWN_NO_SYSTEMCTL"}
+    return {"active": _systemctl("is-active", service), "enabled": _systemctl("is-enabled", service)}
 
 
 def _platform() -> dict[str, object]:

@@ -32,6 +32,10 @@ class StartupSnapshotTests(unittest.TestCase):
         self.assertFalse(snapshot["network"]["external_probe"])
         self.assertIn("audio", snapshot)
         self.assertIn("gpio", snapshot)
+        self.assertIn("environment", snapshot)
+        self.assertFalse(snapshot["environment"]["physical_evidence"])
+        self.assertFalse(snapshot["environment"]["capabilities"]["software_speed_control"])
+        self.assertEqual(snapshot["environment"]["target_acceptance"], "not_established_by_diagnostics")
         self.assertNotIn(str(self.root), raw)
 
     def test_write_latest_and_retained_history_then_prunes(self):
@@ -71,6 +75,40 @@ class StartupSnapshotTests(unittest.TestCase):
             "pipewire_sources", "pipewire_sinks", "wireplumber_status",
         ):
             self.assertIn(key, audio)
+
+
+    def test_environment_diagnostics_are_non_destructive_and_read_only(self):
+        class FakeClient:
+            def __init__(self, socket_path):
+                self.socket_path = socket_path
+            def health(self):
+                return {
+                    "overall": "READY",
+                    "sensor": "ready",
+                    "actuator": "HOST_FAKE",
+                    "controller": "ACTIVE",
+                    "physical_evidence": False,
+                }
+        socket_path = self.root / "run" / "env.sock"
+        socket_path.parent.mkdir(parents=True, exist_ok=True)
+        socket_path.touch()
+        config = load_config(
+            site_path=None,
+            environ={},
+            cli_overrides={"extensions.environment.socket_path": str(socket_path)},
+        ).config
+        with patch("gonken_agent.diagnostics.Path.is_socket", return_value=True):
+            diag = diagnostics.collect_environment_diagnostics(
+                config,
+                mode="production",
+                client_factory=lambda path: FakeClient(path),
+            )
+        self.assertFalse(diag["physical_evidence"])
+        self.assertFalse(diag["capabilities"]["software_speed_control"])
+        self.assertEqual(diag["static"]["i2c_address_hex"], "0x44")
+        self.assertEqual(diag["ipc"]["status"], "READY")
+        self.assertEqual(diag["ipc"]["overall"], "READY")
+        self.assertNotIn(str(self.root), json.dumps(diag, sort_keys=True))
 
     def test_unsafe_snapshot_input_rejected(self):
         bad = self.root / "bad.json"
