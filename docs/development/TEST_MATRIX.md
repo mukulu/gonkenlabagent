@@ -976,3 +976,15 @@ M10.6 remains **host-partial**, not final. Production adapter modules now exist 
 | M10.6-T027 | `PYTHONPATH=src timeout 120 python3 -m unittest -v tests.integration.test_cli_process tests.integration.test_text_runtime_process` | PASS, 14/14 | Targeted deterministic integration subset for CLI and text/dashboard non-regression. Excludes the known broad Ollama lifecycle interruption fixture and proves no physical hardware behavior. |
 
 M10.6 remains **host-partial**, not final. The daemon can now be constructed from config/policy/adapters and served over AF_UNIX when the static profile is enabled, but the environment service still lacks a fully accepted autonomous target polling campaign and target-grounded operating documentation. M10.7 remains required for every Raspberry Pi, SHT31, relay, PENGLIN, ELUTENG, reboot/no-login and wake/voice physical acceptance claim.
+
+## V09 daemon polling/control-loop scaffold evidence — 2026-09-15
+
+| ID | Command / artifact | Result | Evidence boundary |
+|---|---|---|---|
+| M10.6-T028 | `PYTHONPATH=src python3 -m unittest -v tests.unit.test_v09_environment_polling_loop tests.unit.test_v09_environment_daemon_activation tests.unit.test_v09_environment_ipc tests.unit.test_v09_environment_cli tests.unit.test_v09_environment_hardware_adapters` | PASS, 39/39 | Host-only tests for daemon polling, bounded loop stop behavior, sensor-failure safe-off, actuator-error safe-off recording, activation scaffold, IPC, CLI and adapter regression. Uses fake sensor/actuator/clock/bus/gpiod objects only. |
+| M10.6-T029 | `PYTHONPATH=src python3 -m unittest discover -s tests/unit -v` | PASS, 316/316 | Full host unit suite after polling scaffold. Unit evidence only; broad CI and physical Pi acceptance remain open. |
+| M10.6-T030 | `PYTHONPATH=src python3 -m unittest -v tests.integration.test_cli_process tests.integration.test_text_runtime_process` | PASS, 14/14 | Targeted deterministic integration subset for CLI and text/dashboard non-regression. Excludes the known broad Ollama lifecycle interruption fixture and proves no physical hardware behavior. |
+
+M10.6 remains **host-partial**, not a final release gate. The daemon can now poll autonomously in a bounded background loop and fail closed on simulated sensor/actuator faults, but M10.7 remains required for I2C, SHT31, libgpiod, relay, PENGLIN, ELUTENG, systemd, reboot/no-login and voice/wake physical acceptance.
+
+| M10.6-T031 | `timeout 140s bash scripts/ci.sh` | INTERRUPTED / not PASS | Broad CI passed the full unit phase and entered deterministic integration before external tool timeout/process cleanup. Log preserved at `docs/development/evidence/v09/wp_k_broad_ci_attempt.log`; this is not attributed to polling-loop failure and is not claimed as release-quality CI evidence. |

@@ -451,7 +451,7 @@ def _run_environment_daemon(args: argparse.Namespace) -> int:
         return 0
 
     try:
-        from .environment import EnvironmentDaemonError, build_environment_service_core, build_environment_unix_server
+        from .environment import EnvironmentDaemon, EnvironmentDaemonError, build_environment_service_core
         if getattr(args, "check", False):
             core = build_environment_service_core(env)
             payload = {
@@ -470,11 +470,8 @@ def _run_environment_daemon(args: argparse.Namespace) -> int:
             else:
                 print("[OK] code=ENVIRONMENT_DAEMON_CONFIG_OK enabled=true hardware_toggled=false physical_evidence=false")
             return 0
-        server = build_environment_unix_server(env)
-        try:
-            server.serve_forever()
-        finally:
-            server.server_close()
+        daemon = EnvironmentDaemon.from_config(env)
+        daemon.serve_forever()
         return 0
     except KeyboardInterrupt:
         return 0
