@@ -15,6 +15,8 @@ from .domain import (
 )
 from .controller import ControllerError, ControllerState, EnvironmentController
 from .client import EnvironmentClient, EnvironmentClientError
+from .intents import EnvironmentClarification, EnvironmentIntent, parse_environment_intent
+from .responses import environment_error_response, environment_success_response
 from .protocol import EnvironmentRequest, EnvironmentResponse, ProtocolError
 from .server import EnvironmentUnixServer
 from .service import EnvironmentServiceCore, EnvironmentServiceError, ScriptedSensorSource, ServiceIdentity
@@ -26,11 +28,15 @@ __all__ = [
     "EnvironmentController",
     "EnvironmentClient",
     "EnvironmentClientError",
+    "EnvironmentClarification",
+    "EnvironmentIntent",
     "EnvironmentRequest",
     "EnvironmentResponse",
     "EnvironmentServiceCore",
     "EnvironmentServiceError",
     "EnvironmentUnixServer",
+    "environment_error_response",
+    "environment_success_response",
     "ProtocolError",
     "ScriptedSensorSource",
     "ServiceIdentity",
@@ -44,4 +50,5 @@ __all__ = [
     "SensorQuality",
     "SensorReading",
     "TransitionReason",
+    "parse_environment_intent",
 ]

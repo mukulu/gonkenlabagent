@@ -313,3 +313,43 @@ systemctl cat gonken-agent.service
 sudo cat /etc/gonken-agent/runtime-environment
 id -u gonken-agent
 ```
+
+## V09 room-environment operator and voice boundary
+
+V09 adds a room-environment control boundary, but the current checkpoint still
+keeps real SHT31 and relay actuation target-gated. The direct operator route is:
+
+```bash
+gonken-agent env status
+gonken-agent env temperature
+gonken-agent env humidity
+gonken-agent env read
+gonken-agent env fan on
+gonken-agent env fan off
+gonken-agent env mode set manual
+gonken-agent env mode set semi-automatic
+gonken-agent env mode set automatic
+gonken-agent env policy show
+gonken-agent env policy set --start-c 28 --stop-c 26.5
+gonken-agent env watch --interval 2
+gonken-agent env status --json
+```
+
+The `env` command is an IPC client. It must not be modified to read GPIO, I2C or
+policy files directly. Human-readable output is for operators; `--json` is the
+stable machine-readable form. `env watch` repeatedly reads the daemon through the
+same client boundary and reports `physical_evidence=false` until a real Pi HIL
+run records otherwise.
+
+The voice route now has a deterministic environment-intent parser before the
+ordinary local model path. Clear phrases such as “what is the room temperature?”,
+“what is the humidity?”, “is the room fan on?”, “turn the room fan on”, “turn the
+room fan off”, “use automatic mode”, and “turn it on at 28 and off at 26.5” are
+converted into typed environment-daemon operations. Ambiguous phrases such as
+“set the temperature to 25” ask for clarification instead of changing policy.
+General conversation still uses the local LLM.
+
+Spoken environment answers are derived from the daemon result or daemon rejection.
+They may report room-fan relay power, mode, policy and sensor state. They must not
+claim physical blade rotation, software speed control, or real Raspberry Pi
+acceptance with the current relay/PENGLIN/ELUTENG hardware.

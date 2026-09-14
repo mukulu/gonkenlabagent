@@ -1026,3 +1026,20 @@ transport checks are repeated.
 - **Decision:** The hidden `gonken-agent env serve` systemd entry point exits harmlessly when `[extensions.environment].enabled=false`, and returns an explicit `ENV_HARDWARE_BACKEND_NOT_IMPLEMENTED` failure if the static environment profile is enabled before production SHT31/libgpiod adapters are implemented.
 - **Reason:** Running the host-fake service under systemd would make the appliance appear physically ready while no SHT31 or relay boundary has been implemented or accepted.
 - **Consequence:** Checkpoint 06 can verify service installation and fail-closed behavior without creating a fake hardware daemon. Later hardware-adapter work must replace the fail-closed path with a target-tested daemon only after SHT31/relay code and HIL evidence exist.
+
+
+## D-099 — Route clear environment voice commands through deterministic intents before the LLM
+
+- **Status:** Accepted
+- **Date:** 2026-09-15
+- **Decision:** The production conversation path now checks a fixed allow-listed environment intent parser before ordinary local LLM chat. Clear temperature, humidity, fan status, fan on/off, mode and explicit threshold requests become typed environment-daemon operations; ambiguous environment policy requests ask for clarification.
+- **Reason:** V09 requires voice-mediated control without granting the LLM arbitrary shell, GPIO, I2C, file or tool-execution authority.
+- **Consequence:** Spoken environment responses must be derived from the daemon result or daemon rejection. General conversation remains local LLM text; environment actions do not enter chat history or claim physical actuation without daemon and target evidence.
+
+## D-100 — Add `env watch` as a repeated IPC read, not direct sensor access
+
+- **Status:** Accepted
+- **Date:** 2026-09-15
+- **Decision:** `gonken-agent env watch` repeatedly calls the environment daemon through `EnvironmentClient.read_sensor()` and may emit human rows or newline-delimited JSON. It has a bounded `--count` option for tests and scripted runs.
+- **Reason:** The blueprint requires a live watch, but the single-owner hardware boundary still forbids CLI-side I2C/GPIO access.
+- **Consequence:** Watch output can report temperature, humidity, mode, fan relay-power state and `physical_evidence=false`; it must not toggle hardware or create microSD sample history by default.

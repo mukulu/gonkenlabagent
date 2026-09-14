@@ -6,6 +6,7 @@ import argparse
 import json
 import subprocess
 import sys
+import time
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 
@@ -324,6 +325,11 @@ def _add_environment_commands(subparsers: argparse._SubParsersAction[argparse.Ar
         leaf = env_commands.add_parser(name, help=help_text)
         _add_env_json_flag(leaf)
 
+    watch = env_commands.add_parser("watch", help="watch live environment readings through local IPC")
+    watch.add_argument("--interval", type=float, default=2.0, help="seconds between samples; default 2.0")
+    watch.add_argument("--count", type=int, help="optional number of samples, mainly for bounded runs/tests")
+    _add_env_json_flag(watch)
+
     fan_parser = env_commands.add_parser("fan", help="set room-fan relay power")
     fan_commands = fan_parser.add_subparsers(dest="fan_command", required=True)
     fan_on = fan_commands.add_parser("on", help="request fan relay power on through the daemon")
@@ -354,6 +360,8 @@ def _add_environment_commands(subparsers: argparse._SubParsersAction[argparse.Ar
 def _execute_environment_command(args: argparse.Namespace) -> int:
     if args.env_command == "serve":
         return _run_environment_daemon(args)
+    if args.env_command == "watch":
+        return _run_environment_watch(args)
     try:
         client = _environment_client_from_args(args)
         payload = _call_environment_command(client, args)
@@ -373,6 +381,37 @@ def _execute_environment_command(args: argparse.Namespace) -> int:
         _print_environment_payload(args, payload)
     return 0
 
+
+
+def _run_environment_watch(args: argparse.Namespace) -> int:
+    try:
+        if args.interval < 0:
+            raise ValueError("watch interval must be non-negative")
+        if args.count is not None and args.count < 1:
+            raise ValueError("watch count must be positive")
+        client = _environment_client_from_args(args)
+        samples = 0
+        while True:
+            payload = client.read_sensor()  # type: ignore[attr-defined]
+            if args.as_json:
+                print(json.dumps(payload, sort_keys=True), flush=True)
+            else:
+                _print_environment_watch_row(payload)
+            samples += 1
+            if args.count is not None and samples >= args.count:
+                return 0
+            time.sleep(args.interval)
+    except KeyboardInterrupt:
+        return 0
+    except ConfigError as exc:
+        return _environment_error("ENV_CONFIG_FAILED", _environment_public_message(exc), args.as_json)
+    except OSError as exc:
+        return _environment_error("ENV_CLI_FAILED", type(exc).__name__, args.as_json)
+    except ValueError as exc:
+        return _environment_error("ENV_CLI_FAILED", _environment_public_message(exc), args.as_json)
+    except Exception as exc:
+        code = getattr(exc, "code", "ENV_CALL_FAILED")
+        return _environment_error(str(code), _environment_public_message(exc), args.as_json)
 
 
 def _run_environment_daemon(args: argparse.Namespace) -> int:
@@ -540,6 +579,22 @@ def _print_environment_payload(args: argparse.Namespace, payload: Mapping[str, o
             )
         return
     print(json.dumps(payload, sort_keys=True))
+
+
+def _print_environment_watch_row(payload: Mapping[str, object]) -> None:
+    reading = payload.get("reading")
+    reading_map = reading if isinstance(reading, Mapping) else {}
+    state = _payload_state(payload)
+    print(
+        f"{time.strftime('%H:%M:%S')}  "
+        f"{_format_value(reading_map.get('temperature_c'), 'C')}  "
+        f"{_format_value(reading_map.get('relative_humidity_pct'), '%RH')}  "
+        f"mode={state.get('mode', 'unknown')}  "
+        f"fan={state.get('fan_power', 'unknown')}  "
+        f"sensor={reading_map.get('quality', state.get('sensor_quality', 'unknown'))}  "
+        f"physical_evidence={payload.get('physical_evidence', False)}",
+        flush=True,
+    )
 
 
 def _payload_state(payload: Mapping[str, object]) -> Mapping[str, object]:

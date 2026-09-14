@@ -943,3 +943,15 @@ M10.6 remains **host-partial**, not complete. Diagnostics/support/dashboard now 
 | M10.6-T015 | `timeout --preserve-status 180s ./scripts/ci.sh` | INTERRUPTED | Broad CI attempt completed the unit phase and entered deterministic integration before the container/watchdog interruption. The isolated release E2E and uninstall integration checks above passed; full broad CI is not claimed PASS. |
 
 M10.6 remains **host-partial**, not complete. The installer/systemd tranche installs only structural boundaries and keeps generic upgrades disabled-by-default for environment actuation. Remaining M10.6 work includes deterministic voice intents, watch-mode/operator documentation and production SHT31/libgpiod hardware-adapter integration. Real Raspberry Pi acceptance remains **not-run**.
+
+
+## V09 deterministic voice and watch evidence — 2026-09-15
+
+| ID | Command / artifact | Result | Evidence boundary |
+|---|---|---|---|
+| M10.6-T017 | `PYTHONPATH=src python3 -m unittest -v tests.unit.test_v09_environment_voice_intents tests.unit.test_v09_environment_cli tests.unit.test_voice_appliance tests.unit.test_v09_environment_ipc` | PASS, 43/43 | Host-only tests for deterministic environment voice intents, result-derived responses, `env watch`, existing voice appliance regression and IPC. No physical Pi, SHT31, relay or fan evidence. |
+| M10.6-T018 | `PYTHONPATH=src python3 -m unittest discover -s tests/unit -t . -v` | PASS, 295/295 | Full host unit suite after M10.6 voice/watch changes. Unit tests only; broad CI and real Pi acceptance remain open. |
+| M10.6-T019 | `PYTHONPATH=src python3 -m unittest -v tests.integration.test_cli_process tests.integration.test_text_runtime_process` | PASS, 14/14 | Targeted deterministic integration subset for CLI and text/dashboard non-regression. Excludes known Ollama lifecycle interruption fixture and proves no hardware behavior. |
+| M10.6-T020 | Static gates in `docs/development/evidence/v09/wp_h_static_gates.log` | PASS | Dependency lock rendering, milestone drift, release-readiness allow-dirty, Bash syntax, Python compileall, TOML/JSON parsing and `git diff --check` all passed. |
+
+M10.6 remains **host-partial**, not final. The voice route now parses clear environment commands before the local LLM and speaks only daemon-result-derived outcomes. `env watch` is a repeated daemon-client read path, not direct sensor access. Production SHT31/libgpiod adapters and all physical HIL gates remain open.
