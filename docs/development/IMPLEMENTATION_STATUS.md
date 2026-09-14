@@ -45,7 +45,7 @@ Checkpoint scope: **V09 environment-control foundation from FIX7 checkpoint**
 | M10.3 — Environment domain and mutable policy foundation | host-verified | not-run | src/gonken_agent/environment/domain.py; src/gonken_agent/environment/policy.py; tests/unit/test_v09_environment_policy.py; docs/development/evidence/v09/wp_b_config_policy_tests_rerun.log Pure host tests cover domain/policy contracts only. Controller, IPC, CLI, voice, installer, diagnostics and physical HIL remain open. |
 | M10.4 — Deterministic controller core | host-verified | not-run | src/gonken_agent/environment/controller.py; tests/unit/test_v09_environment_controller.py; docs/development/evidence/v09/wp_c_controller_affected_tests.log; docs/development/evidence/v09/wp_c_full_unit.log Host validation covers pure deterministic controller semantics only: MANUAL, SEMI_AUTOMATIC, AUTOMATIC, DISABLED, dwell, hysteresis, median valid samples, staleness safe-off, recovery and policy-update stop behavior. No hardware adapter, daemon, IPC, CLI, voice, installer or physical Pi actuation is implemented yet. |
 | M10.5 — Local environment service and IPC | host-verified | not-run | src/gonken_agent/environment/protocol.py; src/gonken_agent/environment/service.py; src/gonken_agent/environment/server.py; src/gonken_agent/environment/client.py; tests/unit/test_v09_environment_ipc.py; docs/development/evidence/v09/wp_d_ipc_affected_tests.log; docs/development/evidence/v09/wp_d_full_unit.log; docs/development/evidence/v09/wp_d_static_gates.log Host validation covers bounded JSON protocol validation, host-fake service core, AF_UNIX server/client, socket mode, closed operation parameters, client error propagation and no hardware/shell imports. It does not implement production SHT31/libgpiod adapters, systemd unit installation, CLI command, voice action, dashboard, or real Pi actuation. |
-| M10.6 — CLI, voice, installer, diagnostics and documentation integration | pending | not-run |  Ready after M10.5 IPC foundation. Next batch should integrate a safe env CLI surface and then diagnostics/installer/voice routes while continuing to use the single-owner service/client boundary. |
+| M10.6 — CLI, voice, installer, diagnostics and documentation integration | partial | not-run | src/gonken_agent/cli.py; tests/unit/test_v09_environment_cli.py; docs/development/evidence/v09/wp_e_cli_affected_tests.log; docs/development/evidence/v09/wp_e_full_unit.log; docs/development/evidence/v09/wp_e_static_gates.log; docs/development/evidence/v09/wp_e_integration_subset.log CLI sub-batch is host-verified for status, temperature, humidity, fan on/off, mode set, policy show/set, health, probe and JSON output through EnvironmentClient. M10.6 remains partial: voice intents, installer/systemd environment unit wiring, diagnostics/support/dashboard fields and operator documentation still remain. Real Pi evidence remains open. |
 | M10.7 — Real Raspberry Pi HIL and release acceptance | pending | not-run |  Requires physical Pi, SHT31, relay, PENGLIN adapters, ELUTENG fan, audio and wake/latency evidence. Host tests cannot close this gate. |
 <!-- /MILESTONES -->
 
@@ -257,3 +257,24 @@ M10.5 affected tests pass **59/59** and the full host unit suite passes **271/27
 ### Remaining
 
 M10.6 should add the operator-facing `gonken-agent env` CLI over this client boundary, then extend diagnostics/installer/service wiring and deterministic voice-domain actions. Production hardware adapters and real Raspberry Pi HIL remain open under M10.7.
+
+## V09 Checkpoint 04 — operator CLI environment commands — 2026-09-15
+
+**Base:** V09 Checkpoint 03 `e91c4739eec0e2eabe2cb939e959117027d889a6`.
+
+### Implemented in M10.6 first sub-batch
+
+- added `gonken-agent env` as the operator-facing IPC client surface in `src/gonken_agent/cli.py`;
+- added status, health, temperature, humidity, combined read, fan on/off, mode set, policy show/set and bounded non-destructive probe commands;
+- made human-readable output report daemon-returned state and preserve `physical_evidence=false` rather than implying hardware proof;
+- made JSON output available both as `gonken-agent env --json status` and as the blueprint-style `gonken-agent env status --json`;
+- ensured fan/mode/policy mutations pass typed arguments through `EnvironmentClient` rather than touching policy files, GPIO, I2C or shell commands directly;
+- added `tests/unit/test_v09_environment_cli.py` to verify command routing, JSON output, daemon rejection handling, capability boundary and policy-set validation.
+
+### Evidence
+
+M10.6 CLI affected tests pass **81/81**.  The full host unit suite passes **277/277**.  Static gates pass.  A targeted deterministic integration subset covering CLI/text/support behavior passes **15/15**.  The CLI sub-batch is therefore host-verified as an IPC client, not as a real environment daemon or hardware acceptance.
+
+### Remaining
+
+M10.6 remains **partial**.  The next dependency-ready sub-batches are diagnostics/support/dashboard environment fields, installer/systemd environment-service wiring, deterministic voice environment intents, watch-mode/operator documentation, and later production hardware adapters.  M10.7 physical HIL remains not-run.

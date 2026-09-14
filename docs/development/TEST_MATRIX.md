@@ -905,3 +905,14 @@ M10.4 physical acceptance remains **not-run**. The controller core is pure state
 | M10.5-T003 | Static gates in `docs/development/evidence/v09/wp_d_static_gates.log` | PASS | Dependency lock rendering, milestone drift, release-readiness allow-dirty, Bash syntax, Python compileall, TOML/JSON parsing and `git diff --check` passed. |
 
 M10.5 physical acceptance remains **not-run**. The new service path uses host-fake sensor/service metadata and explicitly reports `physical_evidence=false`; it does not prove SHT31 reads, relay polarity, Pi 5 gpiochip mapping, fan motion, fan speed, systemd convergence, or voice/CLI user-facing behavior. Broad integration remains under the existing Ollama lifecycle timeout caveat recorded at M10.4.
+
+## V09 operator CLI environment-command evidence — 2026-09-15
+
+| ID | Command / artifact | Result | Evidence boundary |
+|---|---|---|---|
+| M10.6-T001 | `PYTHONPATH=src:. python3 -m unittest -v tests.unit.test_v09_environment_cli tests.unit.test_v09_environment_ipc tests.unit.test_v09_environment_controller tests.unit.test_v09_environment_policy tests.unit.test_v09_environment_config tests.unit.test_m2_1 tests.unit.test_m2_2_config` | PASS, 81/81 | Host-only tests for `gonken-agent env` parser/formatting/error behavior, IPC/client regression and existing CLI/config regression. The env CLI is verified as an IPC client only; no direct GPIO/I2C access or physical actuation is exercised. |
+| M10.6-T002 | `PYTHONPATH=src:. python3 -m unittest discover -s tests/unit -t . -v` | PASS, 277/277 | Full host unit suite after the CLI sub-batch. Does not include physical Pi evidence. |
+| M10.6-T003 | Static gates in `docs/development/evidence/v09/wp_e_static_gates.log` | PASS | Dependency lock rendering, milestone drift, release-readiness allow-dirty, Bash syntax, Python compileall, TOML/JSON parsing and `git diff --check` passed. |
+| M10.6-T004 | `PYTHONPATH=src:. python3 -m unittest -v tests.integration.test_cli_process tests.integration.test_text_runtime_process tests.integration.test_support_collection_process` | PASS, 15/15 | Targeted deterministic integration subset touching CLI/text/support behavior. Full integration remains under the known Ollama lifecycle interruption caveat; this subset does not claim broad CI completion. |
+
+M10.6 is **host-partial**, not complete. This checkpoint verifies the first operator CLI sub-batch: `env status`, `env health`, `env temperature`, `env humidity`, `env read`, `env fan on/off`, `env mode set`, `env policy show/set`, `env probe`, and JSON output through `EnvironmentClient`. Remaining M10.6 work includes deterministic voice intents, installer/systemd environment-unit wiring, diagnostics/support/dashboard environment fields, watch-mode/operator documentation, and production hardware-adapter integration. Real Raspberry Pi acceptance remains **not-run**.
