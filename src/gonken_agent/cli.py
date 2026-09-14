@@ -444,13 +444,13 @@ def _run_environment_daemon(args: argparse.Namespace) -> int:
             print("[OK] code=ENVIRONMENT_DISABLED enabled=false hardware_toggled=false")
         return 0
 
-    # M10.6 installs the supervised boundary and keeps feature enablement
-    # explicit. Production SHT31/libgpiod adapters arrive in a later tranche;
-    # until then an enabled profile must fail closed rather than run a fake
-    # hardware backend under systemd.
+    # M10.6 now contains production adapter modules, but the supervised daemon
+    # activation path remains target-gated until the service can initialize those
+    # adapters on the real Pi and record HIL evidence.  An enabled profile must
+    # fail closed rather than run a host-fake or partially accepted actuator.
     return _environment_error(
-        "ENV_HARDWARE_BACKEND_NOT_IMPLEMENTED",
-        "environment service wiring is installed, but production SHT31/libgpiod adapters are not implemented in this checkpoint",
+        "ENV_HARDWARE_DAEMON_NOT_ACCEPTED",
+        "environment hardware adapters are present, but supervised hardware-daemon activation remains target-gated in this checkpoint",
         getattr(args, "as_json", False),
     )
 

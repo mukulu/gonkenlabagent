@@ -316,8 +316,10 @@ id -u gonken-agent
 
 ## V09 room-environment operator and voice boundary
 
-V09 adds a room-environment control boundary, but the current checkpoint still
-keeps real SHT31 and relay actuation target-gated. The direct operator route is:
+V09 adds a room-environment control boundary. Current code includes host-tested
+SHT31 and libgpiod relay adapter modules, but real SHT31 reads, relay polarity,
+PENGLIN USB switching and fan cycles are still target-gated. The direct operator
+route is:
 
 ```bash
 gonken-agent env status
@@ -352,4 +354,7 @@ General conversation still uses the local LLM.
 Spoken environment answers are derived from the daemon result or daemon rejection.
 They may report room-fan relay power, mode, policy and sensor state. They must not
 claim physical blade rotation, software speed control, or real Raspberry Pi
-acceptance with the current relay/PENGLIN/ELUTENG hardware.
+acceptance with the current relay/PENGLIN/ELUTENG hardware. The adapter modules
+are an implementation boundary, not acceptance evidence: only the M10.7 target
+run can confirm the actual SHT31 address, Pi 5 gpiochip mapping, relay active
+polarity, boot safe-off behavior and fan power cycles.

@@ -955,3 +955,13 @@ M10.6 remains **host-partial**, not complete. The installer/systemd tranche inst
 | M10.6-T020 | Static gates in `docs/development/evidence/v09/wp_h_static_gates.log` | PASS | Dependency lock rendering, milestone drift, release-readiness allow-dirty, Bash syntax, Python compileall, TOML/JSON parsing and `git diff --check` all passed. |
 
 M10.6 remains **host-partial**, not final. The voice route now parses clear environment commands before the local LLM and speaks only daemon-result-derived outcomes. `env watch` is a repeated daemon-client read path, not direct sensor access. Production SHT31/libgpiod adapters and all physical HIL gates remain open.
+
+## V09 hardware-adapter foundation evidence — 2026-09-15
+
+| ID | Command / artifact | Result | Evidence boundary |
+|---|---|---|---|
+| M10.6-T021 | `PYTHONPATH=src python3 -m unittest -v tests.unit.test_v09_environment_hardware_adapters tests.unit.test_v09_environment_ipc tests.unit.test_v09_environment_controller tests.unit.test_v09_environment_cli tests.unit.test_v09_environment_voice_intents` | PASS, 45/45 | Host-only tests for SHT31 frame/CRC/SMBus command behavior, libgpiod relay request semantics, service actuator synchronization and no-fake-success failure behavior. Uses fake bus/gpiod objects only. |
+| M10.6-T022 | `PYTHONPATH=src python3 -m unittest discover -s tests/unit -t . -v` | PASS, 305/305 | Full host unit suite after M10.6 hardware-adapter changes. Unit evidence only; broad CI and physical Pi acceptance remain open. |
+| M10.6-T023 | Static gates in `docs/development/evidence/v09/wp_i_static_gates.log` | PASS | Dependency lock rendering, milestone drift, release-readiness allow-dirty, Bash syntax, Python compileall, TOML/JSON parsing and `git diff --check` all passed. |
+
+M10.6 remains **host-partial**, not final. Production adapter modules now exist and are host-verified behind injected fakes, but `env serve` still fails closed for enabled profiles until real hardware-daemon activation is implemented and physically accepted. M10.7 remains required for I2C, SHT31, libgpiod, relay, PENGLIN, ELUTENG, reboot/no-login and voice/wake target evidence.

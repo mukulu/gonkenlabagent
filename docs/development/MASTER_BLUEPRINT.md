@@ -1475,3 +1475,15 @@ M10.6 now includes host-verifiable installer and systemd scaffolding for the sep
 The structural service remains disabled by default for generic upgrades and the hidden `gonken-agent env serve` entry point fails closed when the static environment profile is enabled before production SHT31/libgpiod adapters exist.  This checkpoint therefore verifies provisioning boundaries, release inclusion, service-file conflict refusal and uninstall retention/purge behavior, but it does not claim systemd target execution, hardware detection or physical fan acceptance.
 
 M10.6 still remains partial.  Deterministic voice-domain intents, watch-mode/operator documentation and production SHT31/libgpiod hardware adapters remain subsequent dependency-ready work.  M10.7 remains the first milestone eligible to claim physical SHT31/relay/fan/Raspberry Pi acceptance.
+
+## V09 implementation checkpoint 07 — deterministic voice intents and watch mode
+
+M10.6 now includes host-verifiable deterministic voice environment intents and result-derived spoken responses. Clear temperature, humidity, fan-state, fan-power, mode and threshold phrases are parsed before the ordinary LLM path and converted into typed environment-client calls. Ambiguous phrases clarify instead of mutating policy. Spoken responses derive from daemon results or daemon errors and do not claim fan speed, blade motion or physical Raspberry Pi acceptance. `gonken-agent env watch` is a repeated IPC read path, not direct sensor access.
+
+This checkpoint still does not complete M10.6. Production SHT31/libgpiod adapters and target-grounded operator documentation remain subsequent dependency-ready work. M10.7 remains the first milestone eligible to claim physical SHT31/relay/fan/Raspberry Pi acceptance.
+
+## V09 implementation checkpoint 08 — SHT31 and libgpiod adapter foundation
+
+M10.6 now includes host-verifiable production adapter modules behind the environment service boundary. `SHT31Sensor` implements an SMBus-style SHT31-D reader with lazy `python3-smbus` import, high/medium/low single-shot command selection, CRC-8 validation, Sensirion conversion formulas and truthful unavailable/CRC-failed `SensorReading` results. `GpiodRelayFanActuator` implements a libgpiod-v2-style relay request with exclusive line ownership, configured active-high/active-low semantics, initial inactive output, explicit logical ON/OFF writes, safe-off release and a capability boundary that remains power-only.
+
+The service core can now synchronize controller state to an injected actuator and fail closed with `ACTUATOR_ERROR_SAFE_OFF` if an actuator write fails. This is still host evidence only. The hidden `gonken-agent env serve` path remains fail-closed for enabled profiles because supervised hardware-daemon activation has not yet been physically accepted on the target Pi. M10.7 remains required for I2C enablement, SHT31 detection, CRC read quality, Pi 5 gpiochip mapping, relay polarity, PENGLIN USB switching, ELUTENG fan cycles, reboot/no-login convergence and real wake/voice acceptance.

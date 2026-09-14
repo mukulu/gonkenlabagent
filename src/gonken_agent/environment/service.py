@@ -88,6 +88,7 @@ class EnvironmentServiceCore:
         bounds: PolicyBounds,
         policy_store: PolicyStore | None = None,
         sensor_read: Callable[..., SensorReading] | None = None,
+        fan_actuator: Any | None = None,
         now: Callable[[], float] = monotonic,
         identity: ServiceIdentity | None = None,
     ) -> None:
@@ -95,11 +96,13 @@ class EnvironmentServiceCore:
         self.bounds = bounds
         self.policy_store = policy_store
         self.sensor_read = sensor_read
+        self.fan_actuator = fan_actuator
         self.now = now
         self.identity = ServiceIdentity() if identity is None else identity
         self._lock = threading.RLock()
         self._request_count = 0
         self._error_count = 0
+        self._actuator_error_code: str | None = None
 
     @classmethod
     def with_defaults(
@@ -108,11 +111,18 @@ class EnvironmentServiceCore:
         bounds: PolicyBounds | None = None,
         now: Callable[[], float] = monotonic,
         sensor_read: Callable[..., SensorReading] | None = None,
+        fan_actuator: Any | None = None,
     ) -> "EnvironmentServiceCore":
         selected_bounds = PolicyBounds() if bounds is None else bounds
         policy = EnvironmentPolicy.default().validated(bounds=selected_bounds)
         controller = EnvironmentController(policy=policy, bounds=selected_bounds, now_monotonic=now())
-        return cls(controller=controller, bounds=selected_bounds, sensor_read=sensor_read, now=now)
+        return cls(
+            controller=controller,
+            bounds=selected_bounds,
+            sensor_read=sensor_read,
+            fan_actuator=fan_actuator,
+            now=now,
+        )
 
     def daemon_metadata(self) -> dict[str, object]:
         meta = self.identity.as_dict()
@@ -159,6 +169,7 @@ class EnvironmentServiceCore:
             else:
                 reading = self.sensor_read(now_monotonic=now)
             state = self.controller.observe(reading, now_monotonic=now)
+            self._apply_actuator_if_needed(now)
             return {
                 "reading": reading.as_dict(
                     now_monotonic=now,
@@ -174,12 +185,14 @@ class EnvironmentServiceCore:
             _reject_unknown_params(params, {"power"})
             power = _required_string(params, "power")
             state = self.controller.set_fan_power(FanPower.parse(power), now_monotonic=now)
+            self._apply_actuator_if_needed(now)
             self._save_policy_if_configured()
             return self._state_result(now, state=state)
         if operation == "mode.set":
             _reject_unknown_params(params, {"mode"})
             mode = _required_string(params, "mode")
             state = self.controller.set_mode(EnvironmentMode.parse(mode), now_monotonic=now)
+            self._apply_actuator_if_needed(now)
             self._save_policy_if_configured()
             return self._state_result(now, state=state)
         if operation == "policy.get":
@@ -207,6 +220,7 @@ class EnvironmentServiceCore:
                 minimum_off_seconds=_optional_int(params, "minimum_off_seconds"),
             )
             state = self.controller.update_policy(next_policy, now_monotonic=now)
+            self._apply_actuator_if_needed(now)
             self._save_policy_if_configured()
             return self._state_result(now, state=state)
         if operation == "probe.run":
@@ -227,7 +241,7 @@ class EnvironmentServiceCore:
                 now_monotonic=now,
                 stale_after_seconds=self.controller.stale_after_seconds,
             ),
-            "capabilities": self.controller.state.capability.as_dict(),
+            "capabilities": self._capabilities_payload(),
             "physical_evidence": False,
         }
 
@@ -238,7 +252,7 @@ class EnvironmentServiceCore:
             "ipc_ready": True,
             "policy_valid": True,
             "sensor": sensor_quality.value,
-            "actuator": "HOST_FAKE",
+            "actuator": self._actuator_health(),
             "controller": "ACTIVE" if sensor_quality == SensorQuality.READY else "SUSPENDED_OR_STARTING",
             "overall": self._overall_environment_state(),
             "state": self.controller.state.as_dict(
@@ -265,6 +279,37 @@ class EnvironmentServiceCore:
         if quality in {SensorQuality.FAILED, SensorQuality.STALE, SensorQuality.UNAVAILABLE}:
             return "DEGRADED"
         return "STARTING"
+
+    def _capabilities_payload(self) -> dict[str, bool]:
+        if self.fan_actuator is not None:
+            capabilities = getattr(self.fan_actuator, "capabilities", None)
+            if callable(capabilities):
+                return capabilities().as_dict()
+        return self.controller.state.capability.as_dict()
+
+    def _actuator_health(self) -> str:
+        if self._actuator_error_code is not None:
+            return "UNAVAILABLE"
+        if self.fan_actuator is None:
+            return "HOST_FAKE"
+        return "READY"
+
+    def _apply_actuator_if_needed(self, now: float) -> None:
+        if self.fan_actuator is None:
+            return
+        try:
+            self.fan_actuator.set_power(self.controller.state.fan_power)
+        except Exception as exc:
+            self._actuator_error_code = "ACTUATOR_UNAVAILABLE"
+            try:
+                safe_off = getattr(self.fan_actuator, "safe_off", None)
+                if callable(safe_off):
+                    safe_off()
+            except Exception:
+                pass
+            self.controller.actuator_error_safe_off(now_monotonic=now)
+            raise EnvironmentServiceError("ACTUATOR_UNAVAILABLE", _public_message(exc)) from exc
+        self._actuator_error_code = None
 
     def _save_policy_if_configured(self) -> None:
         if self.policy_store is not None:

@@ -186,7 +186,7 @@ class EnvironmentCliTests(unittest.TestCase):
         self.assertFalse(payload["hardware_toggled"])
         self.assertFalse(payload["physical_evidence"])
 
-    def test_env_serve_enabled_fails_closed_until_hardware_backend_exists(self) -> None:
+    def test_env_serve_enabled_fails_closed_until_hardware_daemon_is_accepted(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             site = f"{temporary}/site.toml"
             with open(site, "w", encoding="utf-8") as handle:
@@ -198,7 +198,7 @@ class EnvironmentCliTests(unittest.TestCase):
         payload = json.loads(stderr.getvalue())
         self.assertEqual(result, cli.EXIT_FAILED)
         self.assertEqual(stdout.getvalue(), "")
-        self.assertEqual(payload["code"], "ENV_HARDWARE_BACKEND_NOT_IMPLEMENTED")
+        self.assertEqual(payload["code"], "ENV_HARDWARE_DAEMON_NOT_ACCEPTED")
 
     def test_status_json_uses_ipc_client_and_reports_no_physical_evidence(self) -> None:
         result, stdout, stderr, client = self.run_cli(["status", "--json"])

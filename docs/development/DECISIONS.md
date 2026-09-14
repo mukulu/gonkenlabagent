@@ -1043,3 +1043,19 @@ transport checks are repeated.
 - **Decision:** `gonken-agent env watch` repeatedly calls the environment daemon through `EnvironmentClient.read_sensor()` and may emit human rows or newline-delimited JSON. It has a bounded `--count` option for tests and scripted runs.
 - **Reason:** The blueprint requires a live watch, but the single-owner hardware boundary still forbids CLI-side I2C/GPIO access.
 - **Consequence:** Watch output can report temperature, humidity, mode, fan relay-power state and `physical_evidence=false`; it must not toggle hardware or create microSD sample history by default.
+
+## D-101 — Implement SHT31 as a lazy-import SMBus adapter with CRC validation
+
+- **Status:** Accepted
+- **Date:** 2026-09-15
+- **Decision:** The production SHT31 adapter lives under `src/gonken_agent/environment/sensors/`, imports `smbus` only when a real bus is opened, validates Sensirion CRC-8 for both temperature and humidity words, returns truthful failed/unavailable `SensorReading` values instead of silently substituting stale data, and remains testable through injected fake bus objects.
+- **Reason:** The environment service must own sensor reads without making ordinary host imports require Raspberry Pi I2C packages. CRC validation and unavailable/error readings prevent stale or corrupted sensor values from being presented as current room evidence.
+- **Consequence:** Host tests can verify command construction, CRC and conversion behavior, but only M10.7 target runs can prove `/dev/i2c-*`, SHT31 address, wiring, placement and repeated valid CRC readings.
+
+## D-102 — Implement relay actuation as a libgpiod power-only adapter and keep daemon activation target-gated
+
+- **Status:** Accepted
+- **Date:** 2026-09-15
+- **Decision:** The production relay adapter lives under `src/gonken_agent/environment/actuators/`, imports libgpiod only when opened, requests one configured line as output with inactive startup value, maps active-high/active-low semantics through line settings, exposes only power-control capability and performs safe-off on close. `gonken-agent env serve` remains fail-closed for enabled profiles until supervised real-hardware daemon activation is implemented and target-tested.
+- **Reason:** The purchased ELUTENG/relay/PENGLIN design can switch USB fan power only. It cannot observe blade motion or program the physical three-speed selector. Keeping daemon activation target-gated prevents host adapter code from being mistaken for physical acceptance.
+- **Consequence:** Host tests now cover libgpiod request/write/release semantics with fakes and service fail-closed behavior on actuator write failure. Real Pi gpiochip mapping, relay polarity, boot/off behavior and fan cycles remain M10.7 gates.
