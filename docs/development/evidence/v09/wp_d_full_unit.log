@@ -1,0 +1,21 @@
+[RUNNING] code=APPLIANCE_START service=gonken-agent.service
+[READY] code=APPLIANCE_READY service=gonken-agent.service wake_phrase=Hey_Gonken reboot_required=false
+[OK] code=ACTIVATION_RECONCILED phase=post_verified commit=cccccccccccccccccccccccccccccccccccccccc
+[OK] code=ACTIVATION_RECONCILED phase=post_verified commit=cccccccccccccccccccccccccccccccccccccccc
+[OK] code=ACTIVATION_RECONCILED phase=post_verified commit=cccccccccccccccccccccccccccccccccccccccc
+[OK] code=ACTIVATION_COMPLETE commit=bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb previous=cccccccccccccccccccccccccccccccccccccccc
+[OK] code=ROLLBACK_COMPLETE commit=bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+[RUNNING] code=OLLAMA_MODEL_SMOKE model=qwen3.5:2b-q4_K_M think=false
+[OK] code=OLLAMA_MODEL_SMOKE model=qwen3.5:2b-q4_K_M eval_count=2
+[RUNNING] code=SPEECH_DOWNLOAD operation=fixture artifact=artifact resume_bytes=0 total=7
+[PROGRESS] code=SPEECH_DOWNLOAD operation=fixture artifact=artifact percent=100 downloaded=7 total=7
+[OK] code=UPDATE_COMPLETE commit=90d6eaf36f788661f6385e858df2be8a3542c951 previous=ae8acfc8a1b7077ec7de6fe1ecc4c065929deae5
+[OK] code=UPDATE_ALREADY_CURRENT commit=90d6eaf36f788661f6385e858df2be8a3542c951
+[OK] code=BLUETOOTH_AUDIO_STATUS state=connected output_nodes=1 input_nodes=0
+[FOUND] code=BLUETOOTH_DEVICE_KNOWN address=AA:BB:CC:DD:EE:FF name=Known Headset paired=true
+[OK] code=BLUETOOTH_AUTOCONNECT_MANAGED_UPGRADE path=/tmp/tmpcdizmrml/gonken-bluetooth-autoconnect.service
+[OK] code=BLUETOOTH_AUTOCONNECT_INSTALLED
+[RUNNING] code=BLUETOOTH_PAIR address=AA:BB:CC:DD:EE:FF name=Lab Headset
+[OK] code=BLUETOOTH_AUDIO_PAIRED address=AA:BB:CC:DD:EE:FF name=Lab Headset output=ready microphone=direct_audio_fallback_pending
+[RUNNING] code=BLUETOOTH_PAIR address=AA:BB:CC:DD:EE:FF name=Lab Headset
+[OK] code=BLUETOOTH_AUDIO_PAIRED address=AA:BB:CC:DD:EE:FF name=Lab Headset output=ready microphone=ready

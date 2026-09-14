@@ -969,3 +969,11 @@ transport checks are repeated.
 - **Decision:** The reproducible timeout in `test_every_download_extract_readiness_pull_and_smoke_boundary_recovers` is recorded as an existing integration-fixture/harness risk and does not block M10.4, because the controller core imports no Ollama, audio, systemd, I2C or GPIO code.
 - **Reason:** The isolated recheck left an `ollama_manager.py install-binary` process alive after the watchdog expired in this container.  Treating this as a controller failure would be false attribution; treating it as a PASS would be false-green.
 - **Consequence:** Broad integration/CI remains `NEEDS_MANUAL_REVIEW` until the lifecycle interruption fixture is repaired or bounded more narrowly.  M10.5 may proceed with targeted host tests while preserving this integration caveat.
+
+## D-092 — Establish bounded local environment IPC before CLI and voice integration
+
+- **Status:** Accepted
+- **Date:** 2026-09-15
+- **Decision:** M10.5 defines protocol v1 as bounded JSON over AF_UNIX with the allow-listed operations `status.get`, `sensor.read`, `health.get`, `fan.set`, `mode.set`, `policy.get`, `policy.update` and bounded non-destructive `probe.run`.  The first service path is host-fake and reports `physical_evidence=false`; it imports no `smbus`, `gpiod`, shell or model-runtime surface.
+- **Reason:** The V09 architecture requires one deterministic service boundary before CLI and voice can safely share behavior.  Implementing the client/server contract before hardware adapters prevents duplicated GPIO ownership and prevents the LLM or operator path from acquiring raw hardware authority.
+- **Consequence:** M10.6 must use this client boundary for CLI/voice/diagnostics integration.  M10.5 can pass host verification, but it cannot close any physical SHT31/relay/fan acceptance gate.

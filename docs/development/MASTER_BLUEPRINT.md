@@ -1450,3 +1450,7 @@ Run the physical SHT31, relay, PENGLIN USB switching, ELUTENG fan, voice, wake,
 latency, reboot/no-login, update/rollback and fault-injection campaign on the
 pinned Pi/hardware/config.  This is the first milestone allowed to close physical
 environment acceptance.
+
+## V09 implementation checkpoint 03 — local IPC foundation
+
+M10.5 has now implemented the host-verifiable local IPC foundation requested by the V09 blueprint: protocol v1, a host-fake service core, AF_UNIX server, client wrapper and unit tests. This is an implementation-status note, not a revision to the governing architecture. The hardware-owner rule remains unchanged: production SHT31 and relay access must later enter only behind the environment service boundary. Host-fake service evidence is explicitly not Raspberry Pi acceptance.
