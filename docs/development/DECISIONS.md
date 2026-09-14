@@ -1059,3 +1059,11 @@ transport checks are repeated.
 - **Decision:** The production relay adapter lives under `src/gonken_agent/environment/actuators/`, imports libgpiod only when opened, requests one configured line as output with inactive startup value, maps active-high/active-low semantics through line settings, exposes only power-control capability and performs safe-off on close. `gonken-agent env serve` remains fail-closed for enabled profiles until supervised real-hardware daemon activation is implemented and target-tested.
 - **Reason:** The purchased ELUTENG/relay/PENGLIN design can switch USB fan power only. It cannot observe blade motion or program the physical three-speed selector. Keeping daemon activation target-gated prevents host adapter code from being mistaken for physical acceptance.
 - **Consequence:** Host tests now cover libgpiod request/write/release semantics with fakes and service fail-closed behavior on actuator write failure. Real Pi gpiochip mapping, relay polarity, boot/off behavior and fan cycles remain M10.7 gates.
+
+## D-103 — Replace enabled-profile `env serve` fail-closed scaffold with a degraded daemon activation scaffold
+
+- **Status:** Accepted
+- **Date:** 2026-09-15
+- **Decision:** Once the SHT31 and libgpiod adapter modules exist, an explicitly enabled environment profile may construct `EnvironmentServiceCore` from validated static config, daemon-owned policy storage, `SHT31Sensor` and `GpiodRelayFanActuator`, then expose it through the bounded AF_UNIX server. Generic installs still keep `[extensions.environment].enabled=false`; `env serve --check` validates construction without starting a socket loop or toggling hardware; all daemon metadata keeps `physical_evidence=false` until M10.7 target acceptance.
+- **Reason:** The next dependency-ready step after adapter implementation is to prove the production daemon assembly path without reverting to host fakes or pretending that adapter construction proves physical SHT31/relay behavior.
+- **Consequence:** Enabled profiles can now start a structurally real daemon path that degrades truthfully when sensor or actuator operations fail. Physical readiness remains open: target I2C access, SHT31 CRC reads, Pi 5 gpiochip mapping, relay polarity, boot safe-off, fan cycles and reboot/no-login behavior must still be accepted on the actual Raspberry Pi.

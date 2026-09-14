@@ -88,6 +88,7 @@ class EnvironmentServiceCore:
         bounds: PolicyBounds,
         policy_store: PolicyStore | None = None,
         sensor_read: Callable[..., SensorReading] | None = None,
+        sensor_adapter: Any | None = None,
         fan_actuator: Any | None = None,
         now: Callable[[], float] = monotonic,
         identity: ServiceIdentity | None = None,
@@ -95,7 +96,13 @@ class EnvironmentServiceCore:
         self.controller = controller
         self.bounds = bounds
         self.policy_store = policy_store
-        self.sensor_read = sensor_read
+        self.sensor_adapter = sensor_adapter
+        if sensor_read is not None:
+            self.sensor_read = sensor_read
+        elif sensor_adapter is not None:
+            self.sensor_read = getattr(sensor_adapter, "read", None)
+        else:
+            self.sensor_read = None
         self.fan_actuator = fan_actuator
         self.now = now
         self.identity = ServiceIdentity() if identity is None else identity
@@ -103,6 +110,7 @@ class EnvironmentServiceCore:
         self._request_count = 0
         self._error_count = 0
         self._actuator_error_code: str | None = None
+        self._closed = False
 
     @classmethod
     def with_defaults(
@@ -111,6 +119,7 @@ class EnvironmentServiceCore:
         bounds: PolicyBounds | None = None,
         now: Callable[[], float] = monotonic,
         sensor_read: Callable[..., SensorReading] | None = None,
+        sensor_adapter: Any | None = None,
         fan_actuator: Any | None = None,
     ) -> "EnvironmentServiceCore":
         selected_bounds = PolicyBounds() if bounds is None else bounds
@@ -120,6 +129,7 @@ class EnvironmentServiceCore:
             controller=controller,
             bounds=selected_bounds,
             sensor_read=sensor_read,
+            sensor_adapter=sensor_adapter,
             fan_actuator=fan_actuator,
             now=now,
         )
@@ -314,6 +324,37 @@ class EnvironmentServiceCore:
     def _save_policy_if_configured(self) -> None:
         if self.policy_store is not None:
             self.policy_store.save(self.controller.policy)
+
+    def shutdown_safe_off(self) -> None:
+        """Best-effort safe OFF and adapter cleanup for daemon shutdown."""
+
+        with self._lock:
+            if self._closed:
+                return
+            now = float(self.now())
+            self.controller.shutdown(now_monotonic=now)
+            if self.fan_actuator is not None:
+                try:
+                    safe_off = getattr(self.fan_actuator, "safe_off", None)
+                    if callable(safe_off):
+                        safe_off()
+                except Exception:
+                    self._actuator_error_code = "ACTUATOR_UNAVAILABLE"
+                try:
+                    close = getattr(self.fan_actuator, "close", None)
+                    if callable(close):
+                        close()
+                except Exception:
+                    self._actuator_error_code = "ACTUATOR_UNAVAILABLE"
+            if self.sensor_adapter is not None:
+                try:
+                    close = getattr(self.sensor_adapter, "close", None)
+                    if callable(close):
+                        close()
+                except Exception:
+                    pass
+            self._closed = True
+
 
 
 def _reject_unknown_params(params: Mapping[str, Any], allowed: set[str]) -> None:
