@@ -5,6 +5,7 @@ import io
 import json
 import tempfile
 import unittest
+from pathlib import Path
 from unittest import mock
 
 from gonken_agent import cli
@@ -186,19 +187,29 @@ class EnvironmentCliTests(unittest.TestCase):
         self.assertFalse(payload["hardware_toggled"])
         self.assertFalse(payload["physical_evidence"])
 
-    def test_env_serve_enabled_fails_closed_until_hardware_daemon_is_accepted(self) -> None:
+    def test_env_serve_enabled_check_builds_without_hardware_evidence_or_socket_loop(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             site = f"{temporary}/site.toml"
+            policy = f"{temporary}/policy.json"
+            socket_path = f"{temporary}/control.sock"
             with open(site, "w", encoding="utf-8") as handle:
-                handle.write("[extensions.environment]\nenabled = true\n")
+                handle.write(
+                    "[extensions.environment]\n"
+                    "enabled = true\n"
+                    f"policy_path = \"{policy}\"\n"
+                    f"socket_path = \"{socket_path}\"\n"
+                )
             stdout = io.StringIO()
             stderr = io.StringIO()
             with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
-                result = cli.main(["env", "--json", "serve", "--site", site])
-        payload = json.loads(stderr.getvalue())
-        self.assertEqual(result, cli.EXIT_FAILED)
-        self.assertEqual(stdout.getvalue(), "")
-        self.assertEqual(payload["code"], "ENV_HARDWARE_DAEMON_NOT_ACCEPTED")
+                result = cli.main(["env", "serve", "--site", site, "--check", "--json"])
+        payload = json.loads(stdout.getvalue())
+        self.assertEqual(result, 0, stderr.getvalue())
+        self.assertEqual(payload["code"], "ENVIRONMENT_DAEMON_CONFIG_OK")
+        self.assertTrue(payload["enabled"])
+        self.assertFalse(payload["hardware_toggled"])
+        self.assertFalse(payload["physical_evidence"])
+        self.assertFalse(Path(socket_path).exists())
 
     def test_status_json_uses_ipc_client_and_reports_no_physical_evidence(self) -> None:
         result, stdout, stderr, client = self.run_cli(["status", "--json"])

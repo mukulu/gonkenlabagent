@@ -20,6 +20,7 @@ from .responses import environment_error_response, environment_success_response
 from .protocol import EnvironmentRequest, EnvironmentResponse, ProtocolError
 from .server import EnvironmentUnixServer
 from .service import EnvironmentServiceCore, EnvironmentServiceError, ScriptedSensorSource, ServiceIdentity
+from .daemon import EnvironmentDaemon, EnvironmentDaemonError, build_environment_service_core, build_environment_unix_server, policy_bounds_from_config
 from .policy import EnvironmentPolicy, PolicyError, PolicyStore
 from .sensors import EnvironmentSensor, SHT31Sensor, SensorAdapterError, crc8, decode_sht31_frame
 from .actuators import ActuatorAdapterError, FanActuator, GpiodRelayFanActuator
@@ -36,6 +37,8 @@ __all__ = [
     "EnvironmentResponse",
     "EnvironmentServiceCore",
     "EnvironmentServiceError",
+    "EnvironmentDaemon",
+    "EnvironmentDaemonError",
     "EnvironmentSensor",
     "EnvironmentUnixServer",
     "environment_error_response",
@@ -50,6 +53,9 @@ __all__ = [
     "FanActuator",
     "GpiodRelayFanActuator",
     "PolicyBounds",
+    "build_environment_service_core",
+    "build_environment_unix_server",
+    "policy_bounds_from_config",
     "PolicyError",
     "PolicyStore",
     "SHT31Sensor",

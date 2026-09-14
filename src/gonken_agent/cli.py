@@ -313,6 +313,12 @@ def _add_environment_commands(subparsers: argparse._SubParsersAction[argparse.Ar
         "--site", type=Path, help="site TOML (default: /etc/gonken-agent/config.toml)"
     )
     serve.add_argument("--no-site", action="store_true")
+    serve.add_argument(
+        "--check",
+        action="store_true",
+        help=argparse.SUPPRESS,
+    )
+    _add_env_json_flag(serve)
 
     for name, help_text in (
         ("status", "show environment state and capability boundary"),
@@ -444,15 +450,38 @@ def _run_environment_daemon(args: argparse.Namespace) -> int:
             print("[OK] code=ENVIRONMENT_DISABLED enabled=false hardware_toggled=false")
         return 0
 
-    # M10.6 now contains production adapter modules, but the supervised daemon
-    # activation path remains target-gated until the service can initialize those
-    # adapters on the real Pi and record HIL evidence.  An enabled profile must
-    # fail closed rather than run a host-fake or partially accepted actuator.
-    return _environment_error(
-        "ENV_HARDWARE_DAEMON_NOT_ACCEPTED",
-        "environment hardware adapters are present, but supervised hardware-daemon activation remains target-gated in this checkpoint",
-        getattr(args, "as_json", False),
-    )
+    try:
+        from .environment import EnvironmentDaemonError, build_environment_service_core, build_environment_unix_server
+        if getattr(args, "check", False):
+            core = build_environment_service_core(env)
+            payload = {
+                "status": "READY",
+                "code": "ENVIRONMENT_DAEMON_CONFIG_OK",
+                "enabled": True,
+                "socket_path": env.socket_path,
+                "policy_path": env.policy_path,
+                "physical_evidence": False,
+                "hardware_toggled": False,
+                "daemon": core.daemon_metadata(),
+            }
+            core.shutdown_safe_off()
+            if getattr(args, "as_json", False):
+                print(json.dumps(payload, sort_keys=True))
+            else:
+                print("[OK] code=ENVIRONMENT_DAEMON_CONFIG_OK enabled=true hardware_toggled=false physical_evidence=false")
+            return 0
+        server = build_environment_unix_server(env)
+        try:
+            server.serve_forever()
+        finally:
+            server.server_close()
+        return 0
+    except KeyboardInterrupt:
+        return 0
+    except EnvironmentDaemonError as exc:
+        return _environment_error(str(exc.code), _environment_public_message(exc), getattr(args, "as_json", False))
+    except Exception as exc:
+        return _environment_error("ENV_DAEMON_FAILED", type(exc).__name__, getattr(args, "as_json", False))
 
 def _environment_client_from_args(args: argparse.Namespace):
     socket_path = args.socket

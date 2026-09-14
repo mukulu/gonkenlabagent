@@ -965,3 +965,14 @@ M10.6 remains **host-partial**, not final. The voice route now parses clear envi
 | M10.6-T023 | Static gates in `docs/development/evidence/v09/wp_i_static_gates.log` | PASS | Dependency lock rendering, milestone drift, release-readiness allow-dirty, Bash syntax, Python compileall, TOML/JSON parsing and `git diff --check` all passed. |
 
 M10.6 remains **host-partial**, not final. Production adapter modules now exist and are host-verified behind injected fakes, but `env serve` still fails closed for enabled profiles until real hardware-daemon activation is implemented and physically accepted. M10.7 remains required for I2C, SHT31, libgpiod, relay, PENGLIN, ELUTENG, reboot/no-login and voice/wake target evidence.
+
+## V09 environment-daemon activation scaffold evidence — 2026-09-15
+
+| ID | Command / artifact | Result | Evidence boundary |
+|---|---|---|---|
+| M10.6-T024 | `PYTHONPATH=src python3 -m unittest -v tests.unit.test_v09_environment_daemon_activation tests.unit.test_v09_environment_cli tests.unit.test_v09_environment_ipc tests.unit.test_v09_environment_hardware_adapters` | PASS, 34/34 | Host-only tests for config-to-daemon assembly, policy creation/corrupt-policy refusal, AF_UNIX server construction, shutdown safe-off cleanup, `env serve --check`, and regressions for CLI/IPC/adapters. Uses fake sensor/actuator objects and does not touch real I2C/GPIO. |
+| M10.6-T025 | `PYTHONPATH=src python3 -m unittest discover -s tests/unit -t . -v` | PASS, 311/311 | Full host unit suite after daemon activation scaffold. Unit evidence only; broad CI and real Pi acceptance remain open. |
+| M10.6-T026 | Static gates in `docs/development/evidence/v09/wp_j_static_gates.log` | PASS | Dependency lock rendering, release-readiness allow-dirty, Bash syntax, Python compileall, TOML/JSON parsing and `git diff --check` passed. Milestone drift is checked again after this ledger update. |
+| M10.6-T027 | `PYTHONPATH=src timeout 120 python3 -m unittest -v tests.integration.test_cli_process tests.integration.test_text_runtime_process` | PASS, 14/14 | Targeted deterministic integration subset for CLI and text/dashboard non-regression. Excludes the known broad Ollama lifecycle interruption fixture and proves no physical hardware behavior. |
+
+M10.6 remains **host-partial**, not final. The daemon can now be constructed from config/policy/adapters and served over AF_UNIX when the static profile is enabled, but the environment service still lacks a fully accepted autonomous target polling campaign and target-grounded operating documentation. M10.7 remains required for every Raspberry Pi, SHT31, relay, PENGLIN, ELUTENG, reboot/no-login and wake/voice physical acceptance claim.

@@ -59,13 +59,18 @@ class EnvironmentUnixServer(socketserver.ThreadingMixIn, socketserver.UnixStream
 
     def server_close(self) -> None:
         try:
-            super().server_close()
+            shutdown = getattr(self.core, "shutdown_safe_off", None)
+            if callable(shutdown):
+                shutdown()
         finally:
             try:
-                if self.socket_path.exists() and _is_socket(self.socket_path):
-                    self.socket_path.unlink()
-            except OSError:
-                pass
+                super().server_close()
+            finally:
+                try:
+                    if self.socket_path.exists() and _is_socket(self.socket_path):
+                        self.socket_path.unlink()
+                except OSError:
+                    pass
 
 
 def _prepare_socket_path(path: Path) -> None:
