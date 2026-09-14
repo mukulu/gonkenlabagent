@@ -1,0 +1,30 @@
+[Unit]
+Description=GonKenLab room environment controller
+Documentation=man:systemd.service(5)
+After=local-fs.target
+ConditionPathIsDirectory=/usr/local/lib/gonken-agent/current
+StartLimitIntervalSec=60
+StartLimitBurst=3
+
+[Service]
+Type=exec
+User=gonken-env
+Group=gonken-env
+WorkingDirectory=/usr/local/lib/gonken-agent/current
+EnvironmentFile=-/etc/gonken-agent/environment
+ExecStart=/usr/local/lib/gonken-agent/current/.venv/bin/gonken-agent env serve
+Restart=on-failure
+RestartSec=3
+TimeoutStopSec=10
+UMask=0007
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=read-only
+ProtectSystem=strict
+ReadWritePaths=/var/lib/gonken-environment /var/cache/gonken-environment /run/gonken-environment
+RestrictAddressFamilies=AF_UNIX
+CapabilityBoundingSet=
+PrivateDevices=false
+
+[Install]
+WantedBy=multi-user.target

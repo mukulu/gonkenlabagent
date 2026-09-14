@@ -1,0 +1,6 @@
+test_build_activate_repeat_and_default_boundary (tests.integration.test_release_lifecycle_process.EndToEndReleaseTests.test_build_activate_repeat_and_default_boundary) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 26.626s
+
+OK

@@ -303,6 +303,16 @@ def _add_environment_commands(subparsers: argparse._SubParsersAction[argparse.Ar
     )
     env_commands = env_parser.add_subparsers(dest="env_command", required=True)
 
+    serve = env_commands.add_parser(
+        "serve",
+        help=argparse.SUPPRESS,
+        description="run the room-environment daemon when the static hardware profile is enabled",
+    )
+    serve.add_argument(
+        "--site", type=Path, help="site TOML (default: /etc/gonken-agent/config.toml)"
+    )
+    serve.add_argument("--no-site", action="store_true")
+
     for name, help_text in (
         ("status", "show environment state and capability boundary"),
         ("health", "show environment service health"),
@@ -342,6 +352,8 @@ def _add_environment_commands(subparsers: argparse._SubParsersAction[argparse.Ar
 
 
 def _execute_environment_command(args: argparse.Namespace) -> int:
+    if args.env_command == "serve":
+        return _run_environment_daemon(args)
     try:
         client = _environment_client_from_args(args)
         payload = _call_environment_command(client, args)
@@ -361,6 +373,47 @@ def _execute_environment_command(args: argparse.Namespace) -> int:
         _print_environment_payload(args, payload)
     return 0
 
+
+
+def _run_environment_daemon(args: argparse.Namespace) -> int:
+    try:
+        if getattr(args, "site", None) is not None and getattr(args, "no_site", False):
+            raise ConfigError("--site and --no-site cannot be combined")
+        if getattr(args, "no_site", False):
+            effective = load_config(site_path=None)
+        elif getattr(args, "site", None) is not None:
+            effective = load_config(site_path=args.site)
+        else:
+            effective = load_config()
+        env = effective.config.extensions.environment
+    except ConfigError as exc:
+        return _environment_error("ENV_CONFIG_FAILED", _environment_public_message(exc), getattr(args, "as_json", False))
+
+    if not env.enabled:
+        payload = {
+            "status": "DISABLED",
+            "code": "ENVIRONMENT_DISABLED",
+            "enabled": False,
+            "socket_path": env.socket_path,
+            "policy_path": env.policy_path,
+            "physical_evidence": False,
+            "hardware_toggled": False,
+        }
+        if getattr(args, "as_json", False):
+            print(json.dumps(payload, sort_keys=True))
+        else:
+            print("[OK] code=ENVIRONMENT_DISABLED enabled=false hardware_toggled=false")
+        return 0
+
+    # M10.6 installs the supervised boundary and keeps feature enablement
+    # explicit. Production SHT31/libgpiod adapters arrive in a later tranche;
+    # until then an enabled profile must fail closed rather than run a fake
+    # hardware backend under systemd.
+    return _environment_error(
+        "ENV_HARDWARE_BACKEND_NOT_IMPLEMENTED",
+        "environment service wiring is installed, but production SHT31/libgpiod adapters are not implemented in this checkpoint",
+        getattr(args, "as_json", False),
+    )
 
 def _environment_client_from_args(args: argparse.Namespace):
     socket_path = args.socket

@@ -1,8 +1,8 @@
 [Unit]
 Description=GonKenLab Agent headless offline assistant
 Documentation=man:systemd.service(5)
-Wants=ollama.service
-After=network-online.target ollama.service
+Wants=ollama.service gonken-environment.service
+After=network-online.target ollama.service gonken-environment.service
 ConditionPathIsDirectory=/usr/local/lib/gonken-agent/current
 StartLimitIntervalSec=60
 StartLimitBurst=3

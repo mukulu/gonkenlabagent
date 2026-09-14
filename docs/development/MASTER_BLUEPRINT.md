@@ -1467,3 +1467,11 @@ This checkpoint does not complete M10.6.  Voice-domain intents, installer/system
 M10.6 now also includes host-verifiable diagnostics/support/dashboard environment visibility.  Startup snapshots, `doctor`, support bundles and the read-only dashboard can report the environment static configuration boundary, configured I2C/relay fields, service/socket visibility, read-only daemon health where available, and explicit capability flags.  These surfaces remain non-destructive: they do not scan arbitrary I2C devices, toggle relays, open GPIO lines, mutate policy, or claim physical acceptance.
 
 This checkpoint still does not complete M10.6.  Installer/systemd provisioning, deterministic voice-domain intents, watch-mode/operator documentation and production SHT31/libgpiod adapters remain subsequent dependency-ready work.  M10.7 remains the first milestone eligible to claim physical SHT31/relay/fan/Raspberry Pi acceptance.
+
+## V09 implementation checkpoint 06 — environment service installer/systemd wiring
+
+M10.6 now includes host-verifiable installer and systemd scaffolding for the separate room-environment controller.  The release payload contains `environment_service_manager.py`, `gonken-environment.service` and `gonken-environment.conf`; target installation provisions the non-login `gonken-env` owner, the `gonken-envctl` control-socket client group, runtime/state/cache tmpfiles and an exact managed unit.  The voice service has only a soft `Wants`/`After` relationship with `gonken-environment.service`; it never `Requires` it.
+
+The structural service remains disabled by default for generic upgrades and the hidden `gonken-agent env serve` entry point fails closed when the static environment profile is enabled before production SHT31/libgpiod adapters exist.  This checkpoint therefore verifies provisioning boundaries, release inclusion, service-file conflict refusal and uninstall retention/purge behavior, but it does not claim systemd target execution, hardware detection or physical fan acceptance.
+
+M10.6 still remains partial.  Deterministic voice-domain intents, watch-mode/operator documentation and production SHT31/libgpiod hardware adapters remain subsequent dependency-ready work.  M10.7 remains the first milestone eligible to claim physical SHT31/relay/fan/Raspberry Pi acceptance.

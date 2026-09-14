@@ -1,0 +1,8 @@
+[static] bash syntax
+[static] compileall
+[static] toml parse
+toml_ok
+[static] json parse
+[static] milestone status check
+[static] git diff check
+[static] PASS

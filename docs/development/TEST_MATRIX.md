@@ -929,3 +929,17 @@ M10.6 is **host-partial**, not complete. This checkpoint verifies the first oper
 | M10.6-T009 | `timeout -k 5s 120s bash scripts/ci.sh` | INTERRUPTED | Broad CI bounded attempt reached `test_every_download_extract_readiness_pull_and_smoke_boundary_recovers` and was interrupted/cleaned up. This is not a PASS and not attributed to the environment observability change. |
 
 M10.6 remains **host-partial**, not complete. Diagnostics/support/dashboard now expose environment status without destructive hardware probing. Remaining M10.6 work includes installer/systemd environment-unit wiring, deterministic voice intents, watch-mode/operator documentation and production hardware-adapter integration. Real Raspberry Pi acceptance remains **not-run**.
+
+## V09 environment service installer/systemd evidence — 2026-09-15
+
+| ID | Command / artifact | Result | Evidence boundary |
+|---|---|---|---|
+| M10.6-T010 | `PYTHONPATH=src python3 -m unittest -v tests.unit.test_v09_environment_service_manager tests.unit.test_v09_environment_cli tests.unit.test_m6_service_manager tests.unit.test_m3_3_release_manager tests.unit.test_m8_uninstall_manager tests.integration.test_uninstall_lifecycle_process` | PASS, 41/41 | Host-only tests for service-manager structure, disabled autostart, release payload inclusion, uninstall retention/purge handling, soft voice dependency and `env serve` fail-closed behavior. No real systemd, I2C, GPIO, relay or fan evidence. |
+| M10.6-T011 | `PYTHONPATH=src python3 -m unittest discover -s tests/unit -v` | PASS, 285/285 | Full host unit suite after installer/systemd changes. Unit evidence only; no physical Pi evidence. |
+| M10.6-T012 | Static gates in `docs/development/evidence/v09/wp_g_static_gates.log` | PASS | Bash syntax, Python compileall, TOML/JSON parse, milestone-status check and `git diff --check` passed for this checkpoint. |
+| M10.6-T013 | Isolated `tests.integration.test_release_lifecycle_process.EndToEndReleaseTests.test_build_activate_repeat_and_default_boundary` | PASS, 1/1 | Confirms the release lifecycle still builds/activates after adding environment maintenance payloads. Isolated because the combined integration run exceeded the bounded container window. |
+| M10.6-T014 | `PYTHONPATH=src python3 -m unittest -v tests.integration.test_uninstall_lifecycle_process` | PASS, 2/2 | Confirms uninstall wrapper removes managed environment service files while retaining environment data by default. Host fake system root only. |
+| M10.6-T016 | Targeted install/release integration subset in `docs/development/evidence/v09/wp_g_integration_subset.log` | INTERRUPTED | The subset advanced through install-engine tests and reached the release E2E default-boundary test before interruption; the release E2E was then rerun alone and passed as M10.6-T013. |
+| M10.6-T015 | `timeout --preserve-status 180s ./scripts/ci.sh` | INTERRUPTED | Broad CI attempt completed the unit phase and entered deterministic integration before the container/watchdog interruption. The isolated release E2E and uninstall integration checks above passed; full broad CI is not claimed PASS. |
+
+M10.6 remains **host-partial**, not complete. The installer/systemd tranche installs only structural boundaries and keeps generic upgrades disabled-by-default for environment actuation. Remaining M10.6 work includes deterministic voice intents, watch-mode/operator documentation and production SHT31/libgpiod hardware-adapter integration. Real Raspberry Pi acceptance remains **not-run**.

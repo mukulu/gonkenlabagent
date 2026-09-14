@@ -12,6 +12,8 @@ ROOT = Path(__file__).resolve().parents[2]
 MANAGER = ROOT / "scripts/uninstall_manager.py"
 UNIT = ROOT / "packaging/systemd/gonken-agent.service"
 TMPFILES = ROOT / "packaging/tmpfiles/gonken-agent.conf"
+ENV_UNIT = ROOT / "packaging/systemd/gonken-environment.service"
+ENV_TMPFILES = ROOT / "packaging/tmpfiles/gonken-environment.conf"
 
 
 class UninstallFixture:
@@ -29,11 +31,15 @@ class UninstallFixture:
         self.unit = self.system_root / "etc/systemd/system/gonken-agent.service"
         self.tmpfiles = self.system_root / "etc/tmpfiles.d/gonken-agent.conf"
         self.runtime_env = self.system_root / "etc/gonken-agent/runtime-environment"
+        self.environment_unit = self.system_root / "etc/systemd/system/gonken-environment.service"
+        self.environment_tmpfiles = self.system_root / "etc/tmpfiles.d/gonken-environment.conf"
         self.release = self.system_root / "usr/local/lib/gonken-agent"
         self.entrypoint = self.system_root / "usr/local/bin/gonken-agent"
         self.state = self.system_root / "var/lib/gonken-agent"
         self.cache = self.system_root / "var/cache/gonken-agent"
         self.corpus = self.system_root / "srv/gonken-agent"
+        self.environment_state = self.system_root / "var/lib/gonken-environment"
+        self.environment_cache = self.system_root / "var/cache/gonken-environment"
         self.ollama_unit = self.system_root / "etc/systemd/system/ollama.service"
 
     def populate(self) -> None:
@@ -46,12 +52,16 @@ class UninstallFixture:
             "XDG_RUNTIME_DIR=/run/user/999\nDBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/999/bus\n",
             encoding="utf-8",
         )
+        self.environment_unit.write_bytes(ENV_UNIT.read_bytes())
+        self.environment_tmpfiles.write_bytes(ENV_TMPFILES.read_bytes())
         (self.release / "releases" / ("a" * 40)).mkdir(parents=True)
         (self.system_root / "usr/local/bin").mkdir(parents=True, exist_ok=True)
         self.entrypoint.symlink_to("../lib/gonken-agent/current/.venv/bin/gonken-agent")
         (self.state / "install").mkdir(parents=True)
         (self.cache / "downloads").mkdir(parents=True)
         (self.corpus / "corpus").mkdir(parents=True)
+        (self.environment_state / "policy").mkdir(parents=True)
+        (self.environment_cache / "runtime").mkdir(parents=True)
         self.ollama_unit.parent.mkdir(parents=True, exist_ok=True)
         self.ollama_unit.write_text("[Unit]\nDescription=Ollama shared fixture\n", encoding="utf-8")
 
@@ -69,6 +79,10 @@ class UninstallFixture:
                 str(UNIT),
                 "--tmpfiles-template",
                 str(TMPFILES),
+                "--environment-unit-template",
+                str(ENV_UNIT),
+                "--environment-tmpfiles-template",
+                str(ENV_TMPFILES),
                 "--systemctl",
                 str(self.systemctl),
                 *extra,
@@ -97,15 +111,21 @@ class UninstallManagerTests(unittest.TestCase):
         self.assertFalse(fixture.unit.exists())
         self.assertFalse(fixture.tmpfiles.exists())
         self.assertFalse(fixture.runtime_env.exists())
+        self.assertFalse(fixture.environment_unit.exists())
+        self.assertFalse(fixture.environment_tmpfiles.exists())
         self.assertFalse(fixture.entrypoint.exists())
         self.assertFalse(fixture.release.exists())
         self.assertTrue(fixture.state.exists())
         self.assertTrue(fixture.cache.exists())
         self.assertTrue(fixture.corpus.exists())
+        self.assertTrue(fixture.environment_state.exists())
+        self.assertTrue(fixture.environment_cache.exists())
         self.assertTrue(fixture.ollama_unit.exists())
         log = fixture.systemctl_log.read_text(encoding="utf-8")
         self.assertIn("stop gonken-agent.service", log)
         self.assertIn("disable gonken-agent.service", log)
+        self.assertIn("stop gonken-environment.service", log)
+        self.assertIn("disable gonken-environment.service", log)
         self.assertIn("daemon-reload", log)
 
         repeat = fixture.run()
@@ -125,6 +145,8 @@ class UninstallManagerTests(unittest.TestCase):
         self.assertFalse(fixture.state.exists())
         self.assertFalse(fixture.cache.exists())
         self.assertFalse(fixture.corpus.exists())
+        self.assertFalse(fixture.environment_state.exists())
+        self.assertFalse(fixture.environment_cache.exists())
         self.assertTrue(fixture.ollama_unit.exists())
 
     def test_modified_service_or_entrypoint_fails_before_mutation(self) -> None:

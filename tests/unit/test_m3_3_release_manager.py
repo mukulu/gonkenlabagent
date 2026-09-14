@@ -190,6 +190,7 @@ class IntegrityAndPrivilegeTests(unittest.TestCase):
             '"speech_manager.py"',
             '"install_summary.py"',
             '"service_manager.py"',
+            '"environment_service_manager.py"',
             '"update.sh"',
             '"update_manager.py"',
             '"collect-support.sh"',
@@ -198,12 +199,16 @@ class IntegrityAndPrivilegeTests(unittest.TestCase):
             '"uninstall_manager.py"',
             '"speech-artifacts.toml"',
             '"gonken-agent.service"',
+            '"gonken-environment.service"',
             '"packaging" / "tmpfiles" / "gonken-agent.conf"',
+            '"packaging" / "tmpfiles" / "gonken-environment.conf"',
             '"piper-pi-trixie-py313.lock"',
         ):
             self.assertIn(expected, manager)
         self.assertIn("gonken_speech_manager", installer)
         self.assertIn("gonken_service_manager", installer)
+        self.assertIn("gonken_environment_service_manager", installer)
+        self.assertIn("environment_service", installer)
         self.assertIn("--speech-only", installer)
         self.assertIn("M3_5_SPEECH_COMPLETE", installer)
         self.assertIn("M3_6_INSTALL_SUMMARY", installer)

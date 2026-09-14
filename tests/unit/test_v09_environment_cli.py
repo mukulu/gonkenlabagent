@@ -3,6 +3,7 @@ from __future__ import annotations
 import contextlib
 import io
 import json
+import tempfile
 import unittest
 from unittest import mock
 
@@ -171,6 +172,33 @@ class EnvironmentCliTests(unittest.TestCase):
             with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
                 result = cli.main(["env", "--socket", "/tmp/gonken-env.sock", *arguments])
         return result, stdout.getvalue(), stderr.getvalue(), client
+
+
+    def test_env_serve_disabled_exits_without_fake_hardware(self) -> None:
+        stdout = io.StringIO()
+        stderr = io.StringIO()
+        with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
+            result = cli.main(["env", "--json", "serve", "--no-site"])
+        payload = json.loads(stdout.getvalue())
+        self.assertEqual(result, 0, stderr.getvalue())
+        self.assertEqual(payload["code"], "ENVIRONMENT_DISABLED")
+        self.assertFalse(payload["enabled"])
+        self.assertFalse(payload["hardware_toggled"])
+        self.assertFalse(payload["physical_evidence"])
+
+    def test_env_serve_enabled_fails_closed_until_hardware_backend_exists(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            site = f"{temporary}/site.toml"
+            with open(site, "w", encoding="utf-8") as handle:
+                handle.write("[extensions.environment]\nenabled = true\n")
+            stdout = io.StringIO()
+            stderr = io.StringIO()
+            with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
+                result = cli.main(["env", "--json", "serve", "--site", site])
+        payload = json.loads(stderr.getvalue())
+        self.assertEqual(result, cli.EXIT_FAILED)
+        self.assertEqual(stdout.getvalue(), "")
+        self.assertEqual(payload["code"], "ENV_HARDWARE_BACKEND_NOT_IMPLEMENTED")
 
     def test_status_json_uses_ipc_client_and_reports_no_physical_evidence(self) -> None:
         result, stdout, stderr, client = self.run_cli(["status", "--json"])

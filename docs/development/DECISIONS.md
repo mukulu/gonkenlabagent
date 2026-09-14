@@ -1002,3 +1002,27 @@ transport checks are repeated.
 - **Decision:** Diagnostics, `doctor`, support bundles and the read-only dashboard may report environment static configuration, path/socket presence, service status, read-only daemon health and capability flags, but routine observability must not toggle the relay, scan arbitrary I2C devices, open GPIO lines, mutate policy, or imply physical acceptance.
 - **Reason:** The V09 blueprint requires useful support evidence while preventing false-green hardware claims and avoiding unsafe ordinary diagnostic behavior.
 - **Consequence:** Environment observability can explain disabled/unavailable/degraded state and preserve `physical_evidence=false`; production hardware proof remains M10.7 HIL work.
+
+## D-096 — Install the environment service structurally but keep autostart disabled by default
+
+- **Status:** Accepted
+- **Date:** 2026-09-15
+- **Decision:** The V09 installer/release payload now carries `gonken-environment.service`, its tmpfiles contract and `environment_service_manager.py`, but the manager deliberately does not enable or start the service during generic installation or upgrade.
+- **Reason:** The V09 blueprint requires a separate environment service boundary, while the static hardware profile and physical HIL acceptance remain unfinished. Starting a supervised hardware service by default before SHT31/libgpiod adapters and target wiring are accepted would create a false actuation/acceptance path.
+- **Consequence:** Host tests can verify exact managed service files, tmpfiles, release inclusion and conflict refusal. Real systemd startup, I2C/GPIO groups, relay safety and fan behavior remain target gates.
+
+## D-097 — Use `gonken-env` for hardware ownership and `gonken-envctl` for client access
+
+- **Status:** Accepted
+- **Date:** 2026-09-15
+- **Decision:** Target installation provisions a non-login `gonken-env` account as the future environment hardware owner and a separate `gonken-envctl` group for AF_UNIX control-socket clients; `gonken-agent` joins only the client group.
+- **Reason:** Voice must be able to ask the deterministic environment daemon for authorized actions without receiving raw environment I2C/GPIO privileges. This preserves one authoritative owner of physical environment state.
+- **Consequence:** Production hardware adapter work must grant device access to `gonken-env`, not to the voice account. CLI/voice actions remain client operations and cannot bypass daemon validation.
+
+## D-098 — Fail closed when `env serve` is enabled before production hardware adapters exist
+
+- **Status:** Accepted
+- **Date:** 2026-09-15
+- **Decision:** The hidden `gonken-agent env serve` systemd entry point exits harmlessly when `[extensions.environment].enabled=false`, and returns an explicit `ENV_HARDWARE_BACKEND_NOT_IMPLEMENTED` failure if the static environment profile is enabled before production SHT31/libgpiod adapters are implemented.
+- **Reason:** Running the host-fake service under systemd would make the appliance appear physically ready while no SHT31 or relay boundary has been implemented or accepted.
+- **Consequence:** Checkpoint 06 can verify service installation and fail-closed behavior without creating a fake hardware daemon. Later hardware-adapter work must replace the fail-closed path with a target-tested daemon only after SHT31/relay code and HIL evidence exist.
