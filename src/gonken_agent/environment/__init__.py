@@ -21,6 +21,8 @@ from .protocol import EnvironmentRequest, EnvironmentResponse, ProtocolError
 from .server import EnvironmentUnixServer
 from .service import EnvironmentServiceCore, EnvironmentServiceError, ScriptedSensorSource, ServiceIdentity
 from .policy import EnvironmentPolicy, PolicyError, PolicyStore
+from .sensors import EnvironmentSensor, SHT31Sensor, SensorAdapterError, crc8, decode_sht31_frame
+from .actuators import ActuatorAdapterError, FanActuator, GpiodRelayFanActuator
 
 __all__ = [
     "ControllerError",
@@ -34,6 +36,7 @@ __all__ = [
     "EnvironmentResponse",
     "EnvironmentServiceCore",
     "EnvironmentServiceError",
+    "EnvironmentSensor",
     "EnvironmentUnixServer",
     "environment_error_response",
     "environment_success_response",
@@ -44,11 +47,18 @@ __all__ = [
     "EnvironmentPolicy",
     "FanCapability",
     "FanPower",
+    "FanActuator",
+    "GpiodRelayFanActuator",
     "PolicyBounds",
     "PolicyError",
     "PolicyStore",
+    "SHT31Sensor",
+    "SensorAdapterError",
     "SensorQuality",
     "SensorReading",
     "TransitionReason",
+    "ActuatorAdapterError",
+    "crc8",
+    "decode_sht31_frame",
     "parse_environment_intent",
 ]

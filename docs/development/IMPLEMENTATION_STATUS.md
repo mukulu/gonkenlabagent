@@ -45,7 +45,7 @@ Checkpoint scope: **V09 environment-control foundation from FIX7 checkpoint**
 | M10.3 — Environment domain and mutable policy foundation | host-verified | not-run | src/gonken_agent/environment/domain.py; src/gonken_agent/environment/policy.py; tests/unit/test_v09_environment_policy.py; docs/development/evidence/v09/wp_b_config_policy_tests_rerun.log Pure host tests cover domain/policy contracts only. Controller, IPC, CLI, voice, installer, diagnostics and physical HIL remain open. |
 | M10.4 — Deterministic controller core | host-verified | not-run | src/gonken_agent/environment/controller.py; tests/unit/test_v09_environment_controller.py; docs/development/evidence/v09/wp_c_controller_affected_tests.log; docs/development/evidence/v09/wp_c_full_unit.log Host validation covers pure deterministic controller semantics only: MANUAL, SEMI_AUTOMATIC, AUTOMATIC, DISABLED, dwell, hysteresis, median valid samples, staleness safe-off, recovery and policy-update stop behavior. No hardware adapter, daemon, IPC, CLI, voice, installer or physical Pi actuation is implemented yet. |
 | M10.5 — Local environment service and IPC | host-verified | not-run | src/gonken_agent/environment/protocol.py; src/gonken_agent/environment/service.py; src/gonken_agent/environment/server.py; src/gonken_agent/environment/client.py; tests/unit/test_v09_environment_ipc.py; docs/development/evidence/v09/wp_d_ipc_affected_tests.log; docs/development/evidence/v09/wp_d_full_unit.log; docs/development/evidence/v09/wp_d_static_gates.log Host validation covers bounded JSON protocol validation, host-fake service core, AF_UNIX server/client, socket mode, closed operation parameters, client error propagation and no hardware/shell imports. It does not implement production SHT31/libgpiod adapters, systemd unit installation, CLI command, voice action, dashboard, or real Pi actuation. |
-| M10.6 — CLI, voice, installer, diagnostics and documentation integration | partial | not-run | src/gonken_agent/cli.py; src/gonken_agent/diagnostics.py; src/gonken_agent/health.py; src/gonken_agent/operations.py; src/gonken_agent/support.py; src/gonken_agent/dashboard.py; src/gonken_agent/voice_runtime.py; src/gonken_agent/environment/intents.py; src/gonken_agent/environment/responses.py; scripts/environment_service_manager.py; scripts/install.sh; scripts/release_manager.py; scripts/service_manager.py; scripts/uninstall.sh; scripts/uninstall_manager.py; packaging/systemd/gonken-environment.service; packaging/tmpfiles/gonken-environment.conf; tests/unit/test_v09_environment_cli.py; tests/unit/test_v09_environment_voice_intents.py; tests/unit/test_v09_environment_service_manager.py; tests/unit/test_diagnostics_snapshot.py; tests/unit/test_support_export.py; tests/unit/test_grounding_observability.py; tests/integration/test_cli_process.py; tests/integration/test_text_runtime_process.py; tests/integration/test_uninstall_lifecycle_process.py; docs/OPERATIONS.md; docs/development/evidence/v09/wp_e_cli_affected_tests.log; docs/development/evidence/v09/wp_f_observability_affected_tests.log; docs/development/evidence/v09/wp_g_installer_systemd_affected_tests.log; docs/development/evidence/v09/wp_h_voice_watch_affected_tests.log; docs/development/evidence/v09/wp_h_full_unit.log; docs/development/evidence/v09/wp_h_integration_subset.log; docs/development/evidence/v09/wp_h_static_gates.log CLI, watch mode, deterministic voice intents, result-derived spoken responses, diagnostics/support/dashboard and installer/systemd environment-service wiring are host-verified through the shared environment client, observability and structural service boundaries. M10.6 remains partial: production SHT31/libgpiod hardware adapters and target operator documentation based on physical evidence remain. Real Pi evidence remains open. |
+| M10.6 — CLI, voice, installer, diagnostics and documentation integration | partial | not-run | src/gonken_agent/cli.py; src/gonken_agent/diagnostics.py; src/gonken_agent/health.py; src/gonken_agent/operations.py; src/gonken_agent/support.py; src/gonken_agent/dashboard.py; src/gonken_agent/voice_runtime.py; src/gonken_agent/environment/intents.py; src/gonken_agent/environment/responses.py; scripts/environment_service_manager.py; scripts/install.sh; scripts/release_manager.py; scripts/service_manager.py; scripts/uninstall.sh; scripts/uninstall_manager.py; packaging/systemd/gonken-environment.service; packaging/tmpfiles/gonken-environment.conf; tests/unit/test_v09_environment_cli.py; tests/unit/test_v09_environment_voice_intents.py; tests/unit/test_v09_environment_service_manager.py; tests/unit/test_diagnostics_snapshot.py; tests/unit/test_support_export.py; tests/unit/test_grounding_observability.py; tests/integration/test_cli_process.py; tests/integration/test_text_runtime_process.py; tests/integration/test_uninstall_lifecycle_process.py; docs/OPERATIONS.md; docs/development/evidence/v09/wp_e_cli_affected_tests.log; docs/development/evidence/v09/wp_f_observability_affected_tests.log; docs/development/evidence/v09/wp_g_installer_systemd_affected_tests.log; docs/development/evidence/v09/wp_h_voice_watch_affected_tests.log; docs/development/evidence/v09/wp_h_full_unit.log; docs/development/evidence/v09/wp_h_integration_subset.log; docs/development/evidence/v09/wp_h_static_gates.log; src/gonken_agent/environment/sensors/base.py; src/gonken_agent/environment/sensors/sht31.py; src/gonken_agent/environment/actuators/base.py; src/gonken_agent/environment/actuators/gpiod_relay.py; tests/unit/test_v09_environment_hardware_adapters.py; docs/development/evidence/v09/wp_i_hardware_adapters_affected_tests.log; docs/development/evidence/v09/wp_i_full_unit.log; docs/development/evidence/v09/wp_i_static_gates.log CLI, watch mode, deterministic voice intents, result-derived spoken responses, diagnostics/support/dashboard, installer/systemd service scaffolding and production adapter modules for SHT31/python3-smbus and libgpiod relay control are host-verified. M10.6 remains partial because supervised env serve activation with real adapter construction and target-grounded operator documentation remain open. No real Pi I2C/GPIO/relay/fan evidence is claimed. |
 | M10.7 — Real Raspberry Pi HIL and release acceptance | pending | not-run |  Requires physical Pi, SHT31, relay, PENGLIN adapters, ELUTENG fan, audio and wake/latency evidence. Host tests cannot close this gate. |
 <!-- /MILESTONES -->
 
@@ -300,3 +300,65 @@ M10.6 observability affected tests pass **29/29** and the full host unit suite p
 ### Remaining
 
 M10.6 remains **partial**.  Installer/systemd environment-service wiring, deterministic voice environment intents, watch-mode/operator documentation and production hardware adapters remain open.  M10.7 physical HIL remains not-run.
+
+## V09 Checkpoint 06 — environment service installer/systemd wiring — 2026-09-15
+
+**Base:** V09 Checkpoint 05 `0dddb5d86996fe995a1de384a9a0fb482df3127c`.
+
+### Implemented in M10.6 installer/systemd sub-batch
+
+- added structural `gonken-environment.service` and environment tmpfiles contract;
+- added `scripts/environment_service_manager.py`;
+- updated installer/release/uninstall paths to provision `gonken-env`, `gonken-envctl`, state/cache/runtime directories and service files without enabling or starting the environment service by default;
+- kept voice dependency soft through `Wants=`/`After=` rather than `Requires=`;
+- kept `gonken-agent env serve` fail-closed for enabled profiles before accepted hardware-daemon activation.
+
+### Evidence
+
+M10.6 installer/systemd affected tests passed **41/41**. The full host unit suite passed **285/285**. Static gates passed. Isolated release lifecycle and uninstall integration checks passed. These checks prove structural packaging and lifecycle behavior only; they do not prove target systemd execution, SHT31, relay, fan, or real Pi acceptance.
+
+### Remaining
+
+M10.6 remained partial after this checkpoint: deterministic voice environment intents, watch mode, production hardware adapters and target-grounded documentation remained open. M10.7 physical HIL remained not-run.
+
+## V09 Checkpoint 07 — deterministic voice intents and watch mode — 2026-09-15
+
+**Base:** V09 Checkpoint 06 `3ad094ac9a04a888ffbf55cdd839f8b115fc4b4b`.
+
+### Implemented in M10.6 voice/watch sub-batch
+
+- added deterministic environment intent parsing in `src/gonken_agent/environment/intents.py`;
+- added daemon-result-derived spoken responses in `src/gonken_agent/environment/responses.py`;
+- routed clear environment commands through `ConversationBrain.reply()` before ordinary local LLM chat;
+- added `gonken-agent env watch` as a repeated IPC read path with human and newline-JSON output;
+- documented operator and voice boundaries in `docs/OPERATIONS.md`.
+
+### Evidence
+
+M10.6 voice/watch affected tests passed **43/43**. The full host unit suite passed **295/295**. A targeted CLI/text integration subset passed **14/14**. Static gates passed. These checks prove deterministic parsing, typed client routing and no-fake-success responses only; they do not prove a live environment daemon, hardware adapters or physical Pi acceptance.
+
+### Remaining
+
+M10.6 remained partial after this checkpoint: production SHT31/libgpiod adapters, real hardware-daemon activation and target-grounded documentation remained open. M10.7 physical HIL remained not-run.
+
+## V09 Checkpoint 08 — SHT31/libgpiod hardware-adapter foundation — 2026-09-15
+
+**Base:** V09 Checkpoint 07 `e635d2f7f48d4087581e15059c1398f8c16f8295`.
+
+### Implemented in M10.6 hardware-adapter sub-batch
+
+- added `src/gonken_agent/environment/sensors/base.py` and `src/gonken_agent/environment/sensors/sht31.py`;
+- added `src/gonken_agent/environment/actuators/base.py` and `src/gonken_agent/environment/actuators/gpiod_relay.py`;
+- added lazy-import production boundaries for `python3-smbus` and `python3-libgpiod` so ordinary host imports do not require Raspberry Pi hardware packages;
+- added SHT31 CRC-8 validation, frame decoding, conversion formulas, command construction and truthful unavailable/CRC-failure readings;
+- added a libgpiod relay adapter with inactive startup request, active-low/active-high handling, logical ON/OFF writes, safe-off close and power-only capability metadata;
+- updated `EnvironmentServiceCore` so injected actuators receive controller state and actuator write failures force `ACTUATOR_ERROR_SAFE_OFF` without speaking or returning fake success;
+- updated `gonken-agent env serve` wording so enabled profiles fail closed as target-gated hardware-daemon activation rather than pretending the adapters do not exist.
+
+### Evidence
+
+M10.6 hardware-adapter affected tests passed **45/45**. The full host unit suite passed **305/305**. Static gates passed. These are host tests with fake SMBus and fake libgpiod objects. They verify adapter code paths and service-boundary failure behavior, but they do not prove `/dev/i2c-*`, `/dev/gpiochip*`, SHT31 presence, relay polarity, USB switching, fan movement or target systemd execution.
+
+### Remaining
+
+M10.6 is still partial. The next dependency-ready batch should transition `env serve` from a fail-closed scaffold to a supervised daemon initialization path that constructs the real service core from static config and policy storage while preserving degraded-state behavior when sensor hardware is absent. M10.7 remains the first gate allowed to claim physical SHT31/relay/fan/Raspberry Pi acceptance.

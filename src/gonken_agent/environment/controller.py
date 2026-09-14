@@ -228,6 +228,16 @@ class EnvironmentController:
     def shutdown(self, *, now_monotonic: float) -> ControllerState:
         return self._transition(FanPower.OFF, semi_armed=False, reason=TransitionReason.SHUTDOWN_SAFE_OFF, now_monotonic=float(now_monotonic))
 
+    def actuator_error_safe_off(self, *, now_monotonic: float) -> ControllerState:
+        """Record a fail-closed actuator error and force the logical state OFF."""
+
+        return self._transition(
+            FanPower.OFF,
+            semi_armed=False,
+            reason=TransitionReason.ACTUATOR_ERROR_SAFE_OFF,
+            now_monotonic=float(now_monotonic),
+        )
+
     def _evaluate(self, *, now_monotonic: float, context: str) -> ControllerState:
         mode = self.policy.mode
         if mode == EnvironmentMode.DISABLED:
