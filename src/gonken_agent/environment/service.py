@@ -110,6 +110,10 @@ class EnvironmentServiceCore:
         self._request_count = 0
         self._error_count = 0
         self._actuator_error_code: str | None = None
+        self._poll_count = 0
+        self._poll_error_count = 0
+        self._last_poll_monotonic: float | None = None
+        self._last_poll_error_code: str | None = None
         self._closed = False
 
     @classmethod
@@ -140,6 +144,10 @@ class EnvironmentServiceCore:
             {
                 "request_count": self._request_count,
                 "error_count": self._error_count,
+                "poll_count": self._poll_count,
+                "poll_error_count": self._poll_error_count,
+                "last_poll_monotonic": self._last_poll_monotonic,
+                "last_poll_error_code": self._last_poll_error_code,
             }
         )
         return meta
@@ -157,6 +165,53 @@ class EnvironmentServiceCore:
                 self._error_count += 1
                 raise EnvironmentServiceError("INTERNAL_ERROR", type(exc).__name__) from exc
 
+    def poll_once(self) -> dict[str, object]:
+        """Run one bounded daemon sensor/control/actuator cycle.
+
+        This method is the host-testable unit used by the background polling
+        loop.  It never claims physical evidence.  Sensor transport failures are
+        converted into structured unavailable readings so the controller can
+        apply its fail-closed stale/failure policy.  Actuator failures are
+        recorded as degraded poll results instead of terminating the daemon
+        thread.
+        """
+
+        with self._lock:
+            if self._closed:
+                raise EnvironmentServiceError("ENV_CLOSED", "environment service core is closed")
+            self._poll_count += 1
+            now = float(self.now())
+            self._last_poll_monotonic = now
+            try:
+                reading = self._read_sensor_locked(now)
+                state = self.controller.observe(reading, now_monotonic=now)
+                self._apply_actuator_if_needed(now)
+                self._last_poll_error_code = None if reading.is_valid() else reading.error_code
+                return {
+                    "ok": True,
+                    "reading": reading.as_dict(
+                        now_monotonic=now,
+                        stale_after_seconds=self.controller.stale_after_seconds,
+                    ),
+                    "state": state.as_dict(
+                        now_monotonic=now,
+                        stale_after_seconds=self.controller.stale_after_seconds,
+                    ),
+                    "physical_evidence": False,
+                }
+            except EnvironmentServiceError as exc:
+                self._poll_error_count += 1
+                self._last_poll_error_code = exc.code
+                return {
+                    "ok": False,
+                    "error": {"code": exc.code, "message": _public_message(exc)},
+                    "state": self.controller.state.as_dict(
+                        now_monotonic=now,
+                        stale_after_seconds=self.controller.stale_after_seconds,
+                    ),
+                    "physical_evidence": False,
+                }
+
     def _handle_locked(self, operation: str, params: Mapping[str, Any]) -> dict[str, object]:
         now = float(self.now())
         if operation == "status.get":
@@ -169,15 +224,7 @@ class EnvironmentServiceCore:
             return self._health_payload(now)
         if operation == "sensor.read":
             _reject_unknown_params(params, set())
-            if self.sensor_read is None:
-                reading = SensorReading(
-                    temperature_c=None,
-                    relative_humidity_pct=None,
-                    observed_monotonic=now,
-                    error_code="SENSOR_UNAVAILABLE",
-                )
-            else:
-                reading = self.sensor_read(now_monotonic=now)
+            reading = self._read_sensor_locked(now)
             state = self.controller.observe(reading, now_monotonic=now)
             self._apply_actuator_if_needed(now)
             return {
@@ -265,6 +312,7 @@ class EnvironmentServiceCore:
             "actuator": self._actuator_health(),
             "controller": "ACTIVE" if sensor_quality == SensorQuality.READY else "SUSPENDED_OR_STARTING",
             "overall": self._overall_environment_state(),
+            "polling": self._polling_payload(),
             "state": self.controller.state.as_dict(
                 now_monotonic=now,
                 stale_after_seconds=self.controller.stale_after_seconds,
@@ -303,6 +351,43 @@ class EnvironmentServiceCore:
         if self.fan_actuator is None:
             return "HOST_FAKE"
         return "READY"
+
+    def _polling_payload(self) -> dict[str, object]:
+        return {
+            "poll_count": self._poll_count,
+            "poll_error_count": self._poll_error_count,
+            "last_poll_monotonic": self._last_poll_monotonic,
+            "last_poll_error_code": self._last_poll_error_code,
+        }
+
+    def _read_sensor_locked(self, now: float) -> SensorReading:
+        if self.sensor_read is None:
+            return SensorReading(
+                temperature_c=None,
+                relative_humidity_pct=None,
+                observed_monotonic=now,
+                error_code="SENSOR_UNAVAILABLE",
+            )
+        try:
+            reading = self.sensor_read(now_monotonic=now)
+        except Exception as exc:
+            code = str(getattr(exc, "code", "SENSOR_READ_FAILED"))
+            if not code or code == "None":
+                code = "SENSOR_READ_FAILED"
+            return SensorReading(
+                temperature_c=None,
+                relative_humidity_pct=None,
+                observed_monotonic=now,
+                error_code=code,
+            )
+        if not isinstance(reading, SensorReading):
+            return SensorReading(
+                temperature_c=None,
+                relative_humidity_pct=None,
+                observed_monotonic=now,
+                error_code="SENSOR_READ_FAILED",
+            )
+        return reading
 
     def _apply_actuator_if_needed(self, now: float) -> None:
         if self.fan_actuator is None:
@@ -354,6 +439,59 @@ class EnvironmentServiceCore:
                 except Exception:
                     pass
             self._closed = True
+
+
+
+class EnvironmentPollingLoop:
+    """Bounded background polling scaffold for gonken-environment.service."""
+
+    def __init__(
+        self,
+        core: EnvironmentServiceCore,
+        *,
+        interval_seconds: float,
+        thread_name: str = "gonken-environment-poll",
+    ) -> None:
+        if not isinstance(interval_seconds, (int, float)) or isinstance(interval_seconds, bool):
+            raise ValueError("interval_seconds must be a number")
+        if float(interval_seconds) <= 0:
+            raise ValueError("interval_seconds must be positive")
+        self.core = core
+        self.interval_seconds = float(interval_seconds)
+        self.thread_name = thread_name
+        self._stop_event = threading.Event()
+        self._thread: threading.Thread | None = None
+        self._lock = threading.Lock()
+        self.last_result: dict[str, object] | None = None
+
+    @property
+    def running(self) -> bool:
+        thread = self._thread
+        return bool(thread is not None and thread.is_alive())
+
+    def run_once(self) -> dict[str, object]:
+        self.last_result = self.core.poll_once()
+        return self.last_result
+
+    def start(self) -> None:
+        with self._lock:
+            if self.running:
+                return
+            self._stop_event.clear()
+            self._thread = threading.Thread(target=self._run, name=self.thread_name, daemon=True)
+            self._thread.start()
+
+    def stop(self, *, timeout_seconds: float = 5.0) -> None:
+        with self._lock:
+            thread = self._thread
+            self._stop_event.set()
+        if thread is not None:
+            thread.join(timeout=timeout_seconds)
+
+    def _run(self) -> None:
+        while not self._stop_event.is_set():
+            self.run_once()
+            self._stop_event.wait(self.interval_seconds)
 
 
 

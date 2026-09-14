@@ -19,7 +19,7 @@ from .domain import PolicyBounds
 from .policy import EnvironmentPolicy, PolicyError, PolicyStore
 from .sensors import SHT31Sensor
 from .server import EnvironmentUnixServer
-from .service import EnvironmentServiceCore, ServiceIdentity
+from .service import EnvironmentPollingLoop, EnvironmentServiceCore, ServiceIdentity
 
 
 class EnvironmentDaemonError(RuntimeError):
@@ -135,26 +135,46 @@ def build_environment_unix_server(
 
 
 class EnvironmentDaemon:
-    """Small lifecycle wrapper used by CLI/systemd entry points and tests."""
+    """Lifecycle wrapper used by CLI/systemd entry points and tests."""
 
-    def __init__(self, server: EnvironmentUnixServer) -> None:
+    def __init__(self, server: EnvironmentUnixServer, *, polling_loop: EnvironmentPollingLoop | None = None) -> None:
         self.server = server
+        self.polling_loop = polling_loop
 
     @classmethod
     def from_config(cls, env_config: Any, **kwargs: Any) -> "EnvironmentDaemon":
-        return cls(build_environment_unix_server(env_config, **kwargs))
+        server = build_environment_unix_server(env_config, **kwargs)
+        polling_loop = EnvironmentPollingLoop(
+            server.core,
+            interval_seconds=float(env_config.poll_interval_seconds),
+        )
+        return cls(server, polling_loop=polling_loop)
+
+    def start_polling(self) -> None:
+        if self.polling_loop is not None:
+            self.polling_loop.start()
+
+    def poll_once(self) -> dict[str, object]:
+        if self.polling_loop is not None:
+            return self.polling_loop.run_once()
+        return self.server.core.poll_once()
 
     def serve_forever(self) -> None:
+        self.start_polling()
         try:
             self.server.serve_forever()
         finally:
             self.close()
 
     def shutdown(self) -> None:
+        if self.polling_loop is not None:
+            self.polling_loop.stop()
         self.server.shutdown()
         self.close()
 
     def close(self) -> None:
+        if self.polling_loop is not None:
+            self.polling_loop.stop()
         self.server.server_close()
 
     def __enter__(self) -> "EnvironmentDaemon":

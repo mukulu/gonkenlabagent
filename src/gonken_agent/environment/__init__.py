@@ -19,7 +19,7 @@ from .intents import EnvironmentClarification, EnvironmentIntent, parse_environm
 from .responses import environment_error_response, environment_success_response
 from .protocol import EnvironmentRequest, EnvironmentResponse, ProtocolError
 from .server import EnvironmentUnixServer
-from .service import EnvironmentServiceCore, EnvironmentServiceError, ScriptedSensorSource, ServiceIdentity
+from .service import EnvironmentPollingLoop, EnvironmentServiceCore, EnvironmentServiceError, ScriptedSensorSource, ServiceIdentity
 from .daemon import EnvironmentDaemon, EnvironmentDaemonError, build_environment_service_core, build_environment_unix_server, policy_bounds_from_config
 from .policy import EnvironmentPolicy, PolicyError, PolicyStore
 from .sensors import EnvironmentSensor, SHT31Sensor, SensorAdapterError, crc8, decode_sht31_frame
@@ -35,6 +35,7 @@ __all__ = [
     "EnvironmentIntent",
     "EnvironmentRequest",
     "EnvironmentResponse",
+    "EnvironmentPollingLoop",
     "EnvironmentServiceCore",
     "EnvironmentServiceError",
     "EnvironmentDaemon",
