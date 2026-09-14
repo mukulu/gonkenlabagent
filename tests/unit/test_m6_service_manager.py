@@ -81,6 +81,8 @@ class ServiceManagerTests(unittest.TestCase):
         for required in (
             "Type=exec",
             "User=gonken-agent",
+            "Wants=ollama.service gonken-environment.service",
+            "After=network-online.target ollama.service gonken-environment.service",
             "ExecStartPre=+/usr/local/lib/gonken-agent/current/maintenance/reconcile-release.sh",
             "ExecStart=/usr/local/lib/gonken-agent/current/.venv/bin/gonken-agent service",
             "EnvironmentFile=-/etc/gonken-agent/runtime-environment",
@@ -100,6 +102,8 @@ class ServiceManagerTests(unittest.TestCase):
         self.assertIn("ReadOnlyPaths=-/srv/gonken-agent/corpus", text)
         self.assertNotIn("ReadOnlyPaths=/srv/gonken-agent/corpus\n", text)
         self.assertIn("ExecStartPre=+", text)
+        self.assertIn("Wants=ollama.service gonken-environment.service", text)
+        self.assertNotIn("Requires=gonken-environment.service", text)
 
     def test_install_status_remove_are_exact_and_reversible(self) -> None:
         fixture = self.fixture()

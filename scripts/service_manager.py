@@ -33,6 +33,8 @@ FORBIDDEN_TEXT = (
     "PrivateDevices=true",
 )
 REQUIRED_LINES = (
+    "Wants=ollama.service gonken-environment.service",
+    "After=network-online.target ollama.service gonken-environment.service",
     "Type=exec",
     "User=gonken-agent",
     "Group=gonken-agent",
@@ -156,6 +158,8 @@ def validate_unit_payload(payload: bytes) -> None:
         fail("SERVICE_HARDENING", "service writable namespace does not match install-reconcile/runtime/cache/run contract", "restore the governed hardening block", 65)
     if "ReadOnlyPaths=-/srv/gonken-agent/corpus" not in text:
         fail("SERVICE_HARDENING", "optional corpus path is not fail-open-on-absence/read-only-on-presence", "restore the governed corpus mount contract", 65)
+    if "Requires=gonken-environment.service" in text:
+        fail("SERVICE_DEPENDENCY", "voice service may only soft-want the environment service", "use Wants/After and keep voice available when environment degrades", 65)
 
 
 def validate_tmpfiles_payload(payload: bytes) -> None:

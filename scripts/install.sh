@@ -247,9 +247,10 @@ gonken_prerequisite_postcondition() {
     return 69
   fi
   if [[ "${GONKEN_SOURCE_RECORD[platform_mode]}" == "target" ]]; then
-    for command_name in aplay arecord cmake c++ getent groupadd runuser systemd-tmpfiles tar useradd usermod zstd; do
+    for command_name in aplay arecord cmake c++ getent groupadd i2cdetect runuser systemd-tmpfiles tar useradd usermod zstd; do
       command -v "$command_name" >/dev/null 2>&1 || return 1
     done
+    python3 -c 'import smbus, gpiod' >/dev/null 2>&1 || return 1
   fi
   GONKEN_STEP_EVIDENCE="python_${GONKEN_SOURCE_RECORD[python_version]}_${RELEASE_PROFILE}"
 }
@@ -260,8 +261,8 @@ gonken_prerequisite_action() {
   DEBIAN_FRONTEND=noninteractive apt-get update || return 69
   gonken_step_checkpoint "$step_id" "during" || return $?
   DEBIAN_FRONTEND=noninteractive apt-get install -y \
-    alsa-utils build-essential cmake \
-    ca-certificates git python3-pip python3-setuptools python3-venv \
+    alsa-utils build-essential cmake i2c-tools \
+    ca-certificates git python3-libgpiod python3-pip python3-setuptools python3-smbus python3-venv \
     tar util-linux zstd || return 69
 }
 
@@ -309,6 +310,56 @@ gonken_account_action() {
     groups="audio,gpio"
   fi
   usermod -a -G "$groups" gonken-agent || return 73
+}
+
+
+
+gonken_env_account_postcondition() {
+  if [[ "${GONKEN_SOURCE_RECORD[platform_mode]}" == "development" ]]; then
+    GONKEN_STEP_EVIDENCE="development_environment_account_skipped"
+    return 0
+  fi
+  local passwd_record group_record ctl_group name password uid gid gecos home shell group_name group_password group_gid members
+  passwd_record="$(getent passwd gonken-env)" || return 1
+  group_record="$(getent group gonken-env)" || return 2
+  ctl_group="$(getent group gonken-envctl)" || return 2
+  IFS=: read -r name password uid gid gecos home shell <<<"$passwd_record"
+  IFS=: read -r group_name group_password group_gid members <<<"$group_record"
+  if [[ "$name" != "gonken-env" || "$gid" != "$group_gid" \
+      || "$home" != "/var/lib/gonken-environment" || "$shell" != "/usr/sbin/nologin" ]]; then
+    return 2
+  fi
+  local env_memberships agent_memberships
+  env_memberships="$(id -nG gonken-env 2>/dev/null)" || return 2
+  agent_memberships="$(id -nG gonken-agent 2>/dev/null)" || return 2
+  [[ " $agent_memberships " == *" gonken-envctl "* ]] || return 1
+  if getent group i2c >/dev/null 2>&1; then
+    [[ " $env_memberships " == *" i2c "* ]] || return 1
+  fi
+  if getent group gpio >/dev/null 2>&1; then
+    [[ " $env_memberships " == *" gpio "* ]] || return 1
+  fi
+  GONKEN_STEP_EVIDENCE="environment_uid_${uid}_gid_${gid}_control_group_gonken-envctl"
+}
+
+gonken_env_account_action() {
+  local step_id="$1"
+  [[ "${GONKEN_SOURCE_RECORD[platform_mode]}" == "target" ]] || return 0
+  getent group gonken-env >/dev/null 2>&1 || groupadd --system gonken-env || return 73
+  getent group gonken-envctl >/dev/null 2>&1 || groupadd --system gonken-envctl || return 73
+  gonken_step_checkpoint "$step_id" "during" || return $?
+  getent passwd gonken-env >/dev/null 2>&1 || useradd --system \
+    --gid gonken-env --home-dir /var/lib/gonken-environment \
+    --shell /usr/sbin/nologin --no-create-home gonken-env || return 73
+  local env_groups="gonken-envctl"
+  if getent group i2c >/dev/null 2>&1; then
+    env_groups="$env_groups,i2c"
+  fi
+  if getent group gpio >/dev/null 2>&1; then
+    env_groups="$env_groups,gpio"
+  fi
+  usermod -a -G "$env_groups" gonken-env || return 73
+  usermod -a -G gonken-envctl gonken-agent || return 73
 }
 
 gonken_layout_precondition() {
@@ -459,6 +510,39 @@ gonken_service_unit_template() {
 
 gonken_service_tmpfiles_template() {
   printf '%s\n' "$RELEASE_ROOT/current/maintenance/packaging/tmpfiles/gonken-agent.conf"
+}
+
+
+
+gonken_environment_service_manager() {
+  printf '%s\n' "$RELEASE_ROOT/current/maintenance/environment_service_manager.py"
+}
+
+gonken_environment_service_unit_template() {
+  printf '%s\n' "$RELEASE_ROOT/current/maintenance/packaging/systemd/gonken-environment.service"
+}
+
+gonken_environment_service_tmpfiles_template() {
+  printf '%s\n' "$RELEASE_ROOT/current/maintenance/packaging/tmpfiles/gonken-environment.conf"
+}
+
+gonken_environment_service_postcondition() {
+  python3 "$(gonken_environment_service_manager)" installed-status \
+    --system-root / \
+    --unit-template "$(gonken_environment_service_unit_template)" \
+    --tmpfiles-template "$(gonken_environment_service_tmpfiles_template)" \
+    --systemctl /usr/bin/systemctl \
+    --systemd-tmpfiles /usr/bin/systemd-tmpfiles >/dev/null 2>&1 || return 1
+  GONKEN_STEP_EVIDENCE="gonken_environment_service_installed_disabled"
+}
+
+gonken_environment_service_action() {
+  python3 "$(gonken_environment_service_manager)" install \
+    --system-root / \
+    --unit-template "$(gonken_environment_service_unit_template)" \
+    --tmpfiles-template "$(gonken_environment_service_tmpfiles_template)" \
+    --systemctl /usr/bin/systemctl \
+    --systemd-tmpfiles /usr/bin/systemd-tmpfiles
 }
 
 gonken_bluetooth_manager() {
@@ -792,8 +876,22 @@ if ((ENGINE_ONLY == 0)); then
 
   if [[ "${GONKEN_SOURCE_RECORD[platform_mode]}" == "target" && "$RELEASE_ONLY" == "0" ]]; then
     gonken_register_step \
+      "environment_account" "1" \
+      "gonken_activation_postcondition" "gonken_env_account_action" "gonken_env_account_postcondition" \
+      "dedicated_environment_owner_and_control_socket_client_group" \
+      "create_nonlogin_gonken-env_and_gonken-envctl_without_starting_hardware" \
+      "voice_account_gets_socket_group_not_raw_environment_hardware" || exit $?
+
+    gonken_register_step \
+      "environment_service" "1" \
+      "gonken_env_account_postcondition" "gonken_environment_service_action" "gonken_environment_service_postcondition" \
+      "exact_environment_systemd_unit_tmpfiles_and_disabled_autostart" \
+      "install_structural_service_files_without_enable_or_start" \
+      "generic_upgrade_does_not_actuate_or_claim_physical_acceptance" || exit $?
+
+    gonken_register_step \
       "ollama_account_and_store" "1" \
-      "gonken_activation_postcondition" "gonken_ollama_account_action" "gonken_ollama_account_postcondition" \
+      "gonken_environment_service_postcondition" "gonken_ollama_account_action" "gonken_ollama_account_postcondition" \
       "dedicated_ollama_account_and_private_model_store" \
       "accept_only_exact_existing_identity_or_create_once" \
       "existing_accounts_and_model_blobs_are_never_deleted" || exit $?

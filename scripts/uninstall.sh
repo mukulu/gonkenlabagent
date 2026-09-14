@@ -63,5 +63,7 @@ exec python3 "$SCRIPT_DIR/uninstall_manager.py" \
   --system-root "$SYSTEM_ROOT" \
   --unit-template "$TEMPLATE_ROOT/packaging/systemd/gonken-agent.service" \
   --tmpfiles-template "$TEMPLATE_ROOT/packaging/tmpfiles/gonken-agent.conf" \
+  --environment-unit-template "$TEMPLATE_ROOT/packaging/systemd/gonken-environment.service" \
+  --environment-tmpfiles-template "$TEMPLATE_ROOT/packaging/tmpfiles/gonken-environment.conf" \
   --systemctl "$SYSTEMCTL" \
   "${PURGE_ARGS[@]}"

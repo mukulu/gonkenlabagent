@@ -12,6 +12,8 @@ ROOT = Path(__file__).resolve().parents[2]
 UNINSTALL = ROOT / "scripts/uninstall.sh"
 UNIT = ROOT / "packaging/systemd/gonken-agent.service"
 TMPFILES = ROOT / "packaging/tmpfiles/gonken-agent.conf"
+ENV_UNIT = ROOT / "packaging/systemd/gonken-environment.service"
+ENV_TMPFILES = ROOT / "packaging/tmpfiles/gonken-environment.conf"
 
 
 class UninstallLifecycleProcessTests(unittest.TestCase):
@@ -21,6 +23,8 @@ class UninstallLifecycleProcessTests(unittest.TestCase):
             system_root = root / "system"
             unit = system_root / "etc/systemd/system/gonken-agent.service"
             tmpfiles = system_root / "etc/tmpfiles.d/gonken-agent.conf"
+            environment_unit = system_root / "etc/systemd/system/gonken-environment.service"
+            environment_tmpfiles = system_root / "etc/tmpfiles.d/gonken-environment.conf"
             release = system_root / "usr/local/lib/gonken-agent"
             entrypoint = system_root / "usr/local/bin/gonken-agent"
             state = system_root / "var/lib/gonken-agent"
@@ -29,6 +33,8 @@ class UninstallLifecycleProcessTests(unittest.TestCase):
                 path.mkdir(parents=True, exist_ok=True)
             unit.write_bytes(UNIT.read_bytes())
             tmpfiles.write_bytes(TMPFILES.read_bytes())
+            environment_unit.write_bytes(ENV_UNIT.read_bytes())
+            environment_tmpfiles.write_bytes(ENV_TMPFILES.read_bytes())
             entrypoint.symlink_to("../lib/gonken-agent/current/.venv/bin/gonken-agent")
             log = root / "systemctl.log"
             systemctl = root / "systemctl"
@@ -53,6 +59,8 @@ class UninstallLifecycleProcessTests(unittest.TestCase):
             self.assertIn("UNINSTALL_COMPLETE", result.stdout)
             self.assertFalse(unit.exists())
             self.assertFalse(tmpfiles.exists())
+            self.assertFalse(environment_unit.exists())
+            self.assertFalse(environment_tmpfiles.exists())
             self.assertFalse(release.exists())
             self.assertFalse(entrypoint.exists())
             self.assertTrue(state.exists())
@@ -67,12 +75,17 @@ class UninstallLifecycleProcessTests(unittest.TestCase):
             shutil.copy2(ROOT / "scripts/uninstall.sh", maintenance / "uninstall.sh")
             shutil.copy2(ROOT / "scripts/uninstall_manager.py", maintenance / "uninstall_manager.py")
             shutil.copy2(ROOT / "scripts/service_manager.py", maintenance / "service_manager.py")
+            shutil.copy2(ROOT / "scripts/environment_service_manager.py", maintenance / "environment_service_manager.py")
             shutil.copy2(UNIT, maintenance / "packaging/systemd/gonken-agent.service")
+            shutil.copy2(ENV_UNIT, maintenance / "packaging/systemd/gonken-environment.service")
             shutil.copy2(TMPFILES, maintenance / "packaging/tmpfiles/gonken-agent.conf")
+            shutil.copy2(ENV_TMPFILES, maintenance / "packaging/tmpfiles/gonken-environment.conf")
             (maintenance / "uninstall.sh").chmod(0o755)
             system_root = root / "system"
             unit = system_root / "etc/systemd/system/gonken-agent.service"
             tmpfiles = system_root / "etc/tmpfiles.d/gonken-agent.conf"
+            environment_unit = system_root / "etc/systemd/system/gonken-environment.service"
+            environment_tmpfiles = system_root / "etc/tmpfiles.d/gonken-environment.conf"
             release = system_root / "usr/local/lib/gonken-agent"
             entrypoint = system_root / "usr/local/bin/gonken-agent"
             state = system_root / "var/lib/gonken-agent"
@@ -80,6 +93,8 @@ class UninstallLifecycleProcessTests(unittest.TestCase):
                 path.mkdir(parents=True, exist_ok=True)
             unit.write_bytes(UNIT.read_bytes())
             tmpfiles.write_bytes(TMPFILES.read_bytes())
+            environment_unit.write_bytes(ENV_UNIT.read_bytes())
+            environment_tmpfiles.write_bytes(ENV_TMPFILES.read_bytes())
             entrypoint.symlink_to("../lib/gonken-agent/current/.venv/bin/gonken-agent")
             log = root / "systemctl.log"
             systemctl = root / "systemctl"
