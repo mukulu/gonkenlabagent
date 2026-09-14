@@ -13,9 +13,13 @@ from .domain import (
     SensorReading,
     TransitionReason,
 )
+from .controller import ControllerError, ControllerState, EnvironmentController
 from .policy import EnvironmentPolicy, PolicyError, PolicyStore
 
 __all__ = [
+    "ControllerError",
+    "ControllerState",
+    "EnvironmentController",
     "EnvironmentMode",
     "EnvironmentPolicy",
     "FanCapability",

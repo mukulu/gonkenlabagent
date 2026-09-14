@@ -953,3 +953,19 @@ transport checks are repeated.
 - **Decision:** V09 domain objects report power control only; they do not claim software speed control or observed blade motion with the current relay/PENGLIN/ELUTENG hardware.
 - **Reason:** The relay can command USB 5V power, but no tachometer, current sensor, airflow sensor or electronic speed-control path is present.
 - **Consequence:** Later CLI/voice responses and diagnostics must derive from relay/controller results and must not claim physical RPM or software speed selection.
+
+## D-090 — Keep M10.4 controller pure and treat AUTO direct ON/OFF as MANUAL override
+
+- **Status:** Accepted
+- **Date:** 2026-09-15
+- **Decision:** The M10.4 controller core is dependency-free and owns only deterministic state-machine semantics.  Direct operator ON/OFF commands while in AUTOMATIC atomically switch policy mode to MANUAL and apply the requested relay-power boundary; SEMI_AUTOMATIC never starts from temperature alone; DISABLED rejects ON and remains safe-off.
+- **Reason:** The V09 governance boundary requires deterministic software to own physical-control policy while preventing the LLM, CLI or future service clients from bypassing mode semantics or inventing hardware state.
+- **Consequence:** Later IPC, CLI and voice layers must report controller-returned mode/power results truthfully.  They may not claim fan motion, speed control, or successful actuation without the single-owner environment service confirming the result.
+
+## D-091 — Classify the Ollama lifecycle interruption timeout as a non-V09 integration risk for M10.4
+
+- **Status:** Accepted
+- **Date:** 2026-09-15
+- **Decision:** The reproducible timeout in `test_every_download_extract_readiness_pull_and_smoke_boundary_recovers` is recorded as an existing integration-fixture/harness risk and does not block M10.4, because the controller core imports no Ollama, audio, systemd, I2C or GPIO code.
+- **Reason:** The isolated recheck left an `ollama_manager.py install-binary` process alive after the watchdog expired in this container.  Treating this as a controller failure would be false attribution; treating it as a PASS would be false-green.
+- **Consequence:** Broad integration/CI remains `NEEDS_MANUAL_REVIEW` until the lifecycle interruption fixture is repaired or bounded more narrowly.  M10.5 may proceed with targeted host tests while preserving this integration caveat.

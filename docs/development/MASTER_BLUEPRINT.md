@@ -1426,6 +1426,12 @@ Implement the tested MANUAL, SEMI_AUTOMATIC, AUTOMATIC and DISABLED state
 machine, including hysteresis, dwell, median valid samples, stale-sensor safe-off,
 recovery, reason codes and threshold-change semantics.
 
+Checkpoint 02 implements this as a dependency-free `EnvironmentController` with
+no hardware imports.  Host tests cover explicit manual control, DISABLED safe-off,
+SEMI start/auto-stop semantics, AUTO dwell/hysteresis, stale-sensor safe-off,
+recovery sequencing, policy-update stop behavior and the rule that direct ON/OFF
+in AUTO switches to MANUAL plus the requested relay-power boundary.
+
 #### M10.5 Local environment service and IPC
 
 Implement the single-owner `gonken-environment.service`, bounded AF_UNIX JSON v1

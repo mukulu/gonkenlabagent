@@ -1,0 +1,4 @@
+COMMAND: python3 -m unittest -v tests.integration.test_ollama_lifecycle_process.OllamaLifecycleProcessTests.test_every_download_extract_readiness_pull_and_smoke_boundary_recovers
+2026-09-14T17:10:23+00:00
+test_every_download_extract_readiness_pull_and_smoke_boundary_recovers (tests.integration.test_ollama_lifecycle_process.OllamaLifecycleProcessTests.test_every_download_extract_readiness_pull_and_smoke_boundary_recovers) ...
+MANUAL_CLASSIFICATION: TIMEOUT / INTERRUPTED. The container-side recheck was terminated after preserving the observed state. A child process matching scripts/ollama_manager.py install-binary was observed alive after the watchdog window and was manually killed. This is treated as an existing Ollama lifecycle integration-fixture/harness risk, not as M10.4 controller evidence and not as a PASS.
