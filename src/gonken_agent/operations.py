@@ -13,7 +13,7 @@ from .runtime import Coordinator, signal_handlers
 from .text_pipeline import TextPipeline
 from .telemetry import Telemetry
 from .dashboard import Snapshot, server
-from .diagnostics import default_snapshot_dir, write_startup_snapshot
+from .diagnostics import default_snapshot_dir, write_startup_snapshot, collect_environment_diagnostics
 
 
 def config_arguments(parser):
@@ -93,6 +93,8 @@ def doctor(config,index_path=None,probe_ollama=False,probe_audio=False):
         rows.extend((ComponentHealth('input_audio',Readiness.DEGRADED,'PHYSICAL_AUDIO_NOT_PROBED'),
                      ComponentHealth('output_audio',Readiness.DEGRADED,'PHYSICAL_AUDIO_NOT_PROBED')))
     rows.append(ComponentHealth('gpio',Readiness.DEGRADED,'GPIO_OPTIONAL_NOT_PROBED'))
+    environment_detail = environment_health(config)
+    rows.append(ComponentHealth('environment', environment_detail['component_status'], environment_detail['component_code']))
     if index_path:
         try: load(index_path,config.paths.corpus_dir)
         except (ValueError,OSError): rows.append(ComponentHealth('index',Readiness.FAILED,'INDEX_INVALID_OR_STALE'))
@@ -109,8 +111,57 @@ def doctor(config,index_path=None,probe_ollama=False,probe_audio=False):
     data['scope']='local software and optional physical audio readiness'
     ready_file=Path('/run/gonken-agent/ready.json')
     data['voice_runtime']='ready' if ready_file.is_file() else 'waiting_or_stopped'
+    data['environment']=_public_environment_health(environment_detail)
     return data
 
+
+def environment_health(config) -> dict[str, object]:
+    diagnostics = collect_environment_diagnostics(config, mode='production')
+    if not diagnostics.get('enabled'):
+        status = Readiness.DEGRADED
+        code = 'ENVIRONMENT_DISABLED'
+    else:
+        ipc = diagnostics.get('ipc') if isinstance(diagnostics.get('ipc'), dict) else {}
+        overall = ipc.get('overall')
+        if ipc.get('status') != 'READY':
+            status = Readiness.DEGRADED
+            code = 'ENVIRONMENT_IPC_UNAVAILABLE'
+        elif overall == 'READY':
+            status = Readiness.READY
+            code = 'ENVIRONMENT_READY'
+        elif overall == 'FAILED':
+            status = Readiness.FAILED
+            code = 'ENVIRONMENT_FAILED'
+        else:
+            status = Readiness.DEGRADED
+            code = 'ENVIRONMENT_DEGRADED'
+    return {'component_status': status, 'component_code': code, 'diagnostics': diagnostics}
+
+
+def _public_environment_health(detail: dict[str, object]) -> dict[str, object]:
+    diagnostics = detail.get('diagnostics') if isinstance(detail.get('diagnostics'), dict) else {}
+    ipc = diagnostics.get('ipc') if isinstance(diagnostics.get('ipc'), dict) else {}
+    static = diagnostics.get('static') if isinstance(diagnostics.get('static'), dict) else {}
+    capabilities = diagnostics.get('capabilities') if isinstance(diagnostics.get('capabilities'), dict) else {}
+    return {
+        'status': detail['component_status'].value if isinstance(detail.get('component_status'), Readiness) else str(detail.get('component_status')),
+        'code': str(detail.get('component_code')),
+        'enabled': bool(diagnostics.get('enabled', False)),
+        'ipc': {
+            'status': ipc.get('status', 'UNKNOWN'),
+            'code': ipc.get('code', 'UNKNOWN'),
+            'overall': ipc.get('overall', 'UNKNOWN'),
+            'physical_evidence': bool(ipc.get('physical_evidence', False)),
+        },
+        'sensor_backend': static.get('sensor_backend', 'unknown'),
+        'i2c_bus': static.get('i2c_bus', 'unknown'),
+        'i2c_address_hex': static.get('i2c_address_hex', 'unknown'),
+        'relay_backend': static.get('relay_backend', 'unknown'),
+        'relay_bcm': static.get('relay_bcm', 'unknown'),
+        'capabilities': capabilities,
+        'target_acceptance': diagnostics.get('target_acceptance', 'not_established_by_diagnostics'),
+        'physical_evidence': bool(diagnostics.get('physical_evidence', False)),
+    }
 
 
 def service_loop(args):
@@ -197,6 +248,7 @@ def execute(args):
         load(args.index,corpus)
         snapshot=Snapshot(transient=config.privacy.dashboard_transient_content)
         snapshot.update({'state':'DEGRADED','status':'DEGRADED'})
+        snapshot.update_environment(_public_environment_health(environment_health(config)))
         httpd=server(snapshot,config.dashboard.bind,config.dashboard.port)
         httpd.timeout=.2
         stop=threading.Event()
@@ -224,6 +276,7 @@ def text_session(args):
     index=load(args.index,config.paths.corpus_dir)
     ids=[chunk['id'] for chunk in index['chunks']]
     snapshot=Snapshot(transient=config.privacy.dashboard_transient_content,allowed_source_ids=ids)
+    snapshot.update_environment(_public_environment_health(environment_health(config)))
     telemetry=Telemetry(args.telemetry,ids) if args.telemetry else None
     client=None if args.extractive else OllamaClient(config.llm)
     pipeline=TextPipeline(args.index,config.paths.corpus_dir,client=client,

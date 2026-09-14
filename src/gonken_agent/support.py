@@ -8,7 +8,7 @@ from pathlib import Path
 from . import __version__
 from .health import COMPONENTS
 from .telemetry import validate_event
-from .diagnostics import load_snapshot
+from .diagnostics import load_snapshot, collect_environment_diagnostics
 
 
 def create_bundle(output, effective_config, health, telemetry_path=None, allowed_source_ids=(), startup_snapshot=None):
@@ -41,7 +41,11 @@ def create_bundle(output, effective_config, health, telemetry_path=None, allowed
         'configuration.json':{'config':effective_config.as_dict(redact=True),'sources':effective_config.source_dict()},
         'health.json':{'components':rows},
         'telemetry.json':{'content_logging':False,'events':events},
+        'environment_control.json': collect_environment_diagnostics(effective_config.config, mode='production'),
     }
+    environment_health = health.get('environment')
+    if isinstance(environment_health, dict):
+        files['environment_health.json'] = environment_health
     if startup_snapshot is not None:
         files['startup_snapshot.json']=load_snapshot(startup_snapshot)
     fd,temporary=tempfile.mkstemp(prefix='.support-',dir=output.parent)

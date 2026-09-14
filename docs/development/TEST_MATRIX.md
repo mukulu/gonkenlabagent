@@ -916,3 +916,16 @@ M10.5 physical acceptance remains **not-run**. The new service path uses host-fa
 | M10.6-T004 | `PYTHONPATH=src:. python3 -m unittest -v tests.integration.test_cli_process tests.integration.test_text_runtime_process tests.integration.test_support_collection_process` | PASS, 15/15 | Targeted deterministic integration subset touching CLI/text/support behavior. Full integration remains under the known Ollama lifecycle interruption caveat; this subset does not claim broad CI completion. |
 
 M10.6 is **host-partial**, not complete. This checkpoint verifies the first operator CLI sub-batch: `env status`, `env health`, `env temperature`, `env humidity`, `env read`, `env fan on/off`, `env mode set`, `env policy show/set`, `env probe`, and JSON output through `EnvironmentClient`. Remaining M10.6 work includes deterministic voice intents, installer/systemd environment-unit wiring, diagnostics/support/dashboard environment fields, watch-mode/operator documentation, and production hardware-adapter integration. Real Raspberry Pi acceptance remains **not-run**.
+
+
+## V09 environment observability/support/dashboard evidence — 2026-09-15
+
+| ID | Command / artifact | Result | Evidence boundary |
+|---|---|---|---|
+| M10.6-T005 | `PYTHONPATH=src:. python3 -m unittest -v tests.unit.test_diagnostics_snapshot tests.unit.test_support_export tests.unit.test_grounding_observability` | PASS, 29/29 | Host-only diagnostics/support/dashboard unit slice. Verifies non-destructive environment diagnostics, support-bundle members, dashboard sanitization and no physical evidence overclaim. |
+| M10.6-T006 | `PYTHONPATH=src:. python3 -m unittest discover -s tests/unit -t . -v` | PASS, 278/278 | Full host unit suite after environment observability changes. Unit evidence only; no physical Pi evidence. |
+| M10.6-T007 | Static gates in `docs/development/evidence/v09/wp_f_static_gates.log` | PASS | Dependency lock rendering, milestone drift, release-readiness allow-dirty, Bash syntax, Python compileall, TOML/JSON parsing and `git diff --check` passed. |
+| M10.6-T008 | `PYTHONPATH=src:. python3 -m unittest -v tests.integration.test_text_runtime_process tests.integration.test_support_collection_process` | PASS, 10/10 | Targeted deterministic integration subset covering dashboard API, text doctor path and support wrapper behavior. Full integration remains under the known Ollama lifecycle interruption caveat. |
+| M10.6-T009 | `timeout -k 5s 120s bash scripts/ci.sh` | INTERRUPTED | Broad CI bounded attempt reached `test_every_download_extract_readiness_pull_and_smoke_boundary_recovers` and was interrupted/cleaned up. This is not a PASS and not attributed to the environment observability change. |
+
+M10.6 remains **host-partial**, not complete. Diagnostics/support/dashboard now expose environment status without destructive hardware probing. Remaining M10.6 work includes installer/systemd environment-unit wiring, deterministic voice intents, watch-mode/operator documentation and production hardware-adapter integration. Real Raspberry Pi acceptance remains **not-run**.

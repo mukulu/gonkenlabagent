@@ -45,7 +45,7 @@ Checkpoint scope: **V09 environment-control foundation from FIX7 checkpoint**
 | M10.3 — Environment domain and mutable policy foundation | host-verified | not-run | src/gonken_agent/environment/domain.py; src/gonken_agent/environment/policy.py; tests/unit/test_v09_environment_policy.py; docs/development/evidence/v09/wp_b_config_policy_tests_rerun.log Pure host tests cover domain/policy contracts only. Controller, IPC, CLI, voice, installer, diagnostics and physical HIL remain open. |
 | M10.4 — Deterministic controller core | host-verified | not-run | src/gonken_agent/environment/controller.py; tests/unit/test_v09_environment_controller.py; docs/development/evidence/v09/wp_c_controller_affected_tests.log; docs/development/evidence/v09/wp_c_full_unit.log Host validation covers pure deterministic controller semantics only: MANUAL, SEMI_AUTOMATIC, AUTOMATIC, DISABLED, dwell, hysteresis, median valid samples, staleness safe-off, recovery and policy-update stop behavior. No hardware adapter, daemon, IPC, CLI, voice, installer or physical Pi actuation is implemented yet. |
 | M10.5 — Local environment service and IPC | host-verified | not-run | src/gonken_agent/environment/protocol.py; src/gonken_agent/environment/service.py; src/gonken_agent/environment/server.py; src/gonken_agent/environment/client.py; tests/unit/test_v09_environment_ipc.py; docs/development/evidence/v09/wp_d_ipc_affected_tests.log; docs/development/evidence/v09/wp_d_full_unit.log; docs/development/evidence/v09/wp_d_static_gates.log Host validation covers bounded JSON protocol validation, host-fake service core, AF_UNIX server/client, socket mode, closed operation parameters, client error propagation and no hardware/shell imports. It does not implement production SHT31/libgpiod adapters, systemd unit installation, CLI command, voice action, dashboard, or real Pi actuation. |
-| M10.6 — CLI, voice, installer, diagnostics and documentation integration | partial | not-run | src/gonken_agent/cli.py; tests/unit/test_v09_environment_cli.py; docs/development/evidence/v09/wp_e_cli_affected_tests.log; docs/development/evidence/v09/wp_e_full_unit.log; docs/development/evidence/v09/wp_e_static_gates.log; docs/development/evidence/v09/wp_e_integration_subset.log CLI sub-batch is host-verified for status, temperature, humidity, fan on/off, mode set, policy show/set, health, probe and JSON output through EnvironmentClient. M10.6 remains partial: voice intents, installer/systemd environment unit wiring, diagnostics/support/dashboard fields and operator documentation still remain. Real Pi evidence remains open. |
+| M10.6 — CLI, voice, installer, diagnostics and documentation integration | partial | not-run | src/gonken_agent/cli.py; src/gonken_agent/diagnostics.py; src/gonken_agent/health.py; src/gonken_agent/operations.py; src/gonken_agent/support.py; src/gonken_agent/dashboard.py; tests/unit/test_v09_environment_cli.py; tests/unit/test_diagnostics_snapshot.py; tests/unit/test_support_export.py; tests/unit/test_grounding_observability.py; tests/integration/test_text_runtime_process.py; docs/development/evidence/v09/wp_e_cli_affected_tests.log; docs/development/evidence/v09/wp_f_observability_affected_tests.log; docs/development/evidence/v09/wp_f_full_unit.log; docs/development/evidence/v09/wp_f_static_gates.log; docs/development/evidence/v09/wp_f_integration_subset.log CLI and diagnostics/support/dashboard sub-batches are host-verified through the shared environment client/observability boundaries. M10.6 remains partial: installer/systemd environment unit wiring, deterministic voice intents, watch-mode/operator documentation and production SHT31/libgpiod hardware adapters remain. Real Pi evidence remains open. |
 | M10.7 — Real Raspberry Pi HIL and release acceptance | pending | not-run |  Requires physical Pi, SHT31, relay, PENGLIN adapters, ELUTENG fan, audio and wake/latency evidence. Host tests cannot close this gate. |
 <!-- /MILESTONES -->
 
@@ -278,3 +278,25 @@ M10.6 CLI affected tests pass **81/81**.  The full host unit suite passes **277/
 ### Remaining
 
 M10.6 remains **partial**.  The next dependency-ready sub-batches are diagnostics/support/dashboard environment fields, installer/systemd environment-service wiring, deterministic voice environment intents, watch-mode/operator documentation, and later production hardware adapters.  M10.7 physical HIL remains not-run.
+
+
+## V09 Checkpoint 05 — environment observability/support/dashboard — 2026-09-15
+
+**Base:** V09 Checkpoint 04 `a38c7bee71e4116d3c629104fb7fe151fd130721`.
+
+### Implemented in M10.6 second sub-batch
+
+- added non-destructive environment diagnostics in `src/gonken_agent/diagnostics.py`;
+- added `gonken-environment.service`, `i2cdetect` and `gpioinfo` to bounded startup snapshot awareness;
+- added an `environment` component to health summaries and `doctor` output;
+- added `environment_control.json` and `environment_health.json` to support bundles;
+- added sanitized environment state to read-only dashboard snapshots;
+- added tests for content-free diagnostics, support member redaction, dashboard environment status and integration `/api/status` visibility.
+
+### Evidence
+
+M10.6 observability affected tests pass **29/29** and the full host unit suite passes **278/278**.  Static gates pass.  A targeted dashboard/text/support integration subset passes **10/10**.  A bounded broad-CI attempt was interrupted at the existing Ollama lifecycle interruption/recovery fixture and preserved as `wp_f_broad_ci_bounded.log`; it is not a PASS and not attributed to this tranche.  These checks are host-only and do not prove SHT31 reads, relay actuation, fan motion, systemd deployment, or Raspberry Pi HIL.
+
+### Remaining
+
+M10.6 remains **partial**.  Installer/systemd environment-service wiring, deterministic voice environment intents, watch-mode/operator documentation and production hardware adapters remain open.  M10.7 physical HIL remains not-run.

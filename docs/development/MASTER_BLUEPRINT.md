@@ -1460,3 +1460,10 @@ M10.5 has now implemented the host-verifiable local IPC foundation requested by 
 M10.6 has begun with the host-verifiable operator CLI layer.  `gonken-agent env` now uses the shared `EnvironmentClient` boundary for status, health, sensor read, fan power, mode, policy and probe operations.  This preserves the V09 rule that the CLI is a client of the single-owner environment service, not an independent GPIO/I2C actor.  Human and JSON output must continue to report daemon-returned state and must not convert `physical_evidence=false` into a hardware acceptance claim.
 
 This checkpoint does not complete M10.6.  Voice-domain intents, installer/systemd environment-service integration, diagnostics/support/dashboard fields, watch-mode documentation and production hardware adapters remain subsequent dependency-ready work.  M10.7 remains the first milestone eligible to claim physical SHT31/relay/fan/Raspberry Pi acceptance.
+
+
+## V09 implementation checkpoint 05 — environment observability surfaces
+
+M10.6 now also includes host-verifiable diagnostics/support/dashboard environment visibility.  Startup snapshots, `doctor`, support bundles and the read-only dashboard can report the environment static configuration boundary, configured I2C/relay fields, service/socket visibility, read-only daemon health where available, and explicit capability flags.  These surfaces remain non-destructive: they do not scan arbitrary I2C devices, toggle relays, open GPIO lines, mutate policy, or claim physical acceptance.
+
+This checkpoint still does not complete M10.6.  Installer/systemd provisioning, deterministic voice-domain intents, watch-mode/operator documentation and production SHT31/libgpiod adapters remain subsequent dependency-ready work.  M10.7 remains the first milestone eligible to claim physical SHT31/relay/fan/Raspberry Pi acceptance.

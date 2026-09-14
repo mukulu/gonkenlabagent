@@ -173,5 +173,25 @@ class TelemetryTests(unittest.TestCase):
         s.transition('IDLE','READY')
         self.assertEqual(s.read()['interaction']['answer'],'<script>bad</script>')
         self.assertIn(b'.textContent=',JS);self.assertNotIn(b'innerHTML',JS)
+        s.update_environment({
+            'status':'DEGRADED',
+            'code':'ENVIRONMENT_IPC_UNAVAILABLE',
+            'enabled':True,
+            'physical_evidence':False,
+            'target_acceptance':'not_established_by_diagnostics',
+            'capabilities':{'power_control':True,'software_speed_control':False,'fan_motion_observed':False},
+            'ipc':{'status':'UNAVAILABLE','code':'SOCKET_MISSING','overall':'UNKNOWN','physical_evidence':False},
+            'sensor_backend':'sht31',
+            'i2c_address_hex':'0x44',
+            'relay_backend':'libgpiod',
+            'i2c_bus':1,
+            'relay_bcm':23,
+        })
+        environment=s.read()['environment']
+        self.assertEqual(environment['code'],'ENVIRONMENT_IPC_UNAVAILABLE')
+        self.assertFalse(environment['capabilities']['software_speed_control'])
+        self.assertFalse(environment['capabilities']['fan_motion_observed'])
+        self.assertFalse(environment['physical_evidence'])
+        with self.assertRaises(ValueError):s.update_environment({'status':'READY','code':'bad code with spaces'})
         s.clear();self.assertNotIn('interaction',s.read())
         self.assertNotIn('interaction',Snapshot(transient=True).read())
