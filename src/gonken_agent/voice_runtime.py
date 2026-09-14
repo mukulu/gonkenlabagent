@@ -27,6 +27,15 @@ from pathlib import Path
 
 from .audio.speech import Piper, Whisper, validate_wav
 from .audio.process import ProcessFailure
+from .environment import (
+    EnvironmentClient,
+    EnvironmentClientError,
+    EnvironmentClarification,
+    EnvironmentIntent,
+    environment_error_response,
+    environment_success_response,
+    parse_environment_intent,
+)
 from .llm.ollama import OllamaClient, OllamaError
 
 
@@ -500,9 +509,9 @@ class AudioBackend:
 
 
 class ConversationBrain:
-    """Small in-memory local conversation with no cloud or persistent content."""
+    """Small in-memory local conversation with deterministic environment actions."""
 
-    def __init__(self, config):
+    def __init__(self, config, *, environment_client_factory=None):
         self.client = OllamaClient(config.llm, timeout=90)
         prompt_path = Path(config.paths.local_prompt)
         if not prompt_path.is_file() or prompt_path.is_symlink() or prompt_path.stat().st_size > 32768:
@@ -511,6 +520,11 @@ class ConversationBrain:
         if not self.system_prompt:
             raise VoiceRuntimeError("LOCAL_PROMPT_EMPTY")
         self.history: list[dict[str, str]] = []
+        self.environment_client_factory = (
+            environment_client_factory
+            if environment_client_factory is not None
+            else lambda: EnvironmentClient(config.extensions.environment.socket_path, timeout_seconds=2.0)
+        )
 
     def probe(self, stop: threading.Event) -> dict[str, str]:
         identity = self.client.model_identity(stop)
@@ -527,6 +541,13 @@ class ConversationBrain:
         question = " ".join(question.split())
         if not question or len(question) > 4096:
             raise VoiceRuntimeError("VOICE_QUESTION_INVALID")
+
+        environment_result = parse_environment_intent(question)
+        if isinstance(environment_result, EnvironmentClarification):
+            return environment_result.message
+        if isinstance(environment_result, EnvironmentIntent):
+            return self._environment_reply(environment_result)
+
         messages = [{"role": "system", "content": self.system_prompt}, *self.history,
                     {"role": "user", "content": question}]
         # Bound conversational context independently of the model's token window.
@@ -547,6 +568,27 @@ class ConversationBrain:
         ))
         self.history = self.history[-8:]
         return answer
+
+    def _environment_reply(self, intent: EnvironmentIntent) -> str:
+        try:
+            client = self.environment_client_factory()
+            if intent.operation == "sensor.read":
+                result = client.read_sensor()
+            elif intent.operation == "status.get":
+                result = client.status()
+            elif intent.operation == "policy.get":
+                result = client.policy_get()
+            elif intent.operation == "fan.set":
+                result = client.fan_set(str(intent.params["power"]))
+            elif intent.operation == "mode.set":
+                result = client.mode_set(str(intent.params["mode"]))
+            elif intent.operation == "policy.update":
+                result = client.policy_update(**dict(intent.params))
+            else:
+                raise EnvironmentClientError("UNKNOWN_OPERATION", "unsupported environment voice operation")
+        except EnvironmentClientError as exc:
+            return environment_error_response(exc)
+        return environment_success_response(intent, result)
 
     def close(self) -> None:
         self.client.close()

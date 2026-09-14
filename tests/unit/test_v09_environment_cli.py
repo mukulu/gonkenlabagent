@@ -279,6 +279,21 @@ class EnvironmentCliTests(unittest.TestCase):
         self.assertIn("Hardware toggled: False", stdout)
         self.assertEqual(client.calls, [("call", "probe.run")])
 
+
+    def test_watch_reads_sensor_repeatedly_without_mutating_policy_or_hardware(self) -> None:
+        result, stdout, stderr, client = self.run_cli(["watch", "--count", "2", "--interval", "0"])
+        self.assertEqual(result, 0, stderr)
+        self.assertEqual(client.calls, [("read_sensor", None), ("read_sensor", None)])
+        self.assertEqual(stdout.count("physical_evidence=False"), 2)
+        self.assertIn("fan=off", stdout)
+
+        result, stdout, stderr, client = self.run_cli(["watch", "--count", "2", "--interval", "0", "--json"])
+        self.assertEqual(result, 0, stderr)
+        rows = [json.loads(line) for line in stdout.splitlines()]
+        self.assertEqual(len(rows), 2)
+        self.assertFalse(rows[0]["physical_evidence"])
+        self.assertEqual(client.calls, [("read_sensor", None), ("read_sensor", None)])
+
     def test_daemon_rejection_is_reported_without_fake_success(self) -> None:
         class RejectingClient(FakeEnvironmentClient):
             def fan_set(self, power):
