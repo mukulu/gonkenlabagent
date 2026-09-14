@@ -977,3 +977,19 @@ transport checks are repeated.
 - **Decision:** M10.5 defines protocol v1 as bounded JSON over AF_UNIX with the allow-listed operations `status.get`, `sensor.read`, `health.get`, `fan.set`, `mode.set`, `policy.get`, `policy.update` and bounded non-destructive `probe.run`.  The first service path is host-fake and reports `physical_evidence=false`; it imports no `smbus`, `gpiod`, shell or model-runtime surface.
 - **Reason:** The V09 architecture requires one deterministic service boundary before CLI and voice can safely share behavior.  Implementing the client/server contract before hardware adapters prevents duplicated GPIO ownership and prevents the LLM or operator path from acquiring raw hardware authority.
 - **Consequence:** M10.6 must use this client boundary for CLI/voice/diagnostics integration.  M10.5 can pass host verification, but it cannot close any physical SHT31/relay/fan acceptance gate.
+
+## D-093 — Make `gonken-agent env` an IPC client only
+
+- **Status:** Accepted
+- **Date:** 2026-09-15
+- **Decision:** The first M10.6 sub-batch exposes `gonken-agent env` commands through `EnvironmentClient`; it does not read or write the mutable policy file directly and does not import GPIO, I2C, shell or hardware adapter code.
+- **Reason:** The V09 blueprint requires the CLI and voice paths to share the same deterministic environment service boundary so that one owner controls physical state and all callers receive the same daemon-confirmed result.
+- **Consequence:** CLI output can report daemon-returned mode, relay-power boundary, policy and health, but it must not claim SHT31, relay, PENGLIN, fan-motion or real Raspberry Pi acceptance until M10.7 supplies target evidence.
+
+## D-094 — Support blueprint-style JSON placement for env commands
+
+- **Status:** Accepted
+- **Date:** 2026-09-15
+- **Decision:** `gonken-agent env` accepts JSON output flags at the parent level and at leaf commands, including the blueprint-style `gonken-agent env status --json`.
+- **Reason:** The V09 operator examples include `gonken-agent env status --json`; rejecting that form would create avoidable mismatch between implementation and operator documentation.
+- **Consequence:** New env CLI tests cover both `env --json status` and `env status --json` for the status command, and later documentation should prefer the blueprint-style leaf form.

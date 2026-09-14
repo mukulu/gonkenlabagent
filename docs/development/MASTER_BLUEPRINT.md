@@ -1454,3 +1454,9 @@ environment acceptance.
 ## V09 implementation checkpoint 03 — local IPC foundation
 
 M10.5 has now implemented the host-verifiable local IPC foundation requested by the V09 blueprint: protocol v1, a host-fake service core, AF_UNIX server, client wrapper and unit tests. This is an implementation-status note, not a revision to the governing architecture. The hardware-owner rule remains unchanged: production SHT31 and relay access must later enter only behind the environment service boundary. Host-fake service evidence is explicitly not Raspberry Pi acceptance.
+
+## V09 implementation checkpoint 04 — operator CLI client surface
+
+M10.6 has begun with the host-verifiable operator CLI layer.  `gonken-agent env` now uses the shared `EnvironmentClient` boundary for status, health, sensor read, fan power, mode, policy and probe operations.  This preserves the V09 rule that the CLI is a client of the single-owner environment service, not an independent GPIO/I2C actor.  Human and JSON output must continue to report daemon-returned state and must not convert `physical_evidence=false` into a hardware acceptance claim.
+
+This checkpoint does not complete M10.6.  Voice-domain intents, installer/systemd environment-service integration, diagnostics/support/dashboard fields, watch-mode documentation and production hardware adapters remain subsequent dependency-ready work.  M10.7 remains the first milestone eligible to claim physical SHT31/relay/fan/Raspberry Pi acceptance.
