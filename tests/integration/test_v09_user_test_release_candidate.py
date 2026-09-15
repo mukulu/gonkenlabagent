@@ -14,7 +14,7 @@ ROOT = Path(__file__).resolve().parents[2]
 class V09UserTestReleaseCandidateIntegrationTests(unittest.TestCase):
     def test_full_simulation_runner_and_release_gate(self) -> None:
         env = os.environ.copy()
-        env["PYTHONPATH"] = str(ROOT / "src") + os.pathsep + str(ROOT)
+        env.pop("PYTHONPATH", None)
         with tempfile.TemporaryDirectory() as temporary:
             output = Path(temporary) / "simulation-evidence"
             run = subprocess.run(
