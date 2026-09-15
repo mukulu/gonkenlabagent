@@ -179,6 +179,65 @@ class EndToEndReleaseTests(unittest.TestCase):
         self.assertEqual(list((release_root / "releases").glob("[0-9a-f]" * 40)), [])
 
 
+class TargetBridgeUpgradeCompatibilityTests(unittest.TestCase):
+    def test_process_activation_migrates_from_post_verified_pre_bridge_target_release(self) -> None:
+        """Exact checkpoint-29 target failure: reconcile old active, then activate bridge release."""
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            release_root = root / "release-root"
+            state_root = root / "state-root"
+            state_root.mkdir()
+            previous = "3" * 40
+            candidate = "4" * 40
+            create_fake_release(
+                release_root,
+                previous,
+                profile="core-pi-trixie-py313",
+                binding_bridge=False,
+            )
+            create_fake_release(
+                release_root,
+                candidate,
+                profile="core-pi-trixie-py313",
+                binding_bridge=True,
+            )
+            point_current(release_root, previous)
+            (state_root / "activation.record").write_text(
+                activation_record(previous, "none", "post_verified"),
+                encoding="utf-8",
+            )
+            (state_root / "activation.record").chmod(0o600)
+
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(MANAGER),
+                    "activate",
+                    "--release-root",
+                    str(release_root),
+                    "--state-root",
+                    str(state_root),
+                    "--service-user",
+                    current_user(),
+                    "--commit",
+                    candidate,
+                ],
+                cwd=ROOT,
+                check=False,
+                capture_output=True,
+                text=True,
+                timeout=20,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn("code=RELEASE_LEGACY_TRANSITION_SOURCE", result.stdout)
+            self.assertIn("code=ACTIVATION_COMPLETE", result.stdout)
+            self.assertEqual(os.readlink(release_root / "current"), f"releases/{candidate}")
+            journal = (state_root / "activation.record").read_text(encoding="utf-8")
+            self.assertIn("phase=post_verified", journal)
+            self.assertIn(f"candidate_commit={candidate}", journal)
+            self.assertIn(f"previous_commit={previous}", journal)
+
+
 class ActivationInterruptionTests(unittest.TestCase):
     def prepare(self, root: Path, *, failing_candidate: bool = False) -> tuple[Path, Path]:
         release_root = root / "release-root"

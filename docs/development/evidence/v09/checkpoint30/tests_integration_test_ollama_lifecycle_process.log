@@ -1,0 +1,10 @@
+test_binary_service_model_repeat_and_status (tests.integration.test_ollama_lifecycle_process.OllamaLifecycleProcessTests.test_binary_service_model_repeat_and_status) ... ok
+test_checksum_failure_never_creates_release (tests.integration.test_ollama_lifecycle_process.OllamaLifecycleProcessTests.test_checksum_failure_never_creates_release) ... ok
+test_recorded_full_digest_drift_is_refused (tests.integration.test_ollama_lifecycle_process.OllamaLifecycleProcessTests.test_recorded_full_digest_drift_is_refused) ... ok
+test_representative_download_extract_readiness_pull_and_smoke_boundary_recovers (tests.integration.test_ollama_lifecycle_process.OllamaLifecycleProcessTests.test_representative_download_extract_readiness_pull_and_smoke_boundary_recovers) ... ok
+test_service_file_conflict_is_not_overwritten (tests.integration.test_ollama_lifecycle_process.OllamaLifecycleProcessTests.test_service_file_conflict_is_not_overwritten) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 26.442s
+
+OK

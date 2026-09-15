@@ -549,3 +549,17 @@ physical gates until no acceptance-critical issue remains.
 > smallest failed layer; rerun affected host regressions and only the uncertain
 > target gates; do not restart architecture discovery or close M10.7 without
 > real evidence.
+
+## 7.2 Checkpoint-30 upgrade migration gate
+
+Checkpoint 30 repairs a specific upgrade defect discovered while installing checkpoint 29 on a Pi that still had a valid pre-binding-bridge release active. The old release did not contain the later `hardware-bindings.json` contract, so checkpoint 29 incorrectly rejected that old release during reconciliation before switching to its already-valid new candidate.
+
+For checkpoint 30 and later, **do not delete the old release, current symlink, activation journal, or create a binding manifest manually**. A legitimate upgrade from the recorded pre-bridge release should emit a bounded event such as:
+
+```text
+[OK] code=RELEASE_LEGACY_TRANSITION_SOURCE commit=<old-commit> ...
+```
+
+and continue to validate the new candidate under the full current binding-manifest/API contract. A new/bridge-era candidate with a missing or corrupt manifest must still fail closed.
+
+If `RELEASE_BINDING_MANIFEST` occurs again, preserve the installer-owned failure bundle. The message now includes the release commit being validated; return that evidence rather than editing the immutable release. Do not proceed to GonKen relay/voice acceptance until the installer reaches governed `INSTALLATION_COMPLETE`.

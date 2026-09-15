@@ -1,0 +1,65 @@
+{
+  "missing_modules": [],
+  "module_evidence": [
+    {
+      "evidence": "build/ci-logs/integration/tests_integration_test_bootstrap_preflight_process.log",
+      "module": "tests.integration.test_bootstrap_preflight_process",
+      "tests": 4
+    },
+    {
+      "evidence": "build/ci-logs/integration/tests_integration_test_cli_process.log",
+      "module": "tests.integration.test_cli_process",
+      "tests": 5
+    },
+    {
+      "evidence": "build/ci-logs/integration/tests_integration_test_first_install_launcher.log",
+      "module": "tests.integration.test_first_install_launcher",
+      "tests": 4
+    },
+    {
+      "evidence": "build/ci-logs/integration/tests_integration_test_install_engine_process.log",
+      "module": "tests.integration.test_install_engine_process",
+      "tests": 10
+    },
+    {
+      "evidence": "docs/development/evidence/v09/checkpoint30/tests_integration_test_ollama_lifecycle_process.log",
+      "module": "tests.integration.test_ollama_lifecycle_process",
+      "tests": 5
+    },
+    {
+      "evidence": "docs/development/evidence/v09/checkpoint30/speech_test_full_lifecycle_repeat_status_and_private_record.log; docs/development/evidence/v09/checkpoint30/speech_test_interrupted_boundaries_converge_on_rerun.log; docs/development/evidence/v09/checkpoint30/speech_test_smoke_failure_does_not_create_success_record_and_reruns.log; docs/development/evidence/v09/checkpoint30/speech_test_wrong_architecture_native_payload_is_rejected_and_repaired.log; docs/development/evidence/v09/checkpoint30/speech_test_zero_byte_bad_checksum_and_missing_pair_repair.log",
+      "module": "tests.integration.test_speech_lifecycle_process",
+      "tests": 5
+    },
+    {
+      "evidence": "docs/development/evidence/v09/checkpoint30/integration_support_collection.log",
+      "module": "tests.integration.test_support_collection_process",
+      "tests": 1
+    },
+    {
+      "evidence": "docs/development/evidence/v09/checkpoint30/tests_integration_test_text_runtime_process.log",
+      "module": "tests.integration.test_text_runtime_process",
+      "tests": 9
+    },
+    {
+      "evidence": "docs/development/evidence/v09/checkpoint30/tests_integration_test_uninstall_lifecycle_process.log",
+      "module": "tests.integration.test_uninstall_lifecycle_process",
+      "tests": 2
+    },
+    {
+      "evidence": "docs/development/evidence/v09/checkpoint30/tests_integration_test_v09_environment_voice_transaction.log",
+      "module": "tests.integration.test_v09_environment_voice_transaction",
+      "tests": 3
+    },
+    {
+      "evidence": "docs/development/evidence/v09/checkpoint30/integration_user_test_release_candidate_isolated.log",
+      "module": "tests.integration.test_v09_user_test_release_candidate",
+      "tests": 1
+    }
+  ],
+  "modules": 11,
+  "note": "Canonical integration aggregate was externally interrupted during the long lifecycle families. All non-release modules are accounted by bounded per-module/decomposed evidence; interrupted wrappers are not relabelled PASS.",
+  "schema": 1,
+  "status": "PASS",
+  "tests": 49
+}

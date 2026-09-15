@@ -1,0 +1,54 @@
+{
+  "case_evidence": [
+    {
+      "case": "EndToEndReleaseTests.test_release_only_builds_activates_and_freezes_release",
+      "evidence": "docs/development/evidence/v09/checkpoint30/release_e2e_build.log",
+      "status": "PASS"
+    },
+    {
+      "case": "EndToEndReleaseTests.test_release_only_repeat_is_idempotent",
+      "evidence": "docs/development/evidence/v09/checkpoint30/release_test_release_only_repeat_is_idempotent.log",
+      "status": "PASS"
+    },
+    {
+      "case": "EndToEndReleaseTests.test_default_install_after_release_boundary_stops_before_target_only_steps",
+      "evidence": "docs/development/evidence/v09/checkpoint30/release_test_default_install_after_release_boundary_stops_before_target_only_steps.log",
+      "status": "PASS"
+    },
+    {
+      "case": "EndToEndReleaseTests.test_low_space_never_creates_or_switches_release",
+      "evidence": "docs/development/evidence/v09/checkpoint30/release_low_space.log",
+      "status": "PASS"
+    },
+    {
+      "case": "TargetBridgeUpgradeCompatibilityTests.test_process_activation_migrates_from_post_verified_pre_bridge_target_release",
+      "evidence": "docs/development/evidence/v09/checkpoint30/affected_integration.log",
+      "status": "PASS"
+    },
+    {
+      "case": "ActivationInterruptionTests.test_every_journal_switch_and_postcheck_boundary_reconciles",
+      "evidence": "docs/development/evidence/v09/checkpoint30/affected_integration.log",
+      "status": "PASS"
+    },
+    {
+      "case": "ActivationInterruptionTests.test_failed_post_switch_smoke_rolls_back_previous",
+      "evidence": "docs/development/evidence/v09/checkpoint30/affected_integration.log",
+      "status": "PASS"
+    },
+    {
+      "case": "ActivationInterruptionTests.test_operator_rollback_script_restarts_service_after_validated_switch",
+      "evidence": "docs/development/evidence/v09/checkpoint30/affected_integration.log",
+      "status": "PASS"
+    },
+    {
+      "case": "FinalizationInterruptionTests.test_candidate_finalize_boundaries_leave_recoverable_old_or_new_state",
+      "evidence": "docs/development/evidence/v09/checkpoint30/release_finalization_interruption.log",
+      "status": "PASS"
+    }
+  ],
+  "cases": 9,
+  "note": "All release lifecycle cases, including the new pre-bridge-target migration regression, are accounted individually after aggregate timeout boundaries.",
+  "passed": 9,
+  "schema": 1,
+  "status": "PASS"
+}

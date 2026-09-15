@@ -1,0 +1,235 @@
+{
+  "missing_modules": [],
+  "module_evidence": [
+    {
+      "evidence": "build/ci-logs/unit/tests_unit_test_bounded_unittest_runner.log",
+      "module": "tests.unit.test_bounded_unittest_runner",
+      "tests": 8
+    },
+    {
+      "evidence": "build/ci-logs/unit/tests_unit_test_diagnostics_snapshot.log",
+      "module": "tests.unit.test_diagnostics_snapshot",
+      "tests": 7
+    },
+    {
+      "evidence": "build/ci-logs/unit/tests_unit_test_fix5_appliance_manager.log",
+      "module": "tests.unit.test_fix5_appliance_manager",
+      "tests": 4
+    },
+    {
+      "evidence": "build/ci-logs/unit/tests_unit_test_grounding_observability.log",
+      "module": "tests.unit.test_grounding_observability",
+      "tests": 18
+    },
+    {
+      "evidence": "build/ci-logs/unit/tests_unit_test_legacy_router.log",
+      "module": "tests.unit.test_legacy_router",
+      "tests": 7
+    },
+    {
+      "evidence": "build/ci-logs/unit/tests_unit_test_m2_1.log",
+      "module": "tests.unit.test_m2_1",
+      "tests": 17
+    },
+    {
+      "evidence": "build/ci-logs/unit/tests_unit_test_m2_2_config.log",
+      "module": "tests.unit.test_m2_2_config",
+      "tests": 28
+    },
+    {
+      "evidence": "build/ci-logs/unit/tests_unit_test_m2_3_dependencies.log",
+      "module": "tests.unit.test_m2_3_dependencies",
+      "tests": 9
+    },
+    {
+      "evidence": "build/ci-logs/unit/tests_unit_test_m3_1_preflight.log",
+      "module": "tests.unit.test_m3_1_preflight",
+      "tests": 21
+    },
+    {
+      "evidence": "build/ci-logs/unit/tests_unit_test_m3_2_install_engine.log",
+      "module": "tests.unit.test_m3_2_install_engine",
+      "tests": 16
+    },
+    {
+      "evidence": "build/ci-logs/unit/tests_unit_test_m3_3_release_manager.log",
+      "module": "tests.unit.test_m3_3_release_manager",
+      "tests": 28
+    },
+    {
+      "evidence": "build/ci-logs/unit/tests_unit_test_m3_4_ollama_manager.log",
+      "module": "tests.unit.test_m3_4_ollama_manager",
+      "tests": 8
+    },
+    {
+      "evidence": "build/ci-logs/unit/tests_unit_test_m3_5_speech_manager.log",
+      "module": "tests.unit.test_m3_5_speech_manager",
+      "tests": 8
+    },
+    {
+      "evidence": "build/ci-logs/unit/tests_unit_test_m3_6_install_summary.log",
+      "module": "tests.unit.test_m3_6_install_summary",
+      "tests": 5
+    },
+    {
+      "evidence": "build/ci-logs/unit/tests_unit_test_m5_1_ptt_runtime.log",
+      "module": "tests.unit.test_m5_1_ptt_runtime",
+      "tests": 6
+    },
+    {
+      "evidence": "docs/development/evidence/v09/checkpoint30/unit_m6.log",
+      "module": "tests.unit.test_m6_service_manager",
+      "tests": 8
+    },
+    {
+      "evidence": "docs/development/evidence/v09/checkpoint30/unit_remaining_17_30.log",
+      "module": "tests.unit.test_m8_uninstall_manager",
+      "tests": 3
+    },
+    {
+      "evidence": "docs/development/evidence/v09/checkpoint30/unit_remaining_17_30.log",
+      "module": "tests.unit.test_m8_update_manager",
+      "tests": 4
+    },
+    {
+      "evidence": "docs/development/evidence/v09/checkpoint30/unit_remaining_17_30.log",
+      "module": "tests.unit.test_qwen_runtime_contract",
+      "tests": 1
+    },
+    {
+      "evidence": "docs/development/evidence/v09/checkpoint30/unit_remaining_17_30.log",
+      "module": "tests.unit.test_release_readiness",
+      "tests": 3
+    },
+    {
+      "evidence": "docs/development/evidence/v09/checkpoint30/unit_remaining_17_30.log",
+      "module": "tests.unit.test_runtime_audio",
+      "tests": 23
+    },
+    {
+      "evidence": "docs/development/evidence/v09/checkpoint30/unit_remaining_17_30.log",
+      "module": "tests.unit.test_support_export",
+      "tests": 12
+    },
+    {
+      "evidence": "docs/development/evidence/v09/checkpoint30/unit_remaining_17_30.log",
+      "module": "tests.unit.test_test_architecture",
+      "tests": 5
+    },
+    {
+      "evidence": "docs/development/evidence/v09/checkpoint30/unit_remaining_17_30.log",
+      "module": "tests.unit.test_v09_documentation_hardening",
+      "tests": 5
+    },
+    {
+      "evidence": "docs/development/evidence/v09/checkpoint30/unit_acceptance_runner.log",
+      "module": "tests.unit.test_v09_environment_acceptance_runner",
+      "tests": 7
+    },
+    {
+      "evidence": "docs/development/evidence/v09/checkpoint30/unit_remaining_26_45.log",
+      "module": "tests.unit.test_v09_environment_cli",
+      "tests": 11
+    },
+    {
+      "evidence": "docs/development/evidence/v09/checkpoint30/unit_remaining_26_45.log",
+      "module": "tests.unit.test_v09_environment_config",
+      "tests": 4
+    },
+    {
+      "evidence": "docs/development/evidence/v09/checkpoint30/unit_remaining_26_45.log",
+      "module": "tests.unit.test_v09_environment_controller",
+      "tests": 8
+    },
+    {
+      "evidence": "docs/development/evidence/v09/checkpoint30/unit_remaining_26_45.log",
+      "module": "tests.unit.test_v09_environment_daemon_activation",
+      "tests": 6
+    },
+    {
+      "evidence": "docs/development/evidence/v09/checkpoint30/unit_remaining_26_45.log",
+      "module": "tests.unit.test_v09_environment_hardware_adapters",
+      "tests": 19
+    },
+    {
+      "evidence": "docs/development/evidence/v09/checkpoint30/unit_remaining_26_45.log",
+      "module": "tests.unit.test_v09_environment_ipc",
+      "tests": 9
+    },
+    {
+      "evidence": "docs/development/evidence/v09/checkpoint30/unit_remaining_26_45.log",
+      "module": "tests.unit.test_v09_environment_policy",
+      "tests": 10
+    },
+    {
+      "evidence": "docs/development/evidence/v09/checkpoint30/unit_remaining_26_45.log",
+      "module": "tests.unit.test_v09_environment_polling_loop",
+      "tests": 5
+    },
+    {
+      "evidence": "docs/development/evidence/v09/checkpoint30/unit_remaining_26_45.log",
+      "module": "tests.unit.test_v09_environment_profile_manager",
+      "tests": 10
+    },
+    {
+      "evidence": "docs/development/evidence/v09/checkpoint30/unit_remaining_26_45.log",
+      "module": "tests.unit.test_v09_environment_service_manager",
+      "tests": 5
+    },
+    {
+      "evidence": "docs/development/evidence/v09/checkpoint30/unit_remaining_26_45.log",
+      "module": "tests.unit.test_v09_environment_simulation",
+      "tests": 14
+    },
+    {
+      "evidence": "docs/development/evidence/v09/checkpoint30/unit_remaining_26_45.log",
+      "module": "tests.unit.test_v09_environment_voice_intents",
+      "tests": 11
+    },
+    {
+      "evidence": "docs/development/evidence/v09/checkpoint30/unit_remaining_26_45.log",
+      "module": "tests.unit.test_v09_i2c_manager",
+      "tests": 6
+    },
+    {
+      "evidence": "docs/development/evidence/v09/checkpoint30/unit_remaining_26_45.log",
+      "module": "tests.unit.test_v09_installer_failure_bundle",
+      "tests": 1
+    },
+    {
+      "evidence": "docs/development/evidence/v09/checkpoint30/unit_remaining_26_45.log",
+      "module": "tests.unit.test_v09_runtime_context_preflight",
+      "tests": 5
+    },
+    {
+      "evidence": "docs/development/evidence/v09/checkpoint30/unit_remaining_26_45.log",
+      "module": "tests.unit.test_v09_sht31_diagnostic",
+      "tests": 7
+    },
+    {
+      "evidence": "docs/development/evidence/v09/checkpoint30/unit_remaining_26_45.log",
+      "module": "tests.unit.test_v09_target_preflight",
+      "tests": 4
+    },
+    {
+      "evidence": "docs/development/evidence/v09/checkpoint30/unit_remaining_26_45.log",
+      "module": "tests.unit.test_v09_user_test_readiness",
+      "tests": 5
+    },
+    {
+      "evidence": "docs/development/evidence/v09/checkpoint30/unit_remaining_26_45.log",
+      "module": "tests.unit.test_voice_appliance",
+      "tests": 23
+    },
+    {
+      "evidence": "docs/development/evidence/v09/checkpoint30/unit_remaining_26_45.log",
+      "module": "tests.unit.test_x4_bluetooth_manager",
+      "tests": 14
+    }
+  ],
+  "modules": 45,
+  "note": "Canonical unit aggregate was externally interrupted at test_m6_service_manager. Every unit module is accounted by the preserved pre-interruption per-module logs, isolated m6/acceptance-runner reruns, and bounded remaining-module chunks; interrupted wrappers are not relabelled PASS.",
+  "schema": 1,
+  "status": "PASS",
+  "tests": 438
+}

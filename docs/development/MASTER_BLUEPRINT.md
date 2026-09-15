@@ -1728,6 +1728,10 @@ Run clean/dirty/interruption/update/rollback/reinstall host/target-shadow campai
 
 Run the exact-package target campaign through installation completion, runtime/audio readiness, real relay/fan, real SHT31, controller modes, voice/wake, fault recovery, reboot/no-login and update/rollback. This remains target-gated until executed.
 
+#### M10.25 Target activation contract migration and upgrade compatibility repair
+
+Preserve strict current-candidate release validation while allowing only a trusted journal-bound pre-bridge current/previous release to serve as a bounded transition source. Prove exact upgrade migration, strict arbitrary-candidate refusal, rollback/status compatibility, interruption recovery and diagnostic provenance before returning to M10.24 target acceptance.
+
 ### Checkpoint 27 implementation refinement — M10.18/M10.19
 
 M10.18 now places a source-owned, non-actuating target prerequisite gate before account/release construction and creates a private installer-owned failure bundle if any later step fails. Required core voice/GPIO prerequisites fail closed; optional real-SHT31 readiness is reported without making the generic environment-disabled install impossible.
@@ -1747,3 +1751,20 @@ The next host tranche is M10.23 lifecycle/support/documentation/package/Git clos
 M10.23 is host-verified after bounded full-unit accounting (44 modules / 435 tests), complete integration-family accounting (12 modules / 57 tests), 8/8 release lifecycle cases, 5/5 Ollama lifecycle cases and 5/5 speech lifecycle cases. Support export adds allow-listed GPIO23 identity and dedicated runtime-context summaries while retaining the no-raw-log/privacy boundary. Target hardware/SHT31 documentation now matches the isolated gpiod binding bridge and raw Linux I2C sensor transport.
 
 Release readiness requires M10.16-M10.23 and explicitly leaves M10.24 target acceptance open. M10.24 software/runbook prerequisites are host-verified, but target state remains `not-run`; only exact-package Raspberry Pi evidence may close fan/sensor/audio/voice/reboot/update/rollback gates.
+
+## Checkpoint 30 implementation refinement — target activation migration repair
+
+**Triggering target evidence.** On the Raspberry Pi 5, the actuator substrate is physically demonstrated: GPIO23 resolves to `gpiochip0` line 23; explicit LOW stopped the KKHMF/ELUTENG load, HIGH started it, and returning LOW stopped it. Checkpoint 29 then reached target prerequisite preflight, built the new immutable release successfully, and failed during `activate_release` with `RELEASE_BINDING_MANIFEST`. Re-running reached the same deterministic boundary. This does not invalidate the physical fan evidence and does not close M10.24.
+
+**Root cause.** Checkpoint 29 correctly made bridge-era target candidates strict, but activation reconciliation applied that new manifest/API contract retroactively to the previously active release. The active Pi release predates the binding bridge and therefore can never satisfy the later manifest contract. The candidate itself had already passed build/final validation. The failure was an upgrade-state compatibility defect, not candidate construction failure.
+
+**M10.25 contract.** Release evolution must model two different trust questions:
+
+1. **Current candidate:** always satisfy the current strict manifest, isolated-runtime, binding API, immutable-payload and smoke contracts. No arbitrary pre-bridge candidate may be activated.
+2. **State-bound legacy transition source:** only a release already established by the activation journal/current pointer as a prior post-verified release may use bounded compatibility to permit migration away from it. Structural immutability, release-record/owner integrity and service-user CLI identity/status smoke remain mandatory.
+3. **Anti-downgrade/false-green rule:** absence of a manifest is insufficient to call a release legacy. The immutable embedded release manager must predate the bridge markers. A bridge-era release with a lost/corrupt manifest remains invalid.
+4. **Rollback:** a journal-bound previous pre-bridge release remains a permitted rollback target under the same bounded transition validation. Normal activation continues to reject that same release if it is presented as an arbitrary candidate.
+5. **Observability:** binding validation errors identify the release commit being checked; `RELEASE_LEGACY_TRANSITION_SOURCE` is emitted when bounded compatibility is legitimately used.
+6. **Regression protection:** unit and process integration tests must reproduce the exact old-post-verified-release → new-bridge-candidate migration, preserve strict candidate rejection, exercise rollback/status, activation interruption, post-switch rollback and finalization interruption.
+
+**Target continuation.** Package checkpoint 30 from the clean committed source. On the Pi, do not delete the old active release, activation journal or binding files manually. The corrected installer must migrate from the recorded legacy release, activate the strict new candidate, and reach governed `INSTALLATION_COMPLETE`. Only then resume M10.24 from GonKen-integrated CLI/service/audio/SHT31/voice stages. Physical GPIO23 wiring discovery does not need to be repeated unless new evidence contradicts it.

@@ -1,0 +1,6 @@
+test_installed_maintenance_wrapper_uses_release_local_entrypoint (tests.integration.test_support_collection_process.SupportCollectionProcessTests.test_installed_maintenance_wrapper_uses_release_local_entrypoint) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.007s
+
+OK

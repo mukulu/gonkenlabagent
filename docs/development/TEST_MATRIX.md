@@ -1244,3 +1244,20 @@ Checkpoint 24 closes the host-side root cause and adds regression protection, bu
 | CP29-S31 | SHT31/I2C docs + checkpoint28 sensor tests | PASS host readiness | Breakout labels, `/dev/i2c-1`, address and repeated real readings OPEN |
 | CP29-READY | M10.16-M10.23 release-readiness dependency gate | PASS after final control checks | M10.24 remains NOT_RUN |
 | CP29-PI | Exact delivered package via `docs/RASPBERRY_PI_ACCEPTANCE_RUN.md` | NOT APPLICABLE | **NOT RUN / BLOCKED TARGET GATE** until exact package is installed and observed |
+
+## V09 Checkpoint 30 — target activation migration repair
+
+| ID | Scope | Command / artifact | Result | Evidence boundary |
+|---|---|---|---:|---|
+| CP30-T136 | Real target actuator substrate | Raspberry Pi `gpiodetect`; `gpioinfo GPIO23`; supervised `gpioset GPIO23=0/1/0` | PASS / physical partial evidence | GPIO23 is `gpiochip0:23`; relay/PENGLIN/ELUTENG load physically stops/starts/stops. This is raw GPIO evidence, not GonKen service/voice acceptance. |
+| CP30-T137 | Checkpoint-29 exact failure classification | Target installer transcript at commit `6466f26`; `RELEASE_BUILT` followed by `RELEASE_BINDING_MANIFEST` during `activate_release` | BLOCKED / reproduced target defect | Candidate construction completed. Failure occurred while new activation code reconciled the pre-bridge active release. `INSTALLATION_COMPLETE` was not reached. |
+| CP30-T138 | Exact migration regression | `TargetBridgeUpgradeCompatibilityTests.test_process_activation_migrates_from_post_verified_pre_bridge_target_release` | PASS | Host process test reproduces pre-bridge post-verified current release → strict bridge-era candidate activation. |
+| CP30-T139 | Strict candidate anti-waiver regression | `test_normal_activation_still_rejects_unjournaled_pre_bridge_target_candidate` | PASS | Legacy compatibility cannot be used to activate an arbitrary old candidate. |
+| CP30-T140 | Legacy previous rollback/status | `test_operator_rollback_can_return_to_state_bound_pre_bridge_previous_release` plus release lifecycle interruption cases | PASS | State-bound rollback remains available; current candidate validation remains strict. |
+| CP30-T141 | Affected unit regression | `checkpoint30/affected_unit.log` | PASS, 76 tests | Release/install/preflight/profile/I2C/SHT31/support/readiness affected surface. Host only. |
+| CP30-T142 | Affected integration regression | `checkpoint30/affected_integration.log` | PASS, 17 tests | Upgrade migration, activation interruptions, install-engine and environment voice transactions. Host/process only. |
+| CP30-T143 | Full unit accounting | `checkpoint30/final_unit_accounting.json` | PASS, 45 modules / 438 tests | Canonical aggregate was externally interrupted; all modules are instead accounted through preserved bounded PASS evidence. |
+| CP30-T144 | Deterministic integration accounting | `checkpoint30/final_integration_accounting.json` | PASS, 11 modules / 49 tests | Non-release integration families accounted after aggregate interruption; no timeout is relabelled PASS. |
+| CP30-T145 | Release lifecycle accounting | `checkpoint30/final_release_lifecycle_accounting.json` | PASS, 9/9 cases | Includes new target migration plus build/repeat/low-space/activation/finalization/rollback boundaries. |
+| CP30-T146 | Checkpoint-30 control plane | `checkpoint30/final_control_unit.log`; `checkpoint30/final_control_integration.log`; `checkpoint30/final_readiness_docs.log`; `checkpoint30/t0_final.log` | PASS | 41/41 focused control unit tests, 2/2 focused control integration tests, documentation/readiness checks and canonical T0 pass after M10.25 synchronization. |
+| CP30-T147 | Exact checkpoint-30 Raspberry Pi install | Exact delivered checkpoint 30; governed installer; active commit; failure bundle on any error | NOT RUN / BLOCKED TARGET GATE | Must reach `INSTALLATION_COMPLETE` without live-target patching before integrated M10.24 testing resumes. |
