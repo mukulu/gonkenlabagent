@@ -118,8 +118,7 @@ class EndToEndReleaseTests(unittest.TestCase):
             timeout=90,
         )
 
-    def test_build_activate_repeat_and_default_boundary(self) -> None:
-        system_root = self.root / "system-success"
+    def assert_release_only_complete(self, system_root: Path) -> tuple[Path, Path]:
         first = self.run_install(system_root, "--release-only")
         self.assertEqual(first.returncode, 0, first.stderr)
         self.assertIn("code=M3_3_RELEASE_COMPLETE", first.stdout)
@@ -141,16 +140,28 @@ class EndToEndReleaseTests(unittest.TestCase):
         )
         journal = system_root / "var/lib/gonken-agent/install/activation.record"
         self.assertIn("phase=post_verified", journal.read_text(encoding="utf-8"))
+        for item in [release, *release.rglob("*")]:
+            if not item.is_symlink():
+                self.assertEqual(stat.S_IMODE(item.stat().st_mode) & 0o222, 0)
+        return release_root, release
+
+    def test_release_only_builds_activates_and_freezes_release(self) -> None:
+        self.assert_release_only_complete(self.root / "system-success-build")
+
+    def test_release_only_repeat_is_idempotent(self) -> None:
+        system_root = self.root / "system-success-repeat"
+        _release_root, release = self.assert_release_only_complete(system_root)
         manifest_before = (release / "release.record").read_bytes()
         second = self.run_install(system_root, "--release-only")
         self.assertEqual(second.returncode, 0, second.stderr)
         self.assertEqual((release / "release.record").read_bytes(), manifest_before)
+
+    def test_default_install_after_release_boundary_stops_before_target_only_steps(self) -> None:
+        system_root = self.root / "system-success-default-boundary"
+        self.assert_release_only_complete(system_root)
         default = self.run_install(system_root)
         self.assertEqual(default.returncode, 69)
         self.assertIn("code=M3_4_TARGET_REQUIRED", default.stderr)
-        for item in [release, *release.rglob("*")]:
-            if not item.is_symlink():
-                self.assertEqual(stat.S_IMODE(item.stat().st_mode) & 0o222, 0)
 
     def test_low_space_never_creates_or_switches_release(self) -> None:
         system_root = self.root / "system-low-space"

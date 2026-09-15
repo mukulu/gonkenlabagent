@@ -26,26 +26,40 @@ class BoundedUnittestRunnerTests(unittest.TestCase):
         (tests / "test_fixture.py").write_text(textwrap.dedent(body), encoding="utf-8")
         return temporary, root
 
-    def run_runner(self, root: Path, *, timeout: str = "5", heartbeat: str = "0.1") -> subprocess.CompletedProcess[str]:
+    def add_fixture_module(self, root: Path, name: str, body: str) -> None:
+        target = root / "tests" / "unit" / f"{name}.py"
+        target.write_text(textwrap.dedent(body), encoding="utf-8")
+
+    def run_runner(
+        self,
+        root: Path,
+        *,
+        timeout: str = "5",
+        heartbeat: str = "0.1",
+        extra: list[str] | None = None,
+    ) -> subprocess.CompletedProcess[str]:
+        command = [
+            sys.executable,
+            str(RUNNER),
+            "--root",
+            str(root),
+            "--suite-dir",
+            "tests/unit",
+            "--label",
+            "fixture",
+            "--log-dir",
+            str(root / "logs"),
+            "--manifest",
+            str(root / "manifest.json"),
+            "--timeout-seconds",
+            timeout,
+            "--heartbeat-seconds",
+            heartbeat,
+        ]
+        if extra:
+            command.extend(extra)
         return subprocess.run(
-            [
-                sys.executable,
-                str(RUNNER),
-                "--root",
-                str(root),
-                "--suite-dir",
-                "tests/unit",
-                "--label",
-                "fixture",
-                "--log-dir",
-                str(root / "logs"),
-                "--manifest",
-                str(root / "manifest.json"),
-                "--timeout-seconds",
-                timeout,
-                "--heartbeat-seconds",
-                heartbeat,
-            ],
+            command,
             cwd=ROOT,
             check=False,
             capture_output=True,
@@ -102,13 +116,64 @@ class BoundedUnittestRunnerTests(unittest.TestCase):
         self.assertEqual(manifest["status_counts"], {"TIMEOUT": 1})
         self.assertTrue(manifest["modules"][0]["timed_out"])
 
+    def test_case_granularity_runs_each_unittest_method_with_separate_log(self) -> None:
+        _temporary, root = self.make_fixture(
+            """
+            import unittest
+            class FixtureTests(unittest.TestCase):
+                def test_alpha(self):
+                    self.assertTrue(True)
+                def test_beta(self):
+                    self.assertEqual('b'.upper(), 'B')
+            """
+        )
+        result = self.run_runner(root, extra=["--granularity", "case"])
+        self.assertEqual(result.returncode, 0, result.stderr or result.stdout)
+        manifest = json.loads((root / "manifest.json").read_text(encoding="utf-8"))
+        self.assertEqual(manifest["granularity"], "case")
+        self.assertEqual(manifest["module_count"], 2)
+        modules = {entry["module"] for entry in manifest["modules"]}
+        self.assertIn("tests.unit.test_fixture.FixtureTests.test_alpha", modules)
+        self.assertIn("tests.unit.test_fixture.FixtureTests.test_beta", modules)
+        self.assertTrue((root / "logs/tests_unit_test_fixture_FixtureTests_test_alpha.log").is_file())
+        self.assertTrue((root / "logs/tests_unit_test_fixture_FixtureTests_test_beta.log").is_file())
+
+    def test_excluded_module_is_not_selected_during_discovery(self) -> None:
+        _temporary, root = self.make_fixture(
+            """
+            import unittest
+            class FixtureTests(unittest.TestCase):
+                def test_ok(self):
+                    self.assertTrue(True)
+            """
+        )
+        self.add_fixture_module(
+            root,
+            "test_other",
+            """
+            import unittest
+            class OtherTests(unittest.TestCase):
+                def test_other_ok(self):
+                    self.assertTrue(True)
+            """,
+        )
+        result = self.run_runner(root, extra=["--exclude-module", "tests.unit.test_other"])
+        self.assertEqual(result.returncode, 0, result.stderr or result.stdout)
+        manifest = json.loads((root / "manifest.json").read_text(encoding="utf-8"))
+        modules = [entry["module"] for entry in manifest["modules"]]
+        self.assertEqual(modules, ["tests.unit.test_fixture"])
+
     def test_ci_uses_bounded_runner_for_unit_and_integration_suites(self) -> None:
         text = CI.read_text(encoding="utf-8")
         self.assertIn("bounded_unittest.py", text)
         self.assertIn("--suite-dir tests/unit", text)
         self.assertIn("--suite-dir tests/integration", text)
+        self.assertIn("--exclude-module tests.integration.test_release_lifecycle_process", text)
+        self.assertIn("--granularity case", text)
+        self.assertIn("integration-release-lifecycle", text)
         self.assertIn("GONKEN_CI_UNIT_MODULE_TIMEOUT", text)
         self.assertIn("GONKEN_CI_INTEGRATION_MODULE_TIMEOUT", text)
+        self.assertIn("GONKEN_CI_RELEASE_CASE_TIMEOUT", text)
 
 
 if __name__ == "__main__":

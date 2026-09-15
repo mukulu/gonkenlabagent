@@ -1018,3 +1018,14 @@ Checkpoint 12 is host-quality hardening, not environment-feature expansion. It r
 | M10.6-T064 | Bounded release-lifecycle aggregate attempt in `docs/development/evidence/v09/wp_n_bounded_release_lifecycle.log` | INTERRUPTED / NEEDS_MANUAL_REVIEW | The new runner produced module heartbeat and logs, identifying the active long-running release E2E test before session interruption. This is not PASS and does not weaken release lifecycle acceptance. |
 
 Checkpoint 13 is host-quality scaffolding. It makes broad CI failures observable and bounded, but M10.7 physical acceptance remains not-run.
+
+## V09 release lifecycle decomposition evidence — 2026-09-15
+
+| ID | Command / artifact | Result | Evidence boundary |
+|---|---|---|---|
+| M10.6-T065 | `PYTHONPATH=src:. python3 -m unittest -v tests.unit.test_bounded_unittest_runner` | PASS, 6/6 | Host tests for bounded runner exclusion and per-case granularity. Confirms case IDs get separate subprocesses, logs and manifests. |
+| M10.6-T066 | Combined affected slice in `docs/development/evidence/v09/wp_o_release_lifecycle_slices.log` | PASS, 10/10 affected fast slice plus 4/4 decomposed release E2E cases | Verifies release activation interruption/finalization slices and the formerly combined release-only/default-boundary/low-space E2E cases as named tests. Host/development-root only. |
+| M10.6-T067 | Static gates in `docs/development/evidence/v09/wp_o_static_gates.log` | PASS | Dependency lock rendering, milestone check, release-readiness allow-dirty, Bash syntax, Python compileall, TOML/JSON parsing and `git diff --check` passed after release lifecycle decomposition. |
+| M10.6-T068 | Partial bounded release-case attempt in `docs/development/evidence/v09/wp_o_release_case_runner_partial_attempt.log` | INTERRUPTED / not PASS | A multi-case bounded-runner attempt was interrupted by the external session boundary after producing case-level output. It is preserved as diagnostic evidence only; the individually rerun cases above are the PASS evidence. |
+
+Checkpoint 14 decomposes the long release lifecycle evidence path without reducing coverage: the canonical CI now runs ordinary deterministic integration modules separately from `tests.integration.test_release_lifecycle_process`, then runs that release lifecycle module at unittest-case granularity. M10.7 physical Raspberry Pi acceptance remains **not-run**.

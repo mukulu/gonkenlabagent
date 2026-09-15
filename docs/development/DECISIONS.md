@@ -1099,3 +1099,11 @@ transport checks are repeated.
 - **Decision:** The canonical `scripts/ci.sh` T1 unit and deterministic integration phases now use `scripts/bounded_unittest.py` to execute every discovered test module in a separate subprocess with per-module timeout, heartbeat output, log file and manifest.
 - **Reason:** Monolithic `unittest discover` could be externally interrupted while hiding the active module, creating an ambiguous `INTERRUPTED` quality state. Per-module execution preserves the same test coverage while making slow, failed or timed-out modules identifiable and resumable.
 - **Consequence:** CI failures are now more diagnosable, but no acceptance criterion is weakened. A module timeout is still a failed CI run. Physical Raspberry Pi acceptance and long release-E2E completion remain separate evidence gates.
+
+## D-108 — Run release lifecycle E2E through bounded per-case evidence
+
+- **Status:** Accepted
+- **Date:** 2026-09-15
+- **Decision:** The canonical CI now excludes `tests.integration.test_release_lifecycle_process` from the ordinary module-granularity integration pass and runs that release lifecycle module separately with `scripts/bounded_unittest.py --granularity case`. The formerly combined release-only/default-boundary E2E method is split into named cases for build/freeze, idempotent repeat, default target-boundary refusal and low-space refusal.
+- **Reason:** The release lifecycle test is intentionally heavier than ordinary deterministic integration and was previously visible only as a monolithic module when interrupted. Case-level execution preserves the same acceptance logic while making the active boundary, timeout, log and result explicit.
+- **Consequence:** No release acceptance criterion is weakened. A failed or timed-out release case still fails CI, but evidence now identifies the exact install/activation boundary requiring repair. Physical Raspberry Pi acceptance remains M10.7 and cannot be inferred from host release-case success.
