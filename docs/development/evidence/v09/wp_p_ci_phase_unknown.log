@@ -1,0 +1,16 @@
+ERROR: unknown phase: unknown
+Usage: scripts/ci.sh [--phase PHASE]...
+
+Run deterministic host checks. Without --phase, all phases run in order.
+
+Phases:
+  t0                  dependency, milestone, readiness, syntax and static gates
+  unit                bounded per-module unit suite
+  integration         bounded deterministic integration suite, excluding release lifecycle
+  release-lifecycle   bounded per-case release lifecycle integration suite
+  all                 all phases in the canonical order
+
+Examples:
+  ./scripts/ci.sh
+  ./scripts/ci.sh --phase t0 --phase unit
+  ./scripts/ci.sh --phase release-lifecycle

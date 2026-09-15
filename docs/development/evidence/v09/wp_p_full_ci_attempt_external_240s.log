@@ -1,0 +1,114 @@
+[T0] dependency lock drift
+verified 5 installable dependency profiles
+[T0] source/config syntax
+[T1] unit suite (bounded per module)
+[RUN] module=tests.unit.test_bounded_unittest_runner timeout=180s log=/mnt/data/gonken_checkpoint15_work/gonkenlabagent-v09-release-ci-decomposition-checkpoint-14/build/ci-logs/unit/tests_unit_test_bounded_unittest_runner.log
+[PASS] module=tests.unit.test_bounded_unittest_runner seconds=8.0
+[RUN] module=tests.unit.test_diagnostics_snapshot timeout=180s log=/mnt/data/gonken_checkpoint15_work/gonkenlabagent-v09-release-ci-decomposition-checkpoint-14/build/ci-logs/unit/tests_unit_test_diagnostics_snapshot.log
+[PASS] module=tests.unit.test_diagnostics_snapshot seconds=1.0
+[RUN] module=tests.unit.test_fix5_appliance_manager timeout=180s log=/mnt/data/gonken_checkpoint15_work/gonkenlabagent-v09-release-ci-decomposition-checkpoint-14/build/ci-logs/unit/tests_unit_test_fix5_appliance_manager.log
+[PASS] module=tests.unit.test_fix5_appliance_manager seconds=0.7
+[RUN] module=tests.unit.test_grounding_observability timeout=180s log=/mnt/data/gonken_checkpoint15_work/gonkenlabagent-v09-release-ci-decomposition-checkpoint-14/build/ci-logs/unit/tests_unit_test_grounding_observability.log
+[PASS] module=tests.unit.test_grounding_observability seconds=0.8
+[RUN] module=tests.unit.test_legacy_router timeout=180s log=/mnt/data/gonken_checkpoint15_work/gonkenlabagent-v09-release-ci-decomposition-checkpoint-14/build/ci-logs/unit/tests_unit_test_legacy_router.log
+[PASS] module=tests.unit.test_legacy_router seconds=2.2
+[RUN] module=tests.unit.test_m2_1 timeout=180s log=/mnt/data/gonken_checkpoint15_work/gonkenlabagent-v09-release-ci-decomposition-checkpoint-14/build/ci-logs/unit/tests_unit_test_m2_1.log
+[PASS] module=tests.unit.test_m2_1 seconds=2.3
+[RUN] module=tests.unit.test_m2_2_config timeout=180s log=/mnt/data/gonken_checkpoint15_work/gonkenlabagent-v09-release-ci-decomposition-checkpoint-14/build/ci-logs/unit/tests_unit_test_m2_2_config.log
+[PASS] module=tests.unit.test_m2_2_config seconds=0.9
+[RUN] module=tests.unit.test_m2_3_dependencies timeout=180s log=/mnt/data/gonken_checkpoint15_work/gonkenlabagent-v09-release-ci-decomposition-checkpoint-14/build/ci-logs/unit/tests_unit_test_m2_3_dependencies.log
+[PASS] module=tests.unit.test_m2_3_dependencies seconds=1.9
+[RUN] module=tests.unit.test_m3_1_preflight timeout=180s log=/mnt/data/gonken_checkpoint15_work/gonkenlabagent-v09-release-ci-decomposition-checkpoint-14/build/ci-logs/unit/tests_unit_test_m3_1_preflight.log
+[PASS] module=tests.unit.test_m3_1_preflight seconds=0.8
+[RUN] module=tests.unit.test_m3_2_install_engine timeout=180s log=/mnt/data/gonken_checkpoint15_work/gonkenlabagent-v09-release-ci-decomposition-checkpoint-14/build/ci-logs/unit/tests_unit_test_m3_2_install_engine.log
+[PASS] module=tests.unit.test_m3_2_install_engine seconds=1.0
+[RUN] module=tests.unit.test_m3_3_release_manager timeout=180s log=/mnt/data/gonken_checkpoint15_work/gonkenlabagent-v09-release-ci-decomposition-checkpoint-14/build/ci-logs/unit/tests_unit_test_m3_3_release_manager.log
+[PASS] module=tests.unit.test_m3_3_release_manager seconds=1.3
+[RUN] module=tests.unit.test_m3_4_ollama_manager timeout=180s log=/mnt/data/gonken_checkpoint15_work/gonkenlabagent-v09-release-ci-decomposition-checkpoint-14/build/ci-logs/unit/tests_unit_test_m3_4_ollama_manager.log
+[PASS] module=tests.unit.test_m3_4_ollama_manager seconds=0.6
+[RUN] module=tests.unit.test_m3_5_speech_manager timeout=180s log=/mnt/data/gonken_checkpoint15_work/gonkenlabagent-v09-release-ci-decomposition-checkpoint-14/build/ci-logs/unit/tests_unit_test_m3_5_speech_manager.log
+[PASS] module=tests.unit.test_m3_5_speech_manager seconds=0.6
+[RUN] module=tests.unit.test_m3_6_install_summary timeout=180s log=/mnt/data/gonken_checkpoint15_work/gonkenlabagent-v09-release-ci-decomposition-checkpoint-14/build/ci-logs/unit/tests_unit_test_m3_6_install_summary.log
+[PASS] module=tests.unit.test_m3_6_install_summary seconds=0.6
+[RUN] module=tests.unit.test_m6_service_manager timeout=180s log=/mnt/data/gonken_checkpoint15_work/gonkenlabagent-v09-release-ci-decomposition-checkpoint-14/build/ci-logs/unit/tests_unit_test_m6_service_manager.log
+[PASS] module=tests.unit.test_m6_service_manager seconds=7.8
+[RUN] module=tests.unit.test_m8_uninstall_manager timeout=180s log=/mnt/data/gonken_checkpoint15_work/gonkenlabagent-v09-release-ci-decomposition-checkpoint-14/build/ci-logs/unit/tests_unit_test_m8_uninstall_manager.log
+[PASS] module=tests.unit.test_m8_uninstall_manager seconds=4.7
+[RUN] module=tests.unit.test_m8_update_manager timeout=180s log=/mnt/data/gonken_checkpoint15_work/gonkenlabagent-v09-release-ci-decomposition-checkpoint-14/build/ci-logs/unit/tests_unit_test_m8_update_manager.log
+[PASS] module=tests.unit.test_m8_update_manager seconds=0.8
+[RUN] module=tests.unit.test_qwen_runtime_contract timeout=180s log=/mnt/data/gonken_checkpoint15_work/gonkenlabagent-v09-release-ci-decomposition-checkpoint-14/build/ci-logs/unit/tests_unit_test_qwen_runtime_contract.log
+[PASS] module=tests.unit.test_qwen_runtime_contract seconds=0.6
+[RUN] module=tests.unit.test_release_readiness timeout=180s log=/mnt/data/gonken_checkpoint15_work/gonkenlabagent-v09-release-ci-decomposition-checkpoint-14/build/ci-logs/unit/tests_unit_test_release_readiness.log
+[PASS] module=tests.unit.test_release_readiness seconds=1.9
+[RUN] module=tests.unit.test_runtime_audio timeout=180s log=/mnt/data/gonken_checkpoint15_work/gonkenlabagent-v09-release-ci-decomposition-checkpoint-14/build/ci-logs/unit/tests_unit_test_runtime_audio.log
+[PASS] module=tests.unit.test_runtime_audio seconds=2.5
+[RUN] module=tests.unit.test_support_export timeout=180s log=/mnt/data/gonken_checkpoint15_work/gonkenlabagent-v09-release-ci-decomposition-checkpoint-14/build/ci-logs/unit/tests_unit_test_support_export.log
+[PASS] module=tests.unit.test_support_export seconds=0.8
+[RUN] module=tests.unit.test_test_architecture timeout=180s log=/mnt/data/gonken_checkpoint15_work/gonkenlabagent-v09-release-ci-decomposition-checkpoint-14/build/ci-logs/unit/tests_unit_test_test_architecture.log
+[PASS] module=tests.unit.test_test_architecture seconds=2.7
+[RUN] module=tests.unit.test_v09_environment_acceptance_runner timeout=180s log=/mnt/data/gonken_checkpoint15_work/gonkenlabagent-v09-release-ci-decomposition-checkpoint-14/build/ci-logs/unit/tests_unit_test_v09_environment_acceptance_runner.log
+[WAIT] module=tests.unit.test_v09_environment_acceptance_runner elapsed=15.1s tail=test_default_collection_is_non_destructive_and_blocks_fan_cycle (tests.unit.test_v09_environment_acceptance_runner.EnvironmentAcceptanceRunnerTests.test_default_collection_is_non_destructive_and_blocks_fan_cycle) ... ok
+[PASS] module=tests.unit.test_v09_environment_acceptance_runner seconds=17.3
+[RUN] module=tests.unit.test_v09_environment_cli timeout=180s log=/mnt/data/gonken_checkpoint15_work/gonkenlabagent-v09-release-ci-decomposition-checkpoint-14/build/ci-logs/unit/tests_unit_test_v09_environment_cli.log
+[PASS] module=tests.unit.test_v09_environment_cli seconds=0.8
+[RUN] module=tests.unit.test_v09_environment_config timeout=180s log=/mnt/data/gonken_checkpoint15_work/gonkenlabagent-v09-release-ci-decomposition-checkpoint-14/build/ci-logs/unit/tests_unit_test_v09_environment_config.log
+[PASS] module=tests.unit.test_v09_environment_config seconds=0.6
+[RUN] module=tests.unit.test_v09_environment_controller timeout=180s log=/mnt/data/gonken_checkpoint15_work/gonkenlabagent-v09-release-ci-decomposition-checkpoint-14/build/ci-logs/unit/tests_unit_test_v09_environment_controller.log
+[PASS] module=tests.unit.test_v09_environment_controller seconds=0.6
+[RUN] module=tests.unit.test_v09_environment_daemon_activation timeout=180s log=/mnt/data/gonken_checkpoint15_work/gonkenlabagent-v09-release-ci-decomposition-checkpoint-14/build/ci-logs/unit/tests_unit_test_v09_environment_daemon_activation.log
+[PASS] module=tests.unit.test_v09_environment_daemon_activation seconds=1.2
+[RUN] module=tests.unit.test_v09_environment_hardware_adapters timeout=180s log=/mnt/data/gonken_checkpoint15_work/gonkenlabagent-v09-release-ci-decomposition-checkpoint-14/build/ci-logs/unit/tests_unit_test_v09_environment_hardware_adapters.log
+[PASS] module=tests.unit.test_v09_environment_hardware_adapters seconds=0.6
+[RUN] module=tests.unit.test_v09_environment_ipc timeout=180s log=/mnt/data/gonken_checkpoint15_work/gonkenlabagent-v09-release-ci-decomposition-checkpoint-14/build/ci-logs/unit/tests_unit_test_v09_environment_ipc.log
+[PASS] module=tests.unit.test_v09_environment_ipc seconds=2.1
+[RUN] module=tests.unit.test_v09_environment_policy timeout=180s log=/mnt/data/gonken_checkpoint15_work/gonkenlabagent-v09-release-ci-decomposition-checkpoint-14/build/ci-logs/unit/tests_unit_test_v09_environment_policy.log
+[PASS] module=tests.unit.test_v09_environment_policy seconds=0.6
+[RUN] module=tests.unit.test_v09_environment_polling_loop timeout=180s log=/mnt/data/gonken_checkpoint15_work/gonkenlabagent-v09-release-ci-decomposition-checkpoint-14/build/ci-logs/unit/tests_unit_test_v09_environment_polling_loop.log
+[PASS] module=tests.unit.test_v09_environment_polling_loop seconds=0.7
+[RUN] module=tests.unit.test_v09_environment_service_manager timeout=180s log=/mnt/data/gonken_checkpoint15_work/gonkenlabagent-v09-release-ci-decomposition-checkpoint-14/build/ci-logs/unit/tests_unit_test_v09_environment_service_manager.log
+[PASS] module=tests.unit.test_v09_environment_service_manager seconds=3.6
+[RUN] module=tests.unit.test_v09_environment_voice_intents timeout=180s log=/mnt/data/gonken_checkpoint15_work/gonkenlabagent-v09-release-ci-decomposition-checkpoint-14/build/ci-logs/unit/tests_unit_test_v09_environment_voice_intents.log
+[PASS] module=tests.unit.test_v09_environment_voice_intents seconds=0.6
+[RUN] module=tests.unit.test_voice_appliance timeout=180s log=/mnt/data/gonken_checkpoint15_work/gonkenlabagent-v09-release-ci-decomposition-checkpoint-14/build/ci-logs/unit/tests_unit_test_voice_appliance.log
+[PASS] module=tests.unit.test_voice_appliance seconds=0.7
+[RUN] module=tests.unit.test_x4_bluetooth_manager timeout=180s log=/mnt/data/gonken_checkpoint15_work/gonkenlabagent-v09-release-ci-decomposition-checkpoint-14/build/ci-logs/unit/tests_unit_test_x4_bluetooth_manager.log
+[PASS] module=tests.unit.test_x4_bluetooth_manager seconds=0.7
+[SUMMARY] label=unit result=PASS modules=35 manifest=/mnt/data/gonken_checkpoint15_work/gonkenlabagent-v09-release-ci-decomposition-checkpoint-14/build/ci-logs/unit_manifest.json
+[T1] deterministic integration suite (bounded per module)
+[RUN] module=tests.integration.test_bootstrap_preflight_process timeout=300s log=/mnt/data/gonken_checkpoint15_work/gonkenlabagent-v09-release-ci-decomposition-checkpoint-14/build/ci-logs/integration/tests_integration_test_bootstrap_preflight_process.log
+[PASS] module=tests.integration.test_bootstrap_preflight_process seconds=7.6
+[RUN] module=tests.integration.test_cli_process timeout=300s log=/mnt/data/gonken_checkpoint15_work/gonkenlabagent-v09-release-ci-decomposition-checkpoint-14/build/ci-logs/integration/tests_integration_test_cli_process.log
+[PASS] module=tests.integration.test_cli_process seconds=4.5
+[RUN] module=tests.integration.test_first_install_launcher timeout=300s log=/mnt/data/gonken_checkpoint15_work/gonkenlabagent-v09-release-ci-decomposition-checkpoint-14/build/ci-logs/integration/tests_integration_test_first_install_launcher.log
+[PASS] module=tests.integration.test_first_install_launcher seconds=0.7
+[RUN] module=tests.integration.test_install_engine_process timeout=300s log=/mnt/data/gonken_checkpoint15_work/gonkenlabagent-v09-release-ci-decomposition-checkpoint-14/build/ci-logs/integration/tests_integration_test_install_engine_process.log
+[PASS] module=tests.integration.test_install_engine_process seconds=8.6
+[RUN] module=tests.integration.test_ollama_lifecycle_process timeout=300s log=/mnt/data/gonken_checkpoint15_work/gonkenlabagent-v09-release-ci-decomposition-checkpoint-14/build/ci-logs/integration/tests_integration_test_ollama_lifecycle_process.log
+[WAIT] module=tests.integration.test_ollama_lifecycle_process elapsed=15.1s tail=test_checksum_failure_never_creates_release (tests.integration.test_ollama_lifecycle_process.OllamaLifecycleProcessTests.test_checksum_failure_never_creates_release) ... ok | test_recorded_full_digest_drift_is_refused (tests.integration.test_ollama_lifecycle_process.OllamaLifecycleProcessTests.test_recorded_full_digest_drift_is_refused) ... ok
+[PASS] module=tests.integration.test_ollama_lifecycle_process seconds=25.2
+[RUN] module=tests.integration.test_speech_lifecycle_process timeout=300s log=/mnt/data/gonken_checkpoint15_work/gonkenlabagent-v09-release-ci-decomposition-checkpoint-14/build/ci-logs/integration/tests_integration_test_speech_lifecycle_process.log
+[WAIT] module=tests.integration.test_speech_lifecycle_process elapsed=15.0s tail=test_full_lifecycle_repeat_status_and_private_record (tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_full_lifecycle_repeat_status_and_private_record) ... ok
+[WAIT] module=tests.integration.test_speech_lifecycle_process elapsed=30.0s tail=test_full_lifecycle_repeat_status_and_private_record (tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_full_lifecycle_repeat_status_and_private_record) ... ok
+[WAIT] module=tests.integration.test_speech_lifecycle_process elapsed=45.0s tail=test_interrupted_boundaries_converge_on_rerun (tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_interrupted_boundaries_converge_on_rerun) ... ok | test_smoke_failure_does_not_create_success_record_and_reruns (tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_smoke_failure_does_not_create_success_record_and_reruns) ... ok
+[WAIT] module=tests.integration.test_speech_lifecycle_process elapsed=60.1s tail=test_smoke_failure_does_not_create_success_record_and_reruns (tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_smoke_failure_does_not_create_success_record_and_reruns) ... ok | test_wrong_architecture_native_payload_is_rejected_and_repaired (tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_wrong_architecture_native_payload_is_rejected_and_repaired) ... ok
+[PASS] module=tests.integration.test_speech_lifecycle_process seconds=61.6
+[RUN] module=tests.integration.test_support_collection_process timeout=300s log=/mnt/data/gonken_checkpoint15_work/gonkenlabagent-v09-release-ci-decomposition-checkpoint-14/build/ci-logs/integration/tests_integration_test_support_collection_process.log
+[PASS] module=tests.integration.test_support_collection_process seconds=0.7
+[RUN] module=tests.integration.test_text_runtime_process timeout=300s log=/mnt/data/gonken_checkpoint15_work/gonkenlabagent-v09-release-ci-decomposition-checkpoint-14/build/ci-logs/integration/tests_integration_test_text_runtime_process.log
+[PASS] module=tests.integration.test_text_runtime_process seconds=7.7
+[RUN] module=tests.integration.test_uninstall_lifecycle_process timeout=300s log=/mnt/data/gonken_checkpoint15_work/gonkenlabagent-v09-release-ci-decomposition-checkpoint-14/build/ci-logs/integration/tests_integration_test_uninstall_lifecycle_process.log
+[PASS] module=tests.integration.test_uninstall_lifecycle_process seconds=1.9
+[SUMMARY] label=integration result=PASS modules=9 manifest=/mnt/data/gonken_checkpoint15_work/gonkenlabagent-v09-release-ci-decomposition-checkpoint-14/build/ci-logs/integration_manifest.json
+[T1] release lifecycle integration suite (bounded per case)
+[RUN] module=tests.integration.test_release_lifecycle_process.ActivationInterruptionTests.test_every_journal_switch_and_postcheck_boundary_reconciles timeout=240s log=/mnt/data/gonken_checkpoint15_work/gonkenlabagent-v09-release-ci-decomposition-checkpoint-14/build/ci-logs/integration-release-lifecycle/tests_integration_test_release_lifecycle_process_ActivationInterruptionTests_test_every_journal_switch_and_postcheck_boundary_reconciles.log
+[PASS] module=tests.integration.test_release_lifecycle_process.ActivationInterruptionTests.test_every_journal_switch_and_postcheck_boundary_reconciles seconds=10.5
+[RUN] module=tests.integration.test_release_lifecycle_process.ActivationInterruptionTests.test_failed_post_switch_smoke_rolls_back_previous timeout=240s log=/mnt/data/gonken_checkpoint15_work/gonkenlabagent-v09-release-ci-decomposition-checkpoint-14/build/ci-logs/integration-release-lifecycle/tests_integration_test_release_lifecycle_process_ActivationInterruptionTests_test_failed_post_switch_smoke_rolls_back_previous.log
+[PASS] module=tests.integration.test_release_lifecycle_process.ActivationInterruptionTests.test_failed_post_switch_smoke_rolls_back_previous seconds=1.2
+[RUN] module=tests.integration.test_release_lifecycle_process.ActivationInterruptionTests.test_operator_rollback_script_restarts_service_after_validated_switch timeout=240s log=/mnt/data/gonken_checkpoint15_work/gonkenlabagent-v09-release-ci-decomposition-checkpoint-14/build/ci-logs/integration-release-lifecycle/tests_integration_test_release_lifecycle_process_ActivationInterruptionTests_test_operator_rollback_script_restarts_service_after_validated_switch.log
+[PASS] module=tests.integration.test_release_lifecycle_process.ActivationInterruptionTests.test_operator_rollback_script_restarts_service_after_validated_switch seconds=1.9
+[RUN] module=tests.integration.test_release_lifecycle_process.EndToEndReleaseTests.test_default_install_after_release_boundary_stops_before_target_only_steps timeout=240s log=/mnt/data/gonken_checkpoint15_work/gonkenlabagent-v09-release-ci-decomposition-checkpoint-14/build/ci-logs/integration-release-lifecycle/tests_integration_test_release_lifecycle_process_EndToEndReleaseTests_test_default_install_after_release_boundary_stops_before_target_only_steps.log
+[WAIT] module=tests.integration.test_release_lifecycle_process.EndToEndReleaseTests.test_default_install_after_release_boundary_stops_before_target_only_steps elapsed=15.0s tail=no output yet
+[PASS] module=tests.integration.test_release_lifecycle_process.EndToEndReleaseTests.test_default_install_after_release_boundary_stops_before_target_only_steps seconds=21.4
+[RUN] module=tests.integration.test_release_lifecycle_process.EndToEndReleaseTests.test_low_space_never_creates_or_switches_release timeout=240s log=/mnt/data/gonken_checkpoint15_work/gonkenlabagent-v09-release-ci-decomposition-checkpoint-14/build/ci-logs/integration-release-lifecycle/tests_integration_test_release_lifecycle_process_EndToEndReleaseTests_test_low_space_never_creates_or_switches_release.log
+[PASS] module=tests.integration.test_release_lifecycle_process.EndToEndReleaseTests.test_low_space_never_creates_or_switches_release seconds=6.2
+[RUN] module=tests.integration.test_release_lifecycle_process.EndToEndReleaseTests.test_release_only_builds_activates_and_freezes_release timeout=240s log=/mnt/data/gonken_checkpoint15_work/gonkenlabagent-v09-release-ci-decomposition-checkpoint-14/build/ci-logs/integration-release-lifecycle/tests_integration_test_release_lifecycle_process_EndToEndReleaseTests_test_release_only_builds_activates_and_freezes_release.log

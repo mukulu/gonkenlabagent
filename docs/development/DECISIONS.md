@@ -1107,3 +1107,11 @@ transport checks are repeated.
 - **Decision:** The canonical CI now excludes `tests.integration.test_release_lifecycle_process` from the ordinary module-granularity integration pass and runs that release lifecycle module separately with `scripts/bounded_unittest.py --granularity case`. The formerly combined release-only/default-boundary E2E method is split into named cases for build/freeze, idempotent repeat, default target-boundary refusal and low-space refusal.
 - **Reason:** The release lifecycle test is intentionally heavier than ordinary deterministic integration and was previously visible only as a monolithic module when interrupted. Case-level execution preserves the same acceptance logic while making the active boundary, timeout, log and result explicit.
 - **Consequence:** No release acceptance criterion is weakened. A failed or timed-out release case still fails CI, but evidence now identifies the exact install/activation boundary requiring repair. Physical Raspberry Pi acceptance remains M10.7 and cannot be inferred from host release-case success.
+
+## D-109 — Allow canonical CI phases to run independently without weakening the full gate
+
+- **Status:** Accepted
+- **Date:** 2026-09-15
+- **Decision:** `scripts/ci.sh` now accepts `--phase t0`, `--phase unit`, `--phase integration`, `--phase release-lifecycle` and `--phase all`, plus `--list-phases`.  With no arguments it still runs the complete canonical host sequence.
+- **Reason:** After the bounded runner and release case decomposition, the remaining practical problem was not hidden test coverage but external session walls interrupting the long aggregate command.  Phase selection lets a later session collect or repeat the exact phase that remains uncertain without restarting all earlier passed work.
+- **Consequence:** No test is removed and no acceptance criterion is weakened.  A failed or timed-out phase still fails that phase.  Physical Raspberry Pi acceptance remains M10.7 and cannot be inferred from any host CI phase.

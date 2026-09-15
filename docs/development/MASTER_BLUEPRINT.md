@@ -1519,3 +1519,9 @@ This checkpoint addresses the previous false-unknown quality state where monolit
 Checkpoint 14 keeps V09 in the host-verifiable quality phase and does not add new physical acceptance claims. The bounded unittest runner now supports two execution granularities: module-level for ordinary unit/integration modules and case-level for release lifecycle E2E cases that are heavier and need finer evidence. `scripts/ci.sh` runs `tests.integration.test_release_lifecycle_process` separately with `--granularity case`, and the release-only/default-boundary E2E test has been decomposed into named build/freeze, repeat/idempotency, target-boundary and low-space cases.
 
 This change improves observability and continuation safety without weakening release acceptance. The same host release behavior remains tested, but a future timeout now identifies the exact case rather than only the aggregate module. M10.7 physical Raspberry Pi evidence remains not-run.
+
+## V09 implementation checkpoint 15 — CI phase selection and resumable host evidence
+
+M10.6 host-quality tooling now includes phase-selectable `scripts/ci.sh` execution.  The canonical default remains the complete T0/T1 host check order, but operators may now run `--phase t0`, `--phase unit`, `--phase integration` and `--phase release-lifecycle` independently, or combine phases explicitly.  This does not reduce test coverage or acceptance criteria; it makes long host evidence collection resumable when an external session boundary interrupts a full aggregate run.
+
+The change is limited to CI orchestration and tests.  It does not alter environment runtime behavior, daemon polling, CLI/voice control, installer actuation, SHT31 reads, relay control, or physical acceptance.  M10.7 remains the first gate allowed to claim real Raspberry Pi SHT31/relay/fan/audio/wake behavior.

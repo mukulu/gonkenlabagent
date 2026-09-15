@@ -1029,3 +1029,15 @@ Checkpoint 13 is host-quality scaffolding. It makes broad CI failures observable
 | M10.6-T068 | Partial bounded release-case attempt in `docs/development/evidence/v09/wp_o_release_case_runner_partial_attempt.log` | INTERRUPTED / not PASS | A multi-case bounded-runner attempt was interrupted by the external session boundary after producing case-level output. It is preserved as diagnostic evidence only; the individually rerun cases above are the PASS evidence. |
 
 Checkpoint 14 decomposes the long release lifecycle evidence path without reducing coverage: the canonical CI now runs ordinary deterministic integration modules separately from `tests.integration.test_release_lifecycle_process`, then runs that release lifecycle module at unittest-case granularity. M10.7 physical Raspberry Pi acceptance remains **not-run**.
+
+## V09 Checkpoint 15 — CI phase selection and resumable host evidence
+
+| ID | Evidence | Result | Notes |
+|---|---|---:|---|
+| M10.6-T069 | CI phase-selector unit tests in `docs/development/evidence/v09/wp_p_ci_phase_selector_tests.log` | PASS | `tests.unit.test_bounded_unittest_runner` passed 8/8, including help/list/invalid-phase behavior and retained bounded-runner wiring. |
+| M10.6-T070 | T0 phase run in `docs/development/evidence/v09/wp_p_ci_phase_t0.log` | PASS | `scripts/ci.sh --phase t0` passed dependency lock, milestone, release-readiness, syntax/compile/parse/diff checks. |
+| M10.6-T071 | Touched-file syntax/compile evidence in `docs/development/evidence/v09/wp_p_ci_bash_n.log` and `docs/development/evidence/v09/wp_p_compile_phase_change.log` | PASS | `bash -n scripts/ci.sh` and Python compile checks for scripts/tests passed. |
+| M10.6-T072 | Full aggregate CI attempt in `docs/development/evidence/v09/wp_p_full_ci_attempt_external_240s.log` | INTERRUPTED / not PASS | External 240-second wrapper interrupted the aggregate run after unit/integration PASS and part of release-lifecycle case execution. Diagnostic only. |
+| M10.6-T073 | Unit phase attempt in `docs/development/evidence/v09/wp_p_unit_phase_attempt_interrupted.log` | INTERRUPTED / not PASS | The execution environment interrupted a standalone `--phase unit` attempt before completion. The affected phase-selector unit slice is the PASS evidence for this change. |
+
+Checkpoint 15 adds resumable CI phase selection only.  It does not alter production runtime behavior and does not close M10.7 physical Raspberry Pi acceptance.
