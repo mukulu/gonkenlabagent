@@ -1,359 +1,362 @@
 {
-  "schema_version": 1,
-  "checkpoint_scope": "V09 simulation/HIL implementation checkpoint 17 from checkpoint 16",
   "baseline_commit": "3b25b81c5bc7d4e24268726ad7f7b71296215a03",
+  "checkpoint_scope": "V09 simulation/HIL implementation checkpoint 17 from checkpoint 16",
   "milestones": [
     {
-      "id": "M2.1",
-      "title": "Package and identity normalization",
-      "software": "host-verified",
-      "target": "not-applicable",
       "evidence": "TEST_MATRIX.md (M2.1)",
-      "remaining": ""
-    },
-    {
-      "id": "M2.2",
-      "title": "Configuration authority and migration",
+      "id": "M2.1",
+      "remaining": "",
       "software": "host-verified",
       "target": "not-applicable",
+      "title": "Package and identity normalization"
+    },
+    {
       "evidence": "TEST_MATRIX.md (M2.2)",
-      "remaining": ""
-    },
-    {
-      "id": "M2.3",
-      "title": "Dependency profiles and locks",
+      "id": "M2.2",
+      "remaining": "",
       "software": "host-verified",
       "target": "not-applicable",
+      "title": "Configuration authority and migration"
+    },
+    {
       "evidence": "TEST_MATRIX.md (M2.3)",
-      "remaining": ""
-    },
-    {
-      "id": "M2.4",
-      "title": "Automated test foundation",
+      "id": "M2.3",
+      "remaining": "",
       "software": "host-verified",
       "target": "not-applicable",
+      "title": "Dependency profiles and locks"
+    },
+    {
       "evidence": "TEST_MATRIX.md (M2.4)",
-      "remaining": ""
+      "id": "M2.4",
+      "remaining": "",
+      "software": "host-verified",
+      "target": "not-applicable",
+      "title": "Automated test foundation"
     },
     {
-      "id": "M3.1",
-      "title": "Bootstrap preflight",
-      "software": "host-verified",
-      "target": "not-run",
       "evidence": "TEST_MATRIX.md (M3.1)",
-      "remaining": "Physical Pi acceptance remains open."
-    },
-    {
-      "id": "M3.2",
-      "title": "Step engine and install state",
+      "id": "M3.1",
+      "remaining": "Physical Pi acceptance remains open.",
       "software": "host-verified",
       "target": "not-run",
+      "title": "Bootstrap preflight"
+    },
+    {
       "evidence": "TEST_MATRIX.md (M3.2)",
-      "remaining": "Physical Pi acceptance remains open."
-    },
-    {
-      "id": "M3.3",
-      "title": "Immutable application release",
+      "id": "M3.2",
+      "remaining": "Physical Pi acceptance remains open.",
       "software": "host-verified",
       "target": "not-run",
+      "title": "Step engine and install state"
+    },
+    {
       "evidence": "TEST_MATRIX.md (M3.3)",
-      "remaining": "Physical Pi acceptance remains open."
-    },
-    {
-      "id": "M3.4",
-      "title": "Ollama lifecycle and selected model",
+      "id": "M3.3",
+      "remaining": "Physical Pi acceptance remains open.",
       "software": "host-verified",
       "target": "not-run",
+      "title": "Immutable application release"
+    },
+    {
       "evidence": "TEST_MATRIX.md (M3.4)",
-      "remaining": "Physical Pi acceptance remains open."
-    },
-    {
-      "id": "M3.5",
-      "title": "Whisper and Piper artifacts",
+      "id": "M3.4",
+      "remaining": "Physical Pi acceptance remains open.",
       "software": "host-verified",
       "target": "not-run",
+      "title": "Ollama lifecycle and selected model"
+    },
+    {
       "evidence": "SPEECH_ARTIFACT_LIFECYCLE.md; TEST_MATRIX.md (M3.5); tests/unit/test_m3_5_speech_manager.py; tests/integration/test_speech_lifecycle_process.py",
-      "remaining": "Real Raspberry Pi build/download/install, Piper synthesis, Whisper transcription, audio hardware and reboot acceptance remain open."
-    },
-    {
-      "id": "M3.6",
-      "title": "Install summary",
+      "id": "M3.5",
+      "remaining": "Real Raspberry Pi build/download/install, Piper synthesis, Whisper transcription, audio hardware and reboot acceptance remain open.",
       "software": "host-verified",
       "target": "not-run",
+      "title": "Whisper and Piper artifacts"
+    },
+    {
       "evidence": "TEST_MATRIX.md (M3.6); scripts/install_summary.py; tests/unit/test_m3_6_install_summary.py",
-      "remaining": "Target invocation after real M3.5 provisioning remains unrun; service and hardware readiness remain M6/T4/T5 gates."
+      "id": "M3.6",
+      "remaining": "Target invocation after real M3.5 provisioning remains unrun; service and hardware readiness remain M6/T4/T5 gates.",
+      "software": "host-verified",
+      "target": "not-run",
+      "title": "Install summary"
     },
     {
+      "evidence": "tests/unit/test_runtime_audio.py; TEST_MATRIX.md continuation-runtime",
       "id": "M4.1",
-      "title": "Coordinator/state/health",
+      "remaining": "Physical/service adapters and process-level Pi acceptance remain open.",
       "software": "host-verified",
       "target": "not-run",
-      "evidence": "tests/unit/test_runtime_audio.py; TEST_MATRIX.md continuation-runtime",
-      "remaining": "Physical/service adapters and process-level Pi acceptance remain open."
+      "title": "Coordinator/state/health"
     },
     {
+      "evidence": "tests/unit/test_runtime_audio.py; TEST_MATRIX.md continuation-runtime",
       "id": "M4.2",
-      "title": "Audio discovery and recovery",
+      "remaining": "Selection/recovery/frame buffer tested; real ALSA enumeration, capture backend and hotplug acceptance remain open.",
       "software": "partial",
       "target": "not-run",
-      "evidence": "tests/unit/test_runtime_audio.py; TEST_MATRIX.md continuation-runtime",
-      "remaining": "Selection/recovery/frame buffer tested; real ALSA enumeration, capture backend and hotplug acceptance remain open."
+      "title": "Audio discovery and recovery"
     },
     {
+      "evidence": "tests/unit/test_runtime_audio.py; TEST_MATRIX.md continuation-runtime",
       "id": "M4.3",
-      "title": "Resampling/STT/TTS lifecycle",
+      "remaining": "FIR resampling and speech subprocess cleanup tested; pinned real speech binaries, tiny/base comparison and audible Pi acceptance remain open.",
       "software": "partial",
       "target": "not-run",
-      "evidence": "tests/unit/test_runtime_audio.py; TEST_MATRIX.md continuation-runtime",
-      "remaining": "FIR resampling and speech subprocess cleanup tested; pinned real speech binaries, tiny/base comparison and audible Pi acceptance remain open."
+      "title": "Resampling/STT/TTS lifecycle"
     },
     {
+      "evidence": "tests/unit/test_runtime_audio.py; TEST_MATRIX.md continuation-runtime",
       "id": "M5.1",
-      "title": "Push-to-talk and recording indication",
+      "remaining": "Debounced hold/release controller tested; physical GPIO adapter, crash-default LED-off and wiring acceptance remain open.",
       "software": "partial",
       "target": "not-run",
-      "evidence": "tests/unit/test_runtime_audio.py; TEST_MATRIX.md continuation-runtime",
-      "remaining": "Debounced hold/release controller tested; physical GPIO adapter, crash-default LED-off and wiring acceptance remain open."
+      "title": "Push-to-talk and recording indication"
     },
     {
+      "evidence": "TEST_MATRIX.md continuation-grounding; text runtime guide",
       "id": "M5.2",
-      "title": "Offline boundary",
+      "remaining": "Core text path allows numeric-loopback only, no DNS/proxy/redirect/tool/cloud path. Kernel-observed Pi network denial and voice runtime acceptance remain open.",
       "software": "partial",
       "target": "not-run",
-      "evidence": "TEST_MATRIX.md continuation-grounding; text runtime guide",
-      "remaining": "Core text path allows numeric-loopback only, no DNS/proxy/redirect/tool/cloud path. Kernel-observed Pi network denial and voice runtime acceptance remain open."
+      "title": "Offline boundary"
     },
     {
-      "id": "M6.1",
-      "title": "Application service",
-      "software": "host-verified",
-      "target": "not-run",
       "evidence": "TEST_MATRIX.md continuation-04; tests/integration/test_cli_process.py; tests/unit/test_m6_service_manager.py",
-      "remaining": "Headless service command and systemd unit are host-tested as degraded supervisor. Raspberry Pi systemd start/stop/restart, reboot/no-login persistence, real audio/GPIO recovery and journal review remain target gates."
-    },
-    {
-      "id": "M6.2",
-      "title": "Service installer/removal",
+      "id": "M6.1",
+      "remaining": "Headless service command and systemd unit are host-tested as degraded supervisor. Raspberry Pi systemd start/stop/restart, reboot/no-login persistence, real audio/GPIO recovery and journal review remain target gates.",
       "software": "host-verified",
       "target": "not-run",
+      "title": "Application service"
+    },
+    {
       "evidence": "TEST_MATRIX.md continuation-04; scripts/service_manager.py; tests/unit/test_m6_service_manager.py; tests/unit/test_m3_3_release_manager.py",
-      "remaining": "Atomic unit/tmpfiles install, exact conflict refusal and reversible removal are host-tested with fake systemctl. Real root install/remove, systemd-analyze verify and target ownership validation remain target gates."
+      "id": "M6.2",
+      "remaining": "Atomic unit/tmpfiles install, exact conflict refusal and reversible removal are host-tested with fake systemctl. Real root install/remove, systemd-analyze verify and target ownership validation remain target gates.",
+      "software": "host-verified",
+      "target": "not-run",
+      "title": "Service installer/removal"
     },
     {
+      "evidence": "TEST_MATRIX.md continuation-grounding; text runtime guide",
       "id": "M7.1",
-      "title": "Corpus and lexical index",
+      "remaining": "Safe deterministic calibrated BM25 and 60-case synthetic regression pass. Real-lab 40/20 evaluation and support calibration remain open.",
       "software": "partial",
       "target": "not-run",
-      "evidence": "TEST_MATRIX.md continuation-grounding; text runtime guide",
-      "remaining": "Safe deterministic calibrated BM25 and 60-case synthetic regression pass. Real-lab 40/20 evaluation and support calibration remain open."
+      "title": "Corpus and lexical index"
     },
     {
+      "evidence": "TEST_MATRIX.md continuation-grounding; text runtime guide",
       "id": "M7.2",
-      "title": "Grounded prompt and response contract",
+      "remaining": "Untrusted-data prompt and citation/abstention format enforced. Real model factual support, contradiction and prompt-injection evaluation remain open.",
       "software": "partial",
       "target": "not-run",
-      "evidence": "TEST_MATRIX.md continuation-grounding; text runtime guide",
-      "remaining": "Untrusted-data prompt and citation/abstention format enforced. Real model factual support, contradiction and prompt-injection evaluation remain open."
+      "title": "Grounded prompt and response contract"
     },
     {
+      "evidence": "TEST_MATRIX.md continuation-grounding; text runtime guide",
       "id": "M7.3",
-      "title": "Privacy-preserving telemetry",
+      "remaining": "Content-free bounded process-serialized JSONL rotation implemented. Opt-in persistent research interaction records/retention remain gated.",
       "software": "partial",
       "target": "not-run",
-      "evidence": "TEST_MATRIX.md continuation-grounding; text runtime guide",
-      "remaining": "Content-free bounded process-serialized JSONL rotation implemented. Opt-in persistent research interaction records/retention remain gated."
+      "title": "Privacy-preserving telemetry"
     },
     {
+      "evidence": "TEST_MATRIX.md continuation-grounding; text runtime guide",
       "id": "M7.4",
-      "title": "Read-only dashboard",
+      "remaining": "Integrated text dashboard, privacy/Host/Origin/read-only tests pass. Physical runtime integration remains open.",
       "software": "host-verified",
       "target": "not-run",
-      "evidence": "TEST_MATRIX.md continuation-grounding; text runtime guide",
-      "remaining": "Integrated text dashboard, privacy/Host/Origin/read-only tests pass. Physical runtime integration remains open."
+      "title": "Read-only dashboard"
     },
     {
+      "evidence": "TEST_MATRIX.md continuation-grounding; text runtime guide",
       "id": "M7.5",
-      "title": "Research benchmarks",
+      "remaining": "Reproducible synthetic retrieval benchmark and result schema provided. Real grounded/ungrounded LLM, STT, latency/RAM/thermal campaign remains open.",
       "software": "partial",
       "target": "not-run",
-      "evidence": "TEST_MATRIX.md continuation-grounding; text runtime guide",
-      "remaining": "Reproducible synthetic retrieval benchmark and result schema provided. Real grounded/ungrounded LLM, STT, latency/RAM/thermal campaign remains open."
+      "title": "Research benchmarks"
     },
     {
-      "id": "M8.1",
-      "title": "Doctor and support bundle",
-      "software": "host-verified",
-      "target": "not-run",
       "evidence": "TEST_MATRIX.md continuation-07; src/gonken_agent/diagnostics.py; src/gonken_agent/support.py; scripts/collect-support.sh; tests/unit/test_diagnostics_snapshot.py; tests/unit/test_support_export.py; tests/integration/test_cli_process.py",
-      "remaining": "Content-free startup snapshot capture, bounded debug retention, production latest-only mode, service startup recording and support ZIP inclusion are host-tested. Real target snapshot contents must be uploaded after Raspberry Pi installation to confirm USB audio, GPIO, systemd, thermal and resource observations."
-    },
-    {
-      "id": "M8.2",
-      "title": "Update/rollback",
+      "id": "M8.1",
+      "remaining": "Content-free startup snapshot capture, bounded debug retention, production latest-only mode, service startup recording and support ZIP inclusion are host-tested. Real target snapshot contents must be uploaded after Raspberry Pi installation to confirm USB audio, GPIO, systemd, thermal and resource observations.",
       "software": "host-verified",
       "target": "not-run",
+      "title": "Doctor and support bundle"
+    },
+    {
       "evidence": "TEST_MATRIX.md continuation-06; scripts/update.sh; scripts/update_manager.py; scripts/rollback.sh; scripts/release_manager.py; tests/unit/test_m8_update_manager.py; tests/integration/test_release_lifecycle_process.py",
-      "remaining": "Explicit update and rollback are host-tested through immutable release activation, Git ref resolution, no-op update detection, restart orchestration and previous-release rollback. Real target update/rollback execution, future schema migrators and service restart failure handling remain target/future-version gates."
-    },
-    {
-      "id": "M8.3",
-      "title": "Uninstall/reinstall",
+      "id": "M8.2",
+      "remaining": "Explicit update and rollback are host-tested through immutable release activation, Git ref resolution, no-op update detection, restart orchestration and previous-release rollback. Real target update/rollback execution, future schema migrators and service restart failure handling remain target/future-version gates.",
       "software": "host-verified",
       "target": "not-run",
-      "evidence": "TEST_MATRIX.md continuation-05; scripts/uninstall.sh; scripts/uninstall_manager.py; tests/unit/test_m8_uninstall_manager.py; tests/integration/test_uninstall_lifecycle_process.py",
-      "remaining": "Keep-data uninstall, explicit purge confirmation, managed-file conflict refusal, maintenance-layout wrapper behavior and shared Ollama protection are host-tested. Real target uninstall/reinstall, user/group disposition, service stop failures and clean-image reinstall acceptance remain target gates."
+      "title": "Update/rollback"
     },
     {
+      "evidence": "TEST_MATRIX.md continuation-05; scripts/uninstall.sh; scripts/uninstall_manager.py; tests/unit/test_m8_uninstall_manager.py; tests/integration/test_uninstall_lifecycle_process.py",
+      "id": "M8.3",
+      "remaining": "Keep-data uninstall, explicit purge confirmation, managed-file conflict refusal, maintenance-layout wrapper behavior and shared Ollama protection are host-tested. Real target uninstall/reinstall, user/group disposition, service stop failures and clean-image reinstall acceptance remain target gates.",
+      "software": "host-verified",
+      "target": "not-run",
+      "title": "Uninstall/reinstall"
+    },
+    {
+      "evidence": "TEST_MATRIX.md continuation-08; docs/RASPBERRY_PI_ACCEPTANCE_RUN.md; README.md; scripts/release_readiness.py; scripts/collect-support.sh; src/gonken_agent/diagnostics.py",
       "id": "M9.1",
-      "title": "Clean-install and failure campaign",
+      "remaining": "Cloud cannot perform physical clean-image acceptance. The repository now provides a target acceptance runbook, startup hardware/software evidence capture, support ZIP export and release-readiness reporting; actual clean-install, reboot, power-loss, hotplug, latency, thermal and hardware observations remain target-run work.",
       "software": "partial",
       "target": "not-run",
-      "evidence": "TEST_MATRIX.md continuation-08; docs/RASPBERRY_PI_ACCEPTANCE_RUN.md; README.md; scripts/release_readiness.py; scripts/collect-support.sh; src/gonken_agent/diagnostics.py",
-      "remaining": "Cloud cannot perform physical clean-image acceptance. The repository now provides a target acceptance runbook, startup hardware/software evidence capture, support ZIP export and release-readiness reporting; actual clean-install, reboot, power-loss, hotplug, latency, thermal and hardware observations remain target-run work."
+      "title": "Clean-install and failure campaign"
     },
     {
-      "id": "M9.2",
-      "title": "Security/license review",
-      "software": "host-verified",
-      "target": "not-run",
       "evidence": "TEST_MATRIX.md continuation-08; scripts/release_readiness.py; tests/unit/test_release_readiness.py; CONTINUATION_01_REPORT.md; D-050/D-051, D-060-D-064, D-072 and D-073",
-      "remaining": "Private target-acceptance readiness now has host-verified status, secret-pattern scanning over active release paths, privacy tests, privilege-pattern service checks, uninstall protection tests and content-free diagnostic snapshot tests. Public redistribution approval, third-party artifact licensing and target hardening observations remain later release gates."
-    },
-    {
-      "id": "M9.3",
-      "title": "Documentation and onboarding",
+      "id": "M9.2",
+      "remaining": "Private target-acceptance readiness now has host-verified status, secret-pattern scanning over active release paths, privacy tests, privilege-pattern service checks, uninstall protection tests and content-free diagnostic snapshot tests. Public redistribution approval, third-party artifact licensing and target hardening observations remain later release gates.",
       "software": "host-verified",
       "target": "not-run",
+      "title": "Security/license review"
+    },
+    {
       "evidence": "README.md; docs/RASPBERRY_PI_ACCEPTANCE_RUN.md; scripts/collect-support.sh; TEST_MATRIX.md continuation-08; docs/development/IMPLEMENTATION_STATUS.md",
-      "remaining": "README and target runbook cover end-user Raspberry Pi OS, SSH, bootstrap, service check, log/support export, update, rollback, uninstall, configuration and acceptance evidence collection. Target screenshots/operator feedback remain future refinements after a real Pi run."
+      "id": "M9.3",
+      "remaining": "README and target runbook cover end-user Raspberry Pi OS, SSH, bootstrap, service check, log/support export, update, rollback, uninstall, configuration and acceptance evidence collection. Target screenshots/operator feedback remain future refinements after a real Pi run.",
+      "software": "host-verified",
+      "target": "not-run",
+      "title": "Documentation and onboarding"
     },
     {
-      "id": "M9.4",
-      "title": "Development-artifact disposition",
-      "software": "host-verified",
-      "target": "not-applicable",
       "evidence": "D-065",
-      "remaining": "Development evidence retained with concise current status; no history removed. Review again before public release."
-    },
-    {
-      "id": "M9.5",
-      "title": "Portable Git handoff",
+      "id": "M9.4",
+      "remaining": "Development evidence retained with concise current status; no history removed. Review again before public release.",
       "software": "host-verified",
       "target": "not-applicable",
+      "title": "Development-artifact disposition"
+    },
+    {
       "evidence": "CONTINUATION_01_REPORT.md; checkpoint/continuation-01 through checkpoint/continuation-08; scripts/release_readiness.py; docs/RASPBERRY_PI_ACCEPTANCE_RUN.md",
-      "remaining": "Private checkpoint transport has been repeatedly verified through ZIP integrity, extracted branch/tag/HEAD, executable modes, clean Git and strict object checks. Continuation-08 is the private release-candidate handoff for Raspberry Pi acceptance testing; public release remains gated by target evidence and licensing decisions."
+      "id": "M9.5",
+      "remaining": "Private checkpoint transport has been repeatedly verified through ZIP integrity, extracted branch/tag/HEAD, executable modes, clean Git and strict object checks. Continuation-08 is the private release-candidate handoff for Raspberry Pi acceptance testing; public release remains gated by target evidence and licensing decisions.",
+      "software": "host-verified",
+      "target": "not-applicable",
+      "title": "Portable Git handoff"
     },
     {
-      "id": "M10.1",
-      "title": "V09 baseline audit and branch identity",
-      "software": "host-verified",
-      "target": "not-run",
       "evidence": "docs/development/evidence/v09/wp_a_input_evidence.txt; docs/development/evidence/v09/wp_a_focused_60_tests_after_v09_foundation.log; docs/development/evidence/v09/wp_a_isolated_cli_run_test.log",
-      "remaining": "Broad CI baseline attempt was interrupted by timeout at the integration stage; the apparent slow CLI-run test passed alone. Real Raspberry Pi evidence remains open."
-    },
-    {
-      "id": "M10.2",
-      "title": "Static environment configuration schema",
+      "id": "M10.1",
+      "remaining": "Broad CI baseline attempt was interrupted by timeout at the integration stage; the apparent slow CLI-run test passed alone. Real Raspberry Pi evidence remains open.",
       "software": "host-verified",
       "target": "not-run",
+      "title": "V09 baseline audit and branch identity"
+    },
+    {
       "evidence": "config/defaults.toml; src/gonken_agent/config.py; tests/unit/test_v09_environment_config.py; tests/unit/test_m2_2_config.py; docs/development/evidence/v09/wp_b_config_policy_tests_rerun.log; docs/development/evidence/v09/wp_b_full_unit.log; docs/development/evidence/v09/wp_b_static_gates.log",
-      "remaining": "Host validation covers schema-2 defaults, disabled environment section, schema-1 site migration and static bounds. Target install migration remains open. Full integration/CI remains NEEDS_MANUAL_REVIEW due existing Ollama lifecycle timeout in this environment."
-    },
-    {
-      "id": "M10.3",
-      "title": "Environment domain and mutable policy foundation",
+      "id": "M10.2",
+      "remaining": "Host validation covers schema-2 defaults, disabled environment section, schema-1 site migration and static bounds. Target install migration remains open. Full integration/CI remains NEEDS_MANUAL_REVIEW due existing Ollama lifecycle timeout in this environment.",
       "software": "host-verified",
       "target": "not-run",
+      "title": "Static environment configuration schema"
+    },
+    {
       "evidence": "src/gonken_agent/environment/domain.py; src/gonken_agent/environment/policy.py; tests/unit/test_v09_environment_policy.py; docs/development/evidence/v09/wp_b_config_policy_tests_rerun.log",
-      "remaining": "Pure host tests cover domain/policy contracts only. Controller, IPC, CLI, voice, installer, diagnostics and physical HIL remain open."
-    },
-    {
-      "id": "M10.4",
-      "title": "Deterministic controller core",
+      "id": "M10.3",
+      "remaining": "Pure host tests cover domain/policy contracts only. Controller, IPC, CLI, voice, installer, diagnostics and physical HIL remain open.",
       "software": "host-verified",
       "target": "not-run",
+      "title": "Environment domain and mutable policy foundation"
+    },
+    {
       "evidence": "src/gonken_agent/environment/controller.py; tests/unit/test_v09_environment_controller.py; docs/development/evidence/v09/wp_c_controller_affected_tests.log; docs/development/evidence/v09/wp_c_full_unit.log",
-      "remaining": "Host validation covers pure deterministic controller semantics only: MANUAL, SEMI_AUTOMATIC, AUTOMATIC, DISABLED, dwell, hysteresis, median valid samples, staleness safe-off, recovery and policy-update stop behavior. No hardware adapter, daemon, IPC, CLI, voice, installer or physical Pi actuation is implemented yet."
-    },
-    {
-      "id": "M10.5",
-      "title": "Local environment service and IPC",
+      "id": "M10.4",
+      "remaining": "Host validation covers pure deterministic controller semantics only: MANUAL, SEMI_AUTOMATIC, AUTOMATIC, DISABLED, dwell, hysteresis, median valid samples, staleness safe-off, recovery and policy-update stop behavior. No hardware adapter, daemon, IPC, CLI, voice, installer or physical Pi actuation is implemented yet.",
       "software": "host-verified",
       "target": "not-run",
+      "title": "Deterministic controller core"
+    },
+    {
       "evidence": "src/gonken_agent/environment/protocol.py; src/gonken_agent/environment/service.py; src/gonken_agent/environment/server.py; src/gonken_agent/environment/client.py; tests/unit/test_v09_environment_ipc.py; docs/development/evidence/v09/wp_d_ipc_affected_tests.log; docs/development/evidence/v09/wp_d_full_unit.log; docs/development/evidence/v09/wp_d_static_gates.log",
-      "remaining": "Host validation covers bounded JSON protocol validation, host-fake service core, AF_UNIX server/client, socket mode, closed operation parameters, client error propagation and no hardware/shell imports. It does not implement production SHT31/libgpiod adapters, systemd unit installation, CLI command, voice action, dashboard, or real Pi actuation."
-    },
-    {
-      "id": "M10.6",
-      "title": "CLI, voice, installer, diagnostics and documentation integration",
+      "id": "M10.5",
+      "remaining": "Host validation covers bounded JSON protocol validation, host-fake service core, AF_UNIX server/client, socket mode, closed operation parameters, client error propagation and no hardware/shell imports. It does not implement production SHT31/libgpiod adapters, systemd unit installation, CLI command, voice action, dashboard, or real Pi actuation.",
       "software": "host-verified",
       "target": "not-run",
+      "title": "Local environment service and IPC"
+    },
+    {
       "evidence": "src/gonken_agent/cli.py; src/gonken_agent/diagnostics.py; src/gonken_agent/health.py; src/gonken_agent/operations.py; src/gonken_agent/support.py; src/gonken_agent/dashboard.py; src/gonken_agent/voice_runtime.py; src/gonken_agent/environment/intents.py; src/gonken_agent/environment/responses.py; scripts/environment_service_manager.py; scripts/install.sh; scripts/release_manager.py; scripts/service_manager.py; scripts/uninstall.sh; scripts/uninstall_manager.py; packaging/systemd/gonken-environment.service; packaging/tmpfiles/gonken-environment.conf; tests/unit/test_v09_environment_cli.py; tests/unit/test_v09_environment_voice_intents.py; tests/unit/test_v09_environment_service_manager.py; tests/unit/test_diagnostics_snapshot.py; tests/unit/test_support_export.py; tests/unit/test_grounding_observability.py; tests/integration/test_cli_process.py; tests/integration/test_text_runtime_process.py; tests/integration/test_uninstall_lifecycle_process.py; docs/OPERATIONS.md; docs/development/evidence/v09/wp_e_cli_affected_tests.log; docs/development/evidence/v09/wp_f_observability_affected_tests.log; docs/development/evidence/v09/wp_g_installer_systemd_affected_tests.log; docs/development/evidence/v09/wp_h_voice_watch_affected_tests.log; docs/development/evidence/v09/wp_h_full_unit.log; docs/development/evidence/v09/wp_h_integration_subset.log; docs/development/evidence/v09/wp_h_static_gates.log; src/gonken_agent/environment/sensors/base.py; src/gonken_agent/environment/sensors/sht31.py; src/gonken_agent/environment/actuators/base.py; src/gonken_agent/environment/actuators/gpiod_relay.py; tests/unit/test_v09_environment_hardware_adapters.py; docs/development/evidence/v09/wp_i_hardware_adapters_affected_tests.log; docs/development/evidence/v09/wp_i_full_unit.log; docs/development/evidence/v09/wp_i_static_gates.log; src/gonken_agent/environment/daemon.py; tests/unit/test_v09_environment_daemon_activation.py; docs/development/evidence/v09/wp_j_daemon_activation_affected_tests.log; docs/development/evidence/v09/wp_j_full_unit.log; docs/development/evidence/v09/wp_j_static_gates.log; docs/development/evidence/v09/wp_j_integration_subset.log; src/gonken_agent/environment/service.py; tests/unit/test_v09_environment_polling_loop.py; docs/development/evidence/v09/wp_k_polling_loop_affected_tests.log; docs/development/evidence/v09/wp_k_full_unit.log; docs/development/evidence/v09/wp_k_integration_subset.log; scripts/environment_acceptance_runner.py; docs/ENVIRONMENT_ACCEPTANCE_RUN.md; docs/RASPBERRY_PI_ACCEPTANCE_RUN.md; tests/unit/test_v09_environment_acceptance_runner.py; tests/unit/test_release_readiness.py; docs/development/evidence/v09/wp_l_acceptance_scaffold_affected_tests.log; docs/development/evidence/v09/wp_l_full_unit.log; docs/development/evidence/v09/wp_l_static_gates.log; scripts/ollama_manager.py; tests/integration/test_ollama_lifecycle_process.py; docs/development/evidence/v09/wp_m_ollama_lifecycle_after_hardening.log; docs/development/evidence/v09/wp_m_release_interruption_after_hardening.log; docs/development/evidence/v09/wp_m_manager_unit.log; docs/development/evidence/v09/wp_m_static_gates.log; scripts/bounded_unittest.py; tests/unit/test_bounded_unittest_runner.py; docs/development/evidence/v09/wp_n_bounded_ci_runner_tests.log; docs/development/evidence/v09/wp_n_bounded_integration_slice.log; docs/development/evidence/v09/wp_n_static_gates.log; scripts/bounded_unittest.py; tests/unit/test_bounded_unittest_runner.py; tests/integration/test_release_lifecycle_process.py; docs/development/evidence/v09/wp_o_bounded_case_runner_tests.log; docs/development/evidence/v09/wp_o_release_lifecycle_slices.log; docs/development/evidence/v09/wp_o_static_gates.log; scripts/ci.sh; docs/development/evidence/v09/wp_p_ci_phase_selector_tests.log; docs/development/evidence/v09/wp_p_ci_phase_t0.log; docs/development/evidence/v09/wp_p_ci_bash_n.log; docs/development/evidence/v09/wp_p_compile_phase_change.log",
-      "remaining": "Host M10.6 includes CLI, voice, installer, diagnostics, daemon polling, target evidence scaffold, bounded CI observability, release lifecycle case-level decomposition and CI phase selection. Full physical M10.7 target acceptance remains not-run; no host evidence proves real SHT31/relay/fan/audio/wake behavior."
+      "id": "M10.6",
+      "remaining": "Host M10.6 includes CLI, voice, installer, diagnostics, daemon polling, target evidence scaffold, bounded CI observability, release lifecycle case-level decomposition and CI phase selection. Full physical M10.7 target acceptance remains not-run; no host evidence proves real SHT31/relay/fan/audio/wake behavior.",
+      "software": "host-verified",
+      "target": "not-run",
+      "title": "CLI, voice, installer, diagnostics and documentation integration"
     },
     {
-      "id": "M10.7",
-      "title": "Real Raspberry Pi HIL and release acceptance",
-      "software": "pending",
-      "target": "not-run",
       "evidence": "docs/RASPBERRY_PI_ACCEPTANCE_RUN.md; docs/ENVIRONMENT_ACCEPTANCE_RUN.md; scripts/environment_acceptance_runner.py; Requires physical Pi, SHT31, relay, PENGLIN adapters, ELUTENG fan, audio and wake/latency evidence. Host tests cannot close this gate.",
-      "remaining": "Run the physical M10.7 acceptance campaign on the target Pi and preserve support ZIP plus private environment evidence ledger."
+      "id": "M10.7",
+      "remaining": "Run the physical M10.7 acceptance campaign on the target Pi and preserve support ZIP plus private environment evidence ledger.",
+      "software": "pending",
+      "target": "not-run",
+      "title": "Real Raspberry Pi HIL and release acceptance"
     },
     {
-      "id": "M10.8",
-      "title": "Simulation/HIL blueprint expansion",
-      "software": "host-verified",
-      "target": "not-run",
       "evidence": "docs/development/V09_SIMULATION_HIL_EXTENSION_PLAN.md; docs/development/V09_SIMULATION_HIL_TRACEABILITY.csv; docs/development/V09_CHECKPOINT_16_REPORT.md; docs/development/V09_CHANGE_VERIFICATION_REPORT_CHECKPOINT_16.md; docs/development/evidence/v09/checkpoint16/focused_baseline.log; docs/development/evidence/v09/checkpoint16/baseline_t0.log",
-      "remaining": "Blueprint/control-plane expansion complete. Simulation runtime, mandatory GonKen runtime changes, hardware docs, passive watch, non-actuating check repair and physical acceptance remain implementation work."
-    },
-    {
-      "id": "M10.9",
-      "title": "Simulation foundations",
+      "id": "M10.8",
+      "remaining": "Blueprint/control-plane expansion complete. Simulation runtime, mandatory GonKen runtime changes, hardware docs, passive watch, non-actuating check repair and physical acceptance remain implementation work.",
       "software": "host-verified",
       "target": "not-run",
+      "title": "Simulation/HIL blueprint expansion"
+    },
+    {
       "evidence": "TEST_MATRIX.md (Checkpoint 17); tests/unit/test_v09_environment_simulation.py; affected environment/config/IPC/daemon/CLI test slice",
-      "remaining": "Simulation foundations are host-verified. Remaining simulation/HIL work is now simulation-aware voice, hybrid physical/simulation evidence gates, mandatory GonKen wake/progress work, documentation hardening and physical M10.7 acceptance."
-    },
-    {
-      "id": "M10.10",
-      "title": "Operator simulation experience",
+      "id": "M10.9",
+      "remaining": "Simulation foundations are host-verified. Remaining simulation/HIL work is now simulation-aware voice, hybrid physical/simulation evidence gates, mandatory GonKen wake/progress work, documentation hardening and physical M10.7 acceptance.",
       "software": "host-verified",
       "target": "not-run",
+      "title": "Simulation foundations"
+    },
+    {
       "evidence": "src/gonken_agent/cli.py; src/gonken_agent/diagnostics.py; src/gonken_agent/support.py; src/gonken_agent/dashboard.py; src/gonken_agent/operations.py; tests/unit/test_v09_environment_cli.py; tests/unit/test_v09_environment_simulation.py; tests/unit/test_diagnostics_snapshot.py; tests/unit/test_grounding_observability.py; tests/unit/test_support_export.py; docs/OPERATIONS.md; docs/development/evidence/v09/checkpoint18/operator_sim_observability_tests.log; docs/development/evidence/v09/checkpoint18/t0_static.log; docs/development/evidence/v09/checkpoint18/targeted_integration.log",
-      "remaining": "Operator simulation CLI, passive watch and simulation observability are host-verified. Remaining work moves to simulation-aware voice, hybrid HIL/evidence gates, mandatory GonKen wake/progress work, documentation hardening and real M10.7 physical acceptance."
+      "id": "M10.10",
+      "remaining": "Operator simulation CLI, passive watch and simulation observability are host-verified. Remaining work moves to simulation-aware voice, hybrid HIL/evidence gates, mandatory GonKen wake/progress work, documentation hardening and real M10.7 physical acceptance.",
+      "software": "host-verified",
+      "target": "not-run",
+      "title": "Operator simulation experience"
     },
     {
+      "evidence": "src/gonken_agent/environment/responses.py; scripts/environment_acceptance_runner.py; tests/unit/test_v09_environment_voice_intents.py; tests/unit/test_v09_environment_acceptance_runner.py; docs/development/evidence/v09/checkpoint19/affected_simulation_voice_hil_tests.log; docs/development/evidence/v09/checkpoint19/t0_static.log",
       "id": "M10.11",
-      "title": "Hybrid HIL and simulation-aware voice",
+      "notes": "Simulation-aware voice wording and physical acceptance runner simulation-blocking rules are host-verified. Hybrid evidence is retained but cannot close full M10.7 physical acceptance while any backend is simulated.",
+      "remaining": "Implement hybrid sensor/actuator combinations, voice provenance wording and simulation-aware physical acceptance blocking. Physical actuation remains target-gated.",
       "software": "pending",
+      "status": "host-verified",
       "target": "not-run",
-      "evidence": "docs/development/V09_SIMULATION_HIL_EXTENSION_PLAN.md",
-      "remaining": "Implement hybrid sensor/actuator combinations, voice provenance wording and simulation-aware physical acceptance blocking. Physical actuation remains target-gated."
+      "target_status": "not-run",
+      "title": "Hybrid HIL and simulation-aware voice"
     },
     {
+      "evidence": "docs/development/V09_SIMULATION_HIL_EXTENSION_PLAN.md",
       "id": "M10.12",
-      "title": "Mandatory GonKen wake responsiveness and transition announcements",
+      "remaining": "Implement default GonKen wake phrase, high-recall continuous/overlapping wake path, matcher corpus, progress cues, local Piper cue cache, wake diagnostics and voice-owned transition announcements.",
       "software": "pending",
       "target": "not-run",
-      "evidence": "docs/development/V09_SIMULATION_HIL_EXTENSION_PLAN.md",
-      "remaining": "Implement default GonKen wake phrase, high-recall continuous/overlapping wake path, matcher corpus, progress cues, local Piper cue cache, wake diagnostics and voice-owned transition announcements."
+      "title": "Mandatory GonKen wake responsiveness and transition announcements"
     },
     {
+      "evidence": "docs/development/V09_SIMULATION_HIL_EXTENSION_PLAN.md",
       "id": "M10.13",
-      "title": "Documentation and evidence hardening",
+      "remaining": "Create hardware setup, environment control, simulation, troubleshooting and evidence/export docs plus documentation command/link/config checks.",
       "software": "pending",
       "target": "not-run",
-      "evidence": "docs/development/V09_SIMULATION_HIL_EXTENSION_PLAN.md",
-      "remaining": "Create hardware setup, environment control, simulation, troubleshooting and evidence/export docs plus documentation command/link/config checks."
+      "title": "Documentation and evidence hardening"
     },
     {
+      "evidence": "docs/development/V09_SIMULATION_HIL_EXTENSION_PLAN.md",
       "id": "M10.14",
-      "title": "User simulation and sensor-deferred HIL release candidate",
+      "remaining": "Produce READY_FOR_USER_SIMULATION_AND_SENSOR_DEFERRED_HIL only after full simulation, sensor-deferred real-fan paths, voice/manual controls, watch, evidence export, docs and rollback/recovery gates pass.",
       "software": "pending",
       "target": "not-run",
-      "evidence": "docs/development/V09_SIMULATION_HIL_EXTENSION_PLAN.md",
-      "remaining": "Produce READY_FOR_USER_SIMULATION_AND_SENSOR_DEFERRED_HIL only after full simulation, sensor-deferred real-fan paths, voice/manual controls, watch, evidence export, docs and rollback/recovery gates pass."
+      "title": "User simulation and sensor-deferred HIL release candidate"
     }
-  ]
+  ],
+  "schema_version": 1
 }

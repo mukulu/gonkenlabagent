@@ -389,3 +389,26 @@ acceptance with the current relay/PENGLIN/ELUTENG hardware. The adapter modules
 are an implementation boundary, not acceptance evidence: only the M10.7 target
 run can confirm the actual SHT31 address, Pi 5 gpiochip mapping, relay active
 polarity, boot safe-off behavior and fan power cycles.
+
+## Environment voice responses in simulation and hybrid-HIL
+
+Voice environment commands use the same deterministic daemon client as the CLI.
+When the daemon reports a simulated sensor or simulated actuator, the spoken
+response must name that boundary. For example, a simulated temperature is spoken
+as simulation evidence rather than as a physical room reading, and a simulated
+fan actuator command is spoken as simulated actuator state rather than observed
+fan motion.
+
+This protects three separate truths:
+
+- a simulated sensor value is useful for testing control logic but is not SHT31
+  room-temperature evidence;
+- a simulated actuator can validate command routing but does not prove relay
+  polarity, PENGLIN wiring, or blade motion;
+- hybrid-HIL evidence can support the physical side that was actually present,
+  but the simulated side remains open.
+
+Ordinary fan voice responses still avoid software-speed claims. With the
+current ELUTENG inline controller and relay architecture, GonKen can report
+relay/fan-power command state only; it cannot select Low/Medium/High speed or
+observe blade RPM.

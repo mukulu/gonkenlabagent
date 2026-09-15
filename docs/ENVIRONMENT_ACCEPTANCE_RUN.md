@@ -82,3 +82,26 @@ These items remain M10.7 physical evidence gates. Do not change the ledger to PA
 The private evidence directory may contain local hostnames, device paths and journal excerpts. Treat it like a support bundle. Keep it private unless the project owner decides to share it.
 
 The acceptance decision is valid only for the exact commit, configuration, policy, hardware wiring and target identity recorded in the manifest. A later hardware, config, policy or service change invalidates the affected and transitively dependent evidence.
+
+## 6. Simulation and hybrid-HIL blocking rule
+
+The physical acceptance runner now inspects JSON returned by the daemon-facing
+commands. If a command reports any simulated backend, including hybrid modes such
+as simulated sensor plus real actuator or real sensor plus simulated actuator,
+the step is recorded as:
+
+```text
+status=BLOCKED
+blocking_code=SIMULATION_ACTIVE_PHYSICAL_ACCEPTANCE_BLOCKED
+physical_evidence_claimed=false
+```
+
+The parsed JSON is still retained because hybrid evidence can be useful for
+engineering diagnosis. It cannot close the full M10.7 physical gate. A later
+review may use it only for the side that was actually physical and must leave the
+simulated side open.
+
+This rule applies even when the command returns exit code 0. Exit code 0 means
+that the command completed; it does not mean that SHT31 hardware, relay wiring,
+PENGLIN continuity, ELUTENG fan motion, wake behavior, or reboot/no-login
+operation has been physically accepted.
