@@ -1389,3 +1389,10 @@ The deterministic M10.14 simulation runner exercises manual, AUTO, SEMI, stale/r
 - **Decision:** The final pre-target checkpoint may be described as `READY_FOR_RASPBERRY_PI_TARGET_CAMPAIGN` only after the final host/control/package gates pass. This label means the exact checkpoint is ready to install and test; it does not set any target milestone to PASS.
 - **Reason:** The user needs a clear point at which host implementation is complete enough to move onto the Pi, while the project must preserve the host/simulation/hybrid/physical evidence boundary.
 - **Consequence:** M7.1/M7.2/M7.5, M9.1 and M10.7 may remain partial/pending or target-not-run at handoff. Target failures start the next evidence-driven repair checkpoint rather than invalidating already verified independent host work.
+
+### D-137 — Standard-library ZIP extraction is followed by exact Git mode/content restoration
+
+- **Status:** Accepted in checkpoint 23 package close.
+- **Decision:** The Raspberry Pi runbook may use `python3 -m zipfile -e` because Python is part of the supported baseline, but it must immediately run `git reset --hard HEAD` only after archive checksum verification and before Git cleanliness/executability checks. It then requires `test -x ./bootstrap.sh`.
+- **Reason:** The ZIP archive stores the correct Unix executable modes, but Python's standard-library ZIP extractor does not restore them. A fresh package extraction therefore appeared dirty and left launch scripts non-executable even though the archive itself was correct.
+- **Consequence:** The included Git metadata becomes the authoritative deterministic restoration mechanism for exact committed content/modes after this extractor. Any other in-place repair remains prohibited; identity or integrity failures after restoration are STOP conditions.

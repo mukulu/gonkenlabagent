@@ -31,6 +31,10 @@ sha256sum -c SHA256SUMS_checkpoint23.txt
 mkdir -p ~/gonken-checkpoint23
 python3 -m zipfile -e gonkenlabagent-v09-pi-target-campaign-checkpoint-23.zip ~/gonken-checkpoint23
 cd ~/gonken-checkpoint23/gonkenlabagent-v09-pi-target-campaign-checkpoint-23
+# Python's standard-library ZIP extractor does not restore Unix execute bits.
+# The archive includes its Git metadata, so restore the exact committed modes/content before validation.
+git reset --hard HEAD
+test -x ./bootstrap.sh
 git rev-parse HEAD
 git status --porcelain
 git fsck --strict
@@ -40,6 +44,8 @@ python3 scripts/release_readiness.py --json --check
 Acceptance conditions before installation:
 
 - checksum verification passes;
+- `git reset --hard HEAD` completes after checksum verification and restores the exact committed executable modes/content required by the standard-library ZIP extraction path;
+- `./bootstrap.sh` is executable after that restoration;
 - the Git commit matches the commit printed in the checkpoint-23 delivery summary;
 - `git status --porcelain` is empty;
 - `git fsck --strict` succeeds;
@@ -47,7 +53,7 @@ Acceptance conditions before installation:
   still listing target gates as not run.
 
 If any identity/integrity check fails, **STOP** and return the terminal output.
-Do not repair the downloaded package in place.
+The `git reset --hard HEAD` step above is the documented deterministic mode/content restoration required after the Python ZIP extractor; do not make any other in-place repair or edit to force the package to pass.
 
 ## 2. Install this exact checkpoint
 

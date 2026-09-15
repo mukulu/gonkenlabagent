@@ -91,6 +91,7 @@ Checkpoint 23 affects the voice runtime, GPIO interaction adapter, environment r
 - PTT configuration can no longer be accepted without a production runtime path.
 - BCM numbers are no longer silently treated as libgpiod offsets in the new PTT/indicator or room-relay adapters.
 - A downloaded checkpoint campaign no longer silently installs whatever remote `main` advertises instead of the downloaded checkpoint.
+- Fresh-archive verification caught that Python's standard-library ZIP extractor does not restore Unix executable bits. The first archive was rejected. The runbook now restores exact committed modes/content with `git reset --hard HEAD` after checksum verification and requires `test -x ./bootstrap.sh` before readiness checks.
 - Historical `PLANNED / NOT_RUN` M10.9-M10.14 rows are superseded by executed evidence rather than remaining contradictory to milestone state.
 - Readiness remains scoped to host/software completion; `physical_acceptance_claimed=false` is retained through target handoff and evidence collection.
 

@@ -54,6 +54,7 @@ The project requires bounded/observable commands, narrow checks before broader c
 4. The normal bootstrap path could resolve an advertised remote ref even when the operator intended to test the exact downloaded checkpoint.
 5. Historical control records contained completed M10.9-M10.14 work still represented as planned/not-run rows.
 6. The rewritten target runbook briefly omitted the literal `physical_acceptance_claimed=false`; the existing acceptance regression caught it before checkpoint close.
+7. Fresh extraction of the first final ZIP with `python3 -m zipfile -e` left tracked executable scripts at mode 0644. Git correctly reported mode changes and `bootstrap.sh` was not executable. The archive's stored mode was correct; the extraction/runbook path was not.
 
 ## Checks executed
 
@@ -64,6 +65,7 @@ The project requires bounded/observable commands, narrow checks before broader c
 | Post-change deterministic integration accounting | canonical phase + bounded resumptions | **PASS, 10 modules / 46 tests** | `final_integration_accounting.json` and referenced logs |
 | Release lifecycle | canonical phase + per-case resumptions | **PASS, 8/8 actual cases** | `final_release_lifecycle_accounting.json` |
 | T0 after control reconciliation | `./scripts/ci.sh --phase t0` | **PASS** | `t0_after_control_plane.log` |
+| Package-extraction mode regression | fresh Python ZIP extraction -> detect non-executable scripts -> runbook/test repair | **PASS, 8/8 focused tests + T0** | `package_extraction_mode_fix_tests_final.log`; `package_extraction_mode_fix_t0_final.log` |
 | Milestone/status generation | `python3 scripts/milestone_status.py` / `--check` | run during checkpoint reconciliation; final check required after report creation | generated `IMPLEMENTATION_STATUS.md` |
 | Diff hygiene | `git diff --check` | PASS before report close; rerun required after final reports | repository check |
 
