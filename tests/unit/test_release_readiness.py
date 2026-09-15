@@ -26,9 +26,10 @@ class ReleaseReadinessTests(unittest.TestCase):
         self.assertFalse(report["not_host_verified"])
         remaining = {gate["id"] for gate in report["target_gates_remaining"]}
         self.assertIn("M9.1", remaining)
+        self.assertIn("M10.7", remaining)
         self.assertEqual(
             report["next_action"],
-            "Run the documented Raspberry Pi bootstrap, then upload the support ZIP from collect-support.sh.",
+            "Run the documented Raspberry Pi bootstrap and M10.7 environment acceptance collector, then upload the support ZIP and private evidence ledger.",
         )
 
     def test_human_report_has_exact_boundary_language(self) -> None:

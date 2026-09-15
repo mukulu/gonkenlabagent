@@ -1,0 +1,13 @@
+test_default_collection_is_non_destructive_and_blocks_fan_cycle (tests.unit.test_v09_environment_acceptance_runner.EnvironmentAcceptanceRunnerTests.test_default_collection_is_non_destructive_and_blocks_fan_cycle) ... ok
+test_explicit_actuation_runs_fan_cycle_commands_but_still_claims_no_acceptance (tests.unit.test_v09_environment_acceptance_runner.EnvironmentAcceptanceRunnerTests.test_explicit_actuation_runs_fan_cycle_commands_but_still_claims_no_acceptance) ... ok
+test_plan_only_writes_private_evidence_without_executing_commands (tests.unit.test_v09_environment_acceptance_runner.EnvironmentAcceptanceRunnerTests.test_plan_only_writes_private_evidence_without_executing_commands) ... ok
+test_release_payload_includes_environment_acceptance_runner (tests.unit.test_v09_environment_acceptance_runner.EnvironmentAcceptanceRunnerTests.test_release_payload_includes_environment_acceptance_runner) ... ok
+test_target_runbook_references_private_environment_evidence (tests.unit.test_v09_environment_acceptance_runner.EnvironmentAcceptanceRunnerTests.test_target_runbook_references_private_environment_evidence) ... ok
+test_human_report_has_exact_boundary_language (tests.unit.test_release_readiness.ReleaseReadinessTests.test_human_report_has_exact_boundary_language) ... ok
+test_report_is_ready_for_target_acceptance_from_clean_tree (tests.unit.test_release_readiness.ReleaseReadinessTests.test_report_is_ready_for_target_acceptance_from_clean_tree) ... ok
+test_target_acceptance_runbook_is_user_facing (tests.unit.test_release_readiness.ReleaseReadinessTests.test_target_acceptance_runbook_is_user_facing) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 16.917s
+
+OK

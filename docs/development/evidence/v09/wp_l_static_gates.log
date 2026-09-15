@@ -1,0 +1,6 @@
+PASS python3 scripts/milestone_status.py
+PASS python3 scripts/release_readiness.py --json --allow-dirty
+PASS bash -n scripts/*.sh
+PASS python3 -m compileall -q src scripts tests
+PASS docs/development/*.json and config/*.toml parse checks
+PASS git diff --check

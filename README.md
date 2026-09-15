@@ -107,6 +107,7 @@ logs, `doctor`, and support collection, see
 - [Operating, starting/stopping, logs and diagnostics](docs/OPERATIONS.md)
 - [Headless Bluetooth audio](docs/BLUETOOTH_AUDIO.md)
 - [Raspberry Pi acceptance runbook](docs/RASPBERRY_PI_ACCEPTANCE_RUN.md)
+- [V09 room-environment acceptance evidence run](docs/ENVIRONMENT_ACCEPTANCE_RUN.md)
 - [Dependency profiles](requirements/README.md)
 
 Engineering/project-maintenance material is kept under

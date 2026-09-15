@@ -988,3 +988,9 @@ M10.6 remains **host-partial**, not final. The daemon can now be constructed fro
 M10.6 remains **host-partial**, not a final release gate. The daemon can now poll autonomously in a bounded background loop and fail closed on simulated sensor/actuator faults, but M10.7 remains required for I2C, SHT31, libgpiod, relay, PENGLIN, ELUTENG, systemd, reboot/no-login and voice/wake physical acceptance.
 
 | M10.6-T031 | `timeout 140s bash scripts/ci.sh` | INTERRUPTED / not PASS | Broad CI passed the full unit phase and entered deterministic integration before external tool timeout/process cleanup. Log preserved at `docs/development/evidence/v09/wp_k_broad_ci_attempt.log`; this is not attributed to polling-loop failure and is not claimed as release-quality CI evidence. |
+
+| M10.6-T032 | `PYTHONPATH=src python3 -m unittest -v tests.unit.test_v09_environment_acceptance_runner tests.unit.test_release_readiness` | PASS, 8/8 | Host tests for the private M10.7 evidence-runner scaffold, non-destructive default collection, explicit `--allow-actuation` fan-cycle gate, release payload inclusion and target-runbook wording. Does not run on a Pi or actuate hardware. |
+| M10.6-T033 | `PYTHONPATH=src python3 -m unittest discover -s tests/unit -t . -v` | PASS, 321/321 | Full host unit suite after target-readiness/evidence-runner changes. Unit evidence only; physical M10.7 remains open. |
+| M10.6-T034 | Static gates in `docs/development/evidence/v09/wp_l_static_gates.log` | PASS | Milestone drift, release-readiness, Bash syntax, Python compileall, JSON/TOML parsing and `git diff --check` passed after M10.6 target-readiness closure. |
+
+M10.6 is now **host-verified**. The repository is ready for target acceptance collection, but M10.7 remains required for real Pi I2C, SHT31, libgpiod, relay, PENGLIN, ELUTENG fan, target systemd, reboot/no-login and wake/voice evidence. The private evidence runner may generate command evidence, not acceptance by itself.
