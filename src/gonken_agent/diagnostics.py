@@ -256,6 +256,8 @@ def _environment_ipc(socket_path: Path, *, client_factory=None) -> dict[str, obj
         else:
             client = client_factory(socket_path)
         health = client.health()
+        simulation = _environment_client_optional(client, "simulation_status")
+        snapshot = _environment_client_optional(client, "snapshot")
     except Exception as exc:
         code = getattr(exc, "code", type(exc).__name__)
         return {"status": "UNAVAILABLE", "code": _safe_text(str(code))}
@@ -267,6 +269,59 @@ def _environment_ipc(socket_path: Path, *, client_factory=None) -> dict[str, obj
         "actuator": health.get("actuator", "unknown") if isinstance(health, dict) else "unknown",
         "controller": health.get("controller", "unknown") if isinstance(health, dict) else "unknown",
         "physical_evidence": bool(health.get("physical_evidence", False)) if isinstance(health, dict) else False,
+        "simulation": _environment_simulation_summary(simulation),
+        "snapshot": _environment_snapshot_summary(snapshot),
+    }
+
+
+def _environment_client_optional(client, method_name: str) -> object:
+    method = getattr(client, method_name, None)
+    if not callable(method):
+        return {"status": "UNAVAILABLE", "code": "METHOD_UNAVAILABLE"}
+    try:
+        return method()
+    except Exception as exc:
+        return {"status": "UNAVAILABLE", "code": _safe_text(str(getattr(exc, "code", type(exc).__name__)))}
+
+
+def _environment_simulation_summary(payload: object) -> dict[str, object]:
+    if not isinstance(payload, dict):
+        return {"status": "UNAVAILABLE", "code": "SIMULATION_STATUS_UNAVAILABLE"}
+    simulation = payload.get("simulation") if isinstance(payload.get("simulation"), dict) else payload
+    sensor = simulation.get("sensor") if isinstance(simulation.get("sensor"), dict) else {}
+    actuator = simulation.get("actuator") if isinstance(simulation.get("actuator"), dict) else {}
+    return {
+        "status": "READY" if simulation.get("active") is True else "UNAVAILABLE",
+        "active": bool(simulation.get("active", False)),
+        "runtime_control_enabled": bool(simulation.get("runtime_control_enabled", False)),
+        "sensor_is_simulated": bool(simulation.get("sensor_is_simulated", False)),
+        "actuator_is_simulated": bool(simulation.get("actuator_is_simulated", False)),
+        "evidence_mode": _safe_text(str(simulation.get("evidence_mode", "UNKNOWN"))),
+        "generation": simulation.get("simulation_generation"),
+        "sensor_fault": sensor.get("fault"),
+        "actuator_behavior": actuator.get("behavior"),
+        "actuator_modeled_power": actuator.get("modeled_power"),
+        "physical_evidence": False,
+    }
+
+
+def _environment_snapshot_summary(payload: object) -> dict[str, object]:
+    if not isinstance(payload, dict):
+        return {"status": "UNAVAILABLE", "code": "SNAPSHOT_UNAVAILABLE"}
+    state = payload.get("state") if isinstance(payload.get("state"), dict) else {}
+    polling = payload.get("polling") if isinstance(payload.get("polling"), dict) else {}
+    provenance = payload.get("provenance") if isinstance(payload.get("provenance"), dict) else {}
+    return {
+        "status": "READY",
+        "environment": _safe_text(str(payload.get("environment", "UNKNOWN"))),
+        "mode": _safe_text(str(state.get("mode", "unknown"))),
+        "fan_power": _safe_text(str(state.get("fan_power", "unknown"))),
+        "sensor_quality": _safe_text(str(state.get("sensor_quality", "unknown"))),
+        "last_transition_reason": _safe_text(str(state.get("last_transition_reason", "unknown"))),
+        "poll_count": polling.get("poll_count"),
+        "sensor_backend": _safe_text(str(provenance.get("sensor_backend", "unknown"))),
+        "actuator_backend": _safe_text(str(provenance.get("actuator_backend", "unknown"))),
+        "physical_evidence": bool(payload.get("physical_evidence", False)),
     }
 
 

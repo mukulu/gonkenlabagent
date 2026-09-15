@@ -143,6 +143,8 @@ def _public_environment_health(detail: dict[str, object]) -> dict[str, object]:
     ipc = diagnostics.get('ipc') if isinstance(diagnostics.get('ipc'), dict) else {}
     static = diagnostics.get('static') if isinstance(diagnostics.get('static'), dict) else {}
     capabilities = diagnostics.get('capabilities') if isinstance(diagnostics.get('capabilities'), dict) else {}
+    simulation = ipc.get('simulation') if isinstance(ipc.get('simulation'), dict) else {}
+    snapshot = ipc.get('snapshot') if isinstance(ipc.get('snapshot'), dict) else {}
     return {
         'status': detail['component_status'].value if isinstance(detail.get('component_status'), Readiness) else str(detail.get('component_status')),
         'code': str(detail.get('component_code')),
@@ -159,6 +161,9 @@ def _public_environment_health(detail: dict[str, object]) -> dict[str, object]:
         'relay_backend': static.get('relay_backend', 'unknown'),
         'relay_bcm': static.get('relay_bcm', 'unknown'),
         'capabilities': capabilities,
+        'simulation': simulation,
+        'snapshot': snapshot,
+        'evidence_mode': simulation.get('evidence_mode', 'UNKNOWN') if isinstance(simulation, dict) else 'UNKNOWN',
         'target_acceptance': diagnostics.get('target_acceptance', 'not_established_by_diagnostics'),
         'physical_evidence': bool(diagnostics.get('physical_evidence', False)),
     }

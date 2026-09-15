@@ -339,9 +339,40 @@ gonken-agent env status --json
 
 The `env` command is an IPC client. It must not be modified to read GPIO, I2C or
 policy files directly. Human-readable output is for operators; `--json` is the
-stable machine-readable form. `env watch` repeatedly reads the daemon through the
-same client boundary and reports `physical_evidence=false` until a real Pi HIL
-run records otherwise.
+stable machine-readable form. `env watch` is now a passive observer: it reads the
+daemon's latest `state.snapshot.get` result and must not create extra sensor
+samples, accelerate simulated recovery, change dwell timing, write relay state,
+or mutate policy. Use `gonken-agent env read` when an explicit read-now operation
+is intended. All environment commands report `physical_evidence=false` until a
+real Pi HIL run records otherwise.
+
+Simulation is controlled through the same daemon and IPC boundary. It is intended
+for host demonstration, user training and hybrid HIL preparation; it is not proof
+of SHT31, relay, PENGLIN or ELUTENG behavior. Typical full-simulation commands
+are:
+
+```bash
+gonken-agent env simulate status
+gonken-agent env simulate sensor set --temperature-c 27 --humidity-pct 50
+gonken-agent env simulate sensor unavailable
+gonken-agent env simulate sensor crc-error
+gonken-agent env simulate sensor stale --age-seconds 30
+gonken-agent env simulate sensor recover --temperature-c 27 --humidity-pct 50
+gonken-agent env simulate sensor reset
+gonken-agent env simulate fan show
+gonken-agent env simulate fan behavior normal
+gonken-agent env simulate fan unavailable
+gonken-agent env simulate fan fail-next-write
+gonken-agent env simulate fan reset
+gonken-agent env simulate reset
+```
+
+Simulation mutation requires `simulation_runtime_control_enabled = true` in the
+static environment profile and the relevant backend must actually be
+`simulated`. The daemon rejects a simulated-sensor mutation when the sensor
+backend is `sht31`, and rejects a simulated-actuator mutation when the actuator
+backend is `libgpiod`. This prevents the operator from silently substituting fake
+values for a real hardware path.
 
 The voice route now has a deterministic environment-intent parser before the
 ordinary local model path. Clear phrases such as “what is the room temperature?”,

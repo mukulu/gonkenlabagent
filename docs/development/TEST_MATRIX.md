@@ -1080,3 +1080,16 @@ Checkpoint 15 adds resumable CI phase selection only.  It does not alter product
 | M10.9-T083 | Interrupted module follow-up | `PYTHONPATH=src python3 -m unittest -v tests.unit.test_m6_service_manager` | PASS, 8/8 | Narrow rerun of the module active when the unit phase was interrupted. Does not substitute for a full unit-phase PASS. |
 
 Checkpoint 17 verifies simulation foundations and the non-actuating `env serve --check` correction at host level.  It does not implement operator `env simulate` commands, passive watch, simulation-aware voice wording, or physical M10.7 HIL acceptance.
+
+
+## V09 Checkpoint 18 — Operator simulation CLI / passive watch / simulation observability
+
+| Gate | Result | Evidence | Limitation |
+|---|---:|---|---|
+| Operator simulation and observability affected tests | PASS, 54/54 | `docs/development/evidence/v09/checkpoint18/operator_sim_observability_tests.log` | Host/simulation evidence only; no physical SHT31, relay, fan or wake evidence |
+| T0 static gates | PASS | `docs/development/evidence/v09/checkpoint18/t0_static.log` | Static/source/config gate only |
+| Targeted CLI/text integration subset | PASS, 14/14 | `docs/development/evidence/v09/checkpoint18/targeted_integration.log` | Does not substitute for physical target HIL |
+| Unit phase attempt | INTERRUPTED / not PASS | `docs/development/evidence/v09/checkpoint18/unit_phase.log` | External execution boundary interrupted the aggregate after partial progress |
+| Interrupted active unit module follow-up | PASS, 3/3 | `docs/development/evidence/v09/checkpoint18/release_readiness_module.log` | Narrow follow-up only; not a full unit-phase PASS |
+
+Checkpoint 18 closes the M10.10 host gate for `env simulate`, passive watch and simulation observability.  It does not close M10.7 physical target acceptance.

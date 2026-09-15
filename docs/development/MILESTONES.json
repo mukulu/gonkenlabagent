@@ -313,15 +313,15 @@
       "software": "host-verified",
       "target": "not-run",
       "evidence": "TEST_MATRIX.md (Checkpoint 17); tests/unit/test_v09_environment_simulation.py; affected environment/config/IPC/daemon/CLI test slice",
-      "remaining": "Operator env simulate CLI, passive watch, diagnostics/support simulation visibility, hybrid HIL and physical M10.7 acceptance remain open."
+      "remaining": "Simulation foundations are host-verified. Remaining simulation/HIL work is now simulation-aware voice, hybrid physical/simulation evidence gates, mandatory GonKen wake/progress work, documentation hardening and physical M10.7 acceptance."
     },
     {
       "id": "M10.10",
       "title": "Operator simulation experience",
-      "software": "pending",
+      "software": "host-verified",
       "target": "not-run",
-      "evidence": "docs/development/V09_SIMULATION_HIL_EXTENSION_PLAN.md",
-      "remaining": "Implement env simulate CLI family, passive watch using state.snapshot.get, simulation fault injection UX, diagnostics/support visibility and full-simulation acceptance tests."
+      "evidence": "src/gonken_agent/cli.py; src/gonken_agent/diagnostics.py; src/gonken_agent/support.py; src/gonken_agent/dashboard.py; src/gonken_agent/operations.py; tests/unit/test_v09_environment_cli.py; tests/unit/test_v09_environment_simulation.py; tests/unit/test_diagnostics_snapshot.py; tests/unit/test_grounding_observability.py; tests/unit/test_support_export.py; docs/OPERATIONS.md; docs/development/evidence/v09/checkpoint18/operator_sim_observability_tests.log; docs/development/evidence/v09/checkpoint18/t0_static.log; docs/development/evidence/v09/checkpoint18/targeted_integration.log",
+      "remaining": "Operator simulation CLI, passive watch and simulation observability are host-verified. Remaining work moves to simulation-aware voice, hybrid HIL/evidence gates, mandatory GonKen wake/progress work, documentation hardening and real M10.7 physical acceptance."
     },
     {
       "id": "M10.11",

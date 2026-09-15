@@ -181,6 +181,8 @@ class TelemetryTests(unittest.TestCase):
             'target_acceptance':'not_established_by_diagnostics',
             'capabilities':{'power_control':True,'software_speed_control':False,'fan_motion_observed':False},
             'ipc':{'status':'UNAVAILABLE','code':'SOCKET_MISSING','overall':'UNKNOWN','physical_evidence':False},
+            'simulation':{'status':'READY','active':True,'runtime_control_enabled':True,'sensor_is_simulated':True,'actuator_is_simulated':True,'evidence_mode':'HOST_SIMULATION','actuator_behavior':'normal','actuator_modeled_power':'off','physical_evidence':False},
+            'snapshot':{'status':'READY','environment':'READY','mode':'automatic','fan_power':'off','sensor_quality':'ready','last_transition_reason':'BOOT_SAFE_OFF','physical_evidence':False},
             'sensor_backend':'sht31',
             'i2c_address_hex':'0x44',
             'relay_backend':'libgpiod',
@@ -192,6 +194,9 @@ class TelemetryTests(unittest.TestCase):
         self.assertFalse(environment['capabilities']['software_speed_control'])
         self.assertFalse(environment['capabilities']['fan_motion_observed'])
         self.assertFalse(environment['physical_evidence'])
+        self.assertTrue(environment['simulation']['active'])
+        self.assertEqual(environment['simulation']['evidence_mode'], 'HOST_SIMULATION')
+        self.assertEqual(environment['snapshot']['mode'], 'automatic')
         with self.assertRaises(ValueError):s.update_environment({'status':'READY','code':'bad code with spaces'})
         s.clear();self.assertNotIn('interaction',s.read())
         self.assertNotIn('interaction',Snapshot(transient=True).read())

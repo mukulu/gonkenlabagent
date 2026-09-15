@@ -1603,3 +1603,12 @@ The new daemon-owned simulation state records a session identifier, generation, 
 Checkpoint 17 also closes one safety defect from checkpoint 16: `gonken-agent env serve --check` is now tested as a construction/configuration check that does not call the daemon shutdown safe-off path and therefore does not request or write a relay line merely to validate configuration.  Real daemon shutdown still retains safe-off semantics once resources have actually been acquired.
 
 Remaining simulation/HIL work moves to the operator and evidence layers: `gonken-agent env simulate ...`, passive `env watch`, diagnostics/support/dashboard provenance, simulation-aware voice wording, hybrid HIL evidence classification, wake/progress work and documentation hardening.  M10.7 physical Raspberry Pi acceptance remains not-run.
+
+
+### 22.6 Checkpoint 18 — Operator simulation experience implementation
+
+Checkpoint 18 implements the user-facing operator simulation layer planned in M10.10.  The simulator remains inside the single environment-service boundary: `gonken-agent env simulate ...` is an IPC client, not a second hardware owner and not a direct policy-file editor.  Simulation mutations remain guarded by static backend axes and `simulation_runtime_control_enabled`; simulated-sensor commands are rejected when the sensor backend is physical, and simulated-actuator commands are rejected when the relay backend is physical.
+
+`gonken-agent env watch` is now passive.  It calls `state.snapshot.get` and displays the daemon-owned latest state instead of repeatedly calling `sensor.read`.  This removes the observer effect identified in checkpoint 16: additional watch terminals should not create extra sensor samples, accelerate recovery, alter median windows, change dwell timing or trigger actuator writes.  `gonken-agent env read` remains the explicit active read-now operation.
+
+Diagnostics, support bundles, public environment health and the loopback dashboard now carry simulation and snapshot summaries with backend provenance and `physical_evidence=false`.  This improves user simulation and later hybrid-HIL debugging without allowing simulated evidence to close physical Raspberry Pi acceptance.
