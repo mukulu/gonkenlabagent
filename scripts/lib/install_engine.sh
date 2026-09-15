@@ -178,7 +178,7 @@ gonken_load_source_record() {
     rpi_image_reference pi_model pid1 systemd_version free_kib memory_kib
     observed_epoch existing_checkout
   )
-  local -a optional_fields=(bluetooth_audio bluetooth_device)
+  local -a optional_fields=(bluetooth_audio bluetooth_device source_mode)
   local -a fields=("${required_fields[@]}" "${optional_fields[@]}")
   gonken_validate_absolute_path "$path" "source record" || return 65
   gonken_read_record "$path" fields GONKEN_SOURCE_RECORD || return $?
@@ -190,12 +190,18 @@ gonken_load_source_record() {
   done
   GONKEN_SOURCE_RECORD[bluetooth_audio]="${GONKEN_SOURCE_RECORD[bluetooth_audio]:-disabled}"
   GONKEN_SOURCE_RECORD[bluetooth_device]="${GONKEN_SOURCE_RECORD[bluetooth_device]:-}"
+  GONKEN_SOURCE_RECORD[source_mode]="${GONKEN_SOURCE_RECORD[source_mode]:-remote}"
   [[ "${GONKEN_SOURCE_RECORD[format]}" == "gonken-bootstrap-source-v1" ]] || {
     gonken_error "INSTALL_RECORD_VERSION" "unsupported source record format" "rerun the matching supported bootstrap"
     return 65
   }
   [[ "${GONKEN_SOURCE_RECORD[resolved_commit]}" =~ ^[0-9a-f]{40}$ ]] || {
     gonken_error "INSTALL_RECORD" "source record has an invalid resolved commit" "rerun bootstrap against an advertised ref"
+    return 65
+  }
+  [[ "${GONKEN_SOURCE_RECORD[source_mode]}" == "remote" \
+      || "${GONKEN_SOURCE_RECORD[source_mode]}" == "local-checkpoint" ]] || {
+    gonken_error "INSTALL_RECORD" "source record has an invalid source mode" "rerun bootstrap with a supported source mode"
     return 65
   }
   [[ "${GONKEN_SOURCE_RECORD[platform_mode]}" == "target" \
@@ -247,10 +253,11 @@ gonken_revalidate_source_record() {
   local mode="${GONKEN_SOURCE_RECORD[platform_mode]}"
   local source_url="${GONKEN_SOURCE_RECORD[source_url]}"
   local source_ref="${GONKEN_SOURCE_RECORD[requested_ref]}"
+  local source_mode="${GONKEN_SOURCE_RECORD[source_mode]}"
   local kernel architecture userspace python_version clock_epoch free_kib memory_kib
   local pid1 pi_model rpi_issue os_hash pi_hash systemd_version
 
-  gonken_validate_source_request "$source_url" "$source_ref" "$mode" || return 65
+  gonken_validate_source_request "$source_url" "$source_ref" "$mode" "$source_mode" || return 65
   kernel="$(uname -s)" || return 78
   architecture="$(uname -m)" || return 78
   userspace="$(getconf LONG_BIT)" || return 78
@@ -306,8 +313,12 @@ gonken_revalidate_source_record() {
     gonken_error "INSTALL_HOST_CHANGED" "system clock moved backwards after preflight" "synchronize time and rerun bootstrap"
     return 78
   fi
-  gonken_validate_existing_checkout "${GONKEN_SOURCE_RECORD[existing_checkout]}" "$source_url" || return 78
-  gonken_resolve_remote_ref "$source_url" "$source_ref" || return 69
+  gonken_validate_existing_checkout "${GONKEN_SOURCE_RECORD[existing_checkout]}" "$source_url" "$source_mode" || return 78
+  if [[ "$source_mode" == "local-checkpoint" ]]; then
+    gonken_resolve_local_checkpoint "${GONKEN_SOURCE_RECORD[existing_checkout]}" "$source_ref" || return 69
+  else
+    gonken_resolve_remote_ref "$source_url" "$source_ref" || return 69
+  fi
   if [[ "$GONKEN_RESOLVED_COMMIT" != "${GONKEN_SOURCE_RECORD[resolved_commit]}" ]]; then
     gonken_error "INSTALL_SOURCE_CHANGED" "advertised source ref moved after preflight" "review the new commit and rerun bootstrap"
     return 69

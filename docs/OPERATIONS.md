@@ -42,6 +42,8 @@ gonken-agent wake status --json
 
 The host matcher accepts the default `GonKen`, the backward-compatible `Hey GonKen` alias, split-token `Gon Ken`, punctuation/case variants and bounded one-character STT errors for the GonKen token.  This is host software evidence only; real microphone false-accept/false-reject and wake-to-acknowledgement latency evidence still belongs to the Raspberry Pi acceptance run.
 
+Wake standby uses a bounded pipelined capture path: the microphone continues collecting the next short wake window while the previous window is transcribed. A two-window newest-wins queue prevents unbounded Whisper backlog; stale queued windows are dropped and reported categorically. The dedicated wake-monitoring indicator on logical GPIO22 is requested by line name and is ON only while standby capture is active. The software contract is host-tested, but the actual Raspberry Pi gpiochip mapping and visible LED behavior must still be verified on the target.
+
 After a captured request begins processing, ordinary deterministic environment commands should normally answer without filler.  Slower general-model requests may receive `Just a second.` and, if still unresolved, at most one `I'm still working on that.` cue.  These cues are generated locally through Piper and cached under the voice cache directory; legacy unknown-provenance filler WAVs remain excluded.
 
 Autonomous environment transition announcements are voice-owned.  The environment daemon records typed transition events, and the voice runtime may announce priority automatic/safety transitions without claiming fan blade motion or software speed control.  Simulated transitions are spoken as simulation.
@@ -103,6 +105,19 @@ Press `Ctrl+C` to stop it, then restore automatic operation:
 ```bash
 sudo systemctl start gonken-agent.service
 ```
+
+### Optional physical push-to-talk recovery mode
+
+The packaged default remains wake-word operation, but `runtime.interaction_mode = "push_to_talk"` is supported as a physical privacy/recovery mode. In PTT mode the service discovers the configured button and recording-LED GPIOs by their libgpiod line names (`GPIO17` and `GPIO27` by default), rather than assuming the BCM number is the gpiochip offset. The button uses an internal pull-up and is active while held to ground. The recording LED means **microphone capture is active**; it is turned off before transcription, model inference, and speech playback.
+
+Physical target wiring and line-name discovery must pass before this mode is accepted. See [HARDWARE_SETUP.md](HARDWARE_SETUP.md) and [RASPBERRY_PI_ACCEPTANCE_RUN.md](RASPBERRY_PI_ACCEPTANCE_RUN.md). To select PTT, change the root-owned site configuration rather than exposing GPIO through voice or a model action:
+
+```toml
+[runtime]
+interaction_mode = "push_to_talk"
+```
+
+Restart the service after validating the site configuration. Hold the physical button while speaking and release it to process. A held button is bounded to 30 seconds; an overlong capture is discarded rather than automatically submitted.
 
 ### One microphone -> AI -> speaker turn
 

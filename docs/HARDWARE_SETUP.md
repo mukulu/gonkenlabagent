@@ -34,6 +34,20 @@ safe_state = "off"
 
 These are configuration defaults, not physical proof. The candidate relay line is logical BCM23 / physical header pin 16 because it does not collide with the current GPIO17 push-to-talk, GPIO27 recording LED, GPIO22 wake-monitoring LED, or I2C GPIO2/GPIO3 usage. On Raspberry Pi 5, the actual `gpiochip` and line mapping must still be recorded on the target. Do not assume `/dev/gpiochip0`.
 
+### 2.1 Voice-control GPIOs
+
+The voice appliance also reserves three logical GPIO identities. They are separate from the room-fan relay:
+
+| Function | Logical BCM | Physical header pin | Candidate wiring |
+|---|---:|---:|---|
+| Push-to-talk button | GPIO17 | 11 | Momentary button from pin 11 to GND pin 9; software requests an internal pull-up and treats the grounded state as pressed. |
+| Recording LED | GPIO27 | 13 | GPIO27 -> suitable series resistor (for example 330 ohm) -> LED -> GND. LED ON means microphone capture is active. |
+| Wake-monitoring LED | GPIO22 | 15 | GPIO22 -> suitable series resistor -> distinct LED -> GND. LED ON means continuous wake standby capture is active. |
+
+The production GPIO adapters resolve these identities from libgpiod line names such as `GPIO17`; they do not assume BCM17 is `/dev/gpiochip0` line 17. Before relying on either interaction mode, record the actual target mapping with `gpiodetect`, `gpioinfo`, and the service journal. If a configured line name is missing or ambiguous, the software fails closed rather than choosing an offset.
+
+For the first target test, wire LEDs with the Pi powered off, verify polarity/resistor placement, then confirm: recording LED OFF at idle, ON only while PTT is physically held, OFF before processing; wake-monitoring LED ON only during wake standby and OFF while the assistant acknowledges, listens to the full question, or speaks. These observations are physical acceptance evidence and cannot be replaced by host tests.
+
 ## 3. Power-off inspection before any actuation
 
 Before running any command that can turn the relay/fan on:

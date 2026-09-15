@@ -1,0 +1,13 @@
+test_launcher_help_is_non_mutating_and_documents_bootstrap_passthrough (tests.integration.test_first_install_launcher.FirstInstallLauncherTests.test_launcher_help_is_non_mutating_and_documents_bootstrap_passthrough) ... ok
+test_readme_primary_install_is_one_command_and_manual_bootstrap_is_short (tests.integration.test_first_install_launcher.FirstInstallLauncherTests.test_readme_primary_install_is_one_command_and_manual_bootstrap_is_short) ... ok
+test_standard_bootstrap_has_official_source_and_main_defaults (tests.integration.test_first_install_launcher.FirstInstallLauncherTests.test_standard_bootstrap_has_official_source_and_main_defaults) ... ok
+test_stream_launcher_prepares_checkout_and_forwards_bluetooth_parameters (tests.integration.test_first_install_launcher.FirstInstallLauncherTests.test_stream_launcher_prepares_checkout_and_forwards_bluetooth_parameters) ... ok
+test_bluetooth_audio_is_target_only_and_does_not_mutate_development_staging (tests.integration.test_bootstrap_preflight_process.BootstrapProcessTests.test_bluetooth_audio_is_target_only_and_does_not_mutate_development_staging) ... ok
+test_default_routes_to_release_manager_and_never_legacy_setup (tests.integration.test_bootstrap_preflight_process.BootstrapProcessTests.test_default_routes_to_release_manager_and_never_legacy_setup) ... ok
+test_development_preflight_process_writes_exact_private_manifest (tests.integration.test_bootstrap_preflight_process.BootstrapProcessTests.test_development_preflight_process_writes_exact_private_manifest) ... ok
+test_unsupported_target_fails_before_network_or_staging (tests.integration.test_bootstrap_preflight_process.BootstrapProcessTests.test_unsupported_target_fails_before_network_or_staging) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 8.386s
+
+OK

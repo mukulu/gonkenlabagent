@@ -1,0 +1,93 @@
+{
+  "created_utc": "2026-09-15T13:09:49Z",
+  "granularity": "module",
+  "label": "integration",
+  "module_count": 10,
+  "modules": [
+    {
+      "duration_seconds": 9.471,
+      "log_file": "/mnt/data/gonken_ckpt22_continue/gonkenlabagent-v09-user-sim-hil-release-candidate-checkpoint-22/build/ci-logs/integration/tests_integration_test_bootstrap_preflight_process.log",
+      "module": "tests.integration.test_bootstrap_preflight_process",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 5.279,
+      "log_file": "/mnt/data/gonken_ckpt22_continue/gonkenlabagent-v09-user-sim-hil-release-candidate-checkpoint-22/build/ci-logs/integration/tests_integration_test_cli_process.log",
+      "module": "tests.integration.test_cli_process",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.838,
+      "log_file": "/mnt/data/gonken_ckpt22_continue/gonkenlabagent-v09-user-sim-hil-release-candidate-checkpoint-22/build/ci-logs/integration/tests_integration_test_first_install_launcher.log",
+      "module": "tests.integration.test_first_install_launcher",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 10.582,
+      "log_file": "/mnt/data/gonken_ckpt22_continue/gonkenlabagent-v09-user-sim-hil-release-candidate-checkpoint-22/build/ci-logs/integration/tests_integration_test_install_engine_process.log",
+      "module": "tests.integration.test_install_engine_process",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 29.561,
+      "log_file": "/mnt/data/gonken_ckpt22_continue/gonkenlabagent-v09-user-sim-hil-release-candidate-checkpoint-22/build/ci-logs/integration/tests_integration_test_ollama_lifecycle_process.log",
+      "module": "tests.integration.test_ollama_lifecycle_process",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 70.368,
+      "log_file": "/mnt/data/gonken_ckpt22_continue/gonkenlabagent-v09-user-sim-hil-release-candidate-checkpoint-22/build/ci-logs/integration/tests_integration_test_speech_lifecycle_process.log",
+      "module": "tests.integration.test_speech_lifecycle_process",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.665,
+      "log_file": "/mnt/data/gonken_ckpt22_continue/gonkenlabagent-v09-user-sim-hil-release-candidate-checkpoint-22/build/ci-logs/integration/tests_integration_test_support_collection_process.log",
+      "module": "tests.integration.test_support_collection_process",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 8.282,
+      "log_file": "/mnt/data/gonken_ckpt22_continue/gonkenlabagent-v09-user-sim-hil-release-candidate-checkpoint-22/build/ci-logs/integration/tests_integration_test_text_runtime_process.log",
+      "module": "tests.integration.test_text_runtime_process",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 2.021,
+      "log_file": "/mnt/data/gonken_ckpt22_continue/gonkenlabagent-v09-user-sim-hil-release-candidate-checkpoint-22/build/ci-logs/integration/tests_integration_test_uninstall_lifecycle_process.log",
+      "module": "tests.integration.test_uninstall_lifecycle_process",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 19.879,
+      "log_file": "/mnt/data/gonken_ckpt22_continue/gonkenlabagent-v09-user-sim-hil-release-candidate-checkpoint-22/build/ci-logs/integration/tests_integration_test_v09_user_test_release_candidate.log",
+      "module": "tests.integration.test_v09_user_test_release_candidate",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    }
+  ],
+  "result": "PASS",
+  "schema": "gonken-bounded-unittest-v1",
+  "status_counts": {
+    "PASS": 10
+  }
+}

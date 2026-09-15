@@ -1,0 +1,1100 @@
+test_brain_probe_warms_inference_without_adding_history (tests.unit.test_voice_appliance.ConversationContractTests.test_brain_probe_warms_inference_without_adding_history) ... ok
+test_plain_chat_disables_thinking_without_json_format (tests.unit.test_voice_appliance.ConversationContractTests.test_plain_chat_disables_thinking_without_json_format) ... ok
+test_one_turn_is_capture_transcribe_generate_speak_without_persistence (tests.unit.test_voice_appliance.VoiceTurnTests.test_one_turn_is_capture_transcribe_generate_speak_without_persistence) ... ok
+test_ready_is_published_only_after_real_ready_announcement_playback (tests.unit.test_voice_appliance.VoiceTurnTests.test_ready_is_published_only_after_real_ready_announcement_playback) ... ok
+test_silence_does_not_drop_wake_runtime_readiness (tests.unit.test_voice_appliance.VoiceTurnTests.test_silence_does_not_drop_wake_runtime_readiness) ... ok
+test_transition_announcer_returns_one_priority_message_without_daemon_audio_ownership (tests.unit.test_voice_appliance.VoiceTurnTests.test_transition_announcer_returns_one_priority_message_without_daemon_audio_ownership) ... ok
+test_wake_turn_uses_pipelined_standby_and_separate_question_window (tests.unit.test_voice_appliance.VoiceTurnTests.test_wake_turn_uses_pipelined_standby_and_separate_question_window) ... ok
+test_alsa_card_parser_and_unique_selector (tests.unit.test_voice_appliance.VoiceWakeTests.test_alsa_card_parser_and_unique_selector) ... ok
+test_audio_constructor_defers_physical_route_resolution_until_readiness (tests.unit.test_voice_appliance.VoiceWakeTests.test_audio_constructor_defers_physical_route_resolution_until_readiness) ... ok
+test_auto_selector_fails_closed_for_multiple_usb_cards (tests.unit.test_voice_appliance.VoiceWakeTests.test_auto_selector_fails_closed_for_multiple_usb_cards) ... ok
+test_auto_selector_prefers_one_usb_card_over_hdmi (tests.unit.test_voice_appliance.VoiceWakeTests.test_auto_selector_prefers_one_usb_card_over_hdmi) ... ok
+test_bluetooth_routes_are_used_when_no_wired_route_exists (tests.unit.test_voice_appliance.VoiceWakeTests.test_bluetooth_routes_are_used_when_no_wired_route_exists) ... ok
+test_cancelled_capture_does_not_fall_through_to_another_audio_route (tests.unit.test_voice_appliance.VoiceWakeTests.test_cancelled_capture_does_not_fall_through_to_another_audio_route) ... ok
+test_capture_falls_through_wired_then_bluetooth_candidates (tests.unit.test_voice_appliance.VoiceWakeTests.test_capture_falls_through_wired_then_bluetooth_candidates) ... ok
+test_gonken_default_aliases_match_split_tokens_errors_and_legacy_hey_form (tests.unit.test_voice_appliance.VoiceWakeTests.test_gonken_default_aliases_match_split_tokens_errors_and_legacy_hey_form) ... ok
+test_managed_bluetooth_ignores_unrelated_pipewire_endpoint (tests.unit.test_voice_appliance.VoiceWakeTests.test_managed_bluetooth_ignores_unrelated_pipewire_endpoint) ... ok
+test_pipewire_usb_outranks_direct_usb_and_bluetooth (tests.unit.test_voice_appliance.VoiceWakeTests.test_pipewire_usb_outranks_direct_usb_and_bluetooth) ... ok
+test_processing_cue_plan_cancels_unstarted_cues_when_answer_is_ready (tests.unit.test_voice_appliance.VoiceWakeTests.test_processing_cue_plan_cancels_unstarted_cues_when_answer_is_ready) ... ok
+test_rolling_wake_matcher_carries_short_tail_across_capture_windows (tests.unit.test_voice_appliance.VoiceWakeTests.test_rolling_wake_matcher_carries_short_tail_across_capture_windows) ... ok
+test_transition_announcement_text_preserves_simulation_and_motion_boundary (tests.unit.test_voice_appliance.VoiceWakeTests.test_transition_announcement_text_preserves_simulation_and_motion_boundary) ... ok
+test_wake_capture_pipeline_keeps_capturing_and_drops_stale_backlog (tests.unit.test_voice_appliance.VoiceWakeTests.test_wake_capture_pipeline_keeps_capturing_and_drops_stale_backlog) ... ok
+test_wake_phrase_matches_punctuation_and_one_edit_for_long_brand_token (tests.unit.test_voice_appliance.VoiceWakeTests.test_wake_phrase_matches_punctuation_and_one_edit_for_long_brand_token) ... ok
+test_wired_routes_outrank_connected_bluetooth_when_both_exist (tests.unit.test_voice_appliance.VoiceWakeTests.test_wired_routes_outrank_connected_bluetooth_when_both_exist) ... ok
+test_discovers_gpio_by_name_and_requests_pullup_button_and_led_off (tests.unit.test_m5_1_ptt_runtime.GpiodPttHardwareTests.test_discovers_gpio_by_name_and_requests_pullup_button_and_led_off) ... ok
+test_refuses_missing_ambiguous_or_cross_chip_mappings (tests.unit.test_m5_1_ptt_runtime.GpiodPttHardwareTests.test_refuses_missing_ambiguous_or_cross_chip_mappings) ... ok
+test_wake_monitor_led_resolves_by_name_and_is_off_on_close (tests.unit.test_m5_1_ptt_runtime.GpiodPttHardwareTests.test_wake_monitor_led_resolves_by_name_and_is_off_on_close) ... ok
+test_discard_removes_max_hold_capture_without_processing (tests.unit.test_m5_1_ptt_runtime.PushToTalkVoiceAdapterTests.test_discard_removes_max_hold_capture_without_processing) ... ok
+test_release_preserves_partial_capture_then_processes_and_cleans_it (tests.unit.test_m5_1_ptt_runtime.PushToTalkVoiceAdapterTests.test_release_preserves_partial_capture_then_processes_and_cleans_it) ... ok
+test_push_to_talk_mode_selects_ptt_loop_not_wake_loop (tests.unit.test_m5_1_ptt_runtime.RunApplianceModeTests.test_push_to_talk_mode_selects_ptt_loop_not_wake_loop) ... ok
+test_overflow_still_counts_toward_recording_time_limit (tests.unit.test_runtime_audio.AudioTests.test_overflow_still_counts_toward_recording_time_limit) ... ok
+test_queue_frame_accounting_overflow_duration_and_close (tests.unit.test_runtime_audio.AudioTests.test_queue_frame_accounting_overflow_duration_and_close) ... ok
+test_reenumeration_backoff_and_late_hotplug (tests.unit.test_runtime_audio.AudioTests.test_reenumeration_backoff_and_late_hotplug) ... ok
+test_resampling_suppresses_alias_without_destroying_passband (tests.unit.test_runtime_audio.AudioTests.test_resampling_suppresses_alias_without_destroying_passband) ... ok
+test_selection_missing_ambiguous_exact_rate_and_renumber (tests.unit.test_runtime_audio.AudioTests.test_selection_missing_ambiguous_exact_rate_and_renumber) ... ok
+test_stereo_conversion_and_rejected_ratios (tests.unit.test_runtime_audio.AudioTests.test_stereo_conversion_and_rejected_ratios) ... ok
+test_cancel_at_each_stage_releases_audio_and_client (tests.unit.test_runtime_audio.CoordinatorTests.test_cancel_at_each_stage_releases_audio_and_client) ... ok
+test_complete_audio_path_and_no_feedback (tests.unit.test_runtime_audio.CoordinatorTests.test_complete_audio_path_and_no_feedback) ... ok
+test_concurrent_activation_only_one_is_accepted (tests.unit.test_runtime_audio.CoordinatorTests.test_concurrent_activation_only_one_is_accepted) ... ok
+test_failure_at_each_stage_recovers_without_raw_error (tests.unit.test_runtime_audio.CoordinatorTests.test_failure_at_each_stage_recovers_without_raw_error) ... ok
+test_invalid_transition_and_input_rejected (tests.unit.test_runtime_audio.CoordinatorTests.test_invalid_transition_and_input_rejected) ... ok
+test_text_mode_never_captures_or_speaks (tests.unit.test_runtime_audio.CoordinatorTests.test_text_mode_never_captures_or_speaks) ... ok
+test_waiting_recovery_and_shutdown_before_consumption (tests.unit.test_runtime_audio.CoordinatorTests.test_waiting_recovery_and_shutdown_before_consumption) ... ok
+test_no_arbitrary_error_text (tests.unit.test_runtime_audio.HealthTests.test_no_arbitrary_error_text) ... ok
+test_precedence_exit_codes_and_empty_is_not_ready (tests.unit.test_runtime_audio.HealthTests.test_precedence_exit_codes_and_empty_is_not_ready) ... ok
+test_bounce_hold_release_and_led_before_submit (tests.unit.test_runtime_audio.PTTTests.test_bounce_hold_release_and_led_before_submit) ... ok
+test_missing_device_and_start_failure_fail_closed (tests.unit.test_runtime_audio.PTTTests.test_missing_device_and_start_failure_fail_closed) ... ok
+test_stuck_button_cancels_no_processing_until_release (tests.unit.test_runtime_audio.PTTTests.test_stuck_button_cancels_no_processing_until_release) ... ok
+test_reject_shell_string_and_relative_executable (tests.unit.test_runtime_audio.ProcessTests.test_reject_shell_string_and_relative_executable) ... ok
+test_success_stderr_privacy_failure_timeout_and_cancel (tests.unit.test_runtime_audio.ProcessTests.test_success_stderr_privacy_failure_timeout_and_cancel) ... ok
+test_stt_cleanup_and_empty_output_refusal (tests.unit.test_runtime_audio.SpeechTests.test_stt_cleanup_and_empty_output_refusal) ... ok
+test_tts_cleanup_on_success_playback_failure_and_process_failure (tests.unit.test_runtime_audio.SpeechTests.test_tts_cleanup_on_success_playback_failure_and_process_failure) ... ok
+test_wav_and_normalization (tests.unit.test_runtime_audio.SpeechTests.test_wav_and_normalization) ... ok
+test_core_package_has_no_optional_dependency_imports (tests.unit.test_m2_1.BoundaryTests.test_core_package_has_no_optional_dependency_imports) ... ok
+test_extension_namespace_has_no_eager_implementation_imports (tests.unit.test_m2_1.BoundaryTests.test_extension_namespace_has_no_eager_implementation_imports) ... ok
+test_product_name_literal_is_centralized_in_package (tests.unit.test_m2_1.BoundaryTests.test_product_name_literal_is_centralized_in_package) ... ok
+test_checkout_compatibility_launcher_uses_package_cli (tests.unit.test_m2_1.CliTests.test_checkout_compatibility_launcher_uses_package_cli) ... ok
+test_json_status_is_honest_and_machine_readable (tests.unit.test_m2_1.CliTests.test_json_status_is_honest_and_machine_readable) ... ok
+test_legacy_run_crosses_explicit_adapter (tests.unit.test_m2_1.CliTests.test_legacy_run_crosses_explicit_adapter) ... ok
+test_packaged_run_enters_voice_appliance_runtime (tests.unit.test_m2_1.CliTests.test_packaged_run_enters_voice_appliance_runtime) ... ok
+test_version_command (tests.unit.test_m2_1.CliTests.test_version_command) ... ok
+test_wake_status_reports_gonken_default_without_physical_acceptance_claim (tests.unit.test_m2_1.CliTests.test_wake_status_reports_gonken_default_without_physical_acceptance_claim) ... ok
+test_inherited_identity_is_absent_from_active_surfaces (tests.unit.test_m2_1.IdentityTests.test_inherited_identity_is_absent_from_active_surfaces) ... ok
+test_identity_is_immutable_and_authoritative (tests.unit.test_m2_1.PackageTests.test_identity_is_immutable_and_authoritative) ... ok
+test_package_version_matches_project_metadata (tests.unit.test_m2_1.PackageTests.test_package_version_matches_project_metadata) ... ok
+test_public_import_is_dependency_light (tests.unit.test_m2_1.PackageTests.test_public_import_is_dependency_light) ... ok
+test_every_legacy_requirement_is_inventory_tracked (tests.unit.test_m2_1.ProvenanceTests.test_every_legacy_requirement_is_inventory_tracked) ... ok
+test_every_tracked_media_asset_has_verified_inventory_hash (tests.unit.test_m2_1.ProvenanceTests.test_every_tracked_media_asset_has_verified_inventory_hash) ... ok
+test_inventory_and_metadata_block_redistribution_claims (tests.unit.test_m2_1.ProvenanceTests.test_inventory_and_metadata_block_redistribution_claims) ... ok
+test_no_redistribution_policy_is_consistent_across_surfaces (tests.unit.test_m2_1.ProvenanceTests.test_no_redistribution_policy_is_consistent_across_surfaces) ... ok
+test_checkout_finds_the_source_controlled_defaults (tests.unit.test_m2_2_config.AuthorityAndPrecedenceTests.test_checkout_finds_the_source_controlled_defaults) ... ok
+test_cli_source_is_recorded_for_every_field (tests.unit.test_m2_2_config.AuthorityAndPrecedenceTests.test_cli_source_is_recorded_for_every_field) ... ok
+test_defaults_are_declared_as_wheel_data (tests.unit.test_m2_2_config.AuthorityAndPrecedenceTests.test_defaults_are_declared_as_wheel_data) ... ok
+test_defaults_site_environment_cli_precedence (tests.unit.test_m2_2_config.AuthorityAndPrecedenceTests.test_defaults_site_environment_cli_precedence) ... ok
+test_environment_beats_site_without_cli (tests.unit.test_m2_2_config.AuthorityAndPrecedenceTests.test_environment_beats_site_without_cli) ... ok
+test_environment_source_is_recorded_for_every_field (tests.unit.test_m2_2_config.AuthorityAndPrecedenceTests.test_environment_source_is_recorded_for_every_field) ... ok
+test_installer_reads_model_and_endpoint_from_config_cli (tests.unit.test_m2_2_config.AuthorityAndPrecedenceTests.test_installer_reads_model_and_endpoint_from_config_cli) ... ok
+test_legacy_adapter_uses_authority_and_never_accepts_json (tests.unit.test_m2_2_config.AuthorityAndPrecedenceTests.test_legacy_adapter_uses_authority_and_never_accepts_json) ... ok
+test_resumable_installer_explicitly_requests_unredacted_speech_paths (tests.unit.test_m2_2_config.AuthorityAndPrecedenceTests.test_resumable_installer_explicitly_requests_unredacted_speech_paths) ... ok
+test_site_source_is_recorded_for_every_field (tests.unit.test_m2_2_config.AuthorityAndPrecedenceTests.test_site_source_is_recorded_for_every_field) ... ok
+test_unrelated_process_environment_is_ignored (tests.unit.test_m2_2_config.AuthorityAndPrecedenceTests.test_unrelated_process_environment_is_ignored) ... ok
+test_cli_config_error_is_stable_and_nonzero (tests.unit.test_m2_2_config.EffectiveOutputTests.test_cli_config_error_is_stable_and_nonzero) ... ok
+test_cli_json_is_redacted_and_reports_sources (tests.unit.test_m2_2_config.EffectiveOutputTests.test_cli_json_is_redacted_and_reports_sources) ... ok
+test_cli_show_paths_is_explicit_and_preserves_default_redaction (tests.unit.test_m2_2_config.EffectiveOutputTests.test_cli_show_paths_is_explicit_and_preserves_default_redaction) ... ok
+test_effective_output_redacts_all_absolute_paths (tests.unit.test_m2_2_config.EffectiveOutputTests.test_effective_output_redacts_all_absolute_paths) ... ok
+test_human_output_does_not_expose_absolute_config_paths (tests.unit.test_m2_2_config.EffectiveOutputTests.test_human_output_does_not_expose_absolute_config_paths) ... ok
+test_actual_legacy_files_migrate_repeatably_without_mutation (tests.unit.test_m2_2_config.MigrationTests.test_actual_legacy_files_migrate_repeatably_without_mutation) ... ok
+test_cli_migration_reports_repeat_without_rewriting (tests.unit.test_m2_2_config.MigrationTests.test_cli_migration_reports_repeat_without_rewriting) ... ok
+test_existing_different_output_is_never_rewritten (tests.unit.test_m2_2_config.MigrationTests.test_existing_different_output_is_never_rewritten) ... ok
+test_populated_external_credential_is_rejected_without_output (tests.unit.test_m2_2_config.MigrationTests.test_populated_external_credential_is_rejected_without_output) ... ok
+test_relative_legacy_path_cannot_escape_checkout (tests.unit.test_m2_2_config.MigrationTests.test_relative_legacy_path_cannot_escape_checkout) ... ok
+test_serializer_round_trip_is_deterministic (tests.unit.test_m2_2_config.MigrationTests.test_serializer_round_trip_is_deterministic) ... ok
+test_unknown_or_unsafe_legacy_input_creates_no_output (tests.unit.test_m2_2_config.MigrationTests.test_unknown_or_unsafe_legacy_input_creates_no_output) ... ok
+test_invalid_environment_boolean_is_rejected (tests.unit.test_m2_2_config.ValidationTests.test_invalid_environment_boolean_is_rejected) ... ok
+test_invalid_values_are_rejected (tests.unit.test_m2_2_config.ValidationTests.test_invalid_values_are_rejected) ... ok
+test_loopback_ipv4_ipv6_and_localhost_are_allowed (tests.unit.test_m2_2_config.ValidationTests.test_loopback_ipv4_ipv6_and_localhost_are_allowed) ... ok
+test_unknown_cli_field_is_rejected (tests.unit.test_m2_2_config.ValidationTests.test_unknown_cli_field_is_rejected) ... ok
+test_unknown_site_key_and_invalid_type_are_rejected (tests.unit.test_m2_2_config.ValidationTests.test_unknown_site_key_and_invalid_type_are_rejected) ... ok
+test_relay_discovers_logical_bcm_by_line_name_without_chip0_offset_assumption (tests.unit.test_v09_environment_hardware_adapters.GpiodRelayAdapterTests.test_relay_discovers_logical_bcm_by_line_name_without_chip0_offset_assumption) ... ok
+test_relay_discovery_fails_closed_for_missing_or_ambiguous_line_name (tests.unit.test_v09_environment_hardware_adapters.GpiodRelayAdapterTests.test_relay_discovery_fails_closed_for_missing_or_ambiguous_line_name) ... ok
+test_relay_requests_line_inactive_and_reports_power_only_capability (tests.unit.test_v09_environment_hardware_adapters.GpiodRelayAdapterTests.test_relay_requests_line_inactive_and_reports_power_only_capability) ... ok
+test_relay_sets_logical_power_and_safe_off_on_close (tests.unit.test_v09_environment_hardware_adapters.GpiodRelayAdapterTests.test_relay_sets_logical_power_and_safe_off_on_close) ... ok
+test_relay_write_failure_is_reported_as_actuator_unavailable (tests.unit.test_v09_environment_hardware_adapters.GpiodRelayAdapterTests.test_relay_write_failure_is_reported_as_actuator_unavailable) ... ok
+test_crc_matches_sensirion_datasheet_example (tests.unit.test_v09_environment_hardware_adapters.SHT31AdapterTests.test_crc_matches_sensirion_datasheet_example) ... ok
+test_decode_rejects_bad_crc (tests.unit.test_v09_environment_hardware_adapters.SHT31AdapterTests.test_decode_rejects_bad_crc) ... ok
+test_decode_valid_frame_converts_temperature_and_humidity (tests.unit.test_v09_environment_hardware_adapters.SHT31AdapterTests.test_decode_valid_frame_converts_temperature_and_humidity) ... ok
+test_sensor_returns_truthful_unavailable_reading_on_bus_error (tests.unit.test_v09_environment_hardware_adapters.SHT31AdapterTests.test_sensor_returns_truthful_unavailable_reading_on_bus_error) ... ok
+test_sensor_uses_high_repeatability_command_and_injected_bus (tests.unit.test_v09_environment_hardware_adapters.SHT31AdapterTests.test_sensor_uses_high_repeatability_command_and_injected_bus) ... ok
+test_service_applies_controller_state_to_injected_actuator (tests.unit.test_v09_environment_hardware_adapters.ServiceHardwareBoundaryTests.test_service_applies_controller_state_to_injected_actuator) ... ok
+test_service_fails_closed_when_actuator_write_fails (tests.unit.test_v09_environment_hardware_adapters.ServiceHardwareBoundaryTests.test_service_fails_closed_when_actuator_write_fails) ... ok
+test_bounds_are_derived_from_static_config (tests.unit.test_v09_environment_daemon_activation.EnvironmentDaemonActivationTests.test_bounds_are_derived_from_static_config) ... ok
+test_build_core_creates_default_policy_and_uses_injected_adapters_without_hardware_evidence (tests.unit.test_v09_environment_daemon_activation.EnvironmentDaemonActivationTests.test_build_core_creates_default_policy_and_uses_injected_adapters_without_hardware_evidence) ... ok
+test_cli_env_serve_check_builds_config_without_starting_socket_or_claiming_physical_evidence (tests.unit.test_v09_environment_daemon_activation.EnvironmentDaemonActivationTests.test_cli_env_serve_check_builds_config_without_starting_socket_or_claiming_physical_evidence) ... ok
+test_corrupt_policy_fails_closed_without_replacing_operator_file (tests.unit.test_v09_environment_daemon_activation.EnvironmentDaemonActivationTests.test_corrupt_policy_fails_closed_without_replacing_operator_file) ... ok
+test_disabled_config_refuses_core_build (tests.unit.test_v09_environment_daemon_activation.EnvironmentDaemonActivationTests.test_disabled_config_refuses_core_build) ... ok
+test_unix_server_uses_configured_socket_and_cleans_up_safe_off (tests.unit.test_v09_environment_daemon_activation.EnvironmentDaemonActivationTests.test_unix_server_uses_configured_socket_and_cleans_up_safe_off) ... ok
+test_daemon_rejection_is_reported_without_fake_success (tests.unit.test_v09_environment_cli.EnvironmentCliTests.test_daemon_rejection_is_reported_without_fake_success) ... ok
+test_env_serve_check_does_not_call_safe_off_or_open_resources (tests.unit.test_v09_environment_cli.EnvironmentCliTests.test_env_serve_check_does_not_call_safe_off_or_open_resources) ... ok
+test_env_serve_disabled_exits_without_fake_hardware (tests.unit.test_v09_environment_cli.EnvironmentCliTests.test_env_serve_disabled_exits_without_fake_hardware) ... ok
+test_env_serve_enabled_check_builds_without_hardware_evidence_or_socket_loop (tests.unit.test_v09_environment_cli.EnvironmentCliTests.test_env_serve_enabled_check_builds_without_hardware_evidence_or_socket_loop) ... ok
+test_fan_mode_and_policy_mutations_pass_typed_arguments_only (tests.unit.test_v09_environment_cli.EnvironmentCliTests.test_fan_mode_and_policy_mutations_pass_typed_arguments_only) ... ok
+test_policy_set_without_fields_fails_before_daemon_call (tests.unit.test_v09_environment_cli.EnvironmentCliTests.test_policy_set_without_fields_fails_before_daemon_call) ... ok
+test_policy_show_health_and_probe_are_non_mutating_client_calls (tests.unit.test_v09_environment_cli.EnvironmentCliTests.test_policy_show_health_and_probe_are_non_mutating_client_calls) ... ok
+test_simulation_cli_commands_use_typed_ipc_only (tests.unit.test_v09_environment_cli.EnvironmentCliTests.test_simulation_cli_commands_use_typed_ipc_only) ... ok
+test_status_json_uses_ipc_client_and_reports_no_physical_evidence (tests.unit.test_v09_environment_cli.EnvironmentCliTests.test_status_json_uses_ipc_client_and_reports_no_physical_evidence) ... ok
+test_temperature_and_humidity_commands_read_sensor_once (tests.unit.test_v09_environment_cli.EnvironmentCliTests.test_temperature_and_humidity_commands_read_sensor_once) ... ok
+test_watch_observes_snapshots_passively_without_extra_sensor_reads (tests.unit.test_v09_environment_cli.EnvironmentCliTests.test_watch_observes_snapshots_passively_without_extra_sensor_reads) ... ok
+test_development_contract_is_explicit_and_bounded (tests.unit.test_m3_1_preflight.PlatformAndResourceTests.test_development_contract_is_explicit_and_bounded) ... ok
+test_disk_ram_and_clock_fail_independently (tests.unit.test_m3_1_preflight.PlatformAndResourceTests.test_disk_ram_and_clock_fail_independently) ... ok
+test_exact_target_contract_passes (tests.unit.test_m3_1_preflight.PlatformAndResourceTests.test_exact_target_contract_passes) ... ok
+test_missing_required_command_is_reported (tests.unit.test_m3_1_preflight.PlatformAndResourceTests.test_missing_required_command_is_reported) ... ok
+test_unsupported_os_arch_python_init_and_board_fail (tests.unit.test_m3_1_preflight.PlatformAndResourceTests.test_unsupported_os_arch_python_init_and_board_fail) ... ok
+test_direct_root_does_not_require_sudo (tests.unit.test_m3_1_preflight.PrivilegePreflightTests.test_direct_root_does_not_require_sudo) ... ok
+test_non_root_validates_sudo_exactly_once (tests.unit.test_m3_1_preflight.PrivilegePreflightTests.test_non_root_validates_sudo_exactly_once) ... ok
+test_non_root_with_rejected_sudo_fails_diagnostically (tests.unit.test_m3_1_preflight.PrivilegePreflightTests.test_non_root_with_rejected_sudo_fails_diagnostically) ... ok
+test_non_root_without_sudo_fails_diagnostically (tests.unit.test_m3_1_preflight.PrivilegePreflightTests.test_non_root_without_sudo_fails_diagnostically) ... ok
+test_root_invoked_through_sudo_records_original_user (tests.unit.test_m3_1_preflight.PrivilegePreflightTests.test_root_invoked_through_sudo_records_original_user) ... ok
+test_advertised_local_ref_resolves_to_exact_commit (tests.unit.test_m3_1_preflight.SourceAndCheckoutTests.test_advertised_local_ref_resolves_to_exact_commit) ... ok
+test_clean_checkout_and_empty_or_absent_paths_pass (tests.unit.test_m3_1_preflight.SourceAndCheckoutTests.test_clean_checkout_and_empty_or_absent_paths_pass) ... ok
+test_different_branch_and_tag_with_same_name_are_ambiguous (tests.unit.test_m3_1_preflight.SourceAndCheckoutTests.test_different_branch_and_tag_with_same_name_are_ambiguous) ... ok
+test_local_checkpoint_checkout_and_resolver_bind_exact_clean_head (tests.unit.test_m3_1_preflight.SourceAndCheckoutTests.test_local_checkpoint_checkout_and_resolver_bind_exact_clean_head) ... ok
+test_network_or_missing_ref_failure_is_structured (tests.unit.test_m3_1_preflight.SourceAndCheckoutTests.test_network_or_missing_ref_failure_is_structured) ... ok
+test_private_staging_does_not_leak_umask (tests.unit.test_m3_1_preflight.SourceAndCheckoutTests.test_private_staging_does_not_leak_umask) ... ok
+test_private_staging_records_source_and_observed_facts (tests.unit.test_m3_1_preflight.SourceAndCheckoutTests.test_private_staging_records_source_and_observed_facts) ... ok
+test_source_request_rejects_credentials_unsafe_ref_and_target_file_url (tests.unit.test_m3_1_preflight.SourceAndCheckoutTests.test_source_request_rejects_credentials_unsafe_ref_and_target_file_url) ... ok
+test_target_local_checkpoint_requires_explicit_mode_and_full_commit (tests.unit.test_m3_1_preflight.SourceAndCheckoutTests.test_target_local_checkpoint_requires_explicit_mode_and_full_commit) ... ok
+test_tracked_staged_and_untracked_changes_are_rejected (tests.unit.test_m3_1_preflight.SourceAndCheckoutTests.test_tracked_staged_and_untracked_changes_are_rejected) ... ok
+test_unexpected_origin_and_non_git_contents_are_rejected (tests.unit.test_m3_1_preflight.SourceAndCheckoutTests.test_unexpected_origin_and_non_git_contents_are_rejected) ... ok
+test_atomic_record_is_private_and_leaves_no_temporary_file (tests.unit.test_m3_2_install_engine.AtomicRecordTests.test_atomic_record_is_private_and_leaves_no_temporary_file) ... ok
+test_atomic_record_preserves_callers_umask (tests.unit.test_m3_2_install_engine.AtomicRecordTests.test_atomic_record_preserves_callers_umask) ... ok
+test_atomic_record_rejects_symlink_destination (tests.unit.test_m3_2_install_engine.AtomicRecordTests.test_atomic_record_rejects_symlink_destination) ... ok
+test_known_migration_refuses_group_writable_state (tests.unit.test_m3_2_install_engine.AtomicRecordTests.test_known_migration_refuses_group_writable_state) ... ok
+test_known_owned_0755_private_state_can_be_repaired_explicitly (tests.unit.test_m3_2_install_engine.AtomicRecordTests.test_known_owned_0755_private_state_can_be_repaired_explicitly) ... ok
+test_private_directory_keeps_parent_traversable_and_preserves_umask (tests.unit.test_m3_2_install_engine.AtomicRecordTests.test_private_directory_keeps_parent_traversable_and_preserves_umask) ... ok
+test_private_state_0755_still_fails_without_explicit_migration (tests.unit.test_m3_2_install_engine.AtomicRecordTests.test_private_state_0755_still_fails_without_explicit_migration) ... ok
+test_record_parser_rejects_unknown_duplicate_and_malformed_lines (tests.unit.test_m3_2_install_engine.AtomicRecordTests.test_record_parser_rejects_unknown_duplicate_and_malformed_lines) ... ok
+test_run_id_collision_gets_a_suffix (tests.unit.test_m3_2_install_engine.AtomicRecordTests.test_run_id_collision_gets_a_suffix) ... ok
+test_action_exit_code_is_preserved (tests.unit.test_m3_2_install_engine.EngineFailureTests.test_action_exit_code_is_preserved) ... ok
+test_failed_postcondition_has_stable_io_exit_code (tests.unit.test_m3_2_install_engine.EngineFailureTests.test_failed_postcondition_has_stable_io_exit_code) ... ok
+test_live_lock_is_not_removed (tests.unit.test_m3_2_install_engine.EngineFailureTests.test_live_lock_is_not_removed) ... ok
+test_precondition_exit_code_is_preserved (tests.unit.test_m3_2_install_engine.EngineFailureTests.test_precondition_exit_code_is_preserved) ... ok
+test_reused_live_pid_with_wrong_start_identity_is_stale (tests.unit.test_m3_2_install_engine.EngineFailureTests.test_reused_live_pid_with_wrong_start_identity_is_stale) ... ok
+test_complete_step_contract_is_required_and_duplicate_ids_fail (tests.unit.test_m3_2_install_engine.StepDefinitionTests.test_complete_step_contract_is_required_and_duplicate_ids_fail) ... ok
+test_invalid_id_version_function_and_metadata_fail_closed (tests.unit.test_m3_2_install_engine.StepDefinitionTests.test_invalid_id_version_function_and_metadata_fail_closed) ... ok
+test_explicit_rollback_fails_without_previous_release (tests.unit.test_m3_3_release_manager.IntegrityAndPrivilegeTests.test_explicit_rollback_fails_without_previous_release) ... ok
+test_explicit_rollback_returns_to_previous_validated_release (tests.unit.test_m3_3_release_manager.IntegrityAndPrivilegeTests.test_explicit_rollback_returns_to_previous_validated_release) ... ok
+test_maintenance_lock_rejects_concurrent_state_mutation (tests.unit.test_m3_3_release_manager.IntegrityAndPrivilegeTests.test_maintenance_lock_rejects_concurrent_state_mutation) ... ok
+test_payload_digest_rejects_post_build_tampering (tests.unit.test_m3_3_release_manager.IntegrityAndPrivilegeTests.test_payload_digest_rejects_post_build_tampering) ... ok
+test_post_verified_journal_cannot_override_pointer_disagreement (tests.unit.test_m3_3_release_manager.IntegrityAndPrivilegeTests.test_post_verified_journal_cannot_override_pointer_disagreement) ... ok
+test_pruning_keeps_only_active_and_previous_validated_releases (tests.unit.test_m3_3_release_manager.IntegrityAndPrivilegeTests.test_pruning_keeps_only_active_and_previous_validated_releases) ... ok
+test_speech_and_service_maintenance_inputs_are_release_payload_contract (tests.unit.test_m3_3_release_manager.IntegrityAndPrivilegeTests.test_speech_and_service_maintenance_inputs_are_release_payload_contract) ... ok
+test_target_privilege_and_nonlogin_account_contract_is_explicit (tests.unit.test_m3_3_release_manager.IntegrityAndPrivilegeTests.test_target_privilege_and_nonlogin_account_contract_is_explicit) ... ok
+test_candidate_finalization_is_atomic_and_immutable (tests.unit.test_m3_3_release_manager.RecordAndPointerTests.test_candidate_finalization_is_atomic_and_immutable) ... ok
+test_current_pointer_cannot_escape_release_namespace (tests.unit.test_m3_3_release_manager.RecordAndPointerTests.test_current_pointer_cannot_escape_release_namespace) ... ok
+test_durable_record_is_private_and_exact (tests.unit.test_m3_3_release_manager.RecordAndPointerTests.test_durable_record_is_private_and_exact) ... ok
+test_finalization_normalizes_restrictive_umask_modes_for_service_access (tests.unit.test_m3_3_release_manager.RecordAndPointerTests.test_finalization_normalizes_restrictive_umask_modes_for_service_access) ... ok
+test_layout_has_private_state_and_constant_entrypoint (tests.unit.test_m3_3_release_manager.RecordAndPointerTests.test_layout_has_private_state_and_constant_entrypoint) ... ok
+test_parser_rejects_unknown_duplicate_and_incomplete_records (tests.unit.test_m3_3_release_manager.RecordAndPointerTests.test_parser_rejects_unknown_duplicate_and_incomplete_records) ... ok
+test_source_archive_rejects_traversal_and_links (tests.unit.test_m3_3_release_manager.RecordAndPointerTests.test_source_archive_rejects_traversal_and_links) ... ok
+test_launcher_help_is_non_mutating_and_documents_bootstrap_passthrough (tests.integration.test_first_install_launcher.FirstInstallLauncherTests.test_launcher_help_is_non_mutating_and_documents_bootstrap_passthrough) ... ok
+test_readme_primary_install_is_one_command_and_manual_bootstrap_is_short (tests.integration.test_first_install_launcher.FirstInstallLauncherTests.test_readme_primary_install_is_one_command_and_manual_bootstrap_is_short) ... ok
+test_standard_bootstrap_has_official_source_and_main_defaults (tests.integration.test_first_install_launcher.FirstInstallLauncherTests.test_standard_bootstrap_has_official_source_and_main_defaults) ... ok
+test_stream_launcher_prepares_checkout_and_forwards_bluetooth_parameters (tests.integration.test_first_install_launcher.FirstInstallLauncherTests.test_stream_launcher_prepares_checkout_and_forwards_bluetooth_parameters) ... ok
+test_bluetooth_audio_is_target_only_and_does_not_mutate_development_staging (tests.integration.test_bootstrap_preflight_process.BootstrapProcessTests.test_bluetooth_audio_is_target_only_and_does_not_mutate_development_staging) ... ok
+test_default_routes_to_release_manager_and_never_legacy_setup (tests.integration.test_bootstrap_preflight_process.BootstrapProcessTests.test_default_routes_to_release_manager_and_never_legacy_setup) ... ok
+test_development_preflight_process_writes_exact_private_manifest (tests.integration.test_bootstrap_preflight_process.BootstrapProcessTests.test_development_preflight_process_writes_exact_private_manifest) ... ok
+test_unsupported_target_fails_before_network_or_staging (tests.integration.test_bootstrap_preflight_process.BootstrapProcessTests.test_unsupported_target_fails_before_network_or_staging) ... ok
+test_ci_t0_invokes_v09_documentation_validator (tests.unit.test_v09_documentation_hardening.V09DocumentationHardeningTests.test_ci_t0_invokes_v09_documentation_validator) ... ok
+test_room_environment_docs_are_user_facing_and_boundary_safe (tests.unit.test_v09_documentation_hardening.V09DocumentationHardeningTests.test_room_environment_docs_are_user_facing_and_boundary_safe) ... ok
+test_v09_documentation_validator_passes (tests.unit.test_v09_documentation_hardening.V09DocumentationHardeningTests.test_v09_documentation_validator_passes) ... FAIL
+test_wake_default_examples_are_not_stale (tests.unit.test_v09_documentation_hardening.V09DocumentationHardeningTests.test_wake_default_examples_are_not_stale) ... ok
+
+======================================================================
+FAIL: test_v09_documentation_validator_passes (tests.unit.test_v09_documentation_hardening.V09DocumentationHardeningTests.test_v09_documentation_validator_passes)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/data/gonken_ckpt22_continue/gonkenlabagent-v09-user-sim-hil-release-candidate-checkpoint-22/tests/unit/test_v09_documentation_hardening.py", line 26, in test_v09_documentation_validator_passes
+    self.assertEqual(result.returncode, 0, result.stderr or result.stdout)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0 : {
+  "checks": [
+    {
+      "id": "doc-exists:README.md",
+      "message": "README.md exists",
+      "status": "PASS"
+    },
+    {
+      "id": "doc-exists:docs/HARDWARE_SETUP.md",
+      "message": "docs/HARDWARE_SETUP.md exists",
+      "status": "PASS"
+    },
+    {
+      "id": "doc-exists:docs/ENVIRONMENT_CONTROL.md",
+      "message": "docs/ENVIRONMENT_CONTROL.md exists",
+      "status": "PASS"
+    },
+    {
+      "id": "doc-exists:docs/SIMULATION.md",
+      "message": "docs/SIMULATION.md exists",
+      "status": "PASS"
+    },
+    {
+      "id": "doc-exists:docs/TROUBLESHOOTING.md",
+      "message": "docs/TROUBLESHOOTING.md exists",
+      "status": "PASS"
+    },
+    {
+      "id": "doc-exists:docs/ENVIRONMENT_ACCEPTANCE_RUN.md",
+      "message": "docs/ENVIRONMENT_ACCEPTANCE_RUN.md exists",
+      "status": "PASS"
+    },
+    {
+      "id": "doc-exists:docs/RASPBERRY_PI_ACCEPTANCE_RUN.md",
+      "message": "docs/RASPBERRY_PI_ACCEPTANCE_RUN.md exists",
+      "status": "PASS"
+    },
+    {
+      "id": "doc-exists:docs/OPERATIONS.md",
+      "message": "docs/OPERATIONS.md exists",
+      "status": "PASS"
+    },
+    {
+      "id": "doc-exists:docs/INSTALLATION.md",
+      "message": "docs/INSTALLATION.md exists",
+      "status": "PASS"
+    },
+    {
+      "id": "doc-exists:docs/USER_SIMULATION_HIL_HANDOFF.md",
+      "message": "docs/USER_SIMULATION_HIL_HANDOFF.md exists",
+      "status": "PASS"
+    },
+    {
+      "id": "local-link:README.md:docs/INSTALLATION.md",
+      "message": "local link resolves: README.md -> docs/INSTALLATION.md",
+      "status": "PASS"
+    },
+    {
+      "id": "local-link:README.md:docs/BLUETOOTH_AUDIO.md",
+      "message": "local link resolves: README.md -> docs/BLUETOOTH_AUDIO.md",
+      "status": "PASS"
+    },
+    {
+      "id": "local-link:README.md:docs/OPERATIONS.md",
+      "message": "local link resolves: README.md -> docs/OPERATIONS.md",
+      "status": "PASS"
+    },
+    {
+      "id": "local-link:README.md:docs/INSTALLATION.md",
+      "message": "local link resolves: README.md -> docs/INSTALLATION.md",
+      "status": "PASS"
+    },
+    {
+      "id": "local-link:README.md:docs/OPERATIONS.md",
+      "message": "local link resolves: README.md -> docs/OPERATIONS.md",
+      "status": "PASS"
+    },
+    {
+      "id": "local-link:README.md:docs/BLUETOOTH_AUDIO.md",
+      "message": "local link resolves: README.md -> docs/BLUETOOTH_AUDIO.md",
+      "status": "PASS"
+    },
+    {
+      "id": "local-link:README.md:docs/RASPBERRY_PI_ACCEPTANCE_RUN.md",
+      "message": "local link resolves: README.md -> docs/RASPBERRY_PI_ACCEPTANCE_RUN.md",
+      "status": "PASS"
+    },
+    {
+      "id": "local-link:README.md:docs/HARDWARE_SETUP.md",
+      "message": "local link resolves: README.md -> docs/HARDWARE_SETUP.md",
+      "status": "PASS"
+    },
+    {
+      "id": "local-link:README.md:docs/ENVIRONMENT_CONTROL.md",
+      "message": "local link resolves: README.md -> docs/ENVIRONMENT_CONTROL.md",
+      "status": "PASS"
+    },
+    {
+      "id": "local-link:README.md:docs/SIMULATION.md",
+      "message": "local link resolves: README.md -> docs/SIMULATION.md",
+      "status": "PASS"
+    },
+    {
+      "id": "local-link:README.md:docs/TROUBLESHOOTING.md",
+      "message": "local link resolves: README.md -> docs/TROUBLESHOOTING.md",
+      "status": "PASS"
+    },
+    {
+      "id": "local-link:README.md:docs/ENVIRONMENT_ACCEPTANCE_RUN.md",
+      "message": "local link resolves: README.md -> docs/ENVIRONMENT_ACCEPTANCE_RUN.md",
+      "status": "PASS"
+    },
+    {
+      "id": "local-link:README.md:requirements/README.md",
+      "message": "local link resolves: README.md -> requirements/README.md",
+      "status": "PASS"
+    },
+    {
+      "id": "local-link:README.md:docs/development/",
+      "message": "local link resolves: README.md -> docs/development/",
+      "status": "PASS"
+    },
+    {
+      "id": "local-link:README.md:docs/USER_SIMULATION_HIL_HANDOFF.md",
+      "message": "local link resolves: README.md -> docs/USER_SIMULATION_HIL_HANDOFF.md",
+      "status": "PASS"
+    },
+    {
+      "id": "local-link:docs/HARDWARE_SETUP.md:ENVIRONMENT_ACCEPTANCE_RUN.md",
+      "message": "local link resolves: docs/HARDWARE_SETUP.md -> ENVIRONMENT_ACCEPTANCE_RUN.md",
+      "status": "PASS"
+    },
+    {
+      "id": "local-link:docs/ENVIRONMENT_ACCEPTANCE_RUN.md:RASPBERRY_PI_ACCEPTANCE_RUN.md",
+      "message": "local link resolves: docs/ENVIRONMENT_ACCEPTANCE_RUN.md -> RASPBERRY_PI_ACCEPTANCE_RUN.md",
+      "status": "PASS"
+    },
+    {
+      "id": "local-link:docs/RASPBERRY_PI_ACCEPTANCE_RUN.md:OPERATIONS.md",
+      "message": "local link resolves: docs/RASPBERRY_PI_ACCEPTANCE_RUN.md -> OPERATIONS.md",
+      "status": "PASS"
+    },
+    {
+      "id": "local-link:docs/RASPBERRY_PI_ACCEPTANCE_RUN.md:HARDWARE_SETUP.md",
+      "message": "local link resolves: docs/RASPBERRY_PI_ACCEPTANCE_RUN.md -> HARDWARE_SETUP.md",
+      "status": "PASS"
+    },
+    {
+      "id": "local-link:docs/RASPBERRY_PI_ACCEPTANCE_RUN.md:ENVIRONMENT_CONTROL.md",
+      "message": "local link resolves: docs/RASPBERRY_PI_ACCEPTANCE_RUN.md -> ENVIRONMENT_CONTROL.md",
+      "status": "PASS"
+    },
+    {
+      "id": "local-link:docs/RASPBERRY_PI_ACCEPTANCE_RUN.md:SIMULATION.md",
+      "message": "local link resolves: docs/RASPBERRY_PI_ACCEPTANCE_RUN.md -> SIMULATION.md",
+      "status": "PASS"
+    },
+    {
+      "id": "local-link:docs/RASPBERRY_PI_ACCEPTANCE_RUN.md:TROUBLESHOOTING.md",
+      "message": "local link resolves: docs/RASPBERRY_PI_ACCEPTANCE_RUN.md -> TROUBLESHOOTING.md",
+      "status": "PASS"
+    },
+    {
+      "id": "local-link:docs/RASPBERRY_PI_ACCEPTANCE_RUN.md:ENVIRONMENT_ACCEPTANCE_RUN.md",
+      "message": "local link resolves: docs/RASPBERRY_PI_ACCEPTANCE_RUN.md -> ENVIRONMENT_ACCEPTANCE_RUN.md",
+      "status": "PASS"
+    },
+    {
+      "id": "local-link:docs/OPERATIONS.md:HARDWARE_SETUP.md",
+      "message": "local link resolves: docs/OPERATIONS.md -> HARDWARE_SETUP.md",
+      "status": "PASS"
+    },
+    {
+      "id": "local-link:docs/OPERATIONS.md:RASPBERRY_PI_ACCEPTANCE_RUN.md",
+      "message": "local link resolves: docs/OPERATIONS.md -> RASPBERRY_PI_ACCEPTANCE_RUN.md",
+      "status": "PASS"
+    },
+    {
+      "id": "local-link:docs/OPERATIONS.md:BLUETOOTH_AUDIO.md",
+      "message": "local link resolves: docs/OPERATIONS.md -> BLUETOOTH_AUDIO.md",
+      "status": "PASS"
+    },
+    {
+      "id": "local-link:docs/OPERATIONS.md:HARDWARE_SETUP.md",
+      "message": "local link resolves: docs/OPERATIONS.md -> HARDWARE_SETUP.md",
+      "status": "PASS"
+    },
+    {
+      "id": "local-link:docs/OPERATIONS.md:ENVIRONMENT_CONTROL.md",
+      "message": "local link resolves: docs/OPERATIONS.md -> ENVIRONMENT_CONTROL.md",
+      "status": "PASS"
+    },
+    {
+      "id": "local-link:docs/OPERATIONS.md:SIMULATION.md",
+      "message": "local link resolves: docs/OPERATIONS.md -> SIMULATION.md",
+      "status": "PASS"
+    },
+    {
+      "id": "local-link:docs/OPERATIONS.md:TROUBLESHOOTING.md",
+      "message": "local link resolves: docs/OPERATIONS.md -> TROUBLESHOOTING.md",
+      "status": "PASS"
+    },
+    {
+      "id": "local-link:docs/INSTALLATION.md:OPERATIONS.md",
+      "message": "local link resolves: docs/INSTALLATION.md -> OPERATIONS.md",
+      "status": "PASS"
+    },
+    {
+      "id": "local-link:docs/INSTALLATION.md:OPERATIONS.md",
+      "message": "local link resolves: docs/INSTALLATION.md -> OPERATIONS.md",
+      "status": "PASS"
+    },
+    {
+      "id": "local-link:docs/INSTALLATION.md:HARDWARE_SETUP.md",
+      "message": "local link resolves: docs/INSTALLATION.md -> HARDWARE_SETUP.md",
+      "status": "PASS"
+    },
+    {
+      "id": "local-link:docs/INSTALLATION.md:ENVIRONMENT_CONTROL.md",
+      "message": "local link resolves: docs/INSTALLATION.md -> ENVIRONMENT_CONTROL.md",
+      "status": "PASS"
+    },
+    {
+      "id": "local-link:docs/INSTALLATION.md:ENVIRONMENT_ACCEPTANCE_RUN.md",
+      "message": "local link resolves: docs/INSTALLATION.md -> ENVIRONMENT_ACCEPTANCE_RUN.md",
+      "status": "PASS"
+    },
+    {
+      "id": "local-link:docs/USER_SIMULATION_HIL_HANDOFF.md:HARDWARE_SETUP.md",
+      "message": "local link resolves: docs/USER_SIMULATION_HIL_HANDOFF.md -> HARDWARE_SETUP.md",
+      "status": "PASS"
+    },
+    {
+      "id": "local-link:docs/USER_SIMULATION_HIL_HANDOFF.md:HARDWARE_SETUP.md",
+      "message": "local link resolves: docs/USER_SIMULATION_HIL_HANDOFF.md -> HARDWARE_SETUP.md",
+      "status": "PASS"
+    },
+    {
+      "id": "boundary-term:docs/HARDWARE_SETUP.md:not the Raspberry Pi Active Cooler",
+      "message": "required boundary term present in docs/HARDWARE_SETUP.md: not the Raspberry Pi Active Cooler",
+      "status": "PASS"
+    },
+    {
+      "id": "boundary-term:docs/HARDWARE_SETUP.md:software_speed_control=false",
+      "message": "required boundary term present in docs/HARDWARE_SETUP.md: software_speed_control=false",
+      "status": "PASS"
+    },
+    {
+      "id": "boundary-term:docs/HARDWARE_SETUP.md:fan_motion_observed=false",
+      "message": "required boundary term present in docs/HARDWARE_SETUP.md: fan_motion_observed=false",
+      "status": "PASS"
+    },
+    {
+      "id": "boundary-term:docs/HARDWARE_SETUP.md:PENGLIN",
+      "message": "required boundary term present in docs/HARDWARE_SETUP.md: PENGLIN",
+      "status": "PASS"
+    },
+    {
+      "id": "boundary-term:docs/HARDWARE_SETUP.md:ELUTENG",
+      "message": "required boundary term present in docs/HARDWARE_SETUP.md: ELUTENG",
+      "status": "PASS"
+    },
+    {
+      "id": "boundary-term:docs/HARDWARE_SETUP.md:SHT31",
+      "message": "required boundary term present in docs/HARDWARE_SETUP.md: SHT31",
+      "status": "PASS"
+    },
+    {
+      "id": "boundary-term:docs/HARDWARE_SETUP.md:KKHMF",
+      "message": "required boundary term present in docs/HARDWARE_SETUP.md: KKHMF",
+      "status": "PASS"
+    },
+    {
+      "id": "boundary-term:docs/HARDWARE_SETUP.md:physical_evidence=false",
+      "message": "required boundary term present in docs/HARDWARE_SETUP.md: physical_evidence=false",
+      "status": "PASS"
+    },
+    {
+      "id": "boundary-term:docs/ENVIRONMENT_CONTROL.md:The CLI and voice layers are clients of the daemon",
+      "message": "required boundary term present in docs/ENVIRONMENT_CONTROL.md: The CLI and voice layers are clients of the daemon",
+      "status": "PASS"
+    },
+    {
+      "id": "boundary-term:docs/ENVIRONMENT_CONTROL.md:physical_evidence=false",
+      "message": "required boundary term present in docs/ENVIRONMENT_CONTROL.md: physical_evidence=false",
+      "status": "PASS"
+    },
+    {
+      "id": "boundary-term:docs/ENVIRONMENT_CONTROL.md:software_speed_control=false",
+      "message": "required boundary term present in docs/ENVIRONMENT_CONTROL.md: software_speed_control=false",
+      "status": "PASS"
+    },
+    {
+      "id": "boundary-term:docs/ENVIRONMENT_CONTROL.md:fan_motion_observed=false",
+      "message": "required boundary term present in docs/ENVIRONMENT_CONTROL.md: fan_motion_observed=false",
+      "status": "PASS"
+    },
+    {
+      "id": "boundary-term:docs/ENVIRONMENT_CONTROL.md:env watch` is passive",
+      "message": "required boundary term present in docs/ENVIRONMENT_CONTROL.md: env watch` is passive",
+      "status": "PASS"
+    },
+    {
+      "id": "boundary-term:docs/SIMULATION.md:HOST_SIMULATION",
+      "message": "required boundary term present in docs/SIMULATION.md: HOST_SIMULATION",
+      "status": "PASS"
+    },
+    {
+      "id": "boundary-term:docs/SIMULATION.md:TARGET_HYBRID_SENSOR_SIMULATED",
+      "message": "required boundary term present in docs/SIMULATION.md: TARGET_HYBRID_SENSOR_SIMULATED",
+      "status": "PASS"
+    },
+    {
+      "id": "boundary-term:docs/SIMULATION.md:TARGET_HYBRID_ACTUATOR_SIMULATED",
+      "message": "required boundary term present in docs/SIMULATION.md: TARGET_HYBRID_ACTUATOR_SIMULATED",
+      "status": "PASS"
+    },
+    {
+      "id": "boundary-term:docs/SIMULATION.md:SIMULATION_ACTIVE_PHYSICAL_ACCEPTANCE_BLOCKED",
+      "message": "required boundary term present in docs/SIMULATION.md: SIMULATION_ACTIVE_PHYSICAL_ACCEPTANCE_BLOCKED",
+      "status": "PASS"
+    },
+    {
+      "id": "boundary-term:docs/SIMULATION.md:not physical Raspberry Pi acceptance",
+      "message": "required boundary term present in docs/SIMULATION.md: not physical Raspberry Pi acceptance",
+      "status": "PASS"
+    },
+    {
+      "id": "boundary-term:docs/TROUBLESHOOTING.md:SIMULATION_ACTIVE_PHYSICAL_ACCEPTANCE_BLOCKED",
+      "message": "required boundary term present in docs/TROUBLESHOOTING.md: SIMULATION_ACTIVE_PHYSICAL_ACCEPTANCE_BLOCKED",
+      "status": "PASS"
+    },
+    {
+      "id": "boundary-term:docs/TROUBLESHOOTING.md:Do not interpret `fan_power=on` as measured blade motion",
+      "message": "required boundary term present in docs/TROUBLESHOOTING.md: Do not interpret `fan_power=on` as measured blade motion",
+      "status": "PASS"
+    },
+    {
+      "id": "boundary-term:docs/TROUBLESHOOTING.md:GonKen",
+      "message": "required boundary term present in docs/TROUBLESHOOTING.md: GonKen",
+      "status": "PASS"
+    },
+    {
+      "id": "boundary-term:docs/ENVIRONMENT_ACCEPTANCE_RUN.md:physical_acceptance_claimed=false",
+      "message": "required boundary term present in docs/ENVIRONMENT_ACCEPTANCE_RUN.md: physical_acceptance_claimed=false",
+      "status": "PASS"
+    },
+    {
+      "id": "boundary-term:docs/ENVIRONMENT_ACCEPTANCE_RUN.md:SIMULATION_ACTIVE_PHYSICAL_ACCEPTANCE_BLOCKED",
+      "message": "required boundary term present in docs/ENVIRONMENT_ACCEPTANCE_RUN.md: SIMULATION_ACTIVE_PHYSICAL_ACCEPTANCE_BLOCKED",
+      "status": "PASS"
+    },
+    {
+      "id": "boundary-term:docs/ENVIRONMENT_ACCEPTANCE_RUN.md:Exit code 0 means",
+      "message": "required boundary term present in docs/ENVIRONMENT_ACCEPTANCE_RUN.md: Exit code 0 means",
+      "status": "PASS"
+    },
+    {
+      "id": "boundary-term:docs/USER_SIMULATION_HIL_HANDOFF.md:READY_FOR_USER_SIMULATION_AND_SENSOR_DEFERRED_HIL",
+      "message": "required boundary term present in docs/USER_SIMULATION_HIL_HANDOFF.md: READY_FOR_USER_SIMULATION_AND_SENSOR_DEFERRED_HIL",
+      "status": "PASS"
+    },
+    {
+      "id": "boundary-term:docs/USER_SIMULATION_HIL_HANDOFF.md:not Raspberry Pi physical acceptance",
+      "message": "required boundary term present in docs/USER_SIMULATION_HIL_HANDOFF.md: not Raspberry Pi physical acceptance",
+      "status": "PASS"
+    },
+    {
+      "id": "boundary-term:docs/USER_SIMULATION_HIL_HANDOFF.md:TARGET_HYBRID_SENSOR_SIMULATED",
+      "message": "required boundary term present in docs/USER_SIMULATION_HIL_HANDOFF.md: TARGET_HYBRID_SENSOR_SIMULATED",
+      "status": "PASS"
+    },
+    {
+      "id": "boundary-term:docs/USER_SIMULATION_HIL_HANDOFF.md:SIMULATION_ACTIVE_PHYSICAL_ACCEPTANCE_BLOCKED",
+      "message": "required boundary term present in docs/USER_SIMULATION_HIL_HANDOFF.md: SIMULATION_ACTIVE_PHYSICAL_ACCEPTANCE_BLOCKED",
+      "status": "PASS"
+    },
+    {
+      "id": "boundary-term:docs/USER_SIMULATION_HIL_HANDOFF.md:Do not actuate",
+      "message": "required boundary term missing from docs/USER_SIMULATION_HIL_HANDOFF.md: Do not actuate",
+      "status": "FAIL"
+    },
+    {
+      "id": "wake-default-config",
+      "message": "packaged wake phrase is GonKen",
+      "status": "PASS"
+    },
+    {
+      "id": "wake-stale-default:README.md:wake_phrase=Hey_Gonken",
+      "message": "README.md has no stale wake default token wake_phrase=Hey_Gonken",
+      "status": "PASS"
+    },
+    {
+      "id": "wake-stale-default:README.md:say_Hey_Gonken",
+      "message": "README.md has no stale wake default token say_Hey_Gonken",
+      "status": "PASS"
+    },
+    {
+      "id": "wake-stale-default:docs/INSTALLATION.md:wake_phrase=Hey_Gonken",
+      "message": "docs/INSTALLATION.md has no stale wake default token wake_phrase=Hey_Gonken",
+      "status": "PASS"
+    },
+    {
+      "id": "wake-stale-default:docs/INSTALLATION.md:say_Hey_Gonken",
+      "message": "docs/INSTALLATION.md has no stale wake default token say_Hey_Gonken",
+      "status": "PASS"
+    },
+    {
+      "id": "wake-stale-default:docs/RASPBERRY_PI_ACCEPTANCE_RUN.md:wake_phrase=Hey_Gonken",
+      "message": "docs/RASPBERRY_PI_ACCEPTANCE_RUN.md has no stale wake default token wake_phrase=Hey_Gonken",
+      "status": "PASS"
+    },
+    {
+      "id": "wake-stale-default:docs/RASPBERRY_PI_ACCEPTANCE_RUN.md:say_Hey_Gonken",
+      "message": "docs/RASPBERRY_PI_ACCEPTANCE_RUN.md has no stale wake default token say_Hey_Gonken",
+      "status": "PASS"
+    },
+    {
+      "id": "wake-stale-default:scripts/install.sh:wake_phrase=Hey_Gonken",
+      "message": "scripts/install.sh has no stale wake default token wake_phrase=Hey_Gonken",
+      "status": "PASS"
+    },
+    {
+      "id": "wake-stale-default:scripts/install.sh:say_Hey_Gonken",
+      "message": "scripts/install.sh has no stale wake default token say_Hey_Gonken",
+      "status": "PASS"
+    },
+    {
+      "id": "env-config-documented:enabled",
+      "message": "environment config key documented: enabled",
+      "status": "PASS"
+    },
+    {
+      "id": "env-config-documented:i2c_address",
+      "message": "environment config key documented: i2c_address",
+      "status": "PASS"
+    },
+    {
+      "id": "env-config-documented:i2c_bus",
+      "message": "environment config key documented: i2c_bus",
+      "status": "PASS"
+    },
+    {
+      "id": "env-config-documented:maximum_dwell_seconds",
+      "message": "environment config key documented: maximum_dwell_seconds",
+      "status": "PASS"
+    },
+    {
+      "id": "env-config-documented:maximum_hysteresis_c",
+      "message": "environment config key documented: maximum_hysteresis_c",
+      "status": "PASS"
+    },
+    {
+      "id": "env-config-documented:minimum_dwell_seconds",
+      "message": "environment config key documented: minimum_dwell_seconds",
+      "status": "PASS"
+    },
+    {
+      "id": "env-config-documented:minimum_hysteresis_c",
+      "message": "environment config key documented: minimum_hysteresis_c",
+      "status": "PASS"
+    },
+    {
+      "id": "env-config-documented:policy_path",
+      "message": "environment config key documented: policy_path",
+      "status": "PASS"
+    },
+    {
+      "id": "env-config-documented:poll_interval_seconds",
+      "message": "environment config key documented: poll_interval_seconds",
+      "status": "PASS"
+    },
+    {
+      "id": "env-config-documented:relay_active_high",
+      "message": "environment config key documented: relay_active_high",
+      "status": "PASS"
+    },
+    {
+      "id": "env-config-documented:relay_backend",
+      "message": "environment config key documented: relay_backend",
+      "status": "PASS"
+    },
+    {
+      "id": "env-config-documented:relay_bcm",
+      "message": "environment config key documented: relay_bcm",
+      "status": "PASS"
+    },
+    {
+      "id": "env-config-documented:safe_state",
+      "message": "environment config key documented: safe_state",
+      "status": "PASS"
+    },
+    {
+      "id": "env-config-documented:sensor_backend",
+      "message": "environment config key documented: sensor_backend",
+      "status": "PASS"
+    },
+    {
+      "id": "env-config-documented:sensor_repeatability",
+      "message": "environment config key documented: sensor_repeatability",
+      "status": "PASS"
+    },
+    {
+      "id": "env-config-documented:simulation_event_history_limit",
+      "message": "environment config key documented: simulation_event_history_limit",
+      "status": "PASS"
+    },
+    {
+      "id": "env-config-documented:simulation_runtime_control_enabled",
+      "message": "environment config key documented: simulation_runtime_control_enabled",
+      "status": "PASS"
+    },
+    {
+      "id": "env-config-documented:socket_path",
+      "message": "environment config key documented: socket_path",
+      "status": "PASS"
+    },
+    {
+      "id": "env-config-documented:stale_after_seconds",
+      "message": "environment config key documented: stale_after_seconds",
+      "status": "PASS"
+    },
+    {
+      "id": "env-config-documented:temperature_policy_max_c",
+      "message": "environment config key documented: temperature_policy_max_c",
+      "status": "PASS"
+    },
+    {
+      "id": "env-config-documented:temperature_policy_min_c",
+      "message": "environment config key documented: temperature_policy_min_c",
+      "status": "PASS"
+    },
+    {
+      "id": "env-config-documented:valid_samples_to_recover",
+      "message": "environment config key documented: valid_samples_to_recover",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-present:DOC-CMD-001",
+      "message": "documented command appears in README.md: gonken-agent status",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-parses:DOC-CMD-001",
+      "message": "command parses: gonken-agent status",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-present:DOC-CMD-002",
+      "message": "documented command appears in README.md: gonken-agent wake status --json",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-parses:DOC-CMD-002",
+      "message": "command parses: gonken-agent wake status --json",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-present:DOC-CMD-003",
+      "message": "documented command appears in docs/ENVIRONMENT_CONTROL.md: gonken-agent env status --json",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-parses:DOC-CMD-003",
+      "message": "command parses: gonken-agent env status --json",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-present:DOC-CMD-004",
+      "message": "documented command appears in docs/ENVIRONMENT_CONTROL.md: gonken-agent env health",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-parses:DOC-CMD-004",
+      "message": "command parses: gonken-agent env health",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-present:DOC-CMD-005",
+      "message": "documented command appears in docs/ENVIRONMENT_CONTROL.md: gonken-agent env read",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-parses:DOC-CMD-005",
+      "message": "command parses: gonken-agent env read",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-present:DOC-CMD-006",
+      "message": "documented command appears in docs/ENVIRONMENT_CONTROL.md: gonken-agent env watch --interval 2 --count 3",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-parses:DOC-CMD-006",
+      "message": "command parses: gonken-agent env watch --interval 2 --count 3",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-present:DOC-CMD-007",
+      "message": "documented command appears in docs/ENVIRONMENT_CONTROL.md: gonken-agent env fan on",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-parses:DOC-CMD-007",
+      "message": "command parses: gonken-agent env fan on",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-present:DOC-CMD-008",
+      "message": "documented command appears in docs/ENVIRONMENT_CONTROL.md: gonken-agent env fan off",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-parses:DOC-CMD-008",
+      "message": "command parses: gonken-agent env fan off",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-present:DOC-CMD-009",
+      "message": "documented command appears in docs/ENVIRONMENT_CONTROL.md: gonken-agent env mode set automatic",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-parses:DOC-CMD-009",
+      "message": "command parses: gonken-agent env mode set automatic",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-present:DOC-CMD-010",
+      "message": "documented command appears in docs/ENVIRONMENT_CONTROL.md: gonken-agent env policy set --start-c 28 --stop-c 26.5",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-parses:DOC-CMD-010",
+      "message": "command parses: gonken-agent env policy set --start-c 28 --stop-c 26.5",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-present:DOC-CMD-011",
+      "message": "documented command appears in docs/SIMULATION.md: gonken-agent env simulate status",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-parses:DOC-CMD-011",
+      "message": "command parses: gonken-agent env simulate status",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-present:DOC-CMD-012",
+      "message": "documented command appears in docs/SIMULATION.md: gonken-agent env simulate sensor set --temperature-c 27 --humidity-pct 50",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-parses:DOC-CMD-012",
+      "message": "command parses: gonken-agent env simulate sensor set --temperature-c 27 --humidity-pct 50",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-present:DOC-CMD-013",
+      "message": "documented command appears in docs/SIMULATION.md: gonken-agent env simulate sensor stale --age-seconds 30",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-parses:DOC-CMD-013",
+      "message": "command parses: gonken-agent env simulate sensor stale --age-seconds 30",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-present:DOC-CMD-014",
+      "message": "documented command appears in docs/SIMULATION.md: gonken-agent env simulate sensor recover --temperature-c 27 --humidity-pct 50",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-parses:DOC-CMD-014",
+      "message": "command parses: gonken-agent env simulate sensor recover --temperature-c 27 --humidity-pct 50",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-present:DOC-CMD-015",
+      "message": "documented command appears in docs/SIMULATION.md: gonken-agent env simulate fan behavior normal",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-parses:DOC-CMD-015",
+      "message": "command parses: gonken-agent env simulate fan behavior normal",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-present:DOC-CMD-016",
+      "message": "documented command appears in docs/SIMULATION.md: gonken-agent env simulate fan fail-next-write",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-parses:DOC-CMD-016",
+      "message": "command parses: gonken-agent env simulate fan fail-next-write",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-present:DOC-CMD-017",
+      "message": "documented command appears in docs/ENVIRONMENT_ACCEPTANCE_RUN.md: environment_acceptance_runner.py --output-dir /tmp/gonken-m10-7-evidence --plan-only --json",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-parses:DOC-CMD-017",
+      "message": "command parses: environment_acceptance_runner.py --output-dir /tmp/gonken-m10-7-evidence --plan-only --json",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-present:DOC-CMD-018",
+      "message": "documented command appears in docs/ENVIRONMENT_ACCEPTANCE_RUN.md: environment_acceptance_runner.py --output-dir /tmp/gonken-m10-7-evidence --allow-actuation --json",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-parses:DOC-CMD-018",
+      "message": "command parses: environment_acceptance_runner.py --output-dir /tmp/gonken-m10-7-evidence --allow-actuation --json",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-present:DOC-CMD-019",
+      "message": "documented command appears in docs/TROUBLESHOOTING.md: gonken-agent env probe --json",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-parses:DOC-CMD-019",
+      "message": "command parses: gonken-agent env probe --json",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-present:DOC-CMD-020",
+      "message": "documented command appears in docs/TROUBLESHOOTING.md: gonken-agent env policy show --json",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-parses:DOC-CMD-020",
+      "message": "command parses: gonken-agent env policy show --json",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-present:DOC-CMD-021",
+      "message": "documented command appears in docs/TROUBLESHOOTING.md: gonken-agent wake status --json",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-parses:DOC-CMD-021",
+      "message": "command parses: gonken-agent wake status --json",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-present:DOC-CMD-022",
+      "message": "documented command appears in docs/development/V09_SIMULATION_HIL_EXTENSION_PLAN.md: ./scripts/ci.sh --phase t0",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-parses:DOC-CMD-022",
+      "message": "command parses: ./scripts/ci.sh --phase t0",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-present:DOC-CMD-023",
+      "message": "documented command appears in docs/USER_SIMULATION_HIL_HANDOFF.md: gonken-agent env simulate status --json",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-parses:DOC-CMD-023",
+      "message": "command parses: gonken-agent env simulate status --json",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-present:DOC-CMD-024",
+      "message": "documented command appears in docs/USER_SIMULATION_HIL_HANDOFF.md: gonken-agent env watch --interval 1",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-parses:DOC-CMD-024",
+      "message": "command parses: gonken-agent env watch --interval 1",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-present:DOC-CMD-025",
+      "message": "documented command appears in docs/USER_SIMULATION_HIL_HANDOFF.md: gonken-agent env mode set manual",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-parses:DOC-CMD-025",
+      "message": "command parses: gonken-agent env mode set manual",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-present:DOC-CMD-026",
+      "message": "documented command appears in docs/USER_SIMULATION_HIL_HANDOFF.md: gonken-agent env fan on",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-parses:DOC-CMD-026",
+      "message": "command parses: gonken-agent env fan on",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-present:DOC-CMD-027",
+      "message": "documented command appears in docs/USER_SIMULATION_HIL_HANDOFF.md: gonken-agent env fan off",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-parses:DOC-CMD-027",
+      "message": "command parses: gonken-agent env fan off",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-present:DOC-CMD-028",
+      "message": "documented command appears in docs/USER_SIMULATION_HIL_HANDOFF.md: gonken-agent status --json",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-parses:DOC-CMD-028",
+      "message": "command parses: gonken-agent status --json",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-present:DOC-CMD-029",
+      "message": "documented command appears in docs/USER_SIMULATION_HIL_HANDOFF.md: gonken-agent wake status --json",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-parses:DOC-CMD-029",
+      "message": "command parses: gonken-agent wake status --json",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-present:DOC-CMD-030",
+      "message": "documented command appears in docs/USER_SIMULATION_HIL_HANDOFF.md: gonken-agent env status --json",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-parses:DOC-CMD-030",
+      "message": "command parses: gonken-agent env status --json",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-present:DOC-CMD-031",
+      "message": "documented command appears in docs/USER_SIMULATION_HIL_HANDOFF.md: gonken-agent env policy set --mode automatic --start-c 28 --stop-c 26.5",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-parses:DOC-CMD-031",
+      "message": "command parses: gonken-agent env policy set --mode automatic --start-c 28 --stop-c 26.5",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-present:DOC-CMD-032",
+      "message": "documented command appears in docs/USER_SIMULATION_HIL_HANDOFF.md: gonken-agent env simulate sensor set --temperature-c 27 --humidity-pct 50",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-parses:DOC-CMD-032",
+      "message": "command parses: gonken-agent env simulate sensor set --temperature-c 27 --humidity-pct 50",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-present:DOC-CMD-033",
+      "message": "documented command appears in docs/USER_SIMULATION_HIL_HANDOFF.md: gonken-agent env mode set semi-automatic",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-parses:DOC-CMD-033",
+      "message": "command parses: gonken-agent env mode set semi-automatic",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-present:DOC-CMD-034",
+      "message": "documented command appears in docs/USER_SIMULATION_HIL_HANDOFF.md: gonken-agent env simulate sensor stale --age-seconds 30",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-parses:DOC-CMD-034",
+      "message": "command parses: gonken-agent env simulate sensor stale --age-seconds 30",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-present:DOC-CMD-035",
+      "message": "documented command appears in docs/USER_SIMULATION_HIL_HANDOFF.md: gonken-agent env simulate sensor recover --temperature-c 27 --humidity-pct 50",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-parses:DOC-CMD-035",
+      "message": "command parses: gonken-agent env simulate sensor recover --temperature-c 27 --humidity-pct 50",
+      "status": "PASS"
+    }
+  ],
+  "schema": "gonken-v09-docs-validation-v1",
+  "status": "FAIL"
+}
+
+
+----------------------------------------------------------------------
+Ran 190 tests in 14.378s
+
+FAILED (failures=1)
+[OK] code=ACTIVATION_RECONCILED phase=post_verified commit=cccccccccccccccccccccccccccccccccccccccc
+[OK] code=ACTIVATION_RECONCILED phase=post_verified commit=cccccccccccccccccccccccccccccccccccccccc
+[OK] code=ACTIVATION_RECONCILED phase=post_verified commit=cccccccccccccccccccccccccccccccccccccccc
+[OK] code=ACTIVATION_COMPLETE commit=bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb previous=cccccccccccccccccccccccccccccccccccccccc
+[OK] code=ROLLBACK_COMPLETE commit=bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb

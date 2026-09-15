@@ -92,15 +92,16 @@ No Stage-A output is physical acceptance.
 
 Read [HARDWARE_SETUP.md](HARDWARE_SETUP.md) in full before this stage. Power-off inspection, relay logic verification, COM/NO wiring, PENGLIN continuity/polarity checks, an independent regulated 5 V fan supply, and an unloaded relay test come first.
 
-The current V09 runtime candidate uses logical BCM23 and the current libgpiod adapter assumes `/dev/gpiochip0` line offset `23`. Before any actuation, run:
+The runtime uses logical BCM23 but no longer assumes that BCM23 is `/dev/gpiochip0` line offset `23`. The production libgpiod adapter scans the kernel gpiochip metadata for a **unique line named `GPIO23`** and fails closed if that identity is missing or ambiguous. Before any actuation, collect the target mapping evidence:
 
 ```bash
 gpiodetect
 gpioinfo --strict GPIO23
-gpioinfo -c gpiochip0 23
+gonken-agent env status --json
+gonken-agent env health --json
 ```
 
-If the actual Pi 5 mapping does **not** establish that the configured logical line corresponds to the runtime `/dev/gpiochip0` offset `23` assumption, **STOP**. Do not actuate. Preserve the mapping output and upload it with the evidence bundle so the configuration contract can be corrected. This checkpoint does not treat a guessed gpiochip mapping as acceptable.
+The environment status/health payload records `actuator_runtime_identity` with the logical BCM identity and the resolved gpiochip/offset when resolution succeeds. Preserve these outputs. If `GPIO23` is missing, ambiguous, reported as `UNRESOLVED`, or conflicts with the physical header/wiring plan, **STOP**. **Do not actuate.** Never substitute a guessed gpiochip offset.
 
 After the mapping and wiring preconditions are satisfied, use this sensor-deferred profile:
 
@@ -216,7 +217,7 @@ Return these artifacts from the exact tested checkpoint:
 - `m10_7_evidence_manifest.json`;
 - `m10_7_private_evidence_ledger.csv`;
 - the `private_evidence/` directory, preferably archived without editing its contents;
-- any saved `gpiodetect` / `gpioinfo` output used to establish or reject the target GPIO mapping;
+- saved `gpiodetect` / `gpioinfo --strict GPIO23` output plus `gonken-agent env status --json`/`health --json` showing the runtime-resolved actuator identity;
 - a short manual observation note covering relay safe boot, OFF/ON polarity, fan start/stop, any brownout/reboot, voice ON/OFF behavior, automatic simulated-threshold behavior, semi-automatic stop/no-restart behavior, `GonKen` detection, progress cues, and speech overlap.
 
 Do not edit evidence to turn `BLOCKED`, `NEEDS_MANUAL_REVIEW`, or `NOT_RUN` into `PASS`.

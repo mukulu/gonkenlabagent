@@ -288,7 +288,13 @@ def _execute_wake_command(args: argparse.Namespace) -> int:
         raise ValueError("unsupported wake command")
     try:
         effective = load_config()
-        from .voice_runtime import WAKE_MATCHER_VERSION, wake_matcher_aliases
+        from .voice_runtime import (
+            WAKE_CAPTURE_MODE,
+            WAKE_CAPTURE_QUEUE_SIZE,
+            WAKE_CAPTURE_WINDOW_SECONDS,
+            WAKE_MATCHER_VERSION,
+            wake_matcher_aliases,
+        )
 
         phrase = effective.config.extensions.wake_word.phrase
         payload = {
@@ -302,6 +308,19 @@ def _execute_wake_command(args: argparse.Namespace) -> int:
                 "bounded_one_edit_for_gonken_like_tokens": True,
                 "hey_gonken_alias": True,
             },
+            "capture": {
+                "mode": WAKE_CAPTURE_MODE,
+                "window_seconds": WAKE_CAPTURE_WINDOW_SECONDS,
+                "queue_size": WAKE_CAPTURE_QUEUE_SIZE,
+                "capture_continues_during_transcription": True,
+                "backlog_policy": "drop_stale_keep_newest",
+            },
+            "monitoring_indicator": {
+                "logical_bcm": effective.config.extensions.wake_word.monitoring_led_gpio,
+                "line_resolution": "gpio_line_name",
+                "target_mapping": "NOT_RUN",
+                "physical_visibility": "NOT_RUN",
+            },
             "physical_evidence": False,
             "real_wake_acceptance": "NOT_RUN",
         }
@@ -314,6 +333,8 @@ def _execute_wake_command(args: argparse.Namespace) -> int:
         print(f"Wake phrase: {payload['wake_phrase']}")
         print(f"Matcher: {payload['wake_matcher_version']}")
         print("Aliases: " + ", ".join(str(alias) for alias in payload["aliases"]))
+        print(f"Capture: {payload['capture']['mode']} window={payload['capture']['window_seconds']}s queue={payload['capture']['queue_size']}")
+        print(f"Wake-monitoring LED: logical BCM{payload['monitoring_indicator']['logical_bcm']} target mapping=NOT_RUN")
         print("Physical wake acceptance: NOT_RUN")
     return 0
 
@@ -682,12 +703,27 @@ def _print_environment_payload(args: argparse.Namespace, payload: Mapping[str, o
                 f"software_speed_control={capabilities.get('software_speed_control')}, "
                 f"fan_motion_observed={capabilities.get('fan_motion_observed')}"
             )
+        identity = payload.get("actuator_runtime_identity")
+        if isinstance(identity, Mapping):
+            mapping = identity.get("status", "UNKNOWN")
+            if mapping == "RESOLVED":
+                print(
+                    "Actuator GPIO: "
+                    f"BCM{identity.get('logical_bcm')} -> "
+                    f"{identity.get('chip_path')}:{identity.get('line_offset')} "
+                    f"({identity.get('line_name')})"
+                )
+            else:
+                print(f"Actuator GPIO: {mapping} ({identity.get('code', identity.get('backend', 'unknown'))})")
         print(f"Physical Pi evidence: {payload.get('physical_evidence', False)}")
         return
     if command == "health":
         print(f"Overall: {payload.get('overall', 'UNKNOWN')}")
         print(f"Sensor: {payload.get('sensor', 'unknown')}")
         print(f"Actuator: {payload.get('actuator', 'unknown')}")
+        identity = payload.get("actuator_runtime_identity")
+        if isinstance(identity, Mapping):
+            print(f"Actuator mapping: {identity.get('status', 'UNKNOWN')}")
         print(f"Controller: {payload.get('controller', 'unknown')}")
         print(f"Physical Pi evidence: {payload.get('physical_evidence', False)}")
         return

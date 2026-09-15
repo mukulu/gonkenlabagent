@@ -257,12 +257,25 @@ gonken_validate_source_request() {
   local source_url="$1"
   local source_ref="$2"
   local platform_mode="$3"
+  local source_mode="${4:-remote}"
+  if [[ "$source_mode" != "remote" && "$source_mode" != "local-checkpoint" ]]; then
+    gonken_error "PREFLIGHT_SOURCE" "unsupported source mode: $source_mode" "use remote or local-checkpoint"
+    return 1
+  fi
   if [[ -z "$source_url" || "$source_url" == *$'\n'* || "$source_url" == *$'\r'* \
       || "$source_url" == *'?'* || "$source_url" == *'#'* ]]; then
     gonken_error "PREFLIGHT_SOURCE" "source URL is empty or unsafe" "use a plain HTTPS repository URL"
     return 1
   fi
-  if [[ "$source_url" == https://* ]]; then
+  if [[ "$source_mode" == "local-checkpoint" ]]; then
+    if [[ "$source_url" != file:///* || ! "$source_ref" =~ ^[0-9a-f]{40}$ ]]; then
+      gonken_error \
+        "PREFLIGHT_SOURCE" \
+        "local-checkpoint source must be a file URL bound to one full Git commit" \
+        "run ./bootstrap.sh --local-checkpoint from the clean checkpoint checkout"
+      return 1
+    fi
+  elif [[ "$source_url" == https://* ]]; then
     if [[ ! "$source_url" =~ ^https://[A-Za-z0-9.-]+(:[0-9]{1,5})?/[^[:space:]]+$ ]]; then
       gonken_error "PREFLIGHT_SOURCE" "HTTPS source URL has no valid host/path" "use a plain repository HTTPS URL"
       return 1
@@ -276,8 +289,8 @@ gonken_validate_source_request() {
   else
     gonken_error \
       "PREFLIGHT_SOURCE" \
-      "target source must use HTTPS; file URLs are development-only" \
-      "provide --source-url https://host/owner/repository.git"
+      "target remote source must use HTTPS" \
+      "use HTTPS or the explicit --local-checkpoint package-testing mode"
     return 1
   fi
   if [[ -z "$source_ref" || "$source_ref" == -* || "$source_ref" == *$'\n'* \
@@ -295,6 +308,7 @@ gonken_validate_source_request() {
 gonken_validate_existing_checkout() {
   local checkout_path="$1"
   local expected_source="$2"
+  local source_mode="${3:-remote}"
   local status origin normalized_origin normalized_expected
   local -a checkout_git=(git -c "safe.directory=$checkout_path" -C "$checkout_path")
   [[ -n "$checkout_path" ]] || return 0
@@ -319,15 +333,25 @@ gonken_validate_existing_checkout() {
         "commit, preserve elsewhere, or remove the changes before bootstrap"
       return 1
     fi
-    origin="$("${checkout_git[@]}" remote get-url origin 2>/dev/null)" || origin=""
-    normalized_origin="$(gonken_normalize_source_url "$origin")"
-    normalized_expected="$(gonken_normalize_source_url "$expected_source")"
-    if [[ -z "$origin" || "$normalized_origin" != "$normalized_expected" ]]; then
-      gonken_error \
-        "PREFLIGHT_CHECKOUT_ORIGIN" \
-        "existing checkout origin does not match requested source" \
-        "use the intended repository or pass its exact HTTPS source URL"
-      return 1
+    if [[ "$source_mode" == "local-checkpoint" ]]; then
+      if [[ "$expected_source" != "file://$checkout_path" ]]; then
+        gonken_error \
+          "PREFLIGHT_CHECKOUT_ORIGIN" \
+          "local-checkpoint source does not identify this checkout" \
+          "run --local-checkpoint from the exact extracted checkpoint directory"
+        return 1
+      fi
+    else
+      origin="$("${checkout_git[@]}" remote get-url origin 2>/dev/null)" || origin=""
+      normalized_origin="$(gonken_normalize_source_url "$origin")"
+      normalized_expected="$(gonken_normalize_source_url "$expected_source")"
+      if [[ -z "$origin" || "$normalized_origin" != "$normalized_expected" ]]; then
+        gonken_error \
+          "PREFLIGHT_CHECKOUT_ORIGIN" \
+          "existing checkout origin does not match requested source" \
+          "use the intended repository or pass its exact HTTPS source URL"
+        return 1
+      fi
     fi
     return 0
   fi
@@ -350,6 +374,26 @@ gonken_validate_staging_parent() {
     gonken_error "PREFLIGHT_STAGING" "staging parent is not writable" "choose a writable filesystem with sufficient space"
     return 1
   }
+}
+
+gonken_resolve_local_checkpoint() {
+  local checkout_path="$1"
+  local requested_commit="$2"
+  local observed
+  [[ -n "$checkout_path" && -d "$checkout_path/.git" ]] || {
+    gonken_error "PREFLIGHT_CHECKOUT" "local-checkpoint mode requires a Git checkout" "extract the complete checkpoint package including .git"
+    return 1
+  }
+  observed="$(git -c "safe.directory=$checkout_path" -C "$checkout_path" rev-parse 'HEAD^{commit}' 2>/dev/null)" || {
+    gonken_error "PREFLIGHT_CHECKOUT" "cannot resolve local checkpoint HEAD" "verify the packaged Git repository"
+    return 1
+  }
+  observed="${observed,,}"
+  if [[ ! "$observed" =~ ^[0-9a-f]{40}$ || "$requested_commit" != "$observed" ]]; then
+    gonken_error "PREFLIGHT_REF" "local checkpoint HEAD differs from its requested commit" "use the untouched checkpoint package"
+    return 1
+  fi
+  GONKEN_RESOLVED_COMMIT="$observed"
 }
 
 gonken_resolve_remote_ref() {

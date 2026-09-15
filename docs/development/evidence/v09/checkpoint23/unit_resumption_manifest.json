@@ -1,0 +1,237 @@
+{
+  "execution_note": "The canonical unit phase was interrupted by the outer execution boundary. Every module was resumed from the smallest uncertain point; this manifest includes only complete logs whose unittest count matches discovery and contains an OK summary.",
+  "module_count": 38,
+  "modules": [
+    {
+      "module": "tests.unit.test_bounded_unittest_runner",
+      "source_log": "/mnt/data/gonken_ckpt22_continue/gonkenlabagent-v09-user-sim-hil-release-candidate-checkpoint-22/build/ci-logs/unit/tests_unit_test_bounded_unittest_runner.log",
+      "status": "PASS",
+      "tests": 8
+    },
+    {
+      "module": "tests.unit.test_diagnostics_snapshot",
+      "source_log": "/mnt/data/gonken_ckpt22_continue/gonkenlabagent-v09-user-sim-hil-release-candidate-checkpoint-22/build/ci-logs/unit/tests_unit_test_diagnostics_snapshot.log",
+      "status": "PASS",
+      "tests": 6
+    },
+    {
+      "module": "tests.unit.test_fix5_appliance_manager",
+      "source_log": "/mnt/data/gonken_ckpt22_continue/gonkenlabagent-v09-user-sim-hil-release-candidate-checkpoint-22/build/ci-logs/unit/tests_unit_test_fix5_appliance_manager.log",
+      "status": "PASS",
+      "tests": 4
+    },
+    {
+      "module": "tests.unit.test_grounding_observability",
+      "source_log": "/mnt/data/gonken_ckpt22_continue/gonkenlabagent-v09-user-sim-hil-release-candidate-checkpoint-22/build/ci-logs/unit/tests_unit_test_grounding_observability.log",
+      "status": "PASS",
+      "tests": 18
+    },
+    {
+      "module": "tests.unit.test_legacy_router",
+      "source_log": "/mnt/data/gonken_ckpt22_continue/gonkenlabagent-v09-user-sim-hil-release-candidate-checkpoint-22/build/ci-logs/unit/tests_unit_test_legacy_router.log",
+      "status": "PASS",
+      "tests": 7
+    },
+    {
+      "module": "tests.unit.test_m2_1",
+      "source_log": "/mnt/data/gonken_ckpt22_continue/gonkenlabagent-v09-user-sim-hil-release-candidate-checkpoint-22/build/ci-logs/unit/tests_unit_test_m2_1.log",
+      "status": "PASS",
+      "tests": 17
+    },
+    {
+      "module": "tests.unit.test_m2_2_config",
+      "source_log": "/mnt/data/gonken_ckpt22_continue/gonkenlabagent-v09-user-sim-hil-release-candidate-checkpoint-22/build/ci-logs/unit/tests_unit_test_m2_2_config.log",
+      "status": "PASS",
+      "tests": 28
+    },
+    {
+      "module": "tests.unit.test_m2_3_dependencies",
+      "source_log": "/mnt/data/gonken_ckpt22_continue/gonkenlabagent-v09-user-sim-hil-release-candidate-checkpoint-22/build/ci-logs/unit/tests_unit_test_m2_3_dependencies.log",
+      "status": "PASS",
+      "tests": 9
+    },
+    {
+      "module": "tests.unit.test_m3_1_preflight",
+      "source_log": "/mnt/data/gonken_ckpt22_continue/gonkenlabagent-v09-user-sim-hil-release-candidate-checkpoint-22/build/ci-logs/unit/tests_unit_test_m3_1_preflight.log",
+      "status": "PASS",
+      "tests": 19
+    },
+    {
+      "module": "tests.unit.test_m3_2_install_engine",
+      "source_log": "/mnt/data/gonken_ckpt22_continue/gonkenlabagent-v09-user-sim-hil-release-candidate-checkpoint-22/build/ci-logs/unit/tests_unit_test_m3_2_install_engine.log",
+      "status": "PASS",
+      "tests": 16
+    },
+    {
+      "module": "tests.unit.test_m3_3_release_manager",
+      "source_log": "/mnt/data/gonken_ckpt22_continue/gonkenlabagent-v09-user-sim-hil-release-candidate-checkpoint-22/build/ci-logs/unit/tests_unit_test_m3_3_release_manager.log",
+      "status": "PASS",
+      "tests": 15
+    },
+    {
+      "module": "tests.unit.test_m3_4_ollama_manager",
+      "source_log": "/mnt/data/gonken_ckpt22_continue/gonkenlabagent-v09-user-sim-hil-release-candidate-checkpoint-22/build/ci-logs/unit/tests_unit_test_m3_4_ollama_manager.log",
+      "status": "PASS",
+      "tests": 8
+    },
+    {
+      "module": "tests.unit.test_m3_5_speech_manager",
+      "source_log": "/mnt/data/gonken_ckpt22_continue/gonkenlabagent-v09-user-sim-hil-release-candidate-checkpoint-22/build/ci-logs/unit/tests_unit_test_m3_5_speech_manager.log",
+      "status": "PASS",
+      "tests": 8
+    },
+    {
+      "module": "tests.unit.test_m3_6_install_summary",
+      "source_log": "/mnt/data/gonken_ckpt22_continue/gonkenlabagent-v09-user-sim-hil-release-candidate-checkpoint-22/build/ci-logs/unit/tests_unit_test_m3_6_install_summary.log",
+      "status": "PASS",
+      "tests": 5
+    },
+    {
+      "module": "tests.unit.test_m6_service_manager",
+      "source_log": "/mnt/data/gonken_ckpt22_continue/gonkenlabagent-v09-user-sim-hil-release-candidate-checkpoint-22/build/ci-logs/unit/tests_unit_test_m6_service_manager.log",
+      "status": "PASS",
+      "tests": 8
+    },
+    {
+      "module": "tests.unit.test_m8_uninstall_manager",
+      "source_log": "/mnt/data/gonken_ckpt23_baseline/unit_m8_uninstall.log",
+      "status": "PASS",
+      "tests": 3
+    },
+    {
+      "module": "tests.unit.test_m8_update_manager",
+      "source_log": "/mnt/data/gonken_ckpt23_baseline/unit-remainder-logs/tests_unit_test_m8_update_manager.log",
+      "status": "PASS",
+      "tests": 4
+    },
+    {
+      "module": "tests.unit.test_qwen_runtime_contract",
+      "source_log": "/mnt/data/gonken_ckpt23_baseline/unit-remainder-logs/tests_unit_test_qwen_runtime_contract.log",
+      "status": "PASS",
+      "tests": 1
+    },
+    {
+      "module": "tests.unit.test_release_readiness",
+      "source_log": "/mnt/data/gonken_ckpt23_baseline/unit-remainder-logs/tests_unit_test_release_readiness.log",
+      "status": "PASS",
+      "tests": 3
+    },
+    {
+      "module": "tests.unit.test_runtime_audio",
+      "source_log": "/mnt/data/gonken_ckpt23_baseline/unit-remainder-logs/tests_unit_test_runtime_audio.log",
+      "status": "PASS",
+      "tests": 23
+    },
+    {
+      "module": "tests.unit.test_support_export",
+      "source_log": "/mnt/data/gonken_ckpt23_baseline/unit-remainder-logs/tests_unit_test_support_export.log",
+      "status": "PASS",
+      "tests": 5
+    },
+    {
+      "module": "tests.unit.test_test_architecture",
+      "source_log": "/mnt/data/gonken_ckpt23_baseline/unit-remainder-logs/tests_unit_test_test_architecture.log",
+      "status": "PASS",
+      "tests": 5
+    },
+    {
+      "module": "tests.unit.test_v09_documentation_hardening",
+      "source_log": "/mnt/data/gonken_ckpt23_baseline/unit-remainder-logs/tests_unit_test_v09_documentation_hardening.log",
+      "status": "PASS",
+      "tests": 4
+    },
+    {
+      "module": "tests.unit.test_v09_environment_acceptance_runner",
+      "source_log": "/mnt/data/gonken_ckpt23_baseline/unit_env_acceptance.log",
+      "status": "PASS",
+      "tests": 7
+    },
+    {
+      "module": "tests.unit.test_v09_environment_cli",
+      "source_log": "/mnt/data/gonken_ckpt23_baseline/unit-remainder2-logs/tests_unit_test_v09_environment_cli.log",
+      "status": "PASS",
+      "tests": 11
+    },
+    {
+      "module": "tests.unit.test_v09_environment_config",
+      "source_log": "/mnt/data/gonken_ckpt23_baseline/unit-remainder2-logs/tests_unit_test_v09_environment_config.log",
+      "status": "PASS",
+      "tests": 4
+    },
+    {
+      "module": "tests.unit.test_v09_environment_controller",
+      "source_log": "/mnt/data/gonken_ckpt23_baseline/unit-remainder2-logs/tests_unit_test_v09_environment_controller.log",
+      "status": "PASS",
+      "tests": 8
+    },
+    {
+      "module": "tests.unit.test_v09_environment_daemon_activation",
+      "source_log": "/mnt/data/gonken_ckpt23_baseline/unit-remainder2-logs/tests_unit_test_v09_environment_daemon_activation.log",
+      "status": "PASS",
+      "tests": 6
+    },
+    {
+      "module": "tests.unit.test_v09_environment_hardware_adapters",
+      "source_log": "/mnt/data/gonken_ckpt23_baseline/unit-remainder2-logs/tests_unit_test_v09_environment_hardware_adapters.log",
+      "status": "PASS",
+      "tests": 10
+    },
+    {
+      "module": "tests.unit.test_v09_environment_ipc",
+      "source_log": "/mnt/data/gonken_ckpt23_baseline/unit-remainder2-logs/tests_unit_test_v09_environment_ipc.log",
+      "status": "PASS",
+      "tests": 9
+    },
+    {
+      "module": "tests.unit.test_v09_environment_policy",
+      "source_log": "/mnt/data/gonken_ckpt23_baseline/unit-remainder2-logs/tests_unit_test_v09_environment_policy.log",
+      "status": "PASS",
+      "tests": 10
+    },
+    {
+      "module": "tests.unit.test_v09_environment_polling_loop",
+      "source_log": "/mnt/data/gonken_ckpt23_baseline/unit-remainder2-logs/tests_unit_test_v09_environment_polling_loop.log",
+      "status": "PASS",
+      "tests": 5
+    },
+    {
+      "module": "tests.unit.test_v09_environment_service_manager",
+      "source_log": "/mnt/data/gonken_ckpt23_baseline/unit-remainder2-logs/tests_unit_test_v09_environment_service_manager.log",
+      "status": "PASS",
+      "tests": 5
+    },
+    {
+      "module": "tests.unit.test_v09_environment_simulation",
+      "source_log": "/mnt/data/gonken_ckpt23_baseline/unit-remainder2-logs/tests_unit_test_v09_environment_simulation.log",
+      "status": "PASS",
+      "tests": 14
+    },
+    {
+      "module": "tests.unit.test_v09_environment_voice_intents",
+      "source_log": "/mnt/data/gonken_ckpt23_baseline/unit-remainder2-logs/tests_unit_test_v09_environment_voice_intents.log",
+      "status": "PASS",
+      "tests": 11
+    },
+    {
+      "module": "tests.unit.test_v09_user_test_readiness",
+      "source_log": "/mnt/data/gonken_ckpt23_baseline/unit-remainder2-logs/tests_unit_test_v09_user_test_readiness.log",
+      "status": "PASS",
+      "tests": 5
+    },
+    {
+      "module": "tests.unit.test_voice_appliance",
+      "source_log": "/mnt/data/gonken_ckpt23_baseline/unit-remainder2-logs/tests_unit_test_voice_appliance.log",
+      "status": "PASS",
+      "tests": 21
+    },
+    {
+      "module": "tests.unit.test_x4_bluetooth_manager",
+      "source_log": "/mnt/data/gonken_ckpt23_baseline/unit-remainder2-logs/tests_unit_test_x4_bluetooth_manager.log",
+      "status": "PASS",
+      "tests": 14
+    }
+  ],
+  "result": "PASS",
+  "schema": "gonken-v09-checkpoint23-unit-resumption-v1",
+  "test_count": 364
+}

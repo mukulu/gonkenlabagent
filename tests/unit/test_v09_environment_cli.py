@@ -36,6 +36,15 @@ STATUS_PAYLOAD = {
         "software_speed_control": False,
         "fan_motion_observed": False,
     },
+    "actuator_runtime_identity": {
+        "status": "RESOLVED",
+        "backend": "libgpiod",
+        "logical_bcm": 23,
+        "line_name": "GPIO23",
+        "chip_path": "/dev/gpiochip4",
+        "line_offset": 7,
+        "physical_acceptance_claimed": False,
+    },
     "physical_evidence": False,
 }
 
@@ -109,6 +118,11 @@ HEALTH_PAYLOAD = {
     "policy_valid": True,
     "sensor": "ready",
     "actuator": "HOST_FAKE",
+    "actuator_runtime_identity": {
+        "status": "UNRESOLVED",
+        "code": "ACTUATOR_RUNTIME_IDENTITY_UNSUPPORTED",
+        "physical_acceptance_claimed": False,
+    },
     "controller": "ACTIVE",
     "overall": "READY",
     "physical_evidence": False,
@@ -339,6 +353,11 @@ class EnvironmentCliTests(unittest.TestCase):
         self.assertFalse(payload["physical_evidence"])
         self.assertFalse(payload["capabilities"]["software_speed_control"])
         self.assertFalse(payload["capabilities"]["fan_motion_observed"])
+        self.assertEqual(payload["actuator_runtime_identity"]["chip_path"], "/dev/gpiochip4")
+
+        result, human_stdout, human_stderr, _client = self.run_cli(["status"])
+        self.assertEqual(result, 0, human_stderr)
+        self.assertIn("Actuator GPIO: BCM23 -> /dev/gpiochip4:7 (GPIO23)", human_stdout)
 
         result, stdout, stderr, client = self.run_cli(["--json", "status"])
         self.assertEqual(result, 0, stderr)

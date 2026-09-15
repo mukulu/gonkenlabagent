@@ -16,6 +16,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import queue
 import re
 import shutil
 import signal
@@ -39,6 +40,8 @@ from .environment import (
     parse_environment_intent,
 )
 from .llm.ollama import OllamaClient, OllamaError
+from .interaction.gpiod_ptt import GpiodPushToTalkHardware, GpiodWakeMonitoringLed
+from .interaction.push_to_talk import PushToTalk
 
 
 def _diagnostic_text(value: object) -> str:
@@ -84,8 +87,11 @@ def _safe_run(args: list[str], *, timeout: float = 20.0) -> subprocess.Completed
         raise VoiceRuntimeError("AUDIO_COMMAND_FAILED", f"{args[0]} {type(exc).__name__}") from exc
 
 
-WAKE_MATCHER_VERSION = "v09-gonken-recall-1"
+WAKE_MATCHER_VERSION = "v09-gonken-recall-2"
 WAKE_DEFAULT_PHRASE = "GonKen"
+WAKE_CAPTURE_MODE = "pipelined"
+WAKE_CAPTURE_WINDOW_SECONDS = 2
+WAKE_CAPTURE_QUEUE_SIZE = 2
 _WAKE_ALIAS_PHRASES = ("GonKen", "Gonken", "Hey GonKen", "Hey Gonken", "Gon Ken", "Hey Gon Ken")
 _WAKE_GONKEN_TOKENS = {"gonken", "gon", "ken"}
 
@@ -223,6 +229,112 @@ class RollingWakeTranscriptMatcher:
         match = _wake_match(combined, self.phrase)
         self._tail = words[-self.max_tail_words :] if self.max_tail_words else []
         return match
+
+
+@dataclass(frozen=True, slots=True)
+class WakeCaptureWindow:
+    sequence: int
+    path: Path
+    captured_monotonic: float
+
+
+class WakeCapturePipeline:
+    """Continuously capture bounded wake windows while prior audio is transcribed.
+
+    Capture runs in one producer thread and uses a tiny newest-wins queue.  This
+    removes the former ``capture -> transcribe -> capture`` blind interval without
+    creating an unbounded Whisper backlog.  The consumer still owns transcription
+    so only one Whisper process runs at a time.
+    """
+
+    def __init__(
+        self,
+        capture,
+        *,
+        window_seconds: int = WAKE_CAPTURE_WINDOW_SECONDS,
+        queue_size: int = WAKE_CAPTURE_QUEUE_SIZE,
+    ) -> None:
+        if not 1 <= int(window_seconds) <= 5 or not 1 <= int(queue_size) <= 4:
+            raise ValueError("invalid wake capture pipeline bounds")
+        self.capture = capture
+        self.window_seconds = int(window_seconds)
+        self.queue: queue.Queue[WakeCaptureWindow] = queue.Queue(maxsize=int(queue_size))
+        self.cancel = threading.Event()
+        self.thread: threading.Thread | None = None
+        self.dropped_windows = 0
+        self.captured_windows = 0
+        self._error: BaseException | None = None
+        self._lock = threading.Lock()
+
+    def start(self) -> None:
+        if self.thread is not None and self.thread.is_alive():
+            raise RuntimeError("wake capture pipeline already started")
+        self.cancel.clear()
+        self.thread = threading.Thread(target=self._producer, name="gonken-wake-capture", daemon=True)
+        self.thread.start()
+
+    def _producer(self) -> None:
+        sequence = 0
+        while not self.cancel.is_set():
+            try:
+                path = Path(self.capture(self.window_seconds, cancel=self.cancel))
+            except VoiceRuntimeError as exc:
+                if self.cancel.is_set() and exc.code == "AUDIO_CAPTURE_CANCELLED":
+                    break
+                with self._lock:
+                    self._error = exc
+                self.cancel.set()
+                break
+            except BaseException as exc:
+                if self.cancel.is_set():
+                    break
+                with self._lock:
+                    self._error = exc
+                self.cancel.set()
+                break
+            if self.cancel.is_set():
+                path.unlink(missing_ok=True)
+                break
+            sequence += 1
+            self.captured_windows = sequence
+            window = WakeCaptureWindow(sequence, path, time.monotonic())
+            if self.queue.full():
+                try:
+                    stale = self.queue.get_nowait()
+                except queue.Empty:
+                    pass
+                else:
+                    stale.path.unlink(missing_ok=True)
+                    self.dropped_windows += 1
+            self.queue.put_nowait(window)
+
+    def next_window(self, *, timeout: float = 0.25) -> WakeCaptureWindow | None:
+        with self._lock:
+            error = self._error
+        if error is not None:
+            raise error
+        try:
+            return self.queue.get(timeout=max(0.01, float(timeout)))
+        except queue.Empty:
+            with self._lock:
+                error = self._error
+            if error is not None:
+                raise error
+            return None
+
+    def stop(self, *, join_timeout: float = 3.0) -> None:
+        self.cancel.set()
+        thread = self.thread
+        if thread is not None:
+            thread.join(timeout=max(0.1, float(join_timeout)))
+            if thread.is_alive():
+                raise VoiceRuntimeError("WAKE_CAPTURE_STOP_TIMEOUT")
+        while True:
+            try:
+                window = self.queue.get_nowait()
+            except queue.Empty:
+                break
+            window.path.unlink(missing_ok=True)
 
 
 @dataclass(frozen=True, slots=True)
@@ -619,18 +731,59 @@ class AudioBackend:
         self._apply_route("input", self._input_candidates[0])
         self._apply_route("output", self._output_candidates[0])
 
-    def _alsa_record_to(self, destination: Path, seconds: int) -> None:
+    def _alsa_record_to(
+        self,
+        destination: Path,
+        seconds: int,
+        *,
+        cancel: threading.Event | None = None,
+        keep_on_cancel: bool = False,
+    ) -> None:
         args = [
             str(self.arecord), "-q", "-D", self.input_device,
             "-t", "wav", "-f", "S16_LE", "-r", str(self.config.audio.processing_rate),
             "-c", "1", "-d", str(seconds), str(destination),
         ]
-        result = _safe_run(args, timeout=seconds + 8)
-        if result.returncode != 0:
-            detail = result.stderr or result.stdout or "arecord returned nonzero"
+        try:
+            process = subprocess.Popen(args, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True)
+        except OSError as exc:
+            raise VoiceRuntimeError("AUDIO_CAPTURE_FAILED", f"arecord {type(exc).__name__}") from exc
+        deadline = time.monotonic() + seconds + 8.0
+        stderr = ""
+        cancelled = False
+        try:
+            while process.poll() is None:
+                if cancel is not None and cancel.is_set():
+                    cancelled = True
+                    process.send_signal(signal.SIGINT)
+                    break
+                if time.monotonic() >= deadline:
+                    process.kill()
+                    raise VoiceRuntimeError("AUDIO_CAPTURE_FAILED", f"backend=alsa device={self.input_device} timeout")
+                time.sleep(0.05)
+            try:
+                _stdout, stderr = process.communicate(timeout=3)
+            except subprocess.TimeoutExpired:
+                process.kill()
+                _stdout, stderr = process.communicate(timeout=3)
+        finally:
+            if process.poll() is None:
+                process.kill()
+                process.wait(timeout=3)
+        if cancelled and not keep_on_cancel:
+            raise VoiceRuntimeError("AUDIO_CAPTURE_CANCELLED")
+        if process.returncode != 0 and not (cancelled and keep_on_cancel):
+            detail = stderr or "arecord returned nonzero"
             raise VoiceRuntimeError("AUDIO_CAPTURE_FAILED", f"backend=alsa device={self.input_device} {_diagnostic_text(detail)}")
 
-    def _pulse_record_to(self, destination: Path, seconds: int) -> None:
+    def _pulse_record_to(
+        self,
+        destination: Path,
+        seconds: int,
+        *,
+        cancel: threading.Event | None = None,
+        keep_on_cancel: bool = False,
+    ) -> None:
         if self.parecord is None:
             raise VoiceRuntimeError("PARECORD_MISSING")
         args = [
@@ -644,13 +797,18 @@ class AudioBackend:
             raise VoiceRuntimeError("AUDIO_CAPTURE_FAILED", f"parecord {type(exc).__name__}") from exc
         started = time.monotonic()
         stderr = ""
+        cancelled = False
         try:
             while time.monotonic() - started < seconds:
+                if cancel is not None and cancel.is_set():
+                    cancelled = True
+                    break
                 if process.poll() is not None:
                     stderr = process.stderr.read() if process.stderr else ""
                     raise VoiceRuntimeError("AUDIO_CAPTURE_FAILED", f"backend=pulse device={self.input_device} {_diagnostic_text(stderr)}")
                 time.sleep(0.05)
-            process.send_signal(signal.SIGINT)
+            if process.poll() is None:
+                process.send_signal(signal.SIGINT)
             try:
                 _stdout, stderr = process.communicate(timeout=5)
             except subprocess.TimeoutExpired:
@@ -660,16 +818,25 @@ class AudioBackend:
             if process.poll() is None:
                 process.kill()
                 process.wait(timeout=3)
+        if cancelled and not keep_on_cancel:
+            raise VoiceRuntimeError("AUDIO_CAPTURE_CANCELLED")
         if not destination.is_file() or destination.stat().st_size < 44:
             raise VoiceRuntimeError("AUDIO_CAPTURE_FAILED", f"backend=pulse device={self.input_device} {_diagnostic_text(stderr)}")
 
-    def _record_to(self, destination: Path, seconds: int) -> None:
+    def _record_to(
+        self,
+        destination: Path,
+        seconds: int,
+        *,
+        cancel: threading.Event | None = None,
+        keep_on_cancel: bool = False,
+    ) -> None:
         if not 1 <= seconds <= 30:
             raise ValueError("capture seconds must be 1..30")
         if self.input_mode.startswith("pipewire-"):
-            self._pulse_record_to(destination, seconds)
+            self._pulse_record_to(destination, seconds, cancel=cancel, keep_on_cancel=keep_on_cancel)
         else:
-            self._alsa_record_to(destination, seconds)
+            self._alsa_record_to(destination, seconds, cancel=cancel, keep_on_cancel=keep_on_cancel)
         try:
             metadata = validate_wav(destination, max_seconds=seconds + 1)
         except Exception as exc:
@@ -677,7 +844,13 @@ class AudioBackend:
         if metadata["rate"] != self.config.audio.processing_rate:
             raise VoiceRuntimeError("AUDIO_CAPTURE_RATE_MISMATCH", f"expected={self.config.audio.processing_rate} observed={metadata['rate']}")
 
-    def capture(self, seconds: int) -> Path:
+    def capture(
+        self,
+        seconds: int,
+        *,
+        cancel: threading.Event | None = None,
+        keep_on_cancel: bool = False,
+    ) -> Path:
         if not self._input_candidates:
             self.refresh()
         descriptor, name = tempfile.mkstemp(prefix="voice-", suffix=".wav", dir=self.runtime_dir)
@@ -686,13 +859,17 @@ class AudioBackend:
         failures: list[str] = []
         try:
             for route in list(self._input_candidates):
+                if cancel is not None and cancel.is_set():
+                    raise VoiceRuntimeError("AUDIO_CAPTURE_CANCELLED")
                 self._apply_route("input", route)
                 path.unlink(missing_ok=True)
                 path.touch(mode=0o600)
                 try:
-                    self._record_to(path, seconds)
+                    self._record_to(path, seconds, cancel=cancel, keep_on_cancel=keep_on_cancel)
                     return path
                 except VoiceRuntimeError as exc:
+                    if exc.code == "AUDIO_CAPTURE_CANCELLED":
+                        raise
                     failures.append(f"{route[0]}:{exc.code}")
             raise VoiceRuntimeError(
                 "AUDIO_CAPTURE_FAILED",
@@ -851,6 +1028,136 @@ class ConversationBrain:
         self.client.close()
 
 
+class PushToTalkVoiceAdapter:
+    """Bridge the debounced PTT controller to the production voice pipeline.
+
+    A button press starts a bounded physical capture in one worker.  Release
+    cancels the recorder while preserving the partial WAV, turns the recording
+    LED off in the controller, and only then transcribes/processes the audio.
+    Raw audio remains temporary and is deleted by the normal transcription
+    lifecycle or by discard/close paths.
+    """
+
+    def __init__(self, appliance: "VoiceAppliance", hardware: GpiodPushToTalkHardware, *, max_capture_seconds: int = 30) -> None:
+        if not 1 <= int(max_capture_seconds) <= 30:
+            raise ValueError("max_capture_seconds must be 1..30")
+        self.appliance = appliance
+        self.hardware = hardware
+        self.max_capture_seconds = int(max_capture_seconds)
+        self._cancel = threading.Event()
+        self._thread: threading.Thread | None = None
+        self._path: Path | None = None
+        self._error: BaseException | None = None
+        self._lock = threading.RLock()
+
+    def available(self) -> bool:
+        return not self.appliance.stop.is_set() and self._thread is None
+
+    def led(self, on: bool) -> None:
+        self.hardware.led(on)
+
+    def start_capture(self) -> None:
+        with self._lock:
+            if self._thread is not None:
+                raise VoiceRuntimeError("PTT_CAPTURE_ALREADY_ACTIVE")
+            self._discard_locked()
+            self._cancel.clear()
+            self._error = None
+            self._thread = threading.Thread(target=self._capture_worker, name="gonken-ptt-capture", daemon=True)
+            self._thread.start()
+        self.appliance._event("RUNNING", "PTT_RECORDING")
+
+    def _capture_worker(self) -> None:
+        try:
+            path = self.appliance.audio.capture(
+                self.max_capture_seconds,
+                cancel=self._cancel,
+                keep_on_cancel=True,
+            )
+        except VoiceRuntimeError as exc:
+            if self._cancel.is_set() and exc.code == "AUDIO_CAPTURE_CANCELLED":
+                return
+            with self._lock:
+                self._error = exc
+            return
+        except BaseException as exc:
+            with self._lock:
+                self._error = exc
+            return
+        with self._lock:
+            self._path = Path(path)
+
+    def check_capture_error(self) -> None:
+        with self._lock:
+            thread = self._thread
+            error = self._error
+        if error is not None and (thread is None or not thread.is_alive()):
+            if isinstance(error, VoiceRuntimeError):
+                raise error
+            raise VoiceRuntimeError("PTT_CAPTURE_FAILED", type(error).__name__) from error
+
+    def stop_capture(self) -> None:
+        with self._lock:
+            thread = self._thread
+            if thread is None:
+                return
+            self._cancel.set()
+        thread.join(timeout=5.0)
+        if thread.is_alive():
+            raise VoiceRuntimeError("PTT_CAPTURE_STOP_TIMEOUT")
+        with self._lock:
+            self._thread = None
+            error = self._error
+            self._error = None
+        if error is not None:
+            if isinstance(error, VoiceRuntimeError):
+                raise error
+            raise VoiceRuntimeError("PTT_CAPTURE_FAILED", type(error).__name__) from error
+
+    def _discard_locked(self) -> None:
+        if self._path is not None:
+            self._path.unlink(missing_ok=True)
+            self._path = None
+
+    def discard_capture(self) -> None:
+        with self._lock:
+            self._discard_locked()
+        self.appliance._event("INFO", "PTT_CAPTURE_DISCARDED")
+
+    def submit(self) -> None:
+        with self._lock:
+            path = self._path
+            self._path = None
+        if path is None:
+            self.appliance._event("INFO", "VOICE_NO_SPEECH")
+            return
+        self.appliance._event("RUNNING", "VOICE_TRANSCRIBING")
+        question = self.appliance._transcribe_captured_audio(path)
+        if not question:
+            self.appliance._event("INFO", "VOICE_NO_SPEECH")
+            return
+        self.appliance._event("RUNNING", "VOICE_THINKING")
+        answer = self.appliance._answer_question(question)
+        self.appliance._event("RUNNING", "VOICE_SPEAKING")
+        self.appliance.speak(answer)
+        self.appliance._event("OK", "VOICE_TURN_COMPLETE")
+
+    def close(self) -> None:
+        error: BaseException | None = None
+        try:
+            self.stop_capture()
+        except BaseException as exc:
+            error = exc
+        with self._lock:
+            self._discard_locked()
+        try:
+            self.hardware.close(suppress_errors=False)
+        except BaseException as exc:
+            error = error or exc
+        if error is not None:
+            raise error
+
+
 class VoiceAppliance:
     READY_FILE = Path("/run/gonken-agent/ready.json")
 
@@ -897,8 +1204,7 @@ class VoiceAppliance:
         finally:
             path.unlink(missing_ok=True)
 
-    def capture_text(self, seconds: int) -> str:
-        path = self.audio.capture(seconds)
+    def _transcribe_captured_audio(self, path: Path) -> str:
         try:
             text = self._transcribe_path(path)
         except ProcessFailure as exc:
@@ -916,6 +1222,10 @@ class VoiceAppliance:
                 return ""
             raise VoiceRuntimeError("VOICE_TRANSCRIPTION_FAILED") from exc
         return " ".join(text.split())
+
+    def capture_text(self, seconds: int) -> str:
+        path = self.audio.capture(seconds)
+        return self._transcribe_captured_audio(path)
 
     def speak(self, text: str) -> None:
         with self.piper.synthesize(text, self.stop) as wav:
@@ -985,6 +1295,7 @@ class VoiceAppliance:
             "status": "READY",
             "code": "VOICE_RUNTIME_READY",
             "wake_phrase": self.config.extensions.wake_word.phrase,
+            "interaction_mode": self.config.runtime.interaction_mode,
             "audio_backend": probe["audio"]["backend"],
             "model": probe["model"]["model"],
             "observed_epoch": int(time.time()),
@@ -1010,7 +1321,12 @@ class VoiceAppliance:
                 self.speak("GonKen assistant is ready.")
                 self._write_ready(probe)
                 self.ready = True
-                self._event("READY", "VOICE_RUNTIME_READY", wake_phrase=self.config.extensions.wake_word.phrase)
+                self._event(
+                    "READY",
+                    "VOICE_RUNTIME_READY",
+                    wake_phrase=self.config.extensions.wake_word.phrase,
+                    interaction_mode=self.config.runtime.interaction_mode,
+                )
                 return True
             except Exception as exc:
                 self._clear_ready()
@@ -1044,54 +1360,214 @@ class VoiceAppliance:
         self._event("OK", "VOICE_TURN_COMPLETE")
         return answer
 
-    def wake_loop(self) -> int:
-        if not self.config.extensions.wake_word.enabled:
-            raise VoiceRuntimeError("WAKE_WORD_DISABLED")
-        phrase = self.config.extensions.wake_word.phrase
-        if not self.wait_until_ready():
-            return 0
+    def _new_wake_capture_pipeline(self) -> WakeCapturePipeline:
+        return WakeCapturePipeline(
+            self.audio.capture,
+            window_seconds=WAKE_CAPTURE_WINDOW_SECONDS,
+            queue_size=WAKE_CAPTURE_QUEUE_SIZE,
+        )
+
+    def _start_wake_standby(self, phrase: str) -> tuple[RollingWakeTranscriptMatcher, WakeCapturePipeline]:
         matcher = RollingWakeTranscriptMatcher(phrase)
-        self._event("RUNNING", "WAKE_STANDBY", phrase=phrase, matcher=WAKE_MATCHER_VERSION)
+        pipeline = self._new_wake_capture_pipeline()
+        pipeline.start()
+        self._event(
+            "RUNNING",
+            "WAKE_STANDBY",
+            phrase=phrase,
+            matcher=WAKE_MATCHER_VERSION,
+            capture_mode=WAKE_CAPTURE_MODE,
+            window_seconds=pipeline.window_seconds,
+        )
+        return matcher, pipeline
+
+    @staticmethod
+    def _discard_wake_pipeline(pipeline: WakeCapturePipeline | None, *, suppress: bool = False) -> None:
+        if pipeline is None:
+            return
+        try:
+            pipeline.stop()
+        except Exception:
+            if not suppress:
+                raise
+
+    def push_to_talk_loop(self) -> int:
+        if self.config.runtime.interaction_mode != "push_to_talk":
+            raise VoiceRuntimeError("PTT_INTERACTION_MODE_NOT_ENABLED")
+        retry_seconds = 5
         while not self.stop.is_set():
+            hardware: GpiodPushToTalkHardware | None = None
+            controller: PushToTalk | None = None
             try:
-                self._announce_environment_transitions()
-                heard = self.capture_text(2)
-                match = matcher.observe(heard)
-                if match is None:
-                    continue
-                self._event("OK", "WAKE_DETECTED", alias=match.alias, matcher=match.matcher_version)
-                # Wake detection and question capture are intentionally two
-                # separate turns.  A two-second phrase-spotting window can cut a
-                # same-breath question mid-sentence; acknowledging first gives
-                # the user a deterministic cue and a full bounded question
-                # window.
-                try:
-                    self.speak("Yes?")
-                except Exception:
-                    pass
-                question = self.capture_text(8)
-                if not question:
-                    self._event("INFO", "VOICE_NO_SPEECH")
-                    continue
-                answer = self._answer_question(question)
-                self._event("RUNNING", "VOICE_SPEAKING")
-                self.speak(answer)
-                self._event("OK", "VOICE_TURN_COMPLETE")
-                self._event("RUNNING", "WAKE_STANDBY", phrase=phrase, matcher=WAKE_MATCHER_VERSION)
+                hardware = GpiodPushToTalkHardware.from_config(self.config)
+                hardware.open()
+                adapter = PushToTalkVoiceAdapter(self, hardware, max_capture_seconds=30)
+                controller = PushToTalk(adapter, debounce=0.03, max_hold=30.0)
+                identities = hardware.identities()
+                if not self.wait_until_ready():
+                    return 0
+                self._event(
+                    "RUNNING",
+                    "PTT_STANDBY",
+                    button_bcm=identities["button_bcm"],
+                    button_chip=identities["button_chip_path"],
+                    button_line=identities["button_line_offset"],
+                    led_bcm=identities["led_bcm"],
+                    led_chip=identities["led_chip_path"],
+                    led_line=identities["led_line_offset"],
+                    physical_acceptance_claimed=False,
+                )
+                while not self.stop.is_set():
+                    adapter.check_capture_error()
+                    pressed = hardware.pressed()
+                    controller.update(pressed, time.monotonic())
+                    self.stop.wait(0.02)
+                return 0
             except Exception as exc:
                 if self.stop.is_set():
                     break
                 self._clear_ready()
-                code = exc.code if isinstance(exc, VoiceRuntimeError) else "VOICE_RUNTIME_RECOVERY"
-                detail = exc.detail if isinstance(exc, VoiceRuntimeError) else _diagnostic_text(type(exc).__name__)
-                fields: dict[str, object] = {"retry_seconds": 5}
+                code = getattr(exc, "code", "PTT_RUNTIME_RECOVERY")
+                detail = getattr(exc, "detail", _diagnostic_text(type(exc).__name__))
+                fields: dict[str, object] = {"retry_seconds": retry_seconds}
                 if detail:
                     fields["detail"] = detail
-                self._event("WAITING", code, **fields)
-                self.stop.wait(5)
+                self._event("WAITING", str(code), **fields)
+                self.stop.wait(retry_seconds)
+            finally:
+                if controller is not None:
+                    try:
+                        controller.close()
+                    except Exception as exc:
+                        if not self.stop.is_set():
+                            self._event("WAITING", "PTT_CLEANUP_FAILED", detail=_diagnostic_text(type(exc).__name__))
+                elif hardware is not None:
+                    try:
+                        hardware.close(suppress_errors=True)
+                    except Exception:
+                        pass
+        return 0
+
+    def _new_wake_monitor_led(self) -> GpiodWakeMonitoringLed:
+        return GpiodWakeMonitoringLed.from_config(self.config)
+
+    def wake_loop(self) -> int:
+        if not self.config.extensions.wake_word.enabled:
+            raise VoiceRuntimeError("WAKE_WORD_DISABLED")
+        phrase = self.config.extensions.wake_word.phrase
+        retry_seconds = 5
+        while not self.stop.is_set():
+            monitor_led: GpiodWakeMonitoringLed | None = None
+            pipeline: WakeCapturePipeline | None = None
+            try:
+                # Privacy boundary: continuous standby capture is not declared
+                # READY until the dedicated monitoring indicator line can be
+                # acquired and initialized OFF.  Physical LED visibility remains
+                # a Raspberry Pi acceptance gate.
+                monitor_led = self._new_wake_monitor_led()
+                monitor_led.open()
+                monitor_metadata = monitor_led.metadata()
                 if not self.wait_until_ready():
                     break
-                self._event("RUNNING", "WAKE_STANDBY", phrase=phrase, matcher=WAKE_MATCHER_VERSION)
+                monitor_led.set(True)
+                matcher, pipeline = self._start_wake_standby(phrase)
+                self._event(
+                    "INFO",
+                    "WAKE_MONITOR_LED_ACTIVE",
+                    gpio=monitor_metadata["logical_bcm"],
+                    chip=monitor_metadata["chip_path"],
+                    line=monitor_metadata["line_offset"],
+                    physical_acceptance_claimed=False,
+                )
+                reported_drops = 0
+                while not self.stop.is_set():
+                    announcer = getattr(self, "transition_announcer", None)
+                    announcement = announcer.pending() if announcer is not None else None
+                    if announcement:
+                        self._discard_wake_pipeline(pipeline)
+                        pipeline = None
+                        monitor_led.set(False)
+                        self._event("RUNNING", "ENVIRONMENT_TRANSITION_ANNOUNCEMENT")
+                        self.speak(announcement)
+                        if self.stop.wait(0.2):
+                            break
+                        monitor_led.set(True)
+                        matcher, pipeline = self._start_wake_standby(phrase)
+                        reported_drops = 0
+                        continue
+
+                    assert pipeline is not None
+                    window = pipeline.next_window(timeout=0.25)
+                    if window is None:
+                        continue
+                    recognition_started = time.monotonic()
+                    heard = self._transcribe_captured_audio(window.path)
+                    recognition_ms = round((time.monotonic() - recognition_started) * 1000)
+                    if pipeline.dropped_windows > reported_drops:
+                        reported_drops = pipeline.dropped_windows
+                        self._event(
+                            "INFO",
+                            "WAKE_CAPTURE_WINDOWS_DROPPED",
+                            count=reported_drops,
+                            reason="recognition_backlog_newest_wins",
+                        )
+                    match = matcher.observe(heard)
+                    if match is None:
+                        continue
+
+                    # Stop/cancel standby capture and its visible monitoring
+                    # indicator before any assistant speech so self-speech
+                    # cannot enter the wake queue.
+                    dropped_at_detection = pipeline.dropped_windows
+                    self._discard_wake_pipeline(pipeline)
+                    pipeline = None
+                    monitor_led.set(False)
+                    self._event(
+                        "OK",
+                        "WAKE_DETECTED",
+                        alias=match.alias,
+                        matcher=match.matcher_version,
+                        capture_mode=WAKE_CAPTURE_MODE,
+                        recognition_ms=recognition_ms,
+                        dropped_windows=dropped_at_detection,
+                    )
+                    try:
+                        self.speak("Yes?")
+                    except Exception:
+                        pass
+                    question = self.capture_text(8)
+                    if not question:
+                        self._event("INFO", "VOICE_NO_SPEECH")
+                    else:
+                        answer = self._answer_question(question)
+                        self._event("RUNNING", "VOICE_SPEAKING")
+                        self.speak(answer)
+                        self._event("OK", "VOICE_TURN_COMPLETE")
+
+                    if self.stop.wait(0.2):
+                        break
+                    monitor_led.set(True)
+                    matcher, pipeline = self._start_wake_standby(phrase)
+                    reported_drops = 0
+                return 0
+            except Exception as exc:
+                if self.stop.is_set():
+                    break
+                self._clear_ready()
+                code = getattr(exc, "code", "VOICE_RUNTIME_RECOVERY")
+                detail = getattr(exc, "detail", _diagnostic_text(type(exc).__name__))
+                fields: dict[str, object] = {"retry_seconds": retry_seconds}
+                if detail:
+                    fields["detail"] = detail
+                self._event("WAITING", str(code), **fields)
+                self.stop.wait(retry_seconds)
+            finally:
+                self._discard_wake_pipeline(pipeline, suppress=True)
+                if monitor_led is not None:
+                    try:
+                        monitor_led.close(suppress_errors=True)
+                    except Exception:
+                        pass
         return 0
 
     def close(self) -> None:
@@ -1110,6 +1586,8 @@ def run_appliance(config, *, one_turn: bool = False, seconds: int = 8, foregroun
             if not appliance.wait_until_ready():
                 return 1
             return 0 if appliance.one_turn(seconds=seconds, foreground=foreground) is not None else 2
+        if config.runtime.interaction_mode == "push_to_talk":
+            return appliance.push_to_talk_loop()
         return appliance.wake_loop()
     finally:
         appliance.close()

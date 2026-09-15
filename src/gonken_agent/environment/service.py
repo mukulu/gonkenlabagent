@@ -382,6 +382,7 @@ class EnvironmentServiceCore:
                 stale_after_seconds=self.controller.stale_after_seconds,
             ),
             "capabilities": self._capabilities_payload(),
+            "actuator_runtime_identity": self._actuator_runtime_identity(),
             "physical_evidence": False,
             "provenance": self._provenance_payload(),
         }
@@ -394,6 +395,7 @@ class EnvironmentServiceCore:
             "policy_valid": True,
             "sensor": sensor_quality.value,
             "actuator": self._actuator_health(),
+            "actuator_runtime_identity": self._actuator_runtime_identity(),
             "controller": "ACTIVE" if sensor_quality == SensorQuality.READY else "SUSPENDED_OR_STARTING",
             "overall": self._overall_environment_state(),
             "polling": self._polling_payload(),
@@ -446,6 +448,60 @@ class EnvironmentServiceCore:
             "last_poll_error_code": self._last_poll_error_code,
         }
 
+    def _actuator_runtime_identity(self) -> dict[str, object]:
+        """Return non-actuating runtime actuator identity for diagnostics.
+
+        A simulated actuator has no physical GPIO identity.  A physical adapter
+        may expose a resolver that inspects kernel line metadata, but this
+        operation must not request or write the line.  Failure to resolve is
+        reported as target evidence still required rather than hidden behind a
+        guessed gpiochip/offset.
+        """
+        if self.identity.actuator_is_simulated:
+            return {
+                "status": "NOT_APPLICABLE",
+                "backend": self.identity.actuator_backend,
+                "physical_acceptance_claimed": False,
+            }
+        actuator = self.fan_actuator
+        if actuator is None:
+            return {
+                "status": "UNAVAILABLE",
+                "backend": self.identity.actuator_backend,
+                "code": "ACTUATOR_RUNTIME_IDENTITY_UNAVAILABLE",
+                "physical_acceptance_claimed": False,
+            }
+        resolver = getattr(actuator, "resolved_identity", None)
+        if not callable(resolver):
+            return {
+                "status": "UNRESOLVED",
+                "backend": self.identity.actuator_backend,
+                "code": "ACTUATOR_RUNTIME_IDENTITY_UNSUPPORTED",
+                "physical_acceptance_claimed": False,
+            }
+        try:
+            resolved = resolver()
+        except Exception as exc:  # diagnostics must remain available on mapping failure
+            code = getattr(exc, "code", "ACTUATOR_RUNTIME_IDENTITY_UNRESOLVED")
+            return {
+                "status": "UNRESOLVED",
+                "backend": self.identity.actuator_backend,
+                "code": str(code),
+                "physical_acceptance_claimed": False,
+            }
+        if not isinstance(resolved, Mapping):
+            return {
+                "status": "UNRESOLVED",
+                "backend": self.identity.actuator_backend,
+                "code": "ACTUATOR_RUNTIME_IDENTITY_INVALID",
+                "physical_acceptance_claimed": False,
+            }
+        payload = dict(resolved)
+        payload["status"] = "RESOLVED"
+        payload.setdefault("backend", self.identity.actuator_backend)
+        payload["physical_acceptance_claimed"] = False
+        return payload
+
     def _snapshot_payload(self, now: float) -> dict[str, object]:
         return {
             "service": "READY",
@@ -456,6 +512,7 @@ class EnvironmentServiceCore:
             ),
             "capabilities": self._capabilities_payload(),
             "polling": self._polling_payload(),
+            "actuator_runtime_identity": self._actuator_runtime_identity(),
             "physical_evidence": False,
             "provenance": self._provenance_payload(),
         }

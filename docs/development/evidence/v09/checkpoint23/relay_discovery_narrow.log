@@ -1,0 +1,37 @@
+test_relay_requests_line_inactive_and_reports_power_only_capability (tests.unit.test_v09_environment_hardware_adapters.GpiodRelayAdapterTests.test_relay_requests_line_inactive_and_reports_power_only_capability) ... ok
+test_relay_sets_logical_power_and_safe_off_on_close (tests.unit.test_v09_environment_hardware_adapters.GpiodRelayAdapterTests.test_relay_sets_logical_power_and_safe_off_on_close) ... ok
+test_relay_write_failure_is_reported_as_actuator_unavailable (tests.unit.test_v09_environment_hardware_adapters.GpiodRelayAdapterTests.test_relay_write_failure_is_reported_as_actuator_unavailable) ... ok
+test_crc_matches_sensirion_datasheet_example (tests.unit.test_v09_environment_hardware_adapters.SHT31AdapterTests.test_crc_matches_sensirion_datasheet_example) ... ok
+test_decode_rejects_bad_crc (tests.unit.test_v09_environment_hardware_adapters.SHT31AdapterTests.test_decode_rejects_bad_crc) ... ok
+test_decode_valid_frame_converts_temperature_and_humidity (tests.unit.test_v09_environment_hardware_adapters.SHT31AdapterTests.test_decode_valid_frame_converts_temperature_and_humidity) ... ok
+test_sensor_returns_truthful_unavailable_reading_on_bus_error (tests.unit.test_v09_environment_hardware_adapters.SHT31AdapterTests.test_sensor_returns_truthful_unavailable_reading_on_bus_error) ... ok
+test_sensor_uses_high_repeatability_command_and_injected_bus (tests.unit.test_v09_environment_hardware_adapters.SHT31AdapterTests.test_sensor_uses_high_repeatability_command_and_injected_bus) ... ok
+test_service_applies_controller_state_to_injected_actuator (tests.unit.test_v09_environment_hardware_adapters.ServiceHardwareBoundaryTests.test_service_applies_controller_state_to_injected_actuator) ... ok
+test_service_fails_closed_when_actuator_write_fails (tests.unit.test_v09_environment_hardware_adapters.ServiceHardwareBoundaryTests.test_service_fails_closed_when_actuator_write_fails) ... ok
+test_v09_environment_service_daemon (unittest.loader._FailedTest.test_v09_environment_service_daemon) ... ERROR
+test_v09_nonactuating_check (unittest.loader._FailedTest.test_v09_nonactuating_check) ... ERROR
+
+======================================================================
+ERROR: test_v09_environment_service_daemon (unittest.loader._FailedTest.test_v09_environment_service_daemon)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_v09_environment_service_daemon
+Traceback (most recent call last):
+  File "/usr/lib/python3.13/unittest/loader.py", line 137, in loadTestsFromName
+    module = __import__(module_name)
+ModuleNotFoundError: No module named 'tests.unit.test_v09_environment_service_daemon'
+
+
+======================================================================
+ERROR: test_v09_nonactuating_check (unittest.loader._FailedTest.test_v09_nonactuating_check)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_v09_nonactuating_check
+Traceback (most recent call last):
+  File "/usr/lib/python3.13/unittest/loader.py", line 137, in loadTestsFromName
+    module = __import__(module_name)
+ModuleNotFoundError: No module named 'tests.unit.test_v09_nonactuating_check'
+
+
+----------------------------------------------------------------------
+Ran 12 tests in 0.001s
+
+FAILED (errors=2)

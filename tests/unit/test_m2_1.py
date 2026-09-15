@@ -134,6 +134,10 @@ class CliTests(unittest.TestCase):
         self.assertEqual(result, 0)
         self.assertEqual(payload["wake_phrase"], "GonKen")
         self.assertIn("Hey GonKen", payload["aliases"])
+        self.assertEqual(payload["capture"]["mode"], "pipelined")
+        self.assertTrue(payload["capture"]["capture_continues_during_transcription"])
+        self.assertEqual(payload["monitoring_indicator"]["logical_bcm"], 22)
+        self.assertEqual(payload["monitoring_indicator"]["target_mapping"], "NOT_RUN")
         self.assertFalse(payload["physical_evidence"])
         self.assertEqual(payload["real_wake_acceptance"], "NOT_RUN")
 

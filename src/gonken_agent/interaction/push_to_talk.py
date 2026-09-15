@@ -53,6 +53,10 @@ class PushToTalk:
             self.adapter.led(False)
         if process:
             self.adapter.submit()
+        else:
+            discard = getattr(self.adapter, "discard_capture", None)
+            if callable(discard):
+                discard()
 
     def close(self):
         if self.closed:

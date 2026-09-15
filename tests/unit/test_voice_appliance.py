@@ -17,6 +17,8 @@ from gonken_agent.voice_runtime import (
     EnvironmentTransitionAnnouncer,
     ProcessingCuePlan,
     RollingWakeTranscriptMatcher,
+    WakeCapturePipeline,
+    WakeCaptureWindow,
     VoiceAppliance,
     VoiceRuntimeError,
     WAKE_MATCHER_VERSION,
@@ -51,6 +53,50 @@ class VoiceWakeTests(unittest.TestCase):
         self.assertIsNotNone(match)
         self.assertEqual(match.remainder, "what is the humidity")
         self.assertEqual(match.matcher_version, WAKE_MATCHER_VERSION)
+
+    def test_wake_capture_pipeline_keeps_capturing_and_drops_stale_backlog(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            calls = []
+
+            def capture(seconds, *, cancel):
+                index = len(calls) + 1
+                path = root / f"wake-{index}.wav"
+                path.write_bytes(b"fixture")
+                calls.append((seconds, path))
+                cancel.wait(0.03)
+                return path
+
+            pipeline = WakeCapturePipeline(capture, window_seconds=2, queue_size=1)
+            pipeline.start()
+            deadline = threading.Event()
+            for _ in range(50):
+                if pipeline.captured_windows >= 3:
+                    break
+                deadline.wait(0.01)
+            self.assertGreaterEqual(pipeline.captured_windows, 3)
+            self.assertGreaterEqual(pipeline.dropped_windows, 1)
+            newest = pipeline.next_window(timeout=0.2)
+            self.assertIsNotNone(newest)
+            self.assertEqual(newest.sequence, pipeline.captured_windows)
+            newest.path.unlink(missing_ok=True)
+            pipeline.stop()
+            for _seconds, path in calls:
+                self.assertFalse(path.exists(), "stale/cancelled wake windows must be deleted")
+
+    def test_cancelled_capture_does_not_fall_through_to_another_audio_route(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            backend = self._backend_fixture()
+            backend.runtime_dir = Path(temporary)
+            backend._input_candidates = [("alsa-usb", "one"), ("alsa-usb", "two")]
+            cancel = threading.Event()
+            cancel.set()
+            backend._record_to = mock.Mock()
+            with self.assertRaises(VoiceRuntimeError) as caught:
+                backend.capture(2, cancel=cancel)
+            self.assertEqual(caught.exception.code, "AUDIO_CAPTURE_CANCELLED")
+            backend._record_to.assert_not_called()
+            self.assertEqual(list(Path(temporary).glob("voice-*.wav")), [])
 
     def test_processing_cue_plan_cancels_unstarted_cues_when_answer_is_ready(self) -> None:
         plan = ProcessingCuePlan()
@@ -334,7 +380,7 @@ class VoiceTurnTests(unittest.TestCase):
             self.assertEqual(appliance.capture_text(2), "")
             self.assertFalse(source.exists(), "silent capture must still be deleted")
 
-    def test_wake_turn_uses_separate_question_window_even_when_wake_capture_has_remainder(self) -> None:
+    def test_wake_turn_uses_pipelined_standby_and_separate_question_window(self) -> None:
         appliance = VoiceAppliance.__new__(VoiceAppliance)
         appliance.config = SimpleNamespace(
             extensions=SimpleNamespace(wake_word=SimpleNamespace(enabled=True, phrase="Hey Gonken"))
@@ -345,8 +391,45 @@ class VoiceTurnTests(unittest.TestCase):
         appliance._last_wait_code = ""
         appliance.emit = lambda *args, **kwargs: None
         appliance.wait_until_ready = lambda: True
-        heard = iter(("hey gonken what is", "What is Python?"))
-        appliance.capture_text = lambda seconds: next(heard)
+        source = Path(tempfile.gettempdir()) / "gonken-wake-fixture.wav"
+        source.write_bytes(b"fixture")
+
+        class Pipeline:
+            window_seconds = 2
+            dropped_windows = 0
+            def __init__(self):
+                self.calls = 0
+                self.stopped = False
+            def start(self):
+                pass
+            def next_window(self, *, timeout=0.25):
+                self.calls += 1
+                return WakeCaptureWindow(1, source, 0.0)
+            def stop(self, *, join_timeout=3.0):
+                self.stopped = True
+                source.unlink(missing_ok=True)
+
+        pipeline = Pipeline()
+        appliance._new_wake_capture_pipeline = lambda: pipeline
+
+        class MonitorLed:
+            def __init__(self):
+                self.states = []
+                self.closed = False
+            def open(self):
+                pass
+            def metadata(self):
+                return {"logical_bcm": 22, "chip_path": "/dev/gpiochip-test", "line_offset": 22}
+            def set(self, state):
+                self.states.append(state)
+            def close(self, *, suppress_errors=False):
+                self.closed = True
+
+        monitor = MonitorLed()
+        appliance._new_wake_monitor_led = lambda: monitor
+        appliance._transcribe_captured_audio = lambda _path: "hey gonken what is"
+        appliance.capture_text = lambda seconds: "What is Python?"
+        appliance.transition_announcer = None
         spoken = []
         appliance.speak = lambda text: spoken.append(text)
 
@@ -358,6 +441,9 @@ class VoiceTurnTests(unittest.TestCase):
 
         appliance.brain = Brain()
         self.assertEqual(appliance.wake_loop(), 0)
+        self.assertTrue(pipeline.stopped)
+        self.assertEqual(monitor.states[:2], [True, False])
+        self.assertTrue(monitor.closed)
         self.assertEqual(appliance.brain.question, "What is Python?")
         self.assertEqual(spoken[0], "Yes?")
         self.assertEqual(spoken[1], "Python is a programming language.")
@@ -387,7 +473,8 @@ class VoiceTurnTests(unittest.TestCase):
         order = []
         appliance = VoiceAppliance.__new__(VoiceAppliance)
         appliance.config = SimpleNamespace(
-            extensions=SimpleNamespace(wake_word=SimpleNamespace(phrase="Hey Gonken"))
+            runtime=SimpleNamespace(interaction_mode="wake_word"),
+            extensions=SimpleNamespace(wake_word=SimpleNamespace(phrase="Hey Gonken")),
         )
         appliance.stop = threading.Event()
         appliance.ready = False
