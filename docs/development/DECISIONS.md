@@ -1091,3 +1091,11 @@ transport checks are repeated.
 - **Decision:** Test-only interruption hooks in the Ollama and release managers now default to abrupt self-exit with shell-visible signal-style exit codes, rather than killing the parent shell. Parent termination remains available only through explicit opt-in test variables. The Ollama integration fixture lazy-starts its fake HTTP server, closes fixtures per subtest, and runs a representative bounded default interruption matrix while retaining exhaustive coverage behind `GONKEN_EXHAUSTIVE_OLLAMA_BOUNDARIES=1`.
 - **Reason:** Killing the parent shell during subprocess-based integration tests can orphan Python children or stall fake HTTP teardown, causing broad CI to look hung after the intended interruption. That creates a false-red/unknown quality state unrelated to V09 environment behavior.
 - **Consequence:** The default Ollama lifecycle interruption test now completes and still verifies resumability at download, extract, finalize, service-readiness, model-smoke and model-pull boundaries. Full exhaustive coverage remains available for dedicated runs. Physical Raspberry Pi acceptance remains unchanged and unclaimed.
+
+## D-107 — Run broad host unittest suites through bounded per-module subprocesses
+
+- **Status:** Accepted
+- **Date:** 2026-09-15
+- **Decision:** The canonical `scripts/ci.sh` T1 unit and deterministic integration phases now use `scripts/bounded_unittest.py` to execute every discovered test module in a separate subprocess with per-module timeout, heartbeat output, log file and manifest.
+- **Reason:** Monolithic `unittest discover` could be externally interrupted while hiding the active module, creating an ambiguous `INTERRUPTED` quality state. Per-module execution preserves the same test coverage while making slow, failed or timed-out modules identifiable and resumable.
+- **Consequence:** CI failures are now more diagnosable, but no acceptance criterion is weakened. A module timeout is still a failed CI run. Physical Raspberry Pi acceptance and long release-E2E completion remain separate evidence gates.

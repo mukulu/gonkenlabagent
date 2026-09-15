@@ -1007,3 +1007,14 @@ M10.6 is now **host-verified**. The repository is ready for target acceptance co
 | M10.6-T060 | Full release lifecycle attempt in `docs/development/evidence/v09/wp_m_release_lifecycle_attempt.log` | INTERRUPTED / NEEDS_MANUAL_REVIEW | The release interruption slice passed separately; the heavier aggregate release lifecycle still needs decomposition or a longer dedicated run. |
 
 Checkpoint 12 is host-quality hardening, not environment-feature expansion. It removes the known Ollama lifecycle fixture stall from the default integration path but does not close full aggregate CI or any physical Raspberry Pi evidence gate. M10.7 remains not-run.
+
+## V09 bounded CI module-runner evidence — 2026-09-15
+
+| ID | Command / artifact | Result | Evidence boundary |
+|---|---|---|---|
+| M10.6-T061 | `PYTHONPATH=src:. python3 -m unittest -v tests.unit.test_bounded_unittest_runner tests.unit.test_test_architecture` | PASS, 9/9 | Host tests for the bounded unittest runner and `scripts/ci.sh` wiring. Verifies pass/fail/timeout manifests and CI use of bounded unit/integration phases. Does not prove full aggregate CI or physical Pi behavior. |
+| M10.6-T062 | Static gates in `docs/development/evidence/v09/wp_n_static_gates.log` | PASS | Dependency lock rendering, milestone check, release-readiness allow-dirty, Bash syntax, Python compileall, TOML/JSON parsing and `git diff --check` passed after bounded-runner wiring. |
+| M10.6-T063 | `scripts/bounded_unittest.py` integration slice for `tests.integration.test_ollama_lifecycle_process` and `tests.integration.test_cli_process` | PASS, 2/2 | Demonstrates bounded runner on deterministic integration modules including the previously repaired Ollama lifecycle fixture. Does not prove the full integration suite or target hardware. |
+| M10.6-T064 | Bounded release-lifecycle aggregate attempt in `docs/development/evidence/v09/wp_n_bounded_release_lifecycle.log` | INTERRUPTED / NEEDS_MANUAL_REVIEW | The new runner produced module heartbeat and logs, identifying the active long-running release E2E test before session interruption. This is not PASS and does not weaken release lifecycle acceptance. |
+
+Checkpoint 13 is host-quality scaffolding. It makes broad CI failures observable and bounded, but M10.7 physical acceptance remains not-run.

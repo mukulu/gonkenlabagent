@@ -46,10 +46,27 @@ if command -v git >/dev/null 2>&1 && git rev-parse --git-dir >/dev/null 2>&1; th
   git diff --check
 fi
 
-echo "[T1] unit suite"
-"$PYTHON_BIN" -m unittest discover -s tests/unit -t . -v
+CI_LOG_DIR="${GONKEN_CI_LOG_DIR:-$PROJECT_ROOT/build/ci-logs}"
+mkdir -p "$CI_LOG_DIR"
 
-echo "[T1] deterministic integration suite"
-"$PYTHON_BIN" -m unittest discover -s tests/integration -t . -v
+echo "[T1] unit suite (bounded per module)"
+"$PYTHON_BIN" "$SCRIPT_DIR/bounded_unittest.py" \
+  --root "$PROJECT_ROOT" \
+  --suite-dir tests/unit \
+  --label unit \
+  --log-dir "$CI_LOG_DIR/unit" \
+  --manifest "$CI_LOG_DIR/unit_manifest.json" \
+  --timeout-seconds "${GONKEN_CI_UNIT_MODULE_TIMEOUT:-180}" \
+  --heartbeat-seconds "${GONKEN_CI_HEARTBEAT_SECONDS:-15}"
+
+echo "[T1] deterministic integration suite (bounded per module)"
+"$PYTHON_BIN" "$SCRIPT_DIR/bounded_unittest.py" \
+  --root "$PROJECT_ROOT" \
+  --suite-dir tests/integration \
+  --label integration \
+  --log-dir "$CI_LOG_DIR/integration" \
+  --manifest "$CI_LOG_DIR/integration_manifest.json" \
+  --timeout-seconds "${GONKEN_CI_INTEGRATION_MODULE_TIMEOUT:-300}" \
+  --heartbeat-seconds "${GONKEN_CI_HEARTBEAT_SECONDS:-15}"
 
 echo "T0/T1 checks passed"

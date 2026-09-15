@@ -1507,3 +1507,9 @@ The final host-side M10.6 tranche adds a target evidence scaffold rather than a 
 The runner is non-destructive by default. Fan ON/OFF evidence is blocked unless the operator supplies `--allow-actuation`; the runbook requires power-off wiring inspection and physical supervision before using that flag. The runner still cannot prove blade motion, relay polarity, representative SHT31 placement, reboot/no-login convergence or wake phrase performance without human/target evidence.
 
 M10.6 is now host-verified as a complete software/documentation/scaffold tranche. M10.7 remains the first valid gate for physical Raspberry Pi, SHT31, relay, PENGLIN, ELUTENG fan, systemd/reboot and voice/wake acceptance.
+
+## V09 implementation checkpoint 13 — bounded CI module runner
+
+Host-side quality work now includes a bounded per-module unittest runner. `scripts/ci.sh` still executes the T0 static gates and the T1 unit/integration suites, but each test module runs as an independent subprocess with an explicit timeout, heartbeat output, per-module log file and JSON manifest. This does not reduce the required test set; it makes a broad run auditable when a module is slow, interrupted or failed.
+
+This checkpoint addresses the previous false-unknown quality state where monolithic aggregate runs could be interrupted without identifying the active module. It does not close physical M10.7 acceptance and it does not claim that the heavier release lifecycle aggregate has passed in this container. The release lifecycle is now observable and bounded; completing it still requires either a long enough host run or further decomposition of the release end-to-end fixture.
