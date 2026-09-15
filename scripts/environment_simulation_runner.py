@@ -26,6 +26,13 @@ from pathlib import Path
 from typing import Any, Sequence
 
 ROOT = Path(__file__).resolve().parents[1]
+SRC = ROOT / "src"
+# The evidence runner is a user/package entry point and must execute from a
+# clean extracted repository without relying on CI-provided PYTHONPATH.
+for import_root in (ROOT, SRC):
+    if str(import_root) not in sys.path:
+        sys.path.insert(0, str(import_root))
+
 SCHEMA = "gonken-v09-m10.14-simulation-evidence-v1"
 REQUIRED_STEP_IDS = {
     "full_simulation_provenance",

@@ -21,3 +21,16 @@ Narrow verification:
 
 Evidence boundary:
 - Host/package-executability evidence only. No Raspberry Pi, SHT31, relay, PENGLIN, fan, wake/audio, reboot or no-login physical acceptance is claimed.
+
+Second clean-execution finding during exact-commit refresh:
+- `python3 scripts/environment_simulation_runner.py ...` failed with `ModuleNotFoundError: No module named 'gonken_agent'` when no PYTHONPATH was supplied.
+- Root cause was the same class of hidden CI/developer-environment dependency at the evidence-runner entry point.
+- The runner now establishes ROOT/SRC itself before importing `gonken_agent`.
+- The release-candidate integration test now removes PYTHONPATH before invoking both the simulation runner and readiness gate.
+- Final package verification must rerun the evidence runner/readiness gate from a fresh extraction before delivery.
+
+Repair-verification execution note:
+- The first combined repair-verification command exceeded its 180-second bound while the release-candidate integration test was active. It is TIMEOUT evidence, not PASS.
+- The active integration module was isolated rather than repeating the aggregate unchanged: 1/1 PASS in 19.052 s.
+- The independent documentation/readiness unit follow-up passed 9/9.
+- T0 passed after those isolated checks.

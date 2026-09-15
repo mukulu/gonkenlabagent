@@ -31,9 +31,10 @@ M10.14 now has an explicit, false-green-resistant user-test gate:
 | Active test at interruption rerun narrowly | PASS, 1/1 | `docs/development/evidence/v09/checkpoint22/acceptance_runner_active_followup.log` |
 | Documentation validator | PASS | `docs/development/evidence/v09/checkpoint22/docs_validator.json` |
 | T0 static/checkpoint gate | PASS after one repaired line-ending defect | `docs/development/evidence/v09/checkpoint22/t0_static.log` |
-| Clean-package documentation/import regression | PASS, 175 checks + 4/4 unit tests | `docs/development/evidence/v09/checkpoint22/package_integrity_import_repair.log` |
+| Clean-package entry-point regression | PASS: validator 175 checks, simulation campaign PASS, integration 1/1, unit follow-up 9/9; one bounded aggregate TIMEOUT preserved/not counted | `docs/development/evidence/v09/checkpoint22/package_integrity_import_repair.log` |
 
 A first fresh archive extraction exposed a clean-package executability defect: direct documentation validation failed because the validator depended on CI-provided `PYTHONPATH` to import the acceptance-runner parser. The package was **not** accepted. The canonical validator now adds the repository/source roots explicitly, its unit test removes `PYTHONPATH`, and the clean-environment validator passes all 175 checks. Generated build residue was not restored to hide the defect.
+A subsequent exact-commit evidence refresh exposed the same hidden-environment dependency in `environment_simulation_runner.py`: direct execution without `PYTHONPATH` could not import `gonken_agent`. The package remained unaccepted. The runner now establishes its canonical ROOT/SRC import roots itself, and the release-candidate integration test deliberately removes `PYTHONPATH` before invoking the runner and readiness gate.
 
 The interrupted aggregate was not repeated unchanged. Its active acceptance-runner module was isolated and passed 7/7, while the independent remaining affected modules passed 47/47. The first T0 attempt then caught CRLF line endings introduced while appending new CSV evidence rows; those rows were normalized back to LF, `git diff --check` passed, and T0 passed on rerun. The failed T0 log is preserved as diagnostic evidence.
 
