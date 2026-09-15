@@ -19,6 +19,7 @@ REQUIRED_HOST_VERIFIED = {
     "M6.1", "M6.2",
     "M8.1", "M8.2", "M8.3",
     "M9.3", "M9.4", "M9.5",
+    "M10.1", "M10.2", "M10.3", "M10.4", "M10.5", "M10.6",
 }
 TARGET_CAMPAIGN_ITEMS = {
     "M3.1", "M3.2", "M3.3", "M3.4", "M3.5", "M3.6",
@@ -27,6 +28,7 @@ TARGET_CAMPAIGN_ITEMS = {
     "M6.1", "M6.2",
     "M7.1", "M7.2", "M7.3", "M7.4", "M7.5",
     "M8.1", "M8.2", "M8.3", "M9.1", "M9.2", "M9.3",
+    "M10.7",
 }
 SECRET_PATTERNS = {
     "private_key": re.compile(r"-----BEGIN (?:RSA |EC |OPENSSH |)PRIVATE KEY-----"),
@@ -98,7 +100,7 @@ def build_report() -> dict[str, object]:
         "not_host_verified": not_host_verified,
         "secret_findings": secrets,
         "target_gates_remaining": target_gates,
-        "next_action": "Run the documented Raspberry Pi bootstrap, then upload the support ZIP from collect-support.sh.",
+        "next_action": "Run the documented Raspberry Pi bootstrap and M10.7 environment acceptance collector, then upload the support ZIP and private evidence ledger.",
     }
 
 

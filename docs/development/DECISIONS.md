@@ -1075,3 +1075,11 @@ transport checks are repeated.
 - **Decision:** `gonken-environment.service` owns a bounded background polling loop that periodically reads the configured sensor through the daemon-owned adapter, feeds the deterministic controller, reconciles the actuator state and records degraded-state metadata. CLI and voice remain clients; they do not run their own sensor loops or control GPIO/I2C directly. Sensor exceptions are converted into structured failed/unavailable readings so AUTO/SEMI can fail closed. Actuator write errors are recorded as degraded poll results and force `ACTUATOR_ERROR_SAFE_OFF` without terminating the daemon thread.
 - **Reason:** Automatic and semi-automatic behavior must not depend on a user manually invoking `sensor.read`. The polling loop belongs with the single hardware owner so physical control remains deterministic, testable and isolated from LLM output.
 - **Consequence:** Host tests can now verify daemon polling, safe-off behavior and lifecycle cleanup with fakes. Physical claims remain target-gated: real SHT31 reads, relay polarity, fan cycles, boot behavior and systemd/no-login convergence must be accepted under M10.7.
+
+## D-105 — Treat the M10.7 environment acceptance runner as private evidence collection, not acceptance authority
+
+- **Status:** Accepted
+- **Date:** 2026-09-15
+- **Decision:** Add `scripts/environment_acceptance_runner.py` to collect private M10.7 environment evidence files and include it in the release maintenance payload. The runner is non-destructive by default, requires `--allow-actuation` before issuing fan ON/OFF commands, and records `physical_acceptance_claimed=false` in every manifest and step file.
+- **Reason:** M10.7 needs repeatable target evidence files, but command output alone can create false-green acceptance if it is treated as proof of SHT31 placement, relay polarity, fan blade motion or wake/audio success.
+- **Consequence:** The runner can prepare a structured private evidence ledger for review. M10.7 still requires supervised physical observations, reboot/no-login evidence, wiring inspection and voice/wake evidence before any physical PASS claim.

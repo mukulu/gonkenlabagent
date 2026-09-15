@@ -147,7 +147,35 @@ The normal uninstall keeps project data unless its explicit purge contract is
 used. Reinstall with the same one-command launcher and repeat the READY/wake
 gates.
 
-## 8. Support evidence
+
+## 8. Environment-control private evidence
+
+The V09 room-environment subsystem has a separate target evidence collector. See [V09 room-environment acceptance evidence run](ENVIRONMENT_ACCEPTANCE_RUN.md) for the detailed procedure. Run it only on the physical Raspberry Pi after the environment profile has been reviewed and the SHT31/relay/PENGLIN/ELUTENG wiring has been inspected. The collector creates private evidence files and a ledger; it does not decide final acceptance and always records `physical_acceptance_claimed=false`.
+
+First collect non-destructive evidence:
+
+```bash
+sudo /usr/local/lib/gonken-agent/current/maintenance/environment_acceptance_runner.py \
+  --output-dir /var/lib/gonken-environment/acceptance/$(date -u +%Y%m%dT%H%M%SZ)
+```
+
+After power-off wiring inspection and physical supervision, run the fan relay
+cycle evidence. This is the only collector mode that may issue fan ON/OFF
+commands:
+
+```bash
+sudo /usr/local/lib/gonken-agent/current/maintenance/environment_acceptance_runner.py \
+  --output-dir /var/lib/gonken-environment/acceptance/$(date -u +%Y%m%dT%H%M%SZ)-actuation \
+  --allow-actuation
+```
+
+Preserve the generated `m10_7_evidence_manifest.json`,
+`m10_7_private_evidence_ledger.csv`, and the `private_evidence/` directory. A
+PASS command result is still only command evidence. A person must separately
+record blade movement, relay polarity, USB wiring, sensor placement, reboot
+behavior, and wake-phrase observations before M10.7 can pass.
+
+## 9. Support evidence
 
 ```bash
 sudo /usr/local/lib/gonken-agent/current/maintenance/collect-support.sh
@@ -156,7 +184,7 @@ sudo /usr/local/lib/gonken-agent/current/maintenance/collect-support.sh
 Preserve the printed ZIP and the exact bootstrap/service errors if any. Installer
 state/events remain under the root-owned `/var/lib/gonken-agent/install` tree.
 
-## 9. Acceptance decision
+## 10. Acceptance decision
 
 The build is appliance-ready only when all of these pass on the physical target:
 
