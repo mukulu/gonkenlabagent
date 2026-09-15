@@ -21,3 +21,16 @@ DOC-CMD-019,docs/TROUBLESHOOTING.md,gonken-cli,gonken-agent env probe --json
 DOC-CMD-020,docs/TROUBLESHOOTING.md,gonken-cli,gonken-agent env policy show --json
 DOC-CMD-021,docs/TROUBLESHOOTING.md,gonken-cli,gonken-agent wake status --json
 DOC-CMD-022,docs/development/V09_SIMULATION_HIL_EXTENSION_PLAN.md,ci,./scripts/ci.sh --phase t0
+DOC-CMD-023,docs/USER_SIMULATION_HIL_HANDOFF.md,gonken-cli,gonken-agent env simulate status --json
+DOC-CMD-024,docs/USER_SIMULATION_HIL_HANDOFF.md,gonken-cli,gonken-agent env watch --interval 1
+DOC-CMD-025,docs/USER_SIMULATION_HIL_HANDOFF.md,gonken-cli,gonken-agent env mode set manual
+DOC-CMD-026,docs/USER_SIMULATION_HIL_HANDOFF.md,gonken-cli,gonken-agent env fan on
+DOC-CMD-027,docs/USER_SIMULATION_HIL_HANDOFF.md,gonken-cli,gonken-agent env fan off
+DOC-CMD-028,docs/USER_SIMULATION_HIL_HANDOFF.md,gonken-cli,gonken-agent status --json
+DOC-CMD-029,docs/USER_SIMULATION_HIL_HANDOFF.md,gonken-cli,gonken-agent wake status --json
+DOC-CMD-030,docs/USER_SIMULATION_HIL_HANDOFF.md,gonken-cli,gonken-agent env status --json
+DOC-CMD-031,docs/USER_SIMULATION_HIL_HANDOFF.md,gonken-cli,gonken-agent env policy set --mode automatic --start-c 28 --stop-c 26.5
+DOC-CMD-032,docs/USER_SIMULATION_HIL_HANDOFF.md,gonken-cli,gonken-agent env simulate sensor set --temperature-c 27 --humidity-pct 50
+DOC-CMD-033,docs/USER_SIMULATION_HIL_HANDOFF.md,gonken-cli,gonken-agent env mode set semi-automatic
+DOC-CMD-034,docs/USER_SIMULATION_HIL_HANDOFF.md,gonken-cli,gonken-agent env simulate sensor stale --age-seconds 30
+DOC-CMD-035,docs/USER_SIMULATION_HIL_HANDOFF.md,gonken-cli,gonken-agent env simulate sensor recover --temperature-c 27 --humidity-pct 50

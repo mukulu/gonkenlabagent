@@ -127,3 +127,5 @@ project provenance, not as the supported appliance entry point.
 
 Project policy currently prohibits redistribution unless that policy is
 explicitly changed by the project owner.
+
+For the checkpoint-22 user simulation and sensor-deferred HIL sequence, see [docs/USER_SIMULATION_HIL_HANDOFF.md](docs/USER_SIMULATION_HIL_HANDOFF.md).

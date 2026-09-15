@@ -1622,3 +1622,16 @@ The checkpoint also makes documentation drift testable. `scripts/validate_v09_do
 The M10.7 evidence runner is hardened at the manifest layer. It now records an explicit `evidence_boundary`, the required upload set and manual gate identifiers. The runner remains an evidence collector, not an acceptance oracle. JSON success cannot prove blade motion, wake/audio behavior, PENGLIN continuity, relay polarity or SHT31 placement.
 
 This checkpoint closes M10.13 at host/documentation level only. It does not close M10.7 real Raspberry Pi acceptance and does not prove any physical sensor, relay, fan, wake or systemd/no-login behavior.
+
+
+### 22.10 Checkpoint 22 — M10.14 user-test release-candidate gating
+
+Checkpoint 22 implements the host/software gate for the first supervised user simulation and sensor-deferred HIL handoff. The release-candidate label is `READY_FOR_USER_SIMULATION_AND_SENSOR_DEFERRED_HIL`; it is a statement that the package has passed its host readiness gates for supervised target testing, not a Raspberry Pi physical-acceptance verdict. M10.7, SHT31 physical acceptance, relay/PENGLIN/fan physical behavior, blade motion, target wake/audio behavior and reboot/no-login convergence remain `NOT_RUN` until target evidence exists.
+
+The checkpoint adds two explicit gate layers. `scripts/environment_simulation_runner.py` drives a fresh full-simulation campaign through the public AF_UNIX/CLI boundary, including manual fan control, AUTO hysteresis, SEMI explicit-start/no-autostart semantics, stale-sensor safe-off/recovery and passive-watch non-observer behavior. It also validates the simulated-sensor/libgpiod profile through the existing non-actuating `env serve --check` path; this proves construction/configuration readiness only and never toggles GPIO. `scripts/v09_user_test_readiness.py` then requires the established host milestones, documentation gate, base release-readiness gate, required handoff files and a fresh commit-bound simulation manifest whose physical-acceptance fields remain false/`NOT_RUN`.
+
+A dirty development tree can produce only `DEVELOPMENT_READY_FOR_USER_SIMULATION_AND_SENSOR_DEFERRED_HIL` when the explicit development override is used. The final user-test label requires a clean tree and a simulation manifest bound to the exact current commit. This prevents an old or unknown-commit manifest from being reused as fresh release evidence.
+
+The target handoff is `docs/USER_SIMULATION_HIL_HANDOFF.md`. It orders testing from full simulation to supervised relay/fan work. Before any real actuator command, the operator must inspect GPIO character-device mapping and wiring. The current adapter still assumes `/dev/gpiochip0` line offset 23 for the configured BCM23 seed; if the actual Pi 5 mapping does not establish that identity, the operator must stop and return mapping evidence rather than actuate. This remains a target-gated mapping risk, not a software PASS.
+
+Checkpoint 22 therefore closes only M10.14's host/software readiness tranche. It deliberately leaves M10.7 open for evidence-driven continuation after the user uploads the target support/evidence bundle.

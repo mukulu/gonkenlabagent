@@ -1,0 +1,15 @@
+test_false_physical_claim_is_rejected (tests.unit.test_v09_user_test_readiness.UserTestReadinessValidationTests.test_false_physical_claim_is_rejected) ... ok
+test_missing_required_simulation_step_is_rejected (tests.unit.test_v09_user_test_readiness.UserTestReadinessValidationTests.test_missing_required_simulation_step_is_rejected) ... ok
+test_unknown_manifest_commit_is_rejected_when_repository_commit_is_known (tests.unit.test_v09_user_test_readiness.UserTestReadinessValidationTests.test_unknown_manifest_commit_is_rejected_when_repository_commit_is_known) ... ok
+test_valid_simulation_manifest_keeps_physical_gates_open (tests.unit.test_v09_user_test_readiness.UserTestReadinessValidationTests.test_valid_simulation_manifest_keeps_physical_gates_open) ... ok
+test_wrong_commit_is_rejected (tests.unit.test_v09_user_test_readiness.UserTestReadinessValidationTests.test_wrong_commit_is_rejected) ... ok
+test_full_simulation_runner_and_release_gate (tests.integration.test_v09_user_test_release_candidate.V09UserTestReleaseCandidateIntegrationTests.test_full_simulation_runner_and_release_gate) ... ok
+test_ci_t0_invokes_v09_documentation_validator (tests.unit.test_v09_documentation_hardening.V09DocumentationHardeningTests.test_ci_t0_invokes_v09_documentation_validator) ... ok
+test_room_environment_docs_are_user_facing_and_boundary_safe (tests.unit.test_v09_documentation_hardening.V09DocumentationHardeningTests.test_room_environment_docs_are_user_facing_and_boundary_safe) ... ok
+test_v09_documentation_validator_passes (tests.unit.test_v09_documentation_hardening.V09DocumentationHardeningTests.test_v09_documentation_validator_passes) ... ok
+test_wake_default_examples_are_not_stale (tests.unit.test_v09_documentation_hardening.V09DocumentationHardeningTests.test_wake_default_examples_are_not_stale) ... ok
+
+----------------------------------------------------------------------
+Ran 10 tests in 22.056s
+
+OK
