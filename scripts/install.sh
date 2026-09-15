@@ -634,8 +634,8 @@ gonken_i2c_platform_action() {
     :
   else
     result=$?
-    if [[ "$result" == "75" ]]; then
-      gonken_error "I2C_REBOOT_REQUIRED" "I2C has been requested but /dev/i2c-1 is not available in this boot" "reboot the Raspberry Pi, then rerun the same installer; it will resume from the persisted checkpoint"
+    if [[ "$result" == "78" ]]; then
+      printf '[PAUSED] code=I2C_REBOOT_REQUIRED message=i2c_requested_but_device_not_available action=reboot_then_rerun_same_installer\n'
     fi
     return "$result"
   fi
@@ -882,7 +882,7 @@ gonken_bluetooth_stack_action() {
   DEBIAN_FRONTEND=noninteractive apt-get update || return 69
   DEBIAN_FRONTEND=noninteractive apt-get install -y \
     bluez rfkill pipewire pipewire-pulse pipewire-audio pipewire-alsa \
-    pulseaudio-utils wireplumber || return 69
+    libspa-0.2-bluetooth pulseaudio-utils wireplumber || return 69
   python3 "$(gonken_bluetooth_manager)" prepare \
     --audio-user "$BLUETOOTH_AUDIO_USER"
 }
@@ -1173,6 +1173,10 @@ if gonken_run_registered_steps; then
   :
 else
   result=$?
+  if [[ "$result" == "78" ]]; then
+    printf '[PAUSED] code=INSTALLATION_PAUSED reason=planned_system_transition action=follow_previous_pause_instruction_then_rerun_same_installer\n'
+    exit 78
+  fi
   if [[ "${GONKEN_SOURCE_RECORD[platform_mode]}" == "target" && -x "$INSTALL_FAILURE_BUNDLE" ]]; then
     python3 "$INSTALL_FAILURE_BUNDLE" \
       --state-dir "$STATE_DIR" --log-dir "$LOG_DIR" --source-record "$GONKEN_SOURCE_RECORD_PATH" \

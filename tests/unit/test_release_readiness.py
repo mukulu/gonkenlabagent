@@ -28,6 +28,7 @@ class ReleaseReadinessTests(unittest.TestCase):
         self.assertIn("M9.1", remaining)
         self.assertIn("M10.7", remaining)
         self.assertIn("M10.24", remaining)
+        self.assertIn("M10.26", report["host_verified"])
         self.assertFalse(report["physical_acceptance_claimed"])
         self.assertIn("host/software", report["readiness_scope"])
         self.assertIn("./bootstrap.sh --local-checkpoint", report["next_action"])

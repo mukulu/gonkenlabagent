@@ -1568,3 +1568,31 @@ Checkpoint 29 exposed an upgrade-contract defect on the real Raspberry Pi: the n
 The release state machine now distinguishes **candidate validity** from **transition-source compatibility**. A newly built or arbitrarily selected release always remains subject to the current strict release contract. A release may use the legacy transition path only when it is already bound to trusted activation state as the current/previous post-verified release, targets the distro-binding profile, has no binding manifest, and its immutable embedded release manager demonstrably predates the binding-bridge contract. That path still verifies immutable payload/ownership/record integrity and executes bounded CLI identity/status smoke as the service user. A bridge-era release with a missing or corrupt manifest is never reclassified as legacy. Rollback to a state-bound legacy previous release remains possible so update safety is not sacrificed.
 
 This compatibility is a migration mechanism, not a waiver. The goal is to move safely away from an older valid release without applying future candidate-only policy retroactively, while keeping every new candidate fail-closed.
+
+
+## 2026-09-16 — Checkpoint 31 target-install convergence decisions
+
+### D-163 — Completed activation is not contingent on stale-release garbage collection
+
+- **Decision:** active/previous journal releases retain their explicit runtime transition contracts; unrelated stale releases are subject only to static immutable-record checks before best-effort deletion. A stale release that is malformed or cannot be removed is retained and emits `RELEASE_PRUNE_SKIPPED` rather than failing an already completed activation.
+- **Reason:** checkpoint 30 reached `ACTIVATION_COMPLETE` on the Pi and then falsely failed by applying the current hardware-binding contract to unrelated historical commit `3b25b81...`. Garbage collection must not redefine the success of the activation transaction.
+
+### D-164 — Reboot-required I2C enablement is a planned installer pause
+
+- **Decision:** after enabling I2C, wait a bounded interval for `/dev/i2c-1`. If it does not appear, return the governed pause code 78, record the step as `paused`, emit `INSTALLATION_PAUSED`, do not create a failure bundle, and require rerunning the same exact checkpoint after reboot.
+- **Reason:** checkpoint 30 emitted a generic error/failure bundle for an expected platform transition, while the immediately collected support bundle showed `/dev/i2c-1` ready. Planned system transitions must be distinct from product defects.
+
+### D-165 — Bluetooth installation must prove an input route before appliance readiness
+
+- **Decision:** a requested Bluetooth headset install must expose a Bluetooth HFP/HSP capture source or exactly one deterministic direct ALSA capture fallback for the service user before the pairing step is satisfied. Zero routes fail early; ambiguous routes fail closed. `libspa-0.2-bluetooth` is an explicit installer prerequisite.
+- **Reason:** target evidence showed playback/pairing can exist without a usable microphone. Deferring microphone discovery to a 180-second final readiness wait creates slow, misleading failures and unnecessary target cycles.
+
+### D-166 — Appliance readiness is immutable-release specific
+
+- **Decision:** the voice runtime writes the executing immutable release commit into `ready.json`; appliance manager and install summary reject a readiness record whose commit differs from `/usr/local/lib/gonken-agent/current`.
+- **Reason:** upgrades must not inherit a stale success token from an older process/release. The newly active release has to restart and establish its own audio/model/wake readiness.
+
+### D-167 — Generic installation stays non-actuating; environment policy is created safely on first supervised start
+
+- **Decision:** generic installation does not automatically enable `sensor-deferred-relay`, `real-sensor-simulated-actuator` or `full-real`. Profile selection remains supervised. A missing environment policy file is not precreated by generic install; the environment `PolicyStore` creates the safe MANUAL/OFF policy when the environment daemon is deliberately started.
+- **Reason:** installer convergence must not become actuator activation. This preserves one authoritative environment owner and fail-off semantics while avoiding a false dependency on a policy file that is intentionally runtime-owned.

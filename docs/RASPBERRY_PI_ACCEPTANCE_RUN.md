@@ -563,3 +563,17 @@ For checkpoint 30 and later, **do not delete the old release, current symlink, a
 and continue to validate the new candidate under the full current binding-manifest/API contract. A new/bridge-era candidate with a missing or corrupt manifest must still fail closed.
 
 If `RELEASE_BINDING_MANIFEST` occurs again, preserve the installer-owned failure bundle. The message now includes the release commit being validated; return that evidence rather than editing the immutable release. Do not proceed to GonKen relay/voice acceptance until the installer reaches governed `INSTALLATION_COMPLETE`.
+
+
+## 7.3 Checkpoint-31 install-convergence gate
+
+Checkpoint 30 established more target evidence than its final error implied. The Pi successfully emitted `ACTIVATION_COMPLETE` for commit `34aee184...`; the later `RELEASE_BINDING_MANIFEST` named unrelated historical commit `3b25b81...` and occurred during stale-release cleanup. A later local rerun correctly treated activation as satisfied, authorized `gonkenlab`, passed identity preflight and reached I2C enablement. The support bundle collected immediately afterward showed the checkpoint-30 binding bridge and `/dev/i2c-1` ready. These facts are preserved; do not restart hardware discovery.
+
+Checkpoint 31 changes the required operator interpretation:
+
+- `RELEASE_PRUNE_SKIPPED` for a stale non-current/non-previous release is a bounded cleanup warning, not evidence that a completed activation failed. Preserve it for maintenance review.
+- I2C enablement waits for device convergence. If a reboot is still required, the installer must emit `I2C_REBOOT_REQUIRED` / `INSTALLATION_PAUSED` and exit with the planned pause state. Reboot and rerun the **same exact checkpoint**. No manual boot-config edit or step-state edit is permitted.
+- Bluetooth pairing is not complete for a headset deployment until the exact service user can enumerate either a Bluetooth capture source or exactly one direct ALSA capture fallback. `BLUETOOTH_INPUT_UNAVAILABLE` and `AUDIO_INPUT_AMBIGUOUS` are early prerequisite failures, not reasons to wait for the final appliance timeout.
+- Appliance readiness belongs to the exact immutable release. A stale `ready.json` from the previous release must not satisfy the current release.
+
+The target gate remains `INSTALLATION_COMPLETE`. Only after that token is observed should the operator reconnect SSH for refreshed `gonken-envctl` membership and proceed to simulation, GonKen CLI fan OFF/ON/OFF, real SHT31 discovery/read campaign, full-real controller and voice/wake acceptance.

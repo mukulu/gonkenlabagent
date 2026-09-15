@@ -9,6 +9,7 @@ import pwd
 import shutil
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 I2C_DEVICE = Path("/dev/i2c-1")
@@ -64,7 +65,18 @@ def status(user: str) -> dict[str, object]:
     }
 
 
-def enable() -> dict[str, object]:
+def wait_for_device(timeout_seconds: float = 30.0, interval_seconds: float = 0.25) -> bool:
+    """Allow bounded udev/driver convergence before declaring reboot necessary."""
+    deadline = time.monotonic() + max(0.0, timeout_seconds)
+    while True:
+        if I2C_DEVICE.exists() and not I2C_DEVICE.is_symlink():
+            return True
+        if time.monotonic() >= deadline:
+            return False
+        time.sleep(min(interval_seconds, max(0.0, deadline - time.monotonic())))
+
+
+def enable(wait_seconds: float = 30.0) -> dict[str, object]:
     if os.geteuid() != 0:
         fail("I2C_PRIVILEGE", "enabling I2C requires root", "run with sudo", 77)
     tool = shutil.which("raspi-config")
@@ -73,16 +85,18 @@ def enable() -> dict[str, object]:
     result = subprocess.run([tool, "nonint", "do_i2c", "0"], check=False, capture_output=True, text=True, timeout=30)
     if result.returncode != 0:
         fail("I2C_ENABLE_FAILED", f"raspi-config returned {result.returncode}", "inspect Raspberry Pi boot configuration and rerun", 74)
-    # The boot configuration is now requested.  Device-node appearance is the
-    # authoritative current-boot signal; if absent, a reboot/resume is required.
-    return {"configured": True, "device_exists": I2C_DEVICE.exists(), "reboot_required": not I2C_DEVICE.exists()}
+    # Raspberry Pi OS may expose /dev/i2c-1 shortly after raspi-config returns.
+    # Wait for that bounded convergence before asking for a reboot.  If the
+    # device still does not appear, reboot/resume remains the safe contract.
+    device_exists = wait_for_device(wait_seconds)
+    return {"configured": True, "device_exists": device_exists, "reboot_required": not device_exists}
 
 
 def parser() -> argparse.ArgumentParser:
     p=argparse.ArgumentParser(description=__doc__)
     sub=p.add_subparsers(dest="command", required=True)
     s=sub.add_parser("status"); s.add_argument("--user", default="gonken-env"); s.add_argument("--require-ready", action="store_true")
-    sub.add_parser("enable")
+    e=sub.add_parser("enable"); e.add_argument("--wait-seconds", type=float, default=30.0)
     return p
 
 
@@ -96,10 +110,13 @@ def main(argv: list[str] | None=None) -> int:
             if args.require_ready and not payload["ready_for_sensor_probe"]:
                 fail("I2C_NOT_READY", "I2C device/service-user prerequisites are not ready", "run sudo i2c_manager.py enable, reboot if requested, then rerun status", 75)
         else:
-            payload=enable()
-            print(f"[OK] code=I2C_ENABLE configured=true device_exists={str(payload['device_exists']).lower()} reboot_required={str(payload['reboot_required']).lower()}")
+            if args.wait_seconds < 0 or args.wait_seconds > 120:
+                fail("I2C_USAGE", "wait-seconds must be between 0 and 120", "use a bounded wait", 64)
+            payload=enable(args.wait_seconds)
             if payload["reboot_required"]:
-                return 75
+                print("[PAUSED] code=I2C_REBOOT_REQUIRED configured=true device_exists=false action=reboot_then_resume_same_installer")
+                return 78
+            print("[OK] code=I2C_ENABLE configured=true device_exists=true reboot_required=false")
         return 0
     except I2CError as exc:
         print(f"[ERROR] code={exc.code} message={exc} remediation={exc.remediation}", file=sys.stderr)

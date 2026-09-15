@@ -966,15 +966,19 @@ def build_release(
     return final
 
 
-def validate_release(
+def validate_release_static(
     release: Path,
     *,
     commit: str | None = None,
     profile: str | None = None,
-    service_user: str,
-    postcheck_operation: str | None = None,
-    allow_legacy_transition: bool = False,
 ) -> dict[str, str]:
+    """Validate immutable release identity/integrity without executing its runtime.
+
+    This is the authority for non-activation maintenance such as stale-release
+    garbage collection.  Runtime/API policy belongs to candidate activation and
+    state-bound transition validation, not to deletion of an unrelated historical
+    release.
+    """
     if not release.is_dir() or release.is_symlink():
         fail("RELEASE_INVALID", f"release is missing or unsafe: {release}", "build a new immutable candidate", 74)
     record = read_record(release / "release.record", RELEASE_FIELDS, "gonken-release-v1")
@@ -1013,6 +1017,19 @@ def validate_release(
             fail("RELEASE_MUTABLE", f"release contains a writable path: {item}", "restore immutable permissions or rebuild", 74)
         if item.stat().st_uid != int(record["owner_uid"]):
             fail("RELEASE_OWNER", "release ownership differs from its manifest", "restore root ownership or rebuild", 74)
+    return record
+
+
+def validate_release(
+    release: Path,
+    *,
+    commit: str | None = None,
+    profile: str | None = None,
+    service_user: str,
+    postcheck_operation: str | None = None,
+    allow_legacy_transition: bool = False,
+) -> dict[str, str]:
+    record = validate_release_static(release, commit=commit, profile=profile)
     if allow_legacy_transition and _legacy_transition_runtime_allowed(
         release, record["profile"]
     ):
@@ -1238,6 +1255,15 @@ def activate(release_root: Path, state_root: Path, commit: str, service_user: st
 
 
 def prune_releases(release_root: Path, state_root: Path, service_user: str) -> None:
+    """Best-effort garbage collection that can never invalidate a completed activation.
+
+    The active and rollback releases remain protected by the activation journal.
+    Historical releases are deleted only after static immutable-integrity checks;
+    their obsolete runtime dependency contract is deliberately irrelevant.  A
+    malformed stale release is retained for administrator review and reported as
+    a warning instead of turning an already successful activation into failure.
+    """
+    del service_user  # runtime execution is intentionally forbidden while pruning
     journal = read_journal(state_root)
     if not journal or journal["phase"] != "post_verified":
         return
@@ -1246,9 +1272,28 @@ def prune_releases(release_root: Path, state_root: Path, service_user: str) -> N
         keep.add(journal["previous_commit"])
     releases = release_root / "releases"
     for path in releases.iterdir():
-        if COMMIT_RE.fullmatch(path.name) and path.name not in keep:
-            validate_release(path, commit=path.name, service_user=service_user)
+        if not COMMIT_RE.fullmatch(path.name) or path.name in keep:
+            continue
+        try:
+            validate_release_static(path, commit=path.name)
+        except ReleaseError as error:
+            print(
+                f"[WARN] code=RELEASE_PRUNE_SKIPPED commit={path.name} "
+                f"reason={error.code} remediation=inspect_stale_release_manually",
+                file=sys.stderr,
+            )
+            continue
+        try:
             _remove_validated_release(path, releases)
+        except (ReleaseError, OSError) as error:
+            reason = error.code if isinstance(error, ReleaseError) else "FILESYSTEM_ERROR"
+            print(
+                f"[WARN] code=RELEASE_PRUNE_SKIPPED commit={path.name} "
+                f"reason={reason} remediation=inspect_stale_release_manually",
+                file=sys.stderr,
+            )
+            continue
+        print(f"[OK] code=RELEASE_PRUNED commit={path.name}")
 
 
 def status(release_root: Path, state_root: Path, expected: str | None, service_user: str) -> None:

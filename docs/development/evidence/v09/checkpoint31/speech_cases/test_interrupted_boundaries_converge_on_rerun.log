@@ -1,0 +1,6 @@
+test_interrupted_boundaries_converge_on_rerun (tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_interrupted_boundaries_converge_on_rerun) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 26.151s
+
+OK

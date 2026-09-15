@@ -1,0 +1,6 @@
+test_full_lifecycle_repeat_status_and_private_record (tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_full_lifecycle_repeat_status_and_private_record) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 12.160s
+
+OK

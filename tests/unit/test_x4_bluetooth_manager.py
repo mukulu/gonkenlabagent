@@ -133,6 +133,38 @@ class BluetoothManagerTests(unittest.TestCase):
         scan.assert_not_called()
 
 
+    def test_parse_capture_cards_matches_voice_runtime_alsa_identity(self) -> None:
+        listing = """**** List of CAPTURE Hardware Devices ****
+card 2: Device [USB PnP Sound Device], device 0: USB Audio [USB Audio]
+  Subdevices: 1/1
+card 3: vc4hdmi0 [vc4-hdmi-0], device 0: MAI PCM i2s-hifi-0 [MAI PCM i2s-hifi-0]
+"""
+        rows = bluetooth_manager._parse_capture_cards(listing)
+        self.assertEqual(rows[0][0], "plughw:CARD=Device,DEV=0")
+        self.assertIn("USB", rows[0][1])
+        self.assertEqual(rows[0][2], "0")
+
+    def test_direct_capture_fallback_prefers_one_usb_card_and_ignores_hdmi(self) -> None:
+        listing = """**** List of CAPTURE Hardware Devices ****
+card 2: Device [USB PnP Sound Device], device 0: USB Audio [USB Audio]
+card 3: vc4hdmi0 [vc4-hdmi-0], device 0: MAI PCM i2s-hifi-0 [MAI PCM i2s-hifi-0]
+"""
+        completed = mock.Mock(returncode=0, stdout=listing, stderr="")
+        with mock.patch.object(bluetooth_manager, "run_as_user", return_value=completed):
+            selected = bluetooth_manager.direct_capture_fallback("gonken-agent")
+        self.assertEqual(selected, "plughw:CARD=Device,DEV=0")
+
+    def test_direct_capture_fallback_refuses_ambiguous_usb_cards(self) -> None:
+        listing = """**** List of CAPTURE Hardware Devices ****
+card 2: MicA [USB Mic A], device 0: USB Audio [USB Audio]
+card 4: MicB [USB Mic B], device 0: USB Audio [USB Audio]
+"""
+        completed = mock.Mock(returncode=0, stdout=listing, stderr="")
+        with mock.patch.object(bluetooth_manager, "run_as_user", return_value=completed):
+            with self.assertRaises(bluetooth_manager.BluetoothError) as caught:
+                bluetooth_manager.direct_capture_fallback("gonken-agent")
+        self.assertEqual(caught.exception.code, "AUDIO_INPUT_AMBIGUOUS")
+
     def test_headset_profile_prefers_available_msbc_capture_profile(self) -> None:
         listing = """Card #12
 	Name: bluez_card.AA_BB_CC_DD_EE_FF
@@ -145,6 +177,24 @@ class BluetoothManagerTests(unittest.TestCase):
         with mock.patch.object(bluetooth_manager, "run_as_user", return_value=completed):
             selected = bluetooth_manager._headset_profile("gonken-agent", "AA:BB:CC:DD:EE:FF")
         self.assertEqual(selected, ("bluez_card.AA_BB_CC_DD_EE_FF", "headset-head-unit-msbc"))
+
+
+    def test_pipewire_nodes_return_each_matching_endpoint_once(self) -> None:
+        sink = mock.Mock(returncode=0, stdout="1 bluez_output.AA_BB_CC_DD_EE_FF.1 module s16le\n", stderr="")
+        source = mock.Mock(returncode=0, stdout="2 bluez_input.AA_BB_CC_DD_EE_FF.0 module s16le\n", stderr="")
+        with mock.patch.object(bluetooth_manager, "run_as_user", side_effect=[sink, source]):
+            sinks, sources = bluetooth_manager.pipewire_nodes("gonken-agent", "AA:BB:CC:DD:EE:FF")
+        self.assertEqual(sinks, ["bluez_output.AA_BB_CC_DD_EE_FF.1"])
+        self.assertEqual(sources, ["bluez_input.AA_BB_CC_DD_EE_FF.0"])
+
+    def test_stack_status_requires_pipewire_bluetooth_plugin_package(self) -> None:
+        missing = mock.Mock(returncode=1, stdout="", stderr="no package")
+        with mock.patch.object(bluetooth_manager, "ensure_controller_ready"), \
+             mock.patch.object(bluetooth_manager.shutil, "which", return_value="/usr/bin/tool"), \
+             mock.patch.object(bluetooth_manager, "run", return_value=missing):
+            with self.assertRaises(bluetooth_manager.BluetoothError) as caught:
+                bluetooth_manager.stack_status("gonken-agent")
+        self.assertEqual(caught.exception.code, "BLUETOOTH_PIPEWIRE_PLUGIN")
 
     def test_stack_status_requires_unblocked_powered_controller(self) -> None:
         with mock.patch.object(bluetooth_manager, "controller_status", return_value={"controllers": 1, "soft_blocked": True}), \
@@ -171,7 +221,8 @@ class BluetoothManagerTests(unittest.TestCase):
         }
         with mock.patch.object(bluetooth_manager, "read_device_record", return_value=values), \
              mock.patch.object(bluetooth_manager, "bluetooth_info", return_value=(info, "")), \
-             mock.patch.object(bluetooth_manager, "pipewire_nodes", return_value=(["bluez_output.fixture"], [])):
+             mock.patch.object(bluetooth_manager, "pipewire_nodes", return_value=(["bluez_output.fixture"], [])), \
+             mock.patch.object(bluetooth_manager, "direct_capture_fallback", return_value="plughw:CARD=Mic,DEV=0"):
             bluetooth_manager.device_status(
                 Path("/etc/gonken-agent/bluetooth-device.record"),
                 "gonken-agent",
@@ -188,6 +239,7 @@ class BluetoothManagerTests(unittest.TestCase):
              mock.patch.object(bluetooth_manager, "resolve_candidate", return_value=("AA:BB:CC:DD:EE:FF", "Lab Headset", initial)), \
              mock.patch.object(bluetooth_manager, "bluetooth_info", return_value=(initial, "")), \
              mock.patch.object(bluetooth_manager, "route_defaults", return_value=(["bluez_output.fixture"], [])), \
+             mock.patch.object(bluetooth_manager, "direct_capture_fallback", return_value="plughw:CARD=Mic,DEV=0"), \
              mock.patch.object(bluetooth_manager, "run", return_value=mock.Mock(returncode=0, stdout="", stderr="")), \
              mock.patch.object(bluetooth_manager.os, "geteuid", return_value=0):
             bluetooth_manager.pair(
@@ -197,6 +249,55 @@ class BluetoothManagerTests(unittest.TestCase):
                 120,
             )
         write_record.assert_called_once()
+
+    @mock.patch.object(bluetooth_manager, "write_device_record")
+    def test_pairing_fails_early_when_headset_has_no_capture_route(self, write_record) -> None:
+        initial = {
+            "paired": True, "trusted": True, "connected": True,
+            "output_capable": True, "headset_capable": True, "name": "Lab Headset",
+        }
+        with mock.patch.object(bluetooth_manager, "stack_status"), \
+             mock.patch.object(bluetooth_manager, "resolve_candidate", return_value=("AA:BB:CC:DD:EE:FF", "Lab Headset", initial)), \
+             mock.patch.object(bluetooth_manager, "bluetooth_info", return_value=(initial, "")), \
+             mock.patch.object(bluetooth_manager, "route_defaults", return_value=(["bluez_output.fixture"], [])), \
+             mock.patch.object(bluetooth_manager, "direct_capture_fallback", return_value=None), \
+             mock.patch.object(bluetooth_manager, "run", return_value=mock.Mock(returncode=0, stdout="", stderr="")), \
+             mock.patch.object(bluetooth_manager.os, "geteuid", return_value=0):
+            with self.assertRaises(bluetooth_manager.BluetoothError) as caught:
+                bluetooth_manager.pair(
+                    "AA:BB:CC:DD:EE:FF",
+                    "gonken-agent",
+                    Path("/etc/gonken-agent/bluetooth-device.record"),
+                    120,
+                )
+        self.assertEqual(caught.exception.code, "BLUETOOTH_INPUT_UNAVAILABLE")
+        write_record.assert_not_called()
+
+    def test_connected_headset_status_fails_early_without_any_capture_route(self) -> None:
+        values = {
+            "format": "gonken-bluetooth-audio-v1",
+            "address": "AA:BB:CC:DD:EE:FF",
+            "name": "Lab Headset",
+            "audio_user": "gonken-agent",
+            "paired_epoch": "1",
+            "output_capable": "yes",
+            "headset_capable": "yes",
+        }
+        info = {
+            "paired": True, "trusted": True, "connected": True,
+            "output_capable": True, "headset_capable": True, "name": "Lab Headset",
+        }
+        with mock.patch.object(bluetooth_manager, "read_device_record", return_value=values), \
+             mock.patch.object(bluetooth_manager, "bluetooth_info", return_value=(info, "")), \
+             mock.patch.object(bluetooth_manager, "pipewire_nodes", return_value=(["bluez_output.fixture"], [])), \
+             mock.patch.object(bluetooth_manager, "direct_capture_fallback", return_value=None):
+            with self.assertRaises(bluetooth_manager.BluetoothError) as caught:
+                bluetooth_manager.device_status(
+                    Path("/etc/gonken-agent/bluetooth-device.record"),
+                    "gonken-agent",
+                    require_connected=True,
+                )
+        self.assertEqual(caught.exception.code, "BLUETOOTH_INPUT_UNAVAILABLE")
 
     def test_known_fix4_autoconnect_unit_is_upgraded_exactly(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
@@ -222,6 +323,10 @@ class BluetoothManagerTests(unittest.TestCase):
                 with self.assertRaises(bluetooth_manager.BluetoothError) as caught:
                     bluetooth_manager.autoconnect_status(Path("/etc/gonken-agent/bluetooth-device.record"), current)
             self.assertEqual(caught.exception.status, 1)
+
+    def test_installer_explicitly_provisions_pipewire_bluetooth_plugin(self) -> None:
+        install = (ROOT / "scripts/install.sh").read_text(encoding="utf-8")
+        self.assertIn("libspa-0.2-bluetooth", install)
 
     def test_fix6_pairing_step_revalidates_connected_output_route(self) -> None:
         install = (ROOT / "scripts/install.sh").read_text(encoding="utf-8")

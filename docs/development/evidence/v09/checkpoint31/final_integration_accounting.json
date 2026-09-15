@@ -1,0 +1,85 @@
+{
+  "schema": 1,
+  "status": "PASS",
+  "modules": 12,
+  "tests": 59,
+  "families": [
+    {
+      "module": "test_bootstrap_preflight_process",
+      "tests": 4,
+      "result": "PASS",
+      "evidence": "integration_nonlifecycle.log"
+    },
+    {
+      "module": "test_cli_process",
+      "tests": 5,
+      "result": "PASS",
+      "evidence": "integration_nonlifecycle.log"
+    },
+    {
+      "module": "test_first_install_launcher",
+      "tests": 4,
+      "result": "PASS",
+      "evidence": "integration_nonlifecycle.log"
+    },
+    {
+      "module": "test_install_engine_process",
+      "tests": 10,
+      "result": "PASS",
+      "evidence": "integration_nonlifecycle.log"
+    },
+    {
+      "module": "test_support_collection_process",
+      "tests": 1,
+      "result": "PASS",
+      "evidence": "integration_nonlifecycle.log"
+    },
+    {
+      "module": "test_text_runtime_process",
+      "tests": 9,
+      "result": "PASS",
+      "evidence": "integration_nonlifecycle.log"
+    },
+    {
+      "module": "test_uninstall_lifecycle_process",
+      "tests": 2,
+      "result": "PASS",
+      "evidence": "integration_nonlifecycle.log"
+    },
+    {
+      "module": "test_v09_environment_voice_transaction",
+      "tests": 3,
+      "result": "PASS",
+      "evidence": "integration_nonlifecycle.log"
+    },
+    {
+      "module": "test_v09_user_test_release_candidate",
+      "tests": 1,
+      "result": "PASS",
+      "evidence": "integration_user_test_release_candidate.log"
+    },
+    {
+      "module": "test_ollama_lifecycle_process",
+      "tests": 5,
+      "result": "PASS",
+      "evidence": "ollama_lifecycle.log"
+    },
+    {
+      "module": "test_speech_lifecycle_process",
+      "tests": 5,
+      "result": "PASS",
+      "evidence": "speech_cases/"
+    },
+    {
+      "module": "test_release_lifecycle_process",
+      "tests": 10,
+      "result": "PASS",
+      "evidence": "release_* logs and release_process_2.log"
+    }
+  ],
+  "interruptions": [
+    "integration_nonlifecycle combined command timed out after 38 PASS tests while the final user-test module was active; that one module was rerun separately and passed.",
+    "speech aggregate loop was externally interrupted after three PASS cases; only the two remaining cases were rerun and passed.",
+    "release EndToEnd class run timed out after three PASS cases while repeat-idempotent was active; only repeat-idempotent was rerun and passed."
+  ]
+}

@@ -58,6 +58,7 @@ class I2CManagerTests(unittest.TestCase):
             with patch.object(i2c, "I2C_DEVICE", device), \
                  patch.object(i2c.os, "geteuid", return_value=0), \
                  patch.object(i2c.shutil, "which", return_value="/usr/bin/raspi-config"), \
+                 patch.object(i2c, "wait_for_device", return_value=False), \
                  patch.object(i2c.subprocess, "run", return_value=completed) as run:
                 result = i2c.enable()
         run.assert_called_once_with(
@@ -66,6 +67,22 @@ class I2CManagerTests(unittest.TestCase):
         )
         self.assertTrue(result["configured"])
         self.assertTrue(result["reboot_required"])
+
+
+    def test_enable_accepts_delayed_device_without_reboot(self) -> None:
+        completed = subprocess.CompletedProcess([], 0, stdout="", stderr="")
+        with patch.object(i2c.os, "geteuid", return_value=0), \
+             patch.object(i2c.shutil, "which", return_value="/usr/bin/raspi-config"), \
+             patch.object(i2c, "wait_for_device", return_value=True) as wait, \
+             patch.object(i2c.subprocess, "run", return_value=completed):
+            result = i2c.enable(12.0)
+        wait.assert_called_once_with(12.0)
+        self.assertTrue(result["device_exists"])
+        self.assertFalse(result["reboot_required"])
+
+    def test_cli_reports_planned_pause_not_error_when_reboot_is_required(self) -> None:
+        with patch.object(i2c, "enable", return_value={"configured": True, "device_exists": False, "reboot_required": True}):
+            self.assertEqual(i2c.main(["enable", "--wait-seconds", "0"]), 78)
 
     def test_enable_requires_root_and_never_runs_raspi_config(self) -> None:
         with patch.object(i2c.os, "geteuid", return_value=1000), patch.object(i2c.subprocess, "run") as run:

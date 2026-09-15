@@ -1,0 +1,45 @@
+{
+  "schema": 1,
+  "checkpoint": "v09-31-development",
+  "source_target_commit": "34aee184d348f35db46fecacd36a369d9974c5a4",
+  "observed": {
+    "manual_actuator": {
+      "gpiochip": "gpiochip0",
+      "line_offset": 23,
+      "line_name": "GPIO23",
+      "low_observation": "relay/fan physically OFF",
+      "high_observation": "relay/fan physically ON",
+      "evidence_scope": "raw physical actuator substrate only"
+    },
+    "checkpoint30_activation": {
+      "new_release_activation_complete": true,
+      "activated_commit": "34aee184d348f35db46fecacd36a369d9974c5a4",
+      "legacy_transition_source": "82a9c9b4223aa1036f37a2298bef0d8b3188dd4d",
+      "post_activation_false_failure_release": "3b25b81c5bc7d4e24268726ad7f7b71296215a03",
+      "classification": "stale historical release garbage-collection contract was incorrectly activation-critical"
+    },
+    "checkpoint30_resume": {
+      "environment_operator_authorized": true,
+      "identity_preflight": "PASS",
+      "i2c_enable_requested": true,
+      "old_installer_classification": "ERROR/failure bundle despite planned reboot transition",
+      "installation_complete": false
+    },
+    "support_after_pause": {
+      "active_release_binding_bridge": "READY",
+      "gpio23_runtime_identity": "gpiochip0:23",
+      "i2c_device": "/dev/i2c-1 READY",
+      "environment_service": "intentionally disabled before supervised profile",
+      "audio_risk": "startup evidence showed no capture source and Bluetooth sink configuration; physical/current route still requires target revalidation"
+    }
+  },
+  "host_repairs": [
+    "best-effort stale release pruning separated from activation success",
+    "planned I2C pause/resume exit 78 with bounded device settle",
+    "Bluetooth input route proof before appliance readiness",
+    "release-specific appliance readiness record",
+    "explicit installer dependency-order regression"
+  ],
+  "physical_acceptance_claimed": false,
+  "next_target_gate": "exact checkpoint 31 must reach INSTALLATION_COMPLETE before integrated M10.24 acceptance continues"
+}
