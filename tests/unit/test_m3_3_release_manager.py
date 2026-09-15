@@ -191,6 +191,7 @@ class IntegrityAndPrivilegeTests(unittest.TestCase):
             '"install_summary.py"',
             '"service_manager.py"',
             '"environment_service_manager.py"',
+            '"environment_profile_manager.py"',
             '"update.sh"',
             '"update_manager.py"',
             '"collect-support.sh"',
@@ -312,6 +313,70 @@ class IntegrityAndPrivilegeTests(unittest.TestCase):
                 release_manager.rollback_previous(release_root, state_root, current_user())
             self.assertEqual(raised.exception.code, "ROLLBACK_UNAVAILABLE")
             self.assertEqual(release_manager.current_commit(release_root), active)
+
+
+class TargetRuntimeBindingTests(unittest.TestCase):
+    def _release_with_fake_python(self, root: Path, *, system_site: bool, exit_code: int = 0) -> Path:
+        release = root / "release"
+        binary = release / ".venv" / "bin"
+        binary.mkdir(parents=True)
+        (release / ".venv" / "pyvenv.cfg").write_text(
+            f"include-system-site-packages = {'true' if system_site else 'false'}\n",
+            encoding="utf-8",
+        )
+        python = binary / "python"
+        python.write_text(f"#!/bin/sh\nexit {exit_code}\n", encoding="utf-8")
+        python.chmod(0o755)
+        return release
+
+    def test_target_profile_enables_system_site_packages_only_for_pi_core(self) -> None:
+        self.assertTrue(release_manager.profile_uses_system_site_packages("core-pi-trixie-py313"))
+        self.assertFalse(release_manager.profile_uses_system_site_packages("dev-py312"))
+        self.assertFalse(release_manager.profile_uses_system_site_packages("ui-dev-py312"))
+
+    def test_target_binding_validation_rejects_isolated_venv_false_green(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            release = self._release_with_fake_python(Path(temporary), system_site=False)
+            with self.assertRaises(release_manager.ReleaseError) as raised:
+                release_manager.validate_runtime_hardware_bindings(
+                    release, "core-pi-trixie-py313", current_user()
+                )
+        self.assertEqual(raised.exception.code, "RELEASE_VENV_POLICY")
+
+    def test_target_binding_validation_rejects_release_python_import_failure(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            release = self._release_with_fake_python(Path(temporary), system_site=True, exit_code=1)
+            with self.assertRaises(release_manager.ReleaseError) as raised:
+                release_manager.validate_runtime_hardware_bindings(
+                    release, "core-pi-trixie-py313", current_user()
+                )
+        self.assertEqual(raised.exception.code, "RELEASE_HARDWARE_BINDINGS")
+
+    def test_target_binding_validation_accepts_release_python_probe(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            release = self._release_with_fake_python(Path(temporary), system_site=True, exit_code=0)
+            release_manager.validate_runtime_hardware_bindings(
+                release, "core-pi-trixie-py313", current_user()
+            )
+
+    def test_binding_probe_covers_exact_runtime_apis(self) -> None:
+        probe = release_manager.HARDWARE_BINDING_CHECK
+        for required in (
+            "gpiod", "smbus", "gpiod.line", "Chip", "LineSettings",
+            "request_lines", "SMBus", "get_info", "get_line_info",
+            "Bias", "Direction", "Value",
+        ):
+            self.assertIn(required, probe)
+
+    def test_installer_authorizes_invoking_operator_only_for_control_socket(self) -> None:
+        installer = (ROOT / "scripts/install.sh").read_text(encoding="utf-8")
+        self.assertIn('operator="${GONKEN_SOURCE_RECORD[invoking_user]}"', installer)
+        self.assertIn('usermod -a -G gonken-envctl "$operator"', installer)
+        self.assertNotIn('usermod -a -G gpio "$operator"', installer)
+        self.assertNotIn('usermod -a -G i2c "$operator"', installer)
+        self.assertIn('code=ENV_OPERATOR_SESSION_REFRESH', installer)
+        self.assertIn('"target_runtime_bindings" "1"', installer)
+
 
 
 if __name__ == "__main__":

@@ -1,0 +1,68 @@
+{
+  "schema": 1,
+  "checkpoint": 24,
+  "suite": "release-lifecycle",
+  "case_count": 8,
+  "quality_verdict": "PASS",
+  "execution_note": "Aggregate attempts were interrupted; all cases were decomposed and passed.",
+  "cases": [
+    {
+      "test": "tests.integration.test_release_lifecycle_process.ActivationInterruptionTests.test_every_journal_switch_and_postcheck_boundary_reconciles",
+      "status": "PASS",
+      "evidence_logs": [
+        "release_lifecycle_activation.log"
+      ]
+    },
+    {
+      "test": "tests.integration.test_release_lifecycle_process.ActivationInterruptionTests.test_failed_post_switch_smoke_rolls_back_previous",
+      "status": "PASS",
+      "evidence_logs": [
+        "release_lifecycle_activation.log"
+      ]
+    },
+    {
+      "test": "tests.integration.test_release_lifecycle_process.ActivationInterruptionTests.test_operator_rollback_script_restarts_service_after_validated_switch",
+      "status": "PASS",
+      "evidence_logs": [
+        "release_lifecycle_activation.log"
+      ]
+    },
+    {
+      "test": "tests.integration.test_release_lifecycle_process.EndToEndReleaseTests.test_default_install_after_release_boundary_stops_before_target_only_steps",
+      "status": "PASS",
+      "evidence_logs": [
+        "release_lifecycle_boundary.log"
+      ]
+    },
+    {
+      "test": "tests.integration.test_release_lifecycle_process.EndToEndReleaseTests.test_low_space_never_creates_or_switches_release",
+      "status": "PASS",
+      "evidence_logs": [
+        "release_lifecycle_low_space.log"
+      ]
+    },
+    {
+      "test": "tests.integration.test_release_lifecycle_process.EndToEndReleaseTests.test_release_only_builds_activates_and_freezes_release",
+      "status": "PASS",
+      "evidence_logs": [
+        "release_lifecycle_endtoend.log"
+      ]
+    },
+    {
+      "test": "tests.integration.test_release_lifecycle_process.EndToEndReleaseTests.test_release_only_repeat_is_idempotent",
+      "status": "PASS",
+      "evidence_logs": [
+        "release_lifecycle_endtoend.log",
+        "release_lifecycle_repeat.log"
+      ]
+    },
+    {
+      "test": "tests.integration.test_release_lifecycle_process.FinalizationInterruptionTests.test_candidate_finalize_boundaries_leave_recoverable_old_or_new_state",
+      "status": "PASS",
+      "evidence_logs": [
+        "release_lifecycle_activation.log",
+        "release_lifecycle_finalization_followup.log"
+      ]
+    }
+  ]
+}

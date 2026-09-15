@@ -57,6 +57,27 @@ JOURNAL_FIELDS = (
     "message",
 )
 JOURNAL_PHASES = {"prepared", "switched", "post_verified", "rolled_back"}
+TARGET_SYSTEM_BINDING_PROFILES = {"core-pi-trixie-py313"}
+HARDWARE_BINDING_CHECK = """
+import gpiod
+import smbus
+from gpiod.line import Bias, Direction, Value
+required = {
+    "gpiod.Chip": getattr(gpiod, "Chip", None),
+    "gpiod.LineSettings": getattr(gpiod, "LineSettings", None),
+    "gpiod.request_lines": getattr(gpiod, "request_lines", None),
+    "smbus.SMBus": getattr(smbus, "SMBus", None),
+}
+missing = [name for name, value in required.items() if not callable(value)]
+for name in ("get_info", "get_line_info"):
+    if not callable(getattr(gpiod.Chip, name, None)):
+        missing.append("gpiod.Chip." + name)
+if missing:
+    raise SystemExit("missing hardware API: " + ",".join(missing))
+# Importing these enum types proves the libgpiod v2 line API used by the runtime.
+assert Bias is not None and Direction is not None and Value is not None
+print("hardware_bindings=ready")
+"""
 
 
 class ReleaseError(RuntimeError):
@@ -459,7 +480,61 @@ def _build_wheel(source: Path, output: Path) -> tuple[Path, str]:
     return wheel, f"setuptools-{setuptools.__version__}"
 
 
-def smoke_release(release: Path, service_user: str, *, operation: str | None = None) -> tuple[str, str]:
+def profile_uses_system_site_packages(profile: str) -> bool:
+    """Return whether a release profile intentionally consumes distro Python bindings."""
+    return profile in TARGET_SYSTEM_BINDING_PROFILES
+
+
+def _venv_system_site_packages_enabled(release: Path) -> bool:
+    configuration = release / ".venv" / "pyvenv.cfg"
+    if not configuration.is_file() or configuration.is_symlink():
+        return False
+    try:
+        lines = configuration.read_text(encoding="utf-8").splitlines()
+    except (OSError, UnicodeError):
+        return False
+    values = {}
+    for line in lines:
+        key, separator, value = line.partition("=")
+        if separator:
+            values[key.strip().casefold()] = value.strip().casefold()
+    return values.get("include-system-site-packages") == "true"
+
+
+def validate_runtime_hardware_bindings(
+    release: Path,
+    profile: str,
+    service_user: str,
+) -> None:
+    """Fail closed when the target release interpreter cannot use distro hardware APIs."""
+    if not profile_uses_system_site_packages(profile):
+        return
+    if not _venv_system_site_packages_enabled(release):
+        fail(
+            "RELEASE_VENV_POLICY",
+            "target release venv does not expose distro system site-packages",
+            "rebuild the target release with the governed system-site-packages profile",
+            74,
+        )
+    python = release / ".venv" / "bin" / "python"
+    try:
+        run([str(python), "-c", HARDWARE_BINDING_CHECK], service_user=service_user)
+    except ReleaseError as error:
+        fail(
+            "RELEASE_HARDWARE_BINDINGS",
+            f"target release interpreter cannot use required gpiod/smbus APIs: {error}",
+            "install compatible python3-libgpiod/python3-smbus packages and rebuild the immutable release",
+            error.exit_code,
+        )
+
+
+def smoke_release(
+    release: Path,
+    service_user: str,
+    *,
+    profile: str,
+    operation: str | None = None,
+) -> tuple[str, str]:
     executable = release / ".venv" / "bin" / "gonken-agent"
     python = release / ".venv" / "bin" / "python"
     if not executable.is_file() or not os.access(executable, os.X_OK):
@@ -473,6 +548,7 @@ def smoke_release(release: Path, service_user: str, *, operation: str | None = N
         maybe_interrupt(operation, "during")
     status_result = run([str(executable), "status", "--json"], service_user=service_user)
     run([str(python), "-m", "pip", "check"], service_user=service_user)
+    validate_runtime_hardware_bindings(release, profile, service_user)
     try:
         status_payload = json.loads(status_result.stdout)
     except json.JSONDecodeError:
@@ -539,7 +615,11 @@ def build_release(
         wheel_dir = workspace / "wheels"
         wheel, backend = _build_wheel(source, wheel_dir)
         wheel_digest = sha256_file(wheel)
-        venv.EnvBuilder(with_pip=True, symlinks=True).create(release / ".venv")
+        venv.EnvBuilder(
+            with_pip=True,
+            symlinks=True,
+            system_site_packages=profile_uses_system_site_packages(profile),
+        ).create(release / ".venv")
         venv_python = release / ".venv" / "bin" / "python"
         run([str(venv_python), "-m", "pip", "install", "--no-index", "-r", str(lock)])
         run([str(venv_python), "-m", "pip", "install", "--no-index", "--no-deps", str(wheel)])
@@ -565,6 +645,7 @@ def build_release(
             source / "scripts" / "service_manager.py": maintenance / "service_manager.py",
             source / "scripts" / "environment_service_manager.py": maintenance / "environment_service_manager.py",
             source / "scripts" / "environment_acceptance_runner.py": maintenance / "environment_acceptance_runner.py",
+            source / "scripts" / "environment_profile_manager.py": maintenance / "environment_profile_manager.py",
             source / "scripts" / "bluetooth_manager.py": maintenance / "bluetooth_manager.py",
             source / "scripts" / "appliance_manager.py": maintenance / "appliance_manager.py",
             source / "scripts" / "update_manager.py": maintenance / "update_manager.py",
@@ -598,6 +679,7 @@ def build_release(
             maintenance / "service_manager.py",
             maintenance / "environment_service_manager.py",
             maintenance / "environment_acceptance_runner.py",
+            maintenance / "environment_profile_manager.py",
             maintenance / "bluetooth_manager.py",
             maintenance / "appliance_manager.py",
             maintenance / "update_manager.py",
@@ -607,6 +689,7 @@ def build_release(
         package_version, _ = smoke_release(
             release,
             "root" if os.geteuid() == 0 else service_user,
+            profile=profile,
         )
         relocate_venv(release, final)
         manager_digest = sha256_file(maintenance / "release_manager.py")
@@ -689,7 +772,12 @@ def validate_release(
             fail("RELEASE_MUTABLE", f"release contains a writable path: {item}", "restore immutable permissions or rebuild", 74)
         if item.stat().st_uid != int(record["owner_uid"]):
             fail("RELEASE_OWNER", "release ownership differs from its manifest", "restore root ownership or rebuild", 74)
-    version, _ = smoke_release(release, service_user, operation=postcheck_operation)
+    version, _ = smoke_release(
+        release,
+        service_user,
+        profile=record["profile"],
+        operation=postcheck_operation,
+    )
     if version != record["package_version"]:
         fail("RELEASE_INVALID", "CLI version differs from release manifest", "rebuild the candidate", 74)
     return record

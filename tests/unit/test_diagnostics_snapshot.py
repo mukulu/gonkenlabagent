@@ -141,6 +141,14 @@ class StartupSnapshotTests(unittest.TestCase):
         self.assertFalse(diag["ipc"]["snapshot"]["physical_evidence"])
         self.assertNotIn(str(self.root), json.dumps(diag, sort_keys=True))
 
+
+    def test_systemctl_preserves_legitimate_nonzero_inactive_and_disabled_states(self):
+        inactive = {"available": True, "exit_code": 3, "stdout": ["inactive"], "stderr": []}
+        disabled = {"available": True, "exit_code": 1, "stdout": ["disabled"], "stderr": []}
+        with patch("gonken_agent.diagnostics._run", side_effect=[inactive, disabled]):
+            self.assertEqual(diagnostics._systemctl("is-active", "fixture.service"), "inactive")
+            self.assertEqual(diagnostics._systemctl("is-enabled", "fixture.service"), "disabled")
+
     def test_unsafe_snapshot_input_rejected(self):
         bad = self.root / "bad.json"
         bad.write_text('{"schema":1,"privacy":{"content_logging":true}}\n', encoding="utf-8")

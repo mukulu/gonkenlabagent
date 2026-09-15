@@ -121,3 +121,29 @@ sudo journalctl -u gonken-agent.service -b --no-pager -n 120
 ```
 
 Do not add ad hoc shell playback or multiple Piper/audio owners. Fix the voice arbitration layer.
+
+
+## Installer reaches `WAKE_LED_GPIO_DEPENDENCY_MISSING`
+
+**Symptom:** installation waits while `gonken-agent.service` repeatedly reports `code=WAKE_LED_GPIO_DEPENDENCY_MISSING` and `python3-libgpiod_is_not_importable`.
+
+Run only diagnostic imports:
+
+```bash
+python3 -c 'import gpiod, smbus; print("system-bindings=ready")'
+/usr/local/lib/gonken-agent/current/.venv/bin/python -c 'import gpiod, smbus; print("release-bindings=ready")'
+sudo /usr/local/lib/gonken-agent/current/maintenance/collect-support.sh
+```
+
+On checkpoint 24, release validation must fail closed before appliance readiness if the immutable interpreter cannot use the required APIs. If system Python succeeds but release Python fails, do **not** set `PYTHONPATH`, use `pip` workarounds, copy modules, or edit the immutable release. Preserve the support bundle and return it for diagnosis. Physical relay testing remains blocked.
+
+## `gonken-agent env ...` reports `ENV_UNAVAILABLE: PermissionError`
+
+Run:
+
+```bash
+id
+getent group gonken-envctl
+```
+
+Checkpoint 24 adds the validated non-root invoking installer account to `gonken-envctl` only. Existing shells retain their old supplementary groups, so disconnect and reconnect SSH after successful installation. If a fresh login still lacks `gonken-envctl`, STOP and collect support evidence. Do not grant the human operator raw `gpio` or `i2c` as a workaround.

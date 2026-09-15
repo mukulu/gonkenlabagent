@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import os
 import platform
+import re
 import shutil
 import subprocess
 import sys
@@ -420,8 +421,12 @@ def _services() -> dict[str, dict[str, str]]:
 
 def _systemctl(action: str, service: str) -> str:
     result = _run(["systemctl", action, service], timeout=3)
+    if result["stdout"]:
+        observed = result["stdout"][0].strip()
+        if re.fullmatch(r"[A-Za-z0-9_.@-]{1,64}", observed):
+            return observed
     if result["exit_code"] == 0:
-        return result["stdout"][0] if result["stdout"] else "OK"
+        return "OK"
     return "UNKNOWN_OR_NOT_" + action.split("-")[-1].upper()
 
 

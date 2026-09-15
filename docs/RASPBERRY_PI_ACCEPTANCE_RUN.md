@@ -1,7 +1,7 @@
 # Raspberry Pi target acceptance campaign
 
 This runbook is the authoritative **real-target** procedure for GonKenLab Agent
-V09 checkpoint 23. Host CI, simulation, a clean ZIP, or a READY JSON file cannot
+V09 checkpoint 24. Host CI, simulation, a clean ZIP, or a READY JSON file cannot
 substitute for this campaign. Every result must remain classified as host,
 simulation, hybrid HIL, or physical evidence.
 
@@ -20,17 +20,17 @@ the checkpoint that passed host verification.
 Copy these delivered files to the Pi:
 
 ```text
-gonkenlabagent-v09-pi-target-campaign-checkpoint-23.zip
-SHA256SUMS_checkpoint23.txt
+gonkenlabagent-v09-installer-runtime-repair-checkpoint-24.zip
+SHA256SUMS_checkpoint24.txt
 ```
 
 Verify the archive and extract it without discarding its `.git` directory:
 
 ```bash
-sha256sum -c SHA256SUMS_checkpoint23.txt
-mkdir -p ~/gonken-checkpoint23
-python3 -m zipfile -e gonkenlabagent-v09-pi-target-campaign-checkpoint-23.zip ~/gonken-checkpoint23
-cd ~/gonken-checkpoint23/gonkenlabagent-v09-pi-target-campaign-checkpoint-23
+sha256sum -c SHA256SUMS_checkpoint24.txt
+mkdir -p ~/gonken-checkpoint24
+python3 -m zipfile -e gonkenlabagent-v09-installer-runtime-repair-checkpoint-24.zip ~/gonken-checkpoint24
+cd ~/gonken-checkpoint24/gonkenlabagent-v09-pi-target-campaign-checkpoint-23
 # Python's standard-library ZIP extractor does not restore Unix execute bits.
 # The archive includes its Git metadata, so restore the exact committed modes/content before validation.
 git reset --hard HEAD
@@ -46,7 +46,7 @@ Acceptance conditions before installation:
 - checksum verification passes;
 - `git reset --hard HEAD` completes after checksum verification and restores the exact committed executable modes/content required by the standard-library ZIP extraction path;
 - `./bootstrap.sh` is executable after that restoration;
-- the Git commit matches the commit printed in the checkpoint-23 delivery summary;
+- the Git commit matches the commit printed in the checkpoint-24 delivery summary;
 - `git status --porcelain` is empty;
 - `git fsck --strict` succeeds;
 - `release_readiness.py --check` reports `READY_FOR_TARGET_ACCEPTANCE` while
@@ -74,6 +74,8 @@ For an intended Bluetooth audio device with a known MAC address:
   --bluetooth-audio --bluetooth-device AA:BB:CC:DD:EE:FF
 ```
 
+Checkpoint 24 repairs the first real-Pi installer failure. Do not work around a failed install with `PYTHONPATH`, ad-hoc `pip install`, copied modules, or edits inside the immutable release. The target release must validate `gpiod` and `smbus` using its own interpreter before appliance readiness can complete.
+
 `--local-checkpoint` is deliberate: it binds the installation source record to
 the clean checkout's exact full Git commit. Normal production installs may use
 the official remote source later; this acceptance campaign must not silently
@@ -100,15 +102,35 @@ gonken-agent wake status --json
 gonken-agent doctor --probe-ollama --probe-audio
 systemctl status gonken-agent.service --no-pager -l
 readlink -f /usr/local/lib/gonken-agent/current
+/usr/local/lib/gonken-agent/current/.venv/bin/python -c 'import gpiod, smbus; from gpiod.line import Bias, Direction, Value; assert callable(gpiod.Chip); assert callable(gpiod.LineSettings); assert callable(gpiod.request_lines); assert callable(gpiod.Chip.get_info); assert callable(gpiod.Chip.get_line_info); assert callable(smbus.SMBus); print("hardware_bindings=ready")'
 ```
 
-Record the installed release identity and compare it with the downloaded
+The final Python command must print `hardware_bindings=ready`. Record the installed release identity and compare it with the downloaded
 checkpoint commit. A successful installation of a different commit is a FAIL
 for this campaign.
 
+## 3.1 Refresh the operator login and prove control-socket authorization
+
+Checkpoint 24 adds the validated non-root installer operator to the local `gonken-envctl` control group only. It does **not** grant that human account raw GPIO/I2C ownership. Supplementary groups do not change inside an already-running SSH shell, so disconnect and reconnect after a successful installation before judging environment CLI permissions.
+
+```bash
+exit
+# reconnect from the administration workstation
+ssh <operator>@<raspberry-pi>
+```
+
+Then run on the Pi:
+
+```bash
+id
+getent group gonken-envctl
+```
+
+The fresh `id` output must include `gonken-envctl`. If it does not, **STOP** and collect installer/support evidence. Do not add the human operator to raw `gpio` or `i2c` as a workaround. The environment feature is still disabled by default at this point.
+
 ## 4. GPIO identity inventory before wiring or actuation
 
-Checkpoint 23 no longer assumes that a BCM number is the same thing as a
+Checkpoint 24 preserves the checkpoint-23 rule and does not assume that a BCM number is the same thing as a
 `/dev/gpiochip0` character-device line offset. Production adapters resolve
 logical GPIOs by unique kernel line names and fail closed when the mapping is
 missing or ambiguous.
@@ -160,7 +182,7 @@ Then perform repeated real voice trials:
 6. Record missed intended wakes, benign false wakes, obvious self-triggering,
    wake-to-`Yes?` delay, and whether progress cues ever overlap the final answer.
 
-Checkpoint 23 host tests prove the bounded pipelined capture design, not real
+Checkpoint 24 preserves checkpoint-23 host tests proving the bounded pipelined capture design, not real
 microphone/STT recall. Real wake behavior is target evidence.
 
 The GPIO22 monitoring LED, if wired per `HARDWARE_SETUP.md`, should be ON only
@@ -227,6 +249,22 @@ Physically verify:
 
 Restore `interaction_mode = "wake_word"`, validate, restart, and verify normal
 `GonKen` operation again.
+
+## 7.1 Checkpoint-24 hard gate before any GPIO23 relay ON command
+
+The first checkpoint-23 target campaign failed before relay actuation. Therefore **do not run `gonken-agent env fan on`** until all of these are true on checkpoint 24:
+
+- the exact archive was verified and installed with `./bootstrap.sh --local-checkpoint`;
+- the installer printed governed `INSTALLATION_COMPLETE`;
+- the active immutable release matches the delivered checkpoint commit;
+- the application-venv hardware-binding probe prints `hardware_bindings=ready`;
+- `gonken-agent.service` no longer loops on `WAKE_LED_GPIO_DEPENDENCY_MISSING`;
+- after reconnecting, `id` includes `gonken-envctl`;
+- environment CLI access no longer fails with `ENV_UNAVAILABLE: PermissionError`;
+- `gpioinfo --strict GPIO23` and GonKen runtime identity agree on one unique GPIO23 line;
+- relay `COM`, `NO`, and `NC` remain unloaded until the explicit Stage-B unloaded test.
+
+If any item fails, STOP and collect a fresh support bundle. Do not repair the immutable release in place.
 
 ## 8. Environment campaign — safest to riskiest
 

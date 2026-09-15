@@ -1,0 +1,63 @@
+[RUN] tests.unit.test_runtime_audio
+test_overflow_still_counts_toward_recording_time_limit (tests.unit.test_runtime_audio.AudioTests.test_overflow_still_counts_toward_recording_time_limit) ... ok
+test_queue_frame_accounting_overflow_duration_and_close (tests.unit.test_runtime_audio.AudioTests.test_queue_frame_accounting_overflow_duration_and_close) ... ok
+test_reenumeration_backoff_and_late_hotplug (tests.unit.test_runtime_audio.AudioTests.test_reenumeration_backoff_and_late_hotplug) ... ok
+test_resampling_suppresses_alias_without_destroying_passband (tests.unit.test_runtime_audio.AudioTests.test_resampling_suppresses_alias_without_destroying_passband) ... ok
+test_selection_missing_ambiguous_exact_rate_and_renumber (tests.unit.test_runtime_audio.AudioTests.test_selection_missing_ambiguous_exact_rate_and_renumber) ... ok
+test_stereo_conversion_and_rejected_ratios (tests.unit.test_runtime_audio.AudioTests.test_stereo_conversion_and_rejected_ratios) ... ok
+test_cancel_at_each_stage_releases_audio_and_client (tests.unit.test_runtime_audio.CoordinatorTests.test_cancel_at_each_stage_releases_audio_and_client) ... ok
+test_complete_audio_path_and_no_feedback (tests.unit.test_runtime_audio.CoordinatorTests.test_complete_audio_path_and_no_feedback) ... ok
+test_concurrent_activation_only_one_is_accepted (tests.unit.test_runtime_audio.CoordinatorTests.test_concurrent_activation_only_one_is_accepted) ... ok
+test_failure_at_each_stage_recovers_without_raw_error (tests.unit.test_runtime_audio.CoordinatorTests.test_failure_at_each_stage_recovers_without_raw_error) ... ok
+test_invalid_transition_and_input_rejected (tests.unit.test_runtime_audio.CoordinatorTests.test_invalid_transition_and_input_rejected) ... ok
+test_text_mode_never_captures_or_speaks (tests.unit.test_runtime_audio.CoordinatorTests.test_text_mode_never_captures_or_speaks) ... ok
+test_waiting_recovery_and_shutdown_before_consumption (tests.unit.test_runtime_audio.CoordinatorTests.test_waiting_recovery_and_shutdown_before_consumption) ... ok
+test_no_arbitrary_error_text (tests.unit.test_runtime_audio.HealthTests.test_no_arbitrary_error_text) ... ok
+test_precedence_exit_codes_and_empty_is_not_ready (tests.unit.test_runtime_audio.HealthTests.test_precedence_exit_codes_and_empty_is_not_ready) ... ok
+test_bounce_hold_release_and_led_before_submit (tests.unit.test_runtime_audio.PTTTests.test_bounce_hold_release_and_led_before_submit) ... ok
+test_missing_device_and_start_failure_fail_closed (tests.unit.test_runtime_audio.PTTTests.test_missing_device_and_start_failure_fail_closed) ... ok
+test_stuck_button_cancels_no_processing_until_release (tests.unit.test_runtime_audio.PTTTests.test_stuck_button_cancels_no_processing_until_release) ... ok
+test_reject_shell_string_and_relative_executable (tests.unit.test_runtime_audio.ProcessTests.test_reject_shell_string_and_relative_executable) ... ok
+test_success_stderr_privacy_failure_timeout_and_cancel (tests.unit.test_runtime_audio.ProcessTests.test_success_stderr_privacy_failure_timeout_and_cancel) ... ok
+test_stt_cleanup_and_empty_output_refusal (tests.unit.test_runtime_audio.SpeechTests.test_stt_cleanup_and_empty_output_refusal) ... ok
+test_tts_cleanup_on_success_playback_failure_and_process_failure (tests.unit.test_runtime_audio.SpeechTests.test_tts_cleanup_on_success_playback_failure_and_process_failure) ... ok
+test_wav_and_normalization (tests.unit.test_runtime_audio.SpeechTests.test_wav_and_normalization) ... ok
+
+----------------------------------------------------------------------
+Ran 23 tests in 2.039s
+
+OK
+[PASS] tests.unit.test_runtime_audio
+[RUN] tests.unit.test_support_export
+test_bundle_exact_members_redacted_paths_no_raw_files (tests.unit.test_support_export.SupportTests.test_bundle_exact_members_redacted_paths_no_raw_files) ... ok
+test_bundle_preserves_allow_listed_health_reason_codes (tests.unit.test_support_export.SupportTests.test_bundle_preserves_allow_listed_health_reason_codes) ... ok
+test_content_in_telemetry_rejected_before_output (tests.unit.test_support_export.SupportTests.test_content_in_telemetry_rejected_before_output) ... ok
+test_existing_symlink_and_publish_race_preserve_destination (tests.unit.test_support_export.SupportTests.test_existing_symlink_and_publish_race_preserve_destination) ... ok
+test_extra_health_details_are_not_exported (tests.unit.test_support_export.SupportTests.test_extra_health_details_are_not_exported) ... ok
+test_install_event_export_is_bounded_allow_listed_and_content_free (tests.unit.test_support_export.SupportTests.test_install_event_export_is_bounded_allow_listed_and_content_free) ... ok
+test_release_identity_export_binds_current_symlink_to_record (tests.unit.test_support_export.SupportTests.test_release_identity_export_binds_current_symlink_to_record) ... ok
+test_runtime_binding_member_reports_release_interpreter_probe_without_raw_output (tests.unit.test_support_export.SupportTests.test_runtime_binding_member_reports_release_interpreter_probe_without_raw_output) ... ok
+test_service_event_export_counts_codes_without_exporting_journal_text (tests.unit.test_support_export.SupportTests.test_service_event_export_counts_codes_without_exporting_journal_text) ... ok
+test_startup_snapshot_is_allow_listed_member (tests.unit.test_support_export.SupportTests.test_startup_snapshot_is_allow_listed_member) ... ok
+
+----------------------------------------------------------------------
+Ran 10 tests in 8.616s
+
+OK
+[PASS] tests.unit.test_support_export
+[RUN] tests.unit.test_test_architecture
+test_automated_suites_do_not_import_optional_boundaries (tests.unit.test_test_architecture.TestArchitectureTests.test_automated_suites_do_not_import_optional_boundaries) ... ok
+test_ci_entry_point_has_no_install_or_network_step (tests.unit.test_test_architecture.TestArchitectureTests.test_ci_entry_point_has_no_install_or_network_step) ... ok
+test_hardware_and_live_probe_boundaries_are_documented (tests.unit.test_test_architecture.TestArchitectureTests.test_hardware_and_live_probe_boundaries_are_documented) ... ok
+test_manual_programs_refuse_unintentional_execution (tests.unit.test_test_architecture.TestArchitectureTests.test_manual_programs_refuse_unintentional_execution) ... ok
+test_no_interactive_program_is_named_as_an_automated_test (tests.unit.test_test_architecture.TestArchitectureTests.test_no_interactive_program_is_named_as_an_automated_test) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 2.169s
+
+OK
+[PASS] tests.unit.test_test_architecture
+[RUN] tests.unit.test_v09_environment_acceptance_runner
+test_default_collection_is_non_destructive_and_blocks_fan_cycle (tests.unit.test_v09_environment_acceptance_runner.EnvironmentAcceptanceRunnerTests.test_default_collection_is_non_destructive_and_blocks_fan_cycle) ... ok
+test_explicit_actuation_runs_fan_cycle_commands_but_still_claims_no_acceptance (tests.unit.test_v09_environment_acceptance_runner.EnvironmentAcceptanceRunnerTests.test_explicit_actuation_runs_fan_cycle_commands_but_still_claims_no_acceptance) ... ok
+test_physical_acceptance_runner_blocks_simulated_backend_json (tests.unit.test_v09_environment_acceptance_runner.EnvironmentAcceptanceRunnerTests.test_physical_acceptance_runner_blocks_simulated_backend_json) ...

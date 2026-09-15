@@ -1,0 +1,24 @@
+{
+  "schema": 1,
+  "checkpoint": 24,
+  "source_checkpoint": 23,
+  "source_commit": "82a9c9b4223aa1036f37a2298bef0d8b3188dd4d",
+  "inputs": {
+    "checkpoint23_archive_sha256": "bd47c2d6580a45273fc65b9ba90e96d21dedb9f4b1ac610fec9a35391643d976",
+    "pi_support_bundle_sha256": "f6357b55196c0b289497b7729f437ef474576687924b426d95cd440f6865e54a",
+    "audit_addendum_archive_sha256": "2967547a34ed7eabbdb9408cd9ac5565731a4181027a49835109454a7fc1a0d5"
+  },
+  "verified_target_observations": [
+    "Debian installation completed for python3-libgpiod and python3-smbus.",
+    "The immutable GonKen service interpreter repeatedly reported python3-libgpiod_is_not_importable.",
+    "The human operator was not a member of gonken-envctl and env status returned ENV_UNAVAILABLE PermissionError.",
+    "gonken-environment.service exited successfully with ENVIRONMENT_DISABLED enabled=false under packaged defaults.",
+    "The target reported GPIO23 as gpiochip0 line 23 before actuation."
+  ],
+  "checkpoint24_claim_boundary": {
+    "host_repair": "verified",
+    "repaired_target_installation": "not_run",
+    "physical_relay_actuation": "not_run",
+    "physical_acceptance": false
+  }
+}

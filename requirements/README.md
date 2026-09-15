@@ -5,17 +5,21 @@ accepted and blocked profiles, exact wheel identities, hashes, licenses, target
 interpreters, and target platforms. The `*.lock` files are deterministic
 generated views; do not edit them directly.
 
-The maintained M2.3 package foundation has no third-party core or test
-dependency. This is an exact statement, not an omission: the packaged runtime
-has not yet been implemented and `gonken-agent run` still fails closed. Runtime
-dependencies must enter the manifest and locks with their implementation
-milestone; they must never be smuggled in through the legacy input file.
+The maintained Python package profile has no third-party **pip/wheel** core or
+test dependency. Raspberry Pi hardware bindings are a separate, explicit
+target-OS contract: the installer provisions Debian `python3-libgpiod` and
+`python3-smbus`, and only the `core-pi-trixie-py313` immutable venv is created
+with system-site visibility so those root-managed distro bindings are visible
+to the production interpreter. Development profiles remain isolated. The
+release validator checks the exact hardware API surface before target
+installation can proceed, so an APT-level install cannot be mistaken for a
+usable application runtime.
 
 ## Profiles
 
 | Profile | Purpose | State |
 |---|---|---|
-| `core-pi-trixie-py313` | Headless package foundation on the production target | Installable; zero third-party dependencies |
+| `core-pi-trixie-py313` | Headless production target | Installable; zero pip/wheel dependencies; consumes validated Debian `python3-libgpiod` + `python3-smbus` through the target-only system-site policy |
 | `dev-py312` | Current x86 host unit/static checks | Installable; zero third-party dependencies |
 | `ui-pi-trixie-py313` | Optional Raspberry Pi UI evaluation | Installable separately; `pygame` exact/hash-locked |
 | `ui-dev-py312` | Optional x86 UI import evaluation | Installable separately; `pygame` exact/hash-locked |

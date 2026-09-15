@@ -34,6 +34,7 @@ REQUIRED_HOST_MILESTONES = {
     "M10.11",
     "M10.12",
     "M10.13",
+    "M10.15",
 }
 REQUIRED_SIM_STEPS = {
     "full_simulation_provenance",

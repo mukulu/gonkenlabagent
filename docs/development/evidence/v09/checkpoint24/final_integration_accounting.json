@@ -1,0 +1,98 @@
+{
+  "schema": 1,
+  "checkpoint": 24,
+  "suite": "integration-excluding-release-lifecycle",
+  "module_count": 10,
+  "test_count": 46,
+  "quality_verdict": "PASS",
+  "execution_note": "Canonical aggregate attempt was interrupted; every non-release integration module is accounted for by preserved bounded/decomposed passing evidence. Release lifecycle is recorded separately.",
+  "modules": [
+    {
+      "module": "tests.integration.test_bootstrap_preflight_process",
+      "tests": 4,
+      "status": "PASS",
+      "evidence_logs": [
+        "integration_phase.log"
+      ]
+    },
+    {
+      "module": "tests.integration.test_cli_process",
+      "tests": 5,
+      "status": "PASS",
+      "evidence_logs": [
+        "integration_phase.log"
+      ]
+    },
+    {
+      "module": "tests.integration.test_first_install_launcher",
+      "tests": 4,
+      "status": "PASS",
+      "evidence_logs": [
+        "integration_phase.log"
+      ]
+    },
+    {
+      "module": "tests.integration.test_install_engine_process",
+      "tests": 10,
+      "status": "PASS",
+      "evidence_logs": [
+        "integration_phase.log"
+      ]
+    },
+    {
+      "module": "tests.integration.test_ollama_lifecycle_process",
+      "tests": 5,
+      "status": "PASS",
+      "evidence_logs": [
+        "integration_ollama_followup.log",
+        "integration_phase.log"
+      ]
+    },
+    {
+      "module": "tests.integration.test_speech_lifecycle_process",
+      "tests": 5,
+      "status": "PASS",
+      "evidence_logs": [
+        "integration_speech.log",
+        "speech_SpeechLifecycleProcessTests_test_full_lifecycle_repeat_status_and_private_record.log",
+        "speech_SpeechLifecycleProcessTests_test_wrong_architecture_native_payload_is_rejected_and_repaired.log",
+        "speech_SpeechLifecycleProcessTests_test_zero_byte_bad_checksum_and_missing_pair_repair.log",
+        "speech_interrupted_boundaries_followup.log",
+        "speech_smoke_followup.log"
+      ]
+    },
+    {
+      "module": "tests.integration.test_support_collection_process",
+      "tests": 1,
+      "status": "PASS",
+      "evidence_logs": [
+        "integration_remaining_fast.log"
+      ]
+    },
+    {
+      "module": "tests.integration.test_text_runtime_process",
+      "tests": 9,
+      "status": "PASS",
+      "evidence_logs": [
+        "integration_remaining_fast.log"
+      ]
+    },
+    {
+      "module": "tests.integration.test_uninstall_lifecycle_process",
+      "tests": 2,
+      "status": "PASS",
+      "evidence_logs": [
+        "integration_remaining_fast.log"
+      ]
+    },
+    {
+      "module": "tests.integration.test_v09_user_test_release_candidate",
+      "tests": 1,
+      "status": "PASS",
+      "evidence_logs": [
+        "final_readiness_and_support.log",
+        "user_test_integration_initial.log"
+      ]
+    }
+  ]
+}

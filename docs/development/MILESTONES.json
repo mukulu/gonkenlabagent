@@ -1,6 +1,6 @@
 {
   "baseline_commit": "3b25b81c5bc7d4e24268726ad7f7b71296215a03",
-  "checkpoint_scope": "V09 checkpoint 23 pre-target completion audit and Raspberry Pi target-campaign handoff",
+  "checkpoint_scope": "V09 checkpoint 24 target installer/runtime dependency repair after checkpoint-23 Raspberry Pi evidence",
   "milestones": [
     {
       "evidence": "TEST_MATRIX.md (M2.1)",
@@ -364,6 +364,14 @@
       "title": "User simulation and sensor-deferred HIL release candidate",
       "status": "host-verified",
       "target_status": "not-run"
+    },
+    {
+      "id": "M10.15",
+      "title": "Target installer/runtime dependency repair and evidence hardening",
+      "software": "host-verified",
+      "target": "not-run",
+      "evidence": "scripts/release_manager.py; scripts/install.sh; scripts/environment_profile_manager.py; src/gonken_agent/support.py; src/gonken_agent/diagnostics.py; tests/unit/test_m3_3_release_manager.py; tests/unit/test_v09_environment_profile_manager.py; tests/unit/test_support_export.py; tests/unit/test_diagnostics_snapshot.py; docs/development/V09_CHECKPOINT_24_REPORT.md; docs/development/V09_CHANGE_VERIFICATION_REPORT_CHECKPOINT_24.md",
+      "remaining": "Real target closure requires the exact checkpoint-24 archive to reach governed INSTALLATION_COMPLETE and pass the target runtime/operator preflight before relay actuation resumes. Physical relay/fan acceptance remains NOT_RUN."
     }
   ],
   "schema_version": 1

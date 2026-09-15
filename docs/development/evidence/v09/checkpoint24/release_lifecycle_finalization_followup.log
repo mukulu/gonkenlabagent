@@ -1,0 +1,6 @@
+test_candidate_finalize_boundaries_leave_recoverable_old_or_new_state (tests.integration.test_release_lifecycle_process.FinalizationInterruptionTests.test_candidate_finalize_boundaries_leave_recoverable_old_or_new_state) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 2.986s
+
+OK

@@ -1396,3 +1396,48 @@ The deterministic M10.14 simulation runner exercises manual, AUTO, SEMI, stale/r
 - **Decision:** The Raspberry Pi runbook may use `python3 -m zipfile -e` because Python is part of the supported baseline, but it must immediately run `git reset --hard HEAD` only after archive checksum verification and before Git cleanliness/executability checks. It then requires `test -x ./bootstrap.sh`.
 - **Reason:** The ZIP archive stores the correct Unix executable modes, but Python's standard-library ZIP extractor does not restore them. A fresh package extraction therefore appeared dirty and left launch scripts non-executable even though the archive itself was correct.
 - **Consequence:** The included Git metadata becomes the authoritative deterministic restoration mechanism for exact committed content/modes after this extractor. Any other in-place repair remains prohibited; identity or integrity failures after restoration are STOP conditions.
+
+
+## 2026-09-16 — Checkpoint 24 target-evidence repair decisions
+
+### D-138 — Pi target venvs deliberately consume distro hardware bindings
+
+- **Status:** Accepted in checkpoint 24.
+- **Decision:** Only the `core-pi-trixie-py313` immutable application release profile uses Python venv system-site package visibility so the production interpreter can consume the root-managed Debian `python3-libgpiod` and `python3-smbus` packages. Development profiles remain isolated.
+- **Reason:** Checkpoint-23 target evidence proved the prior installer could install the OS bindings and still build a service venv that could not import them.
+- **Consequence:** Target release validation must treat the distro package set as part of the target runtime contract and must fail closed on missing/incompatible APIs.
+
+### D-139 — Hardware-binding validation runs through the immutable release interpreter
+
+- **Status:** Accepted in checkpoint 24.
+- **Decision:** Release validation imports `gpiod`, the required libgpiod-v2 symbols/API surface, and `smbus.SMBus` with the actual immutable release interpreter. Target installation additionally validates the release as `gonken-env`; normal release validation covers `gonken-agent`.
+- **Reason:** A system-Python import check was a false green because the production service uses the release venv.
+- **Consequence:** A target release that cannot use the exact hardware bindings can no longer proceed to appliance readiness or physical environment testing.
+
+### D-140 — Human operators receive control-socket authority, not raw hardware authority
+
+- **Status:** Accepted in checkpoint 24.
+- **Decision:** The validated non-root invoking operator is added to `gonken-envctl` only. `gpio` and `i2c` remain hardware-service privileges. A fresh login session is explicitly required before the operator CLI permission is evaluated.
+- **Reason:** The checkpoint-23 operator received `ENV_UNAVAILABLE: PermissionError` even though the daemon/client design expected supervised CLI access. Granting raw device groups would violate the single-owner/least-privilege architecture.
+- **Consequence:** `gonken-agent env ...` becomes usable after reconnect without creating a second GPIO/I2C owner. Direct-root installs do not invent a human operator.
+
+### D-141 — Sensor-deferred site activation is an explicit non-actuating admin operation
+
+- **Status:** Accepted in checkpoint 24.
+- **Decision:** The release ships `environment_profile_manager.py`, which may create the exact `sensor_backend=simulated` plus `relay_backend=libgpiod` profile only when the site configuration is absent, uses atomic root-owned persistence, refuses symlinks/divergent existing configuration, and never starts services or touches hardware.
+- **Reason:** Beginner target setup needed a safe deterministic alternative to ad-hoc TOML editing without making generic installation enable physical actuation.
+- **Consequence:** Generic installation remains environment-disabled; supervised hardware activation remains a later explicit step.
+
+### D-142 — Support evidence must expose the runtime boundary that failed on checkpoint 23
+
+- **Status:** Accepted in checkpoint 24.
+- **Decision:** Support bundles include active immutable release identity/profile, application-interpreter hardware-binding status, Debian binding-package versions, allow-listed health reason codes, bounded installer event records, and bounded service event-code counts. Raw journals, transcripts and arbitrary error text remain excluded.
+- **Reason:** The first target support bundle did not expose enough provenance/runtime detail to diagnose the venv/system-package boundary directly and collapsed legitimate service states.
+- **Consequence:** Future target failures should be diagnosable without weakening privacy/content-minimization.
+
+### D-143 — Relay actuation remains blocked until repaired installation completion
+
+- **Status:** Accepted in checkpoint 24.
+- **Decision:** No physical GPIO23 relay ON command is permitted during this repair checkpoint. The next target campaign must first show exact-package identity, `INSTALLATION_COMPLETE`, runtime-binding PASS, a fresh `gonken-envctl` operator session, healthy environment control-socket access and unique GPIO23 mapping.
+- **Reason:** Manually patching checkpoint 23 would test a hand-repaired machine rather than the installer/package that must be accepted.
+- **Consequence:** Existing unloaded wiring can remain physically disconnected on COM/NO/NC while software repair is verified.

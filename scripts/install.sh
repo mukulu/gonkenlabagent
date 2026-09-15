@@ -329,7 +329,7 @@ gonken_env_account_postcondition() {
       || "$home" != "/var/lib/gonken-environment" || "$shell" != "/usr/sbin/nologin" ]]; then
     return 2
   fi
-  local env_memberships agent_memberships
+  local env_memberships agent_memberships operator operator_memberships
   env_memberships="$(id -nG gonken-env 2>/dev/null)" || return 2
   agent_memberships="$(id -nG gonken-agent 2>/dev/null)" || return 2
   [[ " $agent_memberships " == *" gonken-envctl "* ]] || return 1
@@ -339,7 +339,12 @@ gonken_env_account_postcondition() {
   if getent group gpio >/dev/null 2>&1; then
     [[ " $env_memberships " == *" gpio "* ]] || return 1
   fi
-  GONKEN_STEP_EVIDENCE="environment_uid_${uid}_gid_${gid}_control_group_gonken-envctl"
+  operator="${GONKEN_SOURCE_RECORD[invoking_user]}"
+  if [[ "$operator" != "root" ]]; then
+    operator_memberships="$(id -nG -- "$operator" 2>/dev/null)" || return 2
+    [[ " $operator_memberships " == *" gonken-envctl "* ]] || return 1
+  fi
+  GONKEN_STEP_EVIDENCE="environment_uid_${uid}_gid_${gid}_control_group_gonken-envctl_operator_${operator}"
 }
 
 gonken_env_account_action() {
@@ -360,6 +365,30 @@ gonken_env_account_action() {
   fi
   usermod -a -G "$env_groups" gonken-env || return 73
   usermod -a -G gonken-envctl gonken-agent || return 73
+  local operator="${GONKEN_SOURCE_RECORD[invoking_user]}"
+  if [[ "$operator" != "root" ]]; then
+    usermod -a -G gonken-envctl "$operator" || return 73
+    printf '[OK] code=ENV_OPERATOR_AUTHORIZED operator=%s group=gonken-envctl session_refresh_required=true\n' "$operator"
+  fi
+}
+
+gonken_target_runtime_bindings_postcondition() {
+  [[ "${GONKEN_SOURCE_RECORD[platform_mode]}" == "target" ]] || return 0
+  python3 "$RELEASE_MANAGER" validate \
+    --release "$RELEASE_ROOT/releases/${GONKEN_SOURCE_RECORD[resolved_commit]}" \
+    --commit "${GONKEN_SOURCE_RECORD[resolved_commit]}" \
+    --profile "$RELEASE_PROFILE" \
+    --service-user gonken-env >/dev/null 2>&1 || return 1
+  GONKEN_STEP_EVIDENCE="target_release_runtime_bindings_gpiod_smbus_service_accounts"
+}
+
+gonken_target_runtime_bindings_action() {
+  gonken_target_runtime_bindings_postcondition && return 0
+  gonken_error \
+    "TARGET_RUNTIME_BINDINGS" \
+    "active immutable release cannot import the required gpiod/smbus APIs as gonken-env" \
+    "rebuild the checkpoint release with the target system-site-packages policy and compatible Debian bindings"
+  return 74
 }
 
 gonken_layout_precondition() {
@@ -876,15 +905,22 @@ if ((ENGINE_ONLY == 0)); then
 
   if [[ "${GONKEN_SOURCE_RECORD[platform_mode]}" == "target" && "$RELEASE_ONLY" == "0" ]]; then
     gonken_register_step \
-      "environment_account" "1" \
+      "environment_account" "2" \
       "gonken_activation_postcondition" "gonken_env_account_action" "gonken_env_account_postcondition" \
-      "dedicated_environment_owner_and_control_socket_client_group" \
-      "create_nonlogin_gonken-env_and_gonken-envctl_without_starting_hardware" \
-      "voice_account_gets_socket_group_not_raw_environment_hardware" || exit $?
+      "dedicated_environment_owner_and_control_socket_client_group_plus_invoking_operator" \
+      "create_nonlogin_gonken-env_and_authorize_the_validated_operator_without_starting_hardware" \
+      "operator_gets_only_socket_control_group_not_raw_environment_hardware" || exit $?
+
+    gonken_register_step \
+      "target_runtime_bindings" "1" \
+      "gonken_env_account_postcondition" "gonken_target_runtime_bindings_action" "gonken_target_runtime_bindings_postcondition" \
+      "release_venv_hardware_binding_imports_as_environment_service_account" \
+      "validate_gpiod_smbus_inside_active_release_before_any_hardware_service_use" \
+      "no_hardware_is_opened_or_actuated_by_import_validation" || exit $?
 
     gonken_register_step \
       "environment_service" "1" \
-      "gonken_env_account_postcondition" "gonken_environment_service_action" "gonken_environment_service_postcondition" \
+      "gonken_target_runtime_bindings_postcondition" "gonken_environment_service_action" "gonken_environment_service_postcondition" \
       "exact_environment_systemd_unit_tmpfiles_and_disabled_autostart" \
       "install_structural_service_files_without_enable_or_start" \
       "generic_upgrade_does_not_actuate_or_claim_physical_acceptance" || exit $?
@@ -1019,5 +1055,9 @@ if [[ "${GONKEN_SOURCE_RECORD[bluetooth_audio]:-disabled}" == "requested" ]]; th
   printf '[OK] code=X4_BLUETOOTH_SETUP status=READY paired=true autoconnect=true usb_fallback=true\n'
 fi
 printf '[READY] code=INSTALLATION_COMPLETE service=gonken-agent.service autostart=enabled reboot_required=false wake_phrase=GonKen\n'
+if [[ "${GONKEN_SOURCE_RECORD[invoking_user]}" != "root" ]]; then
+  printf '[INFO] code=ENV_OPERATOR_SESSION_REFRESH operator=%s group=gonken-envctl action=disconnect_and_reconnect_before_running_gonken-agent_env_commands\n' \
+    "${GONKEN_SOURCE_RECORD[invoking_user]}"
+fi
 printf '[INFO] code=NEXT_ACTION message=say_GonKen_or_run_gonken-agent_talk;_see_docs/OPERATIONS.md_for_manual_control\n'
 exit 0

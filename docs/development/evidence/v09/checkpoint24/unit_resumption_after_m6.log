@@ -1,0 +1,62 @@
+[RUN] tests.unit.test_m8_uninstall_manager
+test_keep_data_default_removes_code_and_service_but_retains_data (tests.unit.test_m8_uninstall_manager.UninstallManagerTests.test_keep_data_default_removes_code_and_service_but_retains_data) ... ok
+test_modified_service_or_entrypoint_fails_before_mutation (tests.unit.test_m8_uninstall_manager.UninstallManagerTests.test_modified_service_or_entrypoint_fails_before_mutation) ... ok
+test_purge_requires_confirmation_and_never_touches_ollama (tests.unit.test_m8_uninstall_manager.UninstallManagerTests.test_purge_requires_confirmation_and_never_touches_ollama) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 3.685s
+
+OK
+[PASS] tests.unit.test_m8_uninstall_manager
+[RUN] tests.unit.test_m8_update_manager
+test_resolve_ref_accepts_unambiguous_local_branch_under_test_gate (tests.unit.test_m8_update_manager.UpdateManagerTests.test_resolve_ref_accepts_unambiguous_local_branch_under_test_gate) ... ok
+test_source_and_ref_validation_fail_closed (tests.unit.test_m8_update_manager.UpdateManagerTests.test_source_and_ref_validation_fail_closed) ... ok
+test_update_builds_activates_prunes_and_restarts_service (tests.unit.test_m8_update_manager.UpdateManagerTests.test_update_builds_activates_prunes_and_restarts_service) ... ok
+test_update_noop_does_not_restart_service (tests.unit.test_m8_update_manager.UpdateManagerTests.test_update_noop_does_not_restart_service) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.067s
+
+OK
+[OK] code=UPDATE_COMPLETE commit=03f794e112eb4104e8ce8ed4e89203dc3a8c5e51 previous=876121994be4a9231546886972e732318ef3490d
+[OK] code=UPDATE_ALREADY_CURRENT commit=62807e602b9afb83387b7bb344bfc7db2eb2294c
+[PASS] tests.unit.test_m8_update_manager
+[RUN] tests.unit.test_qwen_runtime_contract
+test_chat_disables_thinking_for_structured_json_contract (tests.unit.test_qwen_runtime_contract.QwenRuntimeContractTests.test_chat_disables_thinking_for_structured_json_contract) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.001s
+
+OK
+[PASS] tests.unit.test_qwen_runtime_contract
+[RUN] tests.unit.test_release_readiness
+test_human_report_has_exact_boundary_language (tests.unit.test_release_readiness.ReleaseReadinessTests.test_human_report_has_exact_boundary_language) ... FAIL
+test_report_is_ready_for_target_acceptance_from_clean_tree (tests.unit.test_release_readiness.ReleaseReadinessTests.test_report_is_ready_for_target_acceptance_from_clean_tree) ... FAIL
+test_target_acceptance_runbook_is_user_facing (tests.unit.test_release_readiness.ReleaseReadinessTests.test_target_acceptance_runbook_is_user_facing) ... ok
+
+======================================================================
+FAIL: test_human_report_has_exact_boundary_language (tests.unit.test_release_readiness.ReleaseReadinessTests.test_human_report_has_exact_boundary_language)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/data/ckpt24_impl/gonkenlabagent-v09-pi-target-campaign-checkpoint-23/tests/unit/test_release_readiness.py", line 47, in test_human_report_has_exact_boundary_language
+    self.assertIn("Status: READY_FOR_TARGET_ACCEPTANCE", result.stdout)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'Status: READY_FOR_TARGET_ACCEPTANCE' not found in 'Status: NOT_READY\nBranch: checkpoint24-installer-runtime-repair\nCommit: 82a9c9b4223aa1036f37a2298bef0d8b3188dd4d\nDirty tree: True\nHost verified required items: 39/40\nTarget gates remaining: 25\n- M3.1: Bootstrap preflight\n- M3.2: Step engine and install state\n- M3.3: Immutable application release\n- M3.4: Ollama lifecycle and selected model\n- M3.5: Whisper and Piper artifacts\n- M3.6: Install summary\n- M4.1: Coordinator/state/health\n- M4.2: Audio discovery and recovery\n- M4.3: Resampling/STT/TTS lifecycle\n- M5.1: Push-to-talk and recording indication\n- M5.2: Offline boundary\n- M6.1: Application service\n'
+
+======================================================================
+FAIL: test_report_is_ready_for_target_acceptance_from_clean_tree (tests.unit.test_release_readiness.ReleaseReadinessTests.test_report_is_ready_for_target_acceptance_from_clean_tree)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/data/ckpt24_impl/gonkenlabagent-v09-pi-target-campaign-checkpoint-23/tests/unit/test_release_readiness.py", line 23, in test_report_is_ready_for_target_acceptance_from_clean_tree
+    self.assertEqual(report["status"], "READY_FOR_TARGET_ACCEPTANCE")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'NOT_READY' != 'READY_FOR_TARGET_ACCEPTANCE'
+- NOT_READY
++ READY_FOR_TARGET_ACCEPTANCE
+
+
+----------------------------------------------------------------------
+Ran 3 tests in 1.333s
+
+FAILED (failures=2)
+[FAIL_OR_TIMEOUT] tests.unit.test_release_readiness rc=1

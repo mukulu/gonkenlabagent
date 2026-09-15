@@ -1588,6 +1588,14 @@ Create or revise README, `docs/HARDWARE_SETUP.md`, `docs/ENVIRONMENT_CONTROL.md`
 
 Produce the first user-test package labelled `READY_FOR_USER_SIMULATION_AND_SENSOR_DEFERRED_HIL` if and only if full simulation, sensor-deferred real-fan testing, voice/manual fan controls, live watch, evidence export, rollback/recovery and documentation gates pass.  If SHT31 remains unavailable, keep the SHT31 physical gate BLOCKED while allowing real-relay/fan and simulation/hybrid testing to proceed.
 
+#### M10.15 Target installer/runtime dependency repair and evidence hardening
+
+Repair the Raspberry Pi target failure discovered by the first checkpoint-23 campaign before any relay actuation resumes.  The Pi target release must deliberately expose the Debian-managed `python3-libgpiod` and `python3-smbus` bindings to the immutable application virtual environment while development profiles remain isolated.  Candidate validation and a separate target-install step must execute import/API checks with the actual release interpreter under both long-running service-account contexts before installation can proceed to appliance readiness.
+
+The installer must authorize the validated non-root invoking operator for the `gonken-envctl` control socket only; it must never grant that operator raw `gpio` or `i2c` privilege.  The installer must make the required login-session refresh explicit.  A root-owned, non-actuating maintenance helper may create the exact sensor-deferred profile only when the site configuration is absent, must refuse to overwrite divergent administrator configuration, and must never start the environment service or acquire GPIO/I2C resources.
+
+Support/diagnostic export must bind evidence to the active immutable release commit/profile, report whether the application interpreter can use the required hardware APIs, report distro package versions, preserve safe health reason codes and legitimate `inactive`/`disabled` service states, and include only bounded content-free installer/service event codes.  Target acceptance remains BLOCKED until the repaired exact checkpoint reaches governed `INSTALLATION_COMPLETE`, the fresh operator login can use the environment control socket, and the target runtime-binding gate is READY.
+
 ### 22.5 Target evidence after user upload
 
 After the user runs the target package and uploads evidence, the next development session must verify package identity and configuration, classify each evidence item as full simulation, hybrid or physical, identify root cause for failures, fix the smallest correct layer, rerun affected host checks, issue the next package and rerun only uncertain target tests.  Do not restart architecture discovery.
@@ -1665,3 +1673,16 @@ The **target campaign order** is now:
 10. collect the M10.7 private ledger and support bundle and upload all FAIL/BLOCKED/NEEDS_MANUAL_REVIEW evidence without local relabelling.
 
 Checkpoint 23 may be labelled **`READY_FOR_RASPBERRY_PI_TARGET_CAMPAIGN`** only after fresh whole-project host phases, final documentation/control consistency, exact-commit simulation/readiness gates, and fresh-archive package verification pass. The label is not a physical acceptance claim. If target evidence later exposes a defect, continue from checkpoint 23, fix the smallest correct layer, rerun affected host regressions, issue the next checkpoint and repeat only the uncertain target gates.
+
+
+## V09 implementation checkpoint 24 — target installer/runtime dependency repair
+
+Checkpoint 24 is an evidence-driven repair of the first real Raspberry Pi installation campaign, not a reopening of the V09 architecture.  Checkpoint-23 target evidence established that Raspberry Pi OS/Trixie had installed `python3-libgpiod` and `python3-smbus` successfully, while the immutable GonKen application venv remained isolated from Debian `dist-packages`.  The production voice service consequently looped on `WAKE_LED_GPIO_DEPENDENCY_MISSING`; the same interpreter boundary would also block production PTT/recording LEDs, GPIO23 relay control and the SHT31 SMBus adapter.  The target also showed that the human login account was not a member of the `gonken-envctl` socket-client group.
+
+The repair keeps the existing one-hardware-owner and least-privilege model.  Only the `core-pi-trixie-py313` release profile is constructed with system-site package visibility; development releases remain isolated.  Release validation executes a bounded hardware-binding API probe using the release interpreter, and the target installer adds a second validation as the `gonken-env` account after account provisioning.  The ordinary release validation path still validates the same release as the `gonken-agent` account, so both production service identities are covered.
+
+The validated invoking non-root operator is added only to `gonken-envctl`; raw `gpio` and `i2c` groups remain reserved for the hardware-owning service account.  Because Linux supplementary-group changes do not alter the already-running login shell, successful installation emits an explicit reconnect requirement before operator environment CLI acceptance.
+
+A new non-actuating `environment_profile_manager.py` creates the exact sensor-deferred `simulated`-sensor/`libgpiod`-actuator site profile only when no site file exists and refuses to overwrite a different administrator-owned configuration.  It never starts services, requests GPIO/I2C devices or claims physical evidence.  Support bundles now export bounded release/runtime-binding/package provenance, allow-listed installer and service event codes, and health reason codes without transcripts or raw journals.
+
+Checkpoint 24 remains host/software evidence until the exact packaged checkpoint is installed on the Raspberry Pi.  Physical relay actuation is explicitly blocked until that installer reaches `INSTALLATION_COMPLETE`, the active release commit matches the delivered archive, application-runtime bindings pass on target, a fresh login has `gonken-envctl`, and GPIO23 mapping is reverified.

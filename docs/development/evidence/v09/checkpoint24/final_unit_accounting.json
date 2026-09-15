@@ -1,0 +1,374 @@
+{
+  "schema": 1,
+  "checkpoint": 24,
+  "suite": "unit",
+  "module_count": 40,
+  "test_count": 394,
+  "quality_verdict": "PASS",
+  "execution_note": "Canonical aggregate attempts were interrupted by the execution harness; every module is accounted for by preserved bounded/decomposed passing evidence. Aggregate interruption itself is not relabelled PASS.",
+  "modules": [
+    {
+      "module": "tests.unit.test_bounded_unittest_runner",
+      "tests": 8,
+      "status": "PASS",
+      "evidence_logs": [
+        "final_unit_phase.log",
+        "unit_phase.log"
+      ]
+    },
+    {
+      "module": "tests.unit.test_diagnostics_snapshot",
+      "tests": 7,
+      "status": "PASS",
+      "evidence_logs": [
+        "affected_unit_106.log",
+        "final_unit_phase.log",
+        "narrow_regression_39.log",
+        "unit_phase.log"
+      ]
+    },
+    {
+      "module": "tests.unit.test_fix5_appliance_manager",
+      "tests": 4,
+      "status": "PASS",
+      "evidence_logs": [
+        "final_unit_phase.log",
+        "unit_phase.log"
+      ]
+    },
+    {
+      "module": "tests.unit.test_grounding_observability",
+      "tests": 18,
+      "status": "PASS",
+      "evidence_logs": [
+        "final_unit_phase.log",
+        "unit_phase.log"
+      ]
+    },
+    {
+      "module": "tests.unit.test_legacy_router",
+      "tests": 7,
+      "status": "PASS",
+      "evidence_logs": [
+        "final_unit_phase.log",
+        "unit_phase.log"
+      ]
+    },
+    {
+      "module": "tests.unit.test_m2_1",
+      "tests": 17,
+      "status": "PASS",
+      "evidence_logs": [
+        "final_unit_phase.log",
+        "unit_phase.log"
+      ]
+    },
+    {
+      "module": "tests.unit.test_m2_2_config",
+      "tests": 28,
+      "status": "PASS",
+      "evidence_logs": [
+        "final_unit_phase.log",
+        "unit_phase.log"
+      ]
+    },
+    {
+      "module": "tests.unit.test_m2_3_dependencies",
+      "tests": 9,
+      "status": "PASS",
+      "evidence_logs": [
+        "final_unit_phase.log",
+        "unit_phase.log"
+      ]
+    },
+    {
+      "module": "tests.unit.test_m3_1_preflight",
+      "tests": 21,
+      "status": "PASS",
+      "evidence_logs": [
+        "affected_unit_106.log",
+        "final_unit_phase.log",
+        "unit_phase.log"
+      ]
+    },
+    {
+      "module": "tests.unit.test_m3_2_install_engine",
+      "tests": 16,
+      "status": "PASS",
+      "evidence_logs": [
+        "affected_unit_106.log",
+        "final_unit_phase.log",
+        "unit_phase.log"
+      ]
+    },
+    {
+      "module": "tests.unit.test_m3_3_release_manager",
+      "tests": 21,
+      "status": "PASS",
+      "evidence_logs": [
+        "affected_unit_106.log",
+        "final_unit_phase.log",
+        "narrow_regression_39.log",
+        "support_release_regression_31.log",
+        "unit_phase.log"
+      ]
+    },
+    {
+      "module": "tests.unit.test_m3_4_ollama_manager",
+      "tests": 8,
+      "status": "PASS",
+      "evidence_logs": [
+        "final_unit_phase.log",
+        "unit_phase.log"
+      ]
+    },
+    {
+      "module": "tests.unit.test_m3_5_speech_manager",
+      "tests": 8,
+      "status": "PASS",
+      "evidence_logs": [
+        "final_unit_phase.log",
+        "unit_phase.log"
+      ]
+    },
+    {
+      "module": "tests.unit.test_m3_6_install_summary",
+      "tests": 5,
+      "status": "PASS",
+      "evidence_logs": [
+        "affected_unit_106.log",
+        "final_unit_phase.log",
+        "unit_phase.log"
+      ]
+    },
+    {
+      "module": "tests.unit.test_m5_1_ptt_runtime",
+      "tests": 6,
+      "status": "PASS",
+      "evidence_logs": [
+        "final_unit_phase.log",
+        "unit_phase.log"
+      ]
+    },
+    {
+      "module": "tests.unit.test_m6_service_manager",
+      "tests": 8,
+      "status": "PASS",
+      "evidence_logs": [
+        "final_unit_phase.log",
+        "unit_m6_followup.log",
+        "unit_phase.log"
+      ]
+    },
+    {
+      "module": "tests.unit.test_m8_uninstall_manager",
+      "tests": 3,
+      "status": "PASS",
+      "evidence_logs": [
+        "final_unit_phase.log",
+        "unit_resumption_after_m6.log"
+      ]
+    },
+    {
+      "module": "tests.unit.test_m8_update_manager",
+      "tests": 4,
+      "status": "PASS",
+      "evidence_logs": [
+        "final_unit_phase.log",
+        "unit_resumption_after_m6.log"
+      ]
+    },
+    {
+      "module": "tests.unit.test_qwen_runtime_contract",
+      "tests": 1,
+      "status": "PASS",
+      "evidence_logs": [
+        "final_unit_phase.log",
+        "unit_resumption_after_m6.log"
+      ]
+    },
+    {
+      "module": "tests.unit.test_release_readiness",
+      "tests": 3,
+      "status": "PASS",
+      "evidence_logs": [
+        "affected_unit_106.log",
+        "final_control_unit.log",
+        "final_unit_phase.log",
+        "unit_resumption_after_m6.log"
+      ]
+    },
+    {
+      "module": "tests.unit.test_runtime_audio",
+      "tests": 23,
+      "status": "PASS",
+      "evidence_logs": [
+        "final_unit_phase.log",
+        "unit_resumption_independent.log"
+      ]
+    },
+    {
+      "module": "tests.unit.test_support_export",
+      "tests": 11,
+      "status": "PASS",
+      "evidence_logs": [
+        "affected_unit_106.log",
+        "final_readiness_and_support.log",
+        "narrow_regression_39.log",
+        "support_release_regression_31.log",
+        "support_startup_snapshot_followup.log",
+        "unit_resumption_independent.log"
+      ]
+    },
+    {
+      "module": "tests.unit.test_test_architecture",
+      "tests": 5,
+      "status": "PASS",
+      "evidence_logs": [
+        "unit_resumption_independent.log"
+      ]
+    },
+    {
+      "module": "tests.unit.test_v09_documentation_hardening",
+      "tests": 5,
+      "status": "PASS",
+      "evidence_logs": [
+        "final_control_unit.log"
+      ]
+    },
+    {
+      "module": "tests.unit.test_v09_environment_acceptance_runner",
+      "tests": 7,
+      "status": "PASS",
+      "evidence_logs": [
+        "unit_acceptance_runner_followup.log",
+        "unit_resumption_independent.log"
+      ]
+    },
+    {
+      "module": "tests.unit.test_v09_environment_cli",
+      "tests": 11,
+      "status": "PASS",
+      "evidence_logs": [
+        "affected_unit_106.log",
+        "unit_env_core_chunk.log"
+      ]
+    },
+    {
+      "module": "tests.unit.test_v09_environment_config",
+      "tests": 4,
+      "status": "PASS",
+      "evidence_logs": [
+        "unit_env_core_chunk.log"
+      ]
+    },
+    {
+      "module": "tests.unit.test_v09_environment_controller",
+      "tests": 8,
+      "status": "PASS",
+      "evidence_logs": [
+        "unit_env_core_chunk.log"
+      ]
+    },
+    {
+      "module": "tests.unit.test_v09_environment_daemon_activation",
+      "tests": 6,
+      "status": "PASS",
+      "evidence_logs": [
+        "affected_unit_106.log",
+        "unit_env_core_chunk.log"
+      ]
+    },
+    {
+      "module": "tests.unit.test_v09_environment_hardware_adapters",
+      "tests": 12,
+      "status": "PASS",
+      "evidence_logs": [
+        "unit_env_core_chunk.log"
+      ]
+    },
+    {
+      "module": "tests.unit.test_v09_environment_ipc",
+      "tests": 9,
+      "status": "PASS",
+      "evidence_logs": [
+        "unit_env_core_chunk.log"
+      ]
+    },
+    {
+      "module": "tests.unit.test_v09_environment_policy",
+      "tests": 10,
+      "status": "PASS",
+      "evidence_logs": [
+        "unit_env_voice_chunk.log"
+      ]
+    },
+    {
+      "module": "tests.unit.test_v09_environment_polling_loop",
+      "tests": 5,
+      "status": "PASS",
+      "evidence_logs": [
+        "unit_env_voice_chunk.log"
+      ]
+    },
+    {
+      "module": "tests.unit.test_v09_environment_profile_manager",
+      "tests": 4,
+      "status": "PASS",
+      "evidence_logs": [
+        "affected_unit_106.log",
+        "narrow_regression_39.log",
+        "unit_env_voice_chunk.log"
+      ]
+    },
+    {
+      "module": "tests.unit.test_v09_environment_service_manager",
+      "tests": 5,
+      "status": "PASS",
+      "evidence_logs": [
+        "affected_unit_106.log",
+        "unit_env_voice_chunk.log"
+      ]
+    },
+    {
+      "module": "tests.unit.test_v09_environment_simulation",
+      "tests": 14,
+      "status": "PASS",
+      "evidence_logs": [
+        "unit_env_voice_chunk.log"
+      ]
+    },
+    {
+      "module": "tests.unit.test_v09_environment_voice_intents",
+      "tests": 11,
+      "status": "PASS",
+      "evidence_logs": [
+        "unit_env_voice_chunk.log"
+      ]
+    },
+    {
+      "module": "tests.unit.test_v09_user_test_readiness",
+      "tests": 5,
+      "status": "PASS",
+      "evidence_logs": [
+        "final_control_unit.log"
+      ]
+    },
+    {
+      "module": "tests.unit.test_voice_appliance",
+      "tests": 23,
+      "status": "PASS",
+      "evidence_logs": [
+        "unit_env_voice_chunk.log"
+      ]
+    },
+    {
+      "module": "tests.unit.test_x4_bluetooth_manager",
+      "tests": 14,
+      "status": "PASS",
+      "evidence_logs": [
+        "unit_env_voice_chunk.log"
+      ]
+    }
+  ]
+}
