@@ -110,6 +110,9 @@ for filename in (
 json.loads(Path("config/config.json").read_text(encoding="utf-8"))
 '
 
+  echo "[T0] V09 documentation/evidence boundary"
+  "$PYTHON_BIN" "$SCRIPT_DIR/validate_v09_docs.py" --json >/dev/null
+
   if command -v git >/dev/null 2>&1 && git rev-parse --git-dir >/dev/null 2>&1; then
     git diff --check
   fi

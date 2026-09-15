@@ -31,7 +31,7 @@ Accept only a final `READY` boundary. Record the exact terminal output.
 Expected shape:
 
 ```text
-[READY] code=APPLIANCE_READY ... wake_phrase=Hey_Gonken reboot_required=false
+[READY] code=APPLIANCE_READY ... wake_phrase=GonKen reboot_required=false
 [READY] code=INSTALLATION_COMPLETE ... autostart=enabled ...
 ```
 
@@ -150,7 +150,7 @@ gates.
 
 ## 8. Environment-control private evidence
 
-The V09 room-environment subsystem has a separate target evidence collector. See [V09 room-environment acceptance evidence run](ENVIRONMENT_ACCEPTANCE_RUN.md) for the detailed procedure. Run it only on the physical Raspberry Pi after the environment profile has been reviewed and the SHT31/relay/PENGLIN/ELUTENG wiring has been inspected. The collector creates private evidence files and a ledger; it does not decide final acceptance and always records `physical_acceptance_claimed=false`.
+The V09 room-environment subsystem has a separate target evidence collector. Review [V09 room-environment hardware setup](HARDWARE_SETUP.md), [V09 environment control reference](ENVIRONMENT_CONTROL.md), [V09 simulation and hybrid-HIL guide](SIMULATION.md), and [V09 troubleshooting guide](TROUBLESHOOTING.md) before enabling target actuation. The V09 room-environment subsystem has a separate target evidence collector. See [V09 room-environment acceptance evidence run](ENVIRONMENT_ACCEPTANCE_RUN.md) for the detailed procedure. Run it only on the physical Raspberry Pi after the environment profile has been reviewed and the SHT31/relay/PENGLIN/ELUTENG wiring has been inspected. The collector creates private evidence files and a ledger; it does not decide final acceptance and always records `physical_acceptance_claimed=false`.
 
 First collect non-destructive evidence:
 

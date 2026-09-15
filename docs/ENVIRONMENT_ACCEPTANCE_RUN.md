@@ -105,3 +105,13 @@ This rule applies even when the command returns exit code 0. Exit code 0 means
 that the command completed; it does not mean that SHT31 hardware, relay wiring,
 PENGLIN continuity, ELUTENG fan motion, wake behavior, or reboot/no-login
 operation has been physically accepted.
+
+
+## 7. Documentation-check command forms
+
+These short forms are used by the repository documentation validator to confirm that the acceptance-runner command line still parses. They are examples only; use the target paths shown above during a real run.
+
+```bash
+environment_acceptance_runner.py --output-dir /tmp/gonken-m10-7-evidence --plan-only --json
+environment_acceptance_runner.py --output-dir /tmp/gonken-m10-7-evidence --allow-actuation --json
+```

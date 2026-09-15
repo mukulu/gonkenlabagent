@@ -1018,6 +1018,6 @@ printf '[OK] code=M6_2_SERVICE_COMPLETE status=READY ready=true autostart=enable
 if [[ "${GONKEN_SOURCE_RECORD[bluetooth_audio]:-disabled}" == "requested" ]]; then
   printf '[OK] code=X4_BLUETOOTH_SETUP status=READY paired=true autoconnect=true usb_fallback=true\n'
 fi
-printf '[READY] code=INSTALLATION_COMPLETE service=gonken-agent.service autostart=enabled reboot_required=false wake_phrase=Hey_Gonken\n'
-printf '[INFO] code=NEXT_ACTION message=say_Hey_Gonken_or_run_gonken-agent_talk;_see_docs/OPERATIONS.md_for_manual_control\n'
+printf '[READY] code=INSTALLATION_COMPLETE service=gonken-agent.service autostart=enabled reboot_required=false wake_phrase=GonKen\n'
+printf '[INFO] code=NEXT_ACTION message=say_GonKen_or_run_gonken-agent_talk;_see_docs/OPERATIONS.md_for_manual_control\n'
 exit 0

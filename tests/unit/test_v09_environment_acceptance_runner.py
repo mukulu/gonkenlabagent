@@ -134,6 +134,14 @@ class EnvironmentAcceptanceRunnerTests(unittest.TestCase):
         self.assertEqual(manifest["schema"], "gonken-m10.7-environment-evidence-v1")
         self.assertTrue(manifest["plan_only"])
         self.assertFalse(manifest["physical_acceptance_claimed"])
+        self.assertEqual(
+            manifest["evidence_boundary"]["simulation_blocking_code"],
+            "SIMULATION_ACTIVE_PHYSICAL_ACCEPTANCE_BLOCKED",
+        )
+        self.assertFalse(manifest["evidence_boundary"]["collector_is_acceptance_oracle"])
+        self.assertTrue(manifest["evidence_boundary"]["json_success_cannot_prove_blade_motion"])
+        self.assertIn("private_evidence/", manifest["required_uploads"])
+        self.assertIn("m10_7_fan_manual_cycle_blocked", manifest["manual_gate_step_ids"])
         self.assertFalse(fixture.log.exists(), "plan-only mode must not run target commands")
         blocked = json.loads((fixture.root / "out/private_evidence/m10_7_fan_manual_cycle_blocked.json").read_text(encoding="utf-8"))
         self.assertEqual(blocked["status"], "BLOCKED")

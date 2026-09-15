@@ -130,8 +130,8 @@ services exist. The final appliance gate requires:
 The expected final boundary resembles:
 
 ```text
-[READY] code=APPLIANCE_READY service=gonken-agent.service wake_phrase=Hey_Gonken reboot_required=false
-[READY] code=INSTALLATION_COMPLETE service=gonken-agent.service autostart=enabled reboot_required=false wake_phrase=Hey_Gonken
+[READY] code=APPLIANCE_READY service=gonken-agent.service wake_phrase=GonKen reboot_required=false
+[READY] code=INSTALLATION_COMPLETE service=gonken-agent.service autostart=enabled reboot_required=false wake_phrase=GonKen
 ```
 
 No reboot is normally required. The service is already started. If the output
@@ -207,3 +207,7 @@ route and lets an already-connected wired device win without disabling Bluetooth
 If readiness still fails, collect the support bundle described in
 [OPERATIONS.md](OPERATIONS.md); the debug snapshot now contains bounded ALSA and
 PipeWire/Pulse route metadata.
+
+## V09 room-environment installation boundary
+
+The base appliance can be installed without enabling room-environment actuation. Before enabling `[extensions.environment]` on a target Pi, read [V09 room-environment hardware setup](HARDWARE_SETUP.md), [V09 environment control reference](ENVIRONMENT_CONTROL.md), and [V09 room-environment acceptance evidence run](ENVIRONMENT_ACCEPTANCE_RUN.md). Generic upgrades must not enable or start physical actuation by default.

@@ -1612,3 +1612,13 @@ Checkpoint 18 implements the user-facing operator simulation layer planned in M1
 `gonken-agent env watch` is now passive.  It calls `state.snapshot.get` and displays the daemon-owned latest state instead of repeatedly calling `sensor.read`.  This removes the observer effect identified in checkpoint 16: additional watch terminals should not create extra sensor samples, accelerate recovery, alter median windows, change dwell timing or trigger actuator writes.  `gonken-agent env read` remains the explicit active read-now operation.
 
 Diagnostics, support bundles, public environment health and the loopback dashboard now carry simulation and snapshot summaries with backend provenance and `physical_evidence=false`.  This improves user simulation and later hybrid-HIL debugging without allowing simulated evidence to close physical Raspberry Pi acceptance.
+
+### 22.9 Checkpoint 21 — Documentation and evidence hardening implementation
+
+Checkpoint 21 implements the M10.13 host documentation/evidence gate. It adds dedicated user-facing documents for hardware setup, environment control, simulation/hybrid-HIL practice and troubleshooting, while preserving `OPERATIONS.md` as an operating overview rather than a single overloaded manual.
+
+The checkpoint also makes documentation drift testable. `scripts/validate_v09_docs.py` is now part of T0 and checks required documentation files, local markdown links, documented command parsing, environment static config-key coverage, wake default consistency and boundary terms such as `physical_evidence=false`, `software_speed_control=false`, `fan_motion_observed=false`, `HOST_SIMULATION`, `TARGET_HYBRID_SENSOR_SIMULATED`, `TARGET_HYBRID_ACTUATOR_SIMULATED` and `SIMULATION_ACTIVE_PHYSICAL_ACCEPTANCE_BLOCKED`.
+
+The M10.7 evidence runner is hardened at the manifest layer. It now records an explicit `evidence_boundary`, the required upload set and manual gate identifiers. The runner remains an evidence collector, not an acceptance oracle. JSON success cannot prove blade motion, wake/audio behavior, PENGLIN continuity, relay polarity or SHT31 placement.
+
+This checkpoint closes M10.13 at host/documentation level only. It does not close M10.7 real Raspberry Pi acceptance and does not prove any physical sensor, relay, fan, wake or systemd/no-login behavior.
