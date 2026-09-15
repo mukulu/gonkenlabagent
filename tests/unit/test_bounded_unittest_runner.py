@@ -174,6 +174,47 @@ class BoundedUnittestRunnerTests(unittest.TestCase):
         self.assertIn("GONKEN_CI_UNIT_MODULE_TIMEOUT", text)
         self.assertIn("GONKEN_CI_INTEGRATION_MODULE_TIMEOUT", text)
         self.assertIn("GONKEN_CI_RELEASE_CASE_TIMEOUT", text)
+        self.assertIn("--phase", text)
+        self.assertIn("release-lifecycle", text)
+
+    def test_ci_exposes_phase_selection_for_long_host_runs(self) -> None:
+        help_result = subprocess.run(
+            ["bash", str(CI), "--help"],
+            cwd=ROOT,
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+        self.assertEqual(help_result.returncode, 0, help_result.stderr)
+        self.assertIn("--phase PHASE", help_result.stdout)
+        self.assertIn("release-lifecycle", help_result.stdout)
+
+        list_result = subprocess.run(
+            ["bash", str(CI), "--list-phases"],
+            cwd=ROOT,
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+        self.assertEqual(list_result.returncode, 0, list_result.stderr)
+        self.assertEqual(
+            list_result.stdout.splitlines(),
+            ["t0", "unit", "integration", "release-lifecycle", "all"],
+        )
+
+    def test_ci_rejects_unknown_phase_without_running_checks(self) -> None:
+        result = subprocess.run(
+            ["bash", str(CI), "--phase", "unknown"],
+            cwd=ROOT,
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("unknown phase", result.stderr)
 
 
 if __name__ == "__main__":
