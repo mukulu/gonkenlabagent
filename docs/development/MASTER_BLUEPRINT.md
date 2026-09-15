@@ -1727,3 +1727,9 @@ Run clean/dirty/interruption/update/rollback/reinstall host/target-shadow campai
 #### M10.24 Final Raspberry Pi environment and release acceptance
 
 Run the exact-package target campaign through installation completion, runtime/audio readiness, real relay/fan, real SHT31, controller modes, voice/wake, fault recovery, reboot/no-login and update/rollback. This remains target-gated until executed.
+
+### Checkpoint 27 implementation refinement — M10.18/M10.19
+
+M10.18 now places a source-owned, non-actuating target prerequisite gate before account/release construction and creates a private installer-owned failure bundle if any later step fails. Required core voice/GPIO prerequisites fail closed; optional real-SHT31 readiness is reported without making the generic environment-disabled install impossible.
+
+M10.19 now treats environment configuration as four explicit parity profiles (`full-simulation`, `sensor-deferred-relay`, `real-sensor-simulated-actuator`, `full-real`). The helper may create a missing managed profile or atomically transition between exact managed profiles; it refuses unknown administrator configuration and never starts services or touches hardware. A second target preflight verifies service identities and `gonken-envctl` client authority after account convergence.
