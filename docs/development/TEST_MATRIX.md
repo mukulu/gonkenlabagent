@@ -1041,3 +1041,30 @@ Checkpoint 14 decomposes the long release lifecycle evidence path without reduci
 | M10.6-T073 | Unit phase attempt in `docs/development/evidence/v09/wp_p_unit_phase_attempt_interrupted.log` | INTERRUPTED / not PASS | The execution environment interrupted a standalone `--phase unit` attempt before completion. The affected phase-selector unit slice is the PASS evidence for this change. |
 
 Checkpoint 15 adds resumable CI phase selection only.  It does not alter production runtime behavior and does not close M10.7 physical Raspberry Pi acceptance.
+
+## V09 Checkpoint 16 — Simulation/HIL blueprint expansion evidence
+
+| ID | Scope | Command / artifact | Result | Evidence boundary |
+|---|---|---|---|---|
+| M10.8-T074 | Input fingerprint | `docs/development/evidence/v09/checkpoint16/input_fingerprints.sha256` | PASS | Recalculated hashes for checkpoint-15 package, V2 prompt and prior blueprint inputs. Does not prove runtime behavior. |
+| M10.8-T075 | Baseline focused host checks | `PYTHONPATH=src python3 -m unittest -v tests.unit.test_v09_environment_cli tests.unit.test_v09_environment_voice_intents tests.unit.test_v09_environment_controller tests.unit.test_v09_environment_polling_loop tests.unit.test_voice_appliance tests.unit.test_m2_2_config` | PASS, 75/75 | Confirms checkpoint-15 host contracts before blueprint expansion. No physical wake or hardware evidence. |
+| M10.8-T076 | T0 static baseline | `./scripts/ci.sh --phase t0` | PASS | Confirms dependency lock, milestone/status, release-readiness static checks and syntax/parse/diff gates before blueprint expansion. |
+| M10.8-T077 | Blueprint plan artifacts | `docs/development/V09_SIMULATION_HIL_EXTENSION_PLAN.md`; `docs/development/V09_SIMULATION_HIL_TRACEABILITY.csv` | PASS | Planning/control artifacts exist and map new requirements to future checkpoints. No runtime feature claim. |
+| M10.8-T078 | Post-update verification | `docs/development/evidence/v09/checkpoint16/post_update_static.log`; `docs/development/evidence/v09/checkpoint16/post_update_focused.log` | PASS | Confirms milestone/status consistency, T0 checks and 75 focused host tests after the blueprint/control edits. |
+
+## Planned V09 simulation/HIL test rows — not yet executed
+
+| ID | Scope | Planned command / artifact | Status | Evidence boundary |
+|---|---|---|---|---|
+| M10.9-P001 | Simulated sensor adapter | Unit tests for simulated sensor set, unavailable, read_error, crc_error, stale, recover and reset | PLANNED / NOT_RUN | Host simulation only. |
+| M10.9-P002 | Simulated actuator adapter | Unit tests for normal, unavailable, fail-next-write, reset and no libgpiod import | PLANNED / NOT_RUN | Host simulation only. |
+| M10.9-P003 | Simulation protocol | IPC validation for simulation.* operations, unknown parameter rejection and disabled-control rejection | PLANNED / NOT_RUN | Host protocol evidence only. |
+| M10.10-P001 | Passive watch | Tests proving watch snapshot does not sample sensor or write actuator | PLANNED / NOT_RUN | Host daemon/fake evidence only. |
+| M10.10-P002 | Full simulation flow | Full simulation AUTO/SEMI/fault/watch/support acceptance test | PLANNED / NOT_RUN | Simulation cannot close physical gates. |
+| M10.11-P001 | Hybrid HIL classification | Sim sensor plus real actuator and real sensor plus sim actuator evidence classification tests | PLANNED / NOT_RUN | Hybrid evidence closes only the physical side actually present. |
+| M10.11-P002 | Simulation-aware voice | Voice responses explicitly say simulated/measured and never overclaim fan motion | PLANNED / NOT_RUN | Host voice contract only. |
+| M10.12-P001 | GonKen default and matcher | Config/default/doc literal tests plus high-recall matcher corpus | PLANNED / NOT_RUN | Host wake software evidence; real Pi tuning later. |
+| M10.12-P002 | Continuous/overlapping wake | Fake capture/recognition queue tests for no transcription-induced blind gap | PLANNED / NOT_RUN | Host concurrency evidence only. |
+| M10.12-P003 | Progress cues and audio arbitration | Fake-clock tests for no cue, first cue, long-wait cue, cancellation, no overlap | PLANNED / NOT_RUN | Host voice runtime evidence only. |
+| M10.13-P001 | Documentation checks | Verify documented commands parse, links exist, config keys match schema and physical docs reject simulation PASS | PLANNED / NOT_RUN | Documentation quality evidence only. |
+| M10.14-P001 | User-test release candidate | End-to-end user simulation and sensor-deferred HIL package readiness gate | PLANNED / NOT_RUN | Does not close full SHT31 physical M10.7 acceptance. |

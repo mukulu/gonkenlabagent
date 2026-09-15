@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "checkpoint_scope": "V09 environment-control foundation from FIX7 checkpoint",
+  "checkpoint_scope": "V09 simulation/HIL blueprint extension from checkpoint 15",
   "baseline_commit": "3b25b81c5bc7d4e24268726ad7f7b71296215a03",
   "milestones": [
     {
@@ -298,6 +298,62 @@
       "target": "not-run",
       "evidence": "docs/RASPBERRY_PI_ACCEPTANCE_RUN.md; docs/ENVIRONMENT_ACCEPTANCE_RUN.md; scripts/environment_acceptance_runner.py; Requires physical Pi, SHT31, relay, PENGLIN adapters, ELUTENG fan, audio and wake/latency evidence. Host tests cannot close this gate.",
       "remaining": "Run the physical M10.7 acceptance campaign on the target Pi and preserve support ZIP plus private environment evidence ledger."
+    },
+    {
+      "id": "M10.8",
+      "title": "Simulation/HIL blueprint expansion",
+      "software": "host-verified",
+      "target": "not-run",
+      "evidence": "docs/development/V09_SIMULATION_HIL_EXTENSION_PLAN.md; docs/development/V09_SIMULATION_HIL_TRACEABILITY.csv; docs/development/V09_CHECKPOINT_16_REPORT.md; docs/development/V09_CHANGE_VERIFICATION_REPORT_CHECKPOINT_16.md; docs/development/evidence/v09/checkpoint16/focused_baseline.log; docs/development/evidence/v09/checkpoint16/baseline_t0.log",
+      "remaining": "Blueprint/control-plane expansion complete. Simulation runtime, mandatory GonKen runtime changes, hardware docs, passive watch, non-actuating check repair and physical acceptance remain implementation work."
+    },
+    {
+      "id": "M10.9",
+      "title": "Simulation foundations",
+      "software": "pending",
+      "target": "not-run",
+      "evidence": "docs/development/V09_SIMULATION_HIL_EXTENSION_PLAN.md",
+      "remaining": "Implement config schema, backend factories, simulated sensor, simulated actuator, simulation state/provenance, protocol operations and core unit tests."
+    },
+    {
+      "id": "M10.10",
+      "title": "Operator simulation experience",
+      "software": "pending",
+      "target": "not-run",
+      "evidence": "docs/development/V09_SIMULATION_HIL_EXTENSION_PLAN.md",
+      "remaining": "Implement env simulate CLI family, passive watch, simulation fault injection, diagnostics/support visibility and full-simulation acceptance tests."
+    },
+    {
+      "id": "M10.11",
+      "title": "Hybrid HIL and simulation-aware voice",
+      "software": "pending",
+      "target": "not-run",
+      "evidence": "docs/development/V09_SIMULATION_HIL_EXTENSION_PLAN.md",
+      "remaining": "Implement hybrid sensor/actuator combinations, voice provenance wording and simulation-aware physical acceptance blocking. Physical actuation remains target-gated."
+    },
+    {
+      "id": "M10.12",
+      "title": "Mandatory GonKen wake responsiveness and transition announcements",
+      "software": "pending",
+      "target": "not-run",
+      "evidence": "docs/development/V09_SIMULATION_HIL_EXTENSION_PLAN.md",
+      "remaining": "Implement default GonKen wake phrase, high-recall continuous/overlapping wake path, matcher corpus, progress cues, local Piper cue cache, wake diagnostics and voice-owned transition announcements."
+    },
+    {
+      "id": "M10.13",
+      "title": "Documentation and evidence hardening",
+      "software": "pending",
+      "target": "not-run",
+      "evidence": "docs/development/V09_SIMULATION_HIL_EXTENSION_PLAN.md",
+      "remaining": "Create hardware setup, environment control, simulation, troubleshooting and evidence/export docs plus documentation command/link/config checks."
+    },
+    {
+      "id": "M10.14",
+      "title": "User simulation and sensor-deferred HIL release candidate",
+      "software": "pending",
+      "target": "not-run",
+      "evidence": "docs/development/V09_SIMULATION_HIL_EXTENSION_PLAN.md",
+      "remaining": "Produce READY_FOR_USER_SIMULATION_AND_SENSOR_DEFERRED_HIL only after full simulation, sensor-deferred real-fan paths, voice/manual controls, watch, evidence export, docs and rollback/recovery gates pass."
     }
   ]
 }

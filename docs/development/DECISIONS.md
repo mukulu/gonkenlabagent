@@ -1115,3 +1115,91 @@ transport checks are repeated.
 - **Decision:** `scripts/ci.sh` now accepts `--phase t0`, `--phase unit`, `--phase integration`, `--phase release-lifecycle` and `--phase all`, plus `--list-phases`.  With no arguments it still runs the complete canonical host sequence.
 - **Reason:** After the bounded runner and release case decomposition, the remaining practical problem was not hidden test coverage but external session walls interrupting the long aggregate command.  Phase selection lets a later session collect or repeat the exact phase that remains uncertain without restarting all earlier passed work.
 - **Consequence:** No test is removed and no acceptance criterion is weakened.  A failed or timed-out phase still fails that phase.  Physical Raspberry Pi acceptance remains M10.7 and cannot be inferred from any host CI phase.
+
+## D-110 — Treat checkpoint 16 as blueprint/control expansion only
+
+- **Status:** Accepted
+- **Date:** 2026-09-15
+- **Decision:** Checkpoint 16 updates the authoritative control artifacts for the simulation/HIL extension and does not implement runtime simulation, modify environment CLI commands, alter GPIO/I2C behavior, enable the environment service, or change the shipped wake phrase.
+- **Reason:** The V2 prompt explicitly requires a blueprint-expansion run first so the next implementation sessions can proceed without rediscovering architecture or improvising safety-critical details.
+- **Consequence:** Simulation, `GonKen` wake, progress cues, passive watch and hardware documentation remain planned implementation work. M10.7 physical acceptance remains not-run.
+
+## D-111 — Add simulation as independent sensor and actuator backend axes
+
+- **Status:** Accepted
+- **Date:** 2026-09-15
+- **Decision:** The next implementation will support independent `sensor_backend = sht31|simulated` and `relay_backend = libgpiod|simulated` axes rather than one global simulation switch.
+- **Reason:** The user needs full simulation, simulated sensor plus real fan, real sensor plus simulated fan and full physical operation as separate evidence modes.
+- **Consequence:** Config validation, daemon factories, protocol, CLI, diagnostics, support bundles, voice responses and acceptance runners must all report backend provenance and prevent simulated backends from masquerading as physical acceptance.
+
+## D-112 — Keep simulation state daemon-owned and normally ephemeral
+
+- **Status:** Accepted
+- **Date:** 2026-09-15
+- **Decision:** Simulated temperature, humidity, sensor faults and actuator behavior belong to `gonken-environment.service`, not to the mutable policy file or an external process-owned state file. Default behavior is ephemeral simulation state with explicit reset semantics.
+- **Reason:** Static hardware/safety configuration, mutable operating policy and simulation state have different authority, persistence and safety implications.
+- **Consequence:** Simulation mutation uses bounded IPC operations. CLI and voice remain clients and cannot bypass controller validation.
+
+## D-113 — Make `env watch` passive before user-test handoff
+
+- **Status:** Accepted
+- **Date:** 2026-09-15
+- **Decision:** The next implementation must change watch semantics so `gonken-agent env watch` reads daemon snapshots rather than repeatedly invoking active sensor-read/control operations.
+- **Reason:** A watch command should not alter recovery counts, median samples, dwell timing, autonomous decisions or actuator writes.
+- **Consequence:** A passive snapshot protocol operation and tests proving no observer effect are required before the simulation/HIL user-test package.
+
+## D-114 — Require a true non-actuating `env serve --check` path
+
+- **Status:** Accepted
+- **Date:** 2026-09-15
+- **Decision:** `env serve --check` is not considered hardware-neutral until tests prove it cannot open/request a gpiod line or write safe-off merely to validate configuration.
+- **Reason:** Checkpoint-15 behavior can report `hardware_toggled=false` while cleanup may call safe-off on a lazily-opening actuator path. That is a false-neutral safety risk.
+- **Consequence:** The next implementation must distinguish configuration validation from real resource acquisition and preserve real daemon shutdown safe-off once resources have actually been opened.
+
+## D-115 — Replace target-gated wake adoption with mandatory default `GonKen`
+
+- **Status:** Accepted
+- **Date:** 2026-09-15
+- **Decision:** The next wake implementation will make `GonKen` the shipped/default phrase without waiting for physical wake testing, while retaining target evidence for tuning and final acceptance.
+- **Reason:** The V2 product decision prioritizes recall across diverse accents. Real-Pi wake tests should tune the local detector, not decide whether the phrase may be adopted.
+- **Consequence:** Changing only the default string is insufficient. The implementation must reduce transcription-induced listening gaps, support governed aliases/split tokens, add a matcher corpus, preserve `Hey GonKen` as an alias unless unsafe and update docs/tests consistently.
+
+## D-116 — Implement post-request progress cues through one audio owner
+
+- **Status:** Accepted
+- **Date:** 2026-09-15
+- **Decision:** The next voice UX implementation will add a bounded progress scheduler after question capture using a short cue such as `Just a second.` and at most one longer-wait cue. The voice runtime remains the single audio owner.
+- **Reason:** The current immediate wake acknowledgement exists, but local inference can still leave the user uncertain after the request has been captured.
+- **Consequence:** Legacy filler WAVs remain excluded. Cue audio must be locally generated with Piper and governed by a manifest/cache, with timing, cancellation and no-overlap tests.
+
+## D-117 — Route autonomous environment announcements through the voice service only
+
+- **Status:** Accepted
+- **Date:** 2026-09-15
+- **Decision:** Autonomous environment transition speech, if enabled, is produced by the voice service after observing typed environment transition events. The environment daemon never owns Piper, ALSA or PipeWire.
+- **Reason:** This preserves voice as a soft dependency and prevents competing audio owners.
+- **Consequence:** Announcements need sequence IDs, deduplication, queue bounds, simulation-aware wording and no-overlap arbitration with direct user answers.
+
+## D-118 — Treat GPIO chip/line mapping as explicit target evidence
+
+- **Status:** Accepted
+- **Date:** 2026-09-15
+- **Decision:** The plan separates operator-facing BCM/header identity from runtime libgpiod chip path and line offset rather than assuming BCM23 always equals `/dev/gpiochip0` offset 23.
+- **Reason:** Pi 5/RP1 GPIO character-device mapping must be verified on the actual target before relay acceptance.
+- **Consequence:** Config/schema migration, diagnostics and hardware docs must expose actual chip/line evidence before any physical PASS claim.
+
+## D-119 — Add a dedicated documentation architecture before user-test handoff
+
+- **Status:** Accepted
+- **Date:** 2026-09-15
+- **Decision:** The future user-test package must contain distinct documentation ownership for installation, hardware setup, environment control, simulation, operations, troubleshooting and acceptance/evidence export.
+- **Reason:** Simulation/HIL and physical wiring are safety-sensitive and cannot remain scattered through checkpoint reports.
+- **Consequence:** Documentation checks must verify paths, commands, service names, config keys, wake phrase consistency and simulation/physical separation. Markdown rendering alone is not enough.
+
+## D-120 — Preserve M10.7 as the final physical umbrella gate while adding M10.8-M10.14 continuation milestones
+
+- **Status:** Accepted
+- **Date:** 2026-09-15
+- **Decision:** Historical M10.7 remains the real Raspberry Pi HIL/release acceptance gate. M10.8-M10.14 define the simulation/HIL/wake/documentation implementation sequence leading to a user simulation and sensor-deferred HIL release candidate.
+- **Reason:** This preserves checkpoint 1-15 history while giving future sessions an ordered continuation plan.
+- **Consequence:** Simulation and hybrid evidence can support user testing and partial target diagnosis, but only full physical evidence can close M10.7.

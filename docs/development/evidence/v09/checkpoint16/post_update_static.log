@@ -1,0 +1,5 @@
+traceability csv ok
+[T0] dependency lock drift
+verified 5 installable dependency profiles
+[T0] source/config syntax
+Selected T0/T1 checks passed: t0

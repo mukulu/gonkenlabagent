@@ -1525,3 +1525,69 @@ This change improves observability and continuation safety without weakening rel
 M10.6 host-quality tooling now includes phase-selectable `scripts/ci.sh` execution.  The canonical default remains the complete T0/T1 host check order, but operators may now run `--phase t0`, `--phase unit`, `--phase integration` and `--phase release-lifecycle` independently, or combine phases explicitly.  This does not reduce test coverage or acceptance criteria; it makes long host evidence collection resumable when an external session boundary interrupts a full aggregate run.
 
 The change is limited to CI orchestration and tests.  It does not alter environment runtime behavior, daemon polling, CLI/voice control, installer actuation, SHT31 reads, relay control, or physical acceptance.  M10.7 remains the first gate allowed to claim real Raspberry Pi SHT31/relay/fan/audio/wake behavior.
+
+## 22. V09 simulation/HIL blueprint extension and continuation plan (2026-09-15)
+
+### 22.1 Governing expansion prompt and execution boundary
+
+Checkpoint 16 is governed by `GonKenAgent_V09_CKPT15_to_Simulation_HIL_Blueprint_Expansion_Master_Prompt_V2_GOLD.md`.  Its execution mode is blueprint/control-plane expansion only: no simulation runtime, GPIO behavior, I2C behavior, production environment CLI, production daemon logic or runtime wake phrase is changed in this checkpoint.
+
+The current checkpoint-15 package remains the implementation baseline.  Its M10.6 host behavior is preserved, and M10.7 real Raspberry Pi HIL/release acceptance remains not-run.  The purpose of checkpoint 16 is to make the next implementation tranches precise, safe, staged and cold-resumable.
+
+### 22.2 New V2 product decisions
+
+The next implementation line SHALL add first-class simulation and hybrid-HIL support through the same environment service, policy, controller, IPC, CLI, diagnostics, voice boundary and evidence discipline as physical hardware.  Sensor simulation and actuator simulation are independent backend axes, not a single ambiguous `simulation=true` flag.
+
+The shipped/default wake phrase SHALL become `GonKen`.  Real Pi wake testing remains required for tuning and final evidence, but it is no longer a gate to adopting the one-word phrase.  The previous `Hey GonKen` form should remain an accepted recognition alias unless collision tests prove otherwise.
+
+Checkpoint 16 also records two safety/design defects to fix before user-test handoff:
+
+1. `env serve --check` is not yet proven non-actuating because cleanup can call an actuator safe-off path that lazily opens GPIO.
+2. `env watch` is not yet a passive tail-like observer because repeated sensor-read IPC can alter sampling, recovery and controller timing.
+
+### 22.3 Simulation architecture
+
+Simulation is implemented as adapters behind the single `gonken-environment.service` owner:
+
+```text
+sensor_backend = sht31 | simulated
+relay_backend  = libgpiod | simulated
+```
+
+This produces four supported operating/evidence modes: full simulation, simulated sensor plus real actuator, real sensor plus simulated actuator and full physical.  All outputs must report backend provenance and physical evidence boundaries.  A Raspberry Pi run with simulated backends is target execution, but not physical sensor/fan acceptance.
+
+The authoritative design details are in `docs/development/V09_SIMULATION_HIL_EXTENSION_PLAN.md` and the requirement-to-checkpoint mapping is in `docs/development/V09_SIMULATION_HIL_TRACEABILITY.csv`.
+
+### 22.4 Checkpoint sequence for the extension
+
+#### M10.8 Simulation/HIL blueprint expansion
+
+Update the authoritative blueprint/control artifacts for independent sensor/actuator simulation, hybrid HIL, passive watch, non-actuating checks, simulation-aware voice, autonomous announcements, mandatory high-recall `GonKen` wake, hardware setup documentation, documentation quality gates, evidence separation and the continuation plan.  This is a planning/control checkpoint only; no runtime simulation feature is claimed.
+
+#### M10.9 Simulation foundations
+
+Implement static config validation for `sensor_backend=simulated` and `relay_backend=simulated`, explicit backend factories, simulated sensor and actuator adapters, daemon-owned ephemeral simulation state, simulation provenance fields, protocol operations and core unit tests.  This checkpoint must not require real hardware and must not change the physical acceptance state.
+
+#### M10.10 Operator simulation experience
+
+Implement `gonken-agent env simulate ...` commands, passive `env watch`, simulation fault injection, backend/provenance status, diagnostics/support/dashboard simulation visibility and full-simulation acceptance tests.  Watch must use a passive snapshot operation rather than causing extra samples or actuator reconciliation.
+
+#### M10.11 Hybrid HIL and simulation-aware voice
+
+Implement and test simulated sensor plus real actuator, real sensor plus simulated actuator, voice response provenance, hybrid evidence classification and physical-runner refusal when simulated backends are active.  Physical actuation remains gated by explicit operator configuration and target evidence.
+
+#### M10.12 Mandatory GonKen wake, responsiveness and transition announcements
+
+Implement `GonKen` as the shipped/default wake phrase, retain backward-compatible `Hey GonKen` recognition, add a recall-first tolerant matcher and fixture corpus, reduce capture/transcription blind gaps with overlapping or continuous standby analysis, add wake diagnostics, add post-question progress cues generated locally with Piper, and add voice-owned autonomous environment transition announcements with one-audio-owner arbitration.
+
+#### M10.13 Documentation and evidence hardening
+
+Create or revise README, `docs/HARDWARE_SETUP.md`, `docs/ENVIRONMENT_CONTROL.md`, `docs/SIMULATION.md`, `docs/OPERATIONS.md`, `docs/TROUBLESHOOTING.md`, physical acceptance docs and evidence runners.  Add documentation checks for paths, commands, options, services, config keys, wake phrase consistency, simulation/physical separation and cross-links.
+
+#### M10.14 User simulation and sensor-deferred HIL release candidate
+
+Produce the first user-test package labelled `READY_FOR_USER_SIMULATION_AND_SENSOR_DEFERRED_HIL` if and only if full simulation, sensor-deferred real-fan testing, voice/manual fan controls, live watch, evidence export, rollback/recovery and documentation gates pass.  If SHT31 remains unavailable, keep the SHT31 physical gate BLOCKED while allowing real-relay/fan and simulation/hybrid testing to proceed.
+
+### 22.5 Target evidence after user upload
+
+After the user runs the target package and uploads evidence, the next development session must verify package identity and configuration, classify each evidence item as full simulation, hybrid or physical, identify root cause for failures, fix the smallest correct layer, rerun affected host checks, issue the next package and rerun only uncertain target tests.  Do not restart architecture discovery.
