@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import sys
 import unittest
@@ -11,9 +12,12 @@ ROOT = Path(__file__).resolve().parents[2]
 
 class V09DocumentationHardeningTests(unittest.TestCase):
     def test_v09_documentation_validator_passes(self) -> None:
+        env = os.environ.copy()
+        env.pop("PYTHONPATH", None)
         result = subprocess.run(
             [sys.executable, "scripts/validate_v09_docs.py", "--json"],
             cwd=ROOT,
+            env=env,
             check=False,
             capture_output=True,
             text=True,
