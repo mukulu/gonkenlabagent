@@ -10,6 +10,7 @@ import tarfile
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from tests.fixtures.release_fakes import create_fake_release, current_user, point_current
 
@@ -316,7 +317,7 @@ class IntegrityAndPrivilegeTests(unittest.TestCase):
 
 
 class TargetRuntimeBindingTests(unittest.TestCase):
-    def _release_with_fake_python(self, root: Path, *, system_site: bool, exit_code: int = 0) -> Path:
+    def _release_with_fake_python(self, root: Path, *, system_site: bool, exit_code: int = 0, manifest: bool = True) -> Path:
         release = root / "release"
         binary = release / ".venv" / "bin"
         binary.mkdir(parents=True)
@@ -324,40 +325,156 @@ class TargetRuntimeBindingTests(unittest.TestCase):
             f"include-system-site-packages = {'true' if system_site else 'false'}\n",
             encoding="utf-8",
         )
+        site = release_manager._venv_site_packages(release)
+        (site / "gpiod").mkdir(parents=True)
+        gpiod = site / "gpiod" / "__init__.py"
+        gpiod.write_text("# fixture\n", encoding="utf-8")
+        smbus = site / "smbus.cpython-313-test.so"
+        smbus.write_bytes(b"fixture")
+        if manifest:
+            path = release / release_manager.BINDING_MANIFEST_RELATIVE
+            path.parent.mkdir(parents=True, exist_ok=True)
+            payload = {
+                "format": "gonken-hardware-binding-bridge-v1",
+                "profile": "core-pi-trixie-py313",
+                "source_root": "/usr/lib/python3/dist-packages",
+                "system_site_packages": False,
+                "packages": [
+                    {
+                        "package": "python3-libgpiod",
+                        "version": "2.2.1-test",
+                        "files": [{"path": "gpiod/__init__.py", "sha256": release_manager.sha256_file(gpiod)}],
+                    },
+                    {
+                        "package": "python3-smbus",
+                        "version": "4.4-test",
+                        "files": [{"path": smbus.name, "sha256": release_manager.sha256_file(smbus)}],
+                    },
+                ],
+            }
+            path.write_text(__import__("json").dumps(payload), encoding="utf-8")
         python = binary / "python"
         python.write_text(f"#!/bin/sh\nexit {exit_code}\n", encoding="utf-8")
         python.chmod(0o755)
         return release
 
-    def test_target_profile_enables_system_site_packages_only_for_pi_core(self) -> None:
-        self.assertTrue(release_manager.profile_uses_system_site_packages("core-pi-trixie-py313"))
-        self.assertFalse(release_manager.profile_uses_system_site_packages("dev-py312"))
-        self.assertFalse(release_manager.profile_uses_system_site_packages("ui-dev-py312"))
+    def test_target_profile_uses_allowlisted_distro_binding_bridge_only_for_pi_core(self) -> None:
+        self.assertTrue(release_manager.profile_uses_distro_bindings("core-pi-trixie-py313"))
+        self.assertFalse(release_manager.profile_uses_distro_bindings("dev-py312"))
+        self.assertFalse(release_manager.profile_uses_distro_bindings("ui-dev-py312"))
 
-    def test_target_binding_validation_rejects_isolated_venv_false_green(self) -> None:
+    def test_target_binding_validation_rejects_broad_system_site_visibility(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
-            release = self._release_with_fake_python(Path(temporary), system_site=False)
+            release = self._release_with_fake_python(Path(temporary), system_site=True)
             with self.assertRaises(release_manager.ReleaseError) as raised:
                 release_manager.validate_runtime_hardware_bindings(
                     release, "core-pi-trixie-py313", current_user()
                 )
         self.assertEqual(raised.exception.code, "RELEASE_VENV_POLICY")
 
+    def test_target_binding_validation_rejects_missing_bridge_manifest(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            release = self._release_with_fake_python(Path(temporary), system_site=False, manifest=False)
+            with self.assertRaises(release_manager.ReleaseError) as raised:
+                release_manager.validate_runtime_hardware_bindings(
+                    release, "core-pi-trixie-py313", current_user()
+                )
+        self.assertEqual(raised.exception.code, "RELEASE_BINDING_MANIFEST")
+
     def test_target_binding_validation_rejects_release_python_import_failure(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
-            release = self._release_with_fake_python(Path(temporary), system_site=True, exit_code=1)
+            release = self._release_with_fake_python(Path(temporary), system_site=False, exit_code=1)
             with self.assertRaises(release_manager.ReleaseError) as raised:
                 release_manager.validate_runtime_hardware_bindings(
                     release, "core-pi-trixie-py313", current_user()
                 )
         self.assertEqual(raised.exception.code, "RELEASE_HARDWARE_BINDINGS")
 
-    def test_target_binding_validation_accepts_release_python_probe(self) -> None:
+    def test_target_binding_validation_accepts_isolated_release_python_probe(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
-            release = self._release_with_fake_python(Path(temporary), system_site=True, exit_code=0)
+            release = self._release_with_fake_python(Path(temporary), system_site=False, exit_code=0)
             release_manager.validate_runtime_hardware_bindings(
                 release, "core-pi-trixie-py313", current_user()
             )
+
+    def test_binding_allowlist_excludes_distribution_metadata_and_unrelated_packages(self) -> None:
+        self.assertTrue(release_manager._binding_relative_allowed("python3-libgpiod", Path("gpiod/__init__.py")))
+        self.assertTrue(release_manager._binding_relative_allowed("python3-smbus", Path("smbus.cpython-313-aarch64-linux-gnu.so")))
+        for package, path in (
+            ("python3-libgpiod", Path("gpiod-2.2.0.dist-info/METADATA")),
+            ("python3-smbus", Path("smbus-1.1.egg-info/PKG-INFO")),
+            ("python3-libgpiod", Path("types_tensorflow-2.18.dist-info/METADATA")),
+            ("python3-smbus", Path("numpy/__init__.py")),
+        ):
+            with self.subTest(package=package, path=path):
+                self.assertFalse(release_manager._binding_relative_allowed(package, path))
+
+    def test_bridge_copies_only_allowlisted_import_payloads_and_records_provenance(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            release = root / "release"
+            site = release_manager._venv_site_packages(release)
+            site.mkdir(parents=True)
+            (release / ".venv" / "pyvenv.cfg").write_text(
+                "include-system-site-packages = false\n", encoding="utf-8"
+            )
+            distro = root / "dist-packages"
+            gpiod_init = distro / "gpiod" / "__init__.py"
+            gpiod_ext = distro / "gpiod" / "_ext.cpython-313-test.so"
+            smbus_ext = distro / "smbus.cpython-313-test.so"
+            unrelated = distro / "types_tensorflow-2.18.dist-info" / "METADATA"
+            for path, payload in (
+                (gpiod_init, b"# gpiod fixture\n"),
+                (gpiod_ext, b"gpiod-so"),
+                (smbus_ext, b"smbus-so"),
+                (unrelated, b"Requires-Dist: numpy\n"),
+            ):
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_bytes(payload)
+
+            def files(package: str, *, source_root: Path = distro):
+                self.assertEqual(source_root, distro)
+                return {
+                    "python3-libgpiod": [gpiod_init, gpiod_ext],
+                    "python3-smbus": [smbus_ext],
+                }[package]
+
+            with patch.object(release_manager, "_distro_binding_files", side_effect=files), patch.object(
+                release_manager, "_distro_package_version", side_effect=lambda package: {
+                    "python3-libgpiod": "2.2.1-test",
+                    "python3-smbus": "4.4-test",
+                }[package]
+            ):
+                manifest = release_manager.install_target_distro_bindings(
+                    release, "core-pi-trixie-py313", source_root=distro
+                )
+
+            self.assertIsNotNone(manifest)
+            self.assertTrue((site / "gpiod" / "__init__.py").is_file())
+            self.assertTrue((site / gpiod_ext.name.replace(gpiod_ext.name, "gpiod/_ext.cpython-313-test.so")).is_file())
+            self.assertTrue((site / smbus_ext.name).is_file())
+            self.assertFalse((site / "types_tensorflow-2.18.dist-info" / "METADATA").exists())
+            self.assertTrue(release_manager._binding_manifest_valid(release, "core-pi-trixie-py313"))
+
+    def test_isolated_bridge_keeps_unrelated_broken_system_metadata_out_of_pip_check(self) -> None:
+        import venv
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            release = root / "release"
+            venv.EnvBuilder(with_pip=True, system_site_packages=False).create(release / ".venv")
+            fake_system = root / "dist-packages"
+            broken = fake_system / "types_tensorflow-2.18.dist-info"
+            broken.mkdir(parents=True)
+            (broken / "METADATA").write_text(
+                "Metadata-Version: 2.1\nName: types-tensorflow\nVersion: 2.18.0\nRequires-Dist: numpy\n",
+                encoding="utf-8",
+            )
+            result = subprocess.run(
+                [str(release / ".venv/bin/python"), "-m", "pip", "check"],
+                check=False, capture_output=True, text=True,
+            )
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertNotIn("types-tensorflow", result.stdout + result.stderr)
 
     def test_binding_probe_covers_exact_runtime_apis(self) -> None:
         probe = release_manager.HARDWARE_BINDING_CHECK
@@ -376,7 +493,6 @@ class TargetRuntimeBindingTests(unittest.TestCase):
         self.assertNotIn('usermod -a -G i2c "$operator"', installer)
         self.assertIn('code=ENV_OPERATOR_SESSION_REFRESH', installer)
         self.assertIn('"target_runtime_bindings" "1"', installer)
-
 
 
 if __name__ == "__main__":

@@ -1,0 +1,9 @@
+Command: PYTHONPATH=src python3 -m unittest -v tests.integration.test_release_lifecycle_process
+Boundary: external command timeout 240s
+PASS before interruption:
+- ActivationInterruptionTests.test_every_journal_switch_and_postcheck_boundary_reconciles
+- ActivationInterruptionTests.test_failed_post_switch_smoke_rolls_back_previous
+- ActivationInterruptionTests.test_operator_rollback_script_restarts_service_after_validated_switch
+INTERRUPTED active case:
+- EndToEndReleaseTests.test_default_install_after_release_boundary_stops_before_target_only_steps
+Status: INTERRUPTED/TIMEOUT; aggregate is not PASS and not product FAIL.

@@ -379,15 +379,15 @@ gonken_target_runtime_bindings_postcondition() {
     --commit "${GONKEN_SOURCE_RECORD[resolved_commit]}" \
     --profile "$RELEASE_PROFILE" \
     --service-user gonken-env >/dev/null 2>&1 || return 1
-  GONKEN_STEP_EVIDENCE="target_release_runtime_bindings_gpiod_smbus_service_accounts"
+  GONKEN_STEP_EVIDENCE="target_release_runtime_bindings_allowlisted_gpiod_smbus_service_accounts"
 }
 
 gonken_target_runtime_bindings_action() {
   gonken_target_runtime_bindings_postcondition && return 0
   gonken_error \
     "TARGET_RUNTIME_BINDINGS" \
-    "active immutable release cannot import the required gpiod/smbus APIs as gonken-env" \
-    "rebuild the checkpoint release with the target system-site-packages policy and compatible Debian bindings"
+    "active immutable release cannot import the required allow-listed gpiod/smbus APIs as gonken-env" \
+    "repair the Debian binding prerequisites and rebuild the isolated checkpoint release"
   return 74
 }
 
