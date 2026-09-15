@@ -1,6 +1,6 @@
 {
-  "baseline_commit": "3b25b81c5bc7d4e24268726ad7f7b71296215a03",
-  "checkpoint_scope": "V09 checkpoint 24 target installer/runtime dependency repair after checkpoint-23 Raspberry Pi evidence",
+  "baseline_commit": "c062a44b2775d34cf29ce868971486b7b8123909",
+  "checkpoint_scope": "V09 checkpoint 25 comprehensive-closure blueprint reconstructed; implementation proceeds through M10.17-M10.23 while M10.24 remains target-only.",
   "milestones": [
     {
       "evidence": "TEST_MATRIX.md (M2.1)",
@@ -372,6 +372,78 @@
       "target": "not-run",
       "evidence": "scripts/release_manager.py; scripts/install.sh; scripts/environment_profile_manager.py; src/gonken_agent/support.py; src/gonken_agent/diagnostics.py; tests/unit/test_m3_3_release_manager.py; tests/unit/test_v09_environment_profile_manager.py; tests/unit/test_support_export.py; tests/unit/test_diagnostics_snapshot.py; docs/development/V09_CHECKPOINT_24_REPORT.md; docs/development/V09_CHANGE_VERIFICATION_REPORT_CHECKPOINT_24.md",
       "remaining": "Real target closure requires the exact checkpoint-24 archive to reach governed INSTALLATION_COMPLETE and pass the target runtime/operator preflight before relay actuation resumes. Physical relay/fan acceptance remains NOT_RUN."
+    },
+    {
+      "id": "M10.16",
+      "title": "Comprehensive closure blueprint and quality-system reconstruction",
+      "software": "host-verified",
+      "target": "not-run",
+      "evidence": "docs/development/V09_COMPREHENSIVE_CLOSURE_BLUEPRINT_CHECKPOINT_25.md; MASTER_BLUEPRINT.md; TEST_MATRIX.md; DECISIONS.md; external source verification recorded in checkpoint 25",
+      "remaining": "Blueprint reconstructed; implementation continues through M10.17-M10.23. M10.24 remains physical target acceptance."
+    },
+    {
+      "id": "M10.17",
+      "title": "Target Python dependency boundary redesign",
+      "software": "pending",
+      "target": "not-run",
+      "evidence": "",
+      "remaining": "Select and verify a controlled target binding architecture; reproduce checkpoint-24 dirty-system-package contamination and convert it into regression protection."
+    },
+    {
+      "id": "M10.18",
+      "title": "Installer convergence DAG, preflight and failure-evidence hardening",
+      "software": "pending",
+      "target": "not-run",
+      "evidence": "",
+      "remaining": "Implement prerequisite/postcondition convergence and dirty/partial/interrupted-state regression coverage."
+    },
+    {
+      "id": "M10.19",
+      "title": "Accounts, groups, configuration and environment-profile convergence",
+      "software": "pending",
+      "target": "not-run",
+      "evidence": "",
+      "remaining": "Implement least-privilege identity/ownership/profile convergence for simulation, both hybrid modes and full-real."
+    },
+    {
+      "id": "M10.20",
+      "title": "Systemd runtime, service-context and audio closure",
+      "software": "pending",
+      "target": "not-run",
+      "evidence": "",
+      "remaining": "Close service-context and audio/PipeWire/BlueZ readiness on host/target-shadow; physical audio remains target-gated."
+    },
+    {
+      "id": "M10.21",
+      "title": "SHT31/I2C and environment simulation-hybrid-full-real readiness",
+      "software": "pending",
+      "target": "not-run",
+      "evidence": "",
+      "remaining": "Correct/prove SHT31 wire semantics, I2C convergence, diagnostics, profile parity and controller cross-component behavior; physical sensor evidence remains target-gated."
+    },
+    {
+      "id": "M10.22",
+      "title": "Voice/environment end-to-end transaction closure",
+      "software": "pending",
+      "target": "not-run",
+      "evidence": "",
+      "remaining": "Verify CLI/voice environment transactions across simulation/hybrid failure cases; real voice/hardware remains target-gated."
+    },
+    {
+      "id": "M10.23",
+      "title": "Clean/dirty lifecycle, support, documentation, package and Git closure",
+      "software": "pending",
+      "target": "not-run",
+      "evidence": "",
+      "remaining": "Complete lifecycle/adversarial/support/documentation/package/Git host gates and prepare the next exact checkpoint."
+    },
+    {
+      "id": "M10.24",
+      "title": "Final Raspberry Pi environment and release acceptance",
+      "software": "pending",
+      "target": "not-run",
+      "evidence": "",
+      "remaining": "Run exact-package physical target acceptance after M10.17-M10.23 host gates and installer completion; never infer PASS from host evidence."
     }
   ],
   "schema_version": 1

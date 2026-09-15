@@ -1686,3 +1686,44 @@ The validated invoking non-root operator is added only to `gonken-envctl`; raw `
 A new non-actuating `environment_profile_manager.py` creates the exact sensor-deferred `simulated`-sensor/`libgpiod`-actuator site profile only when no site file exists and refuses to overwrite a different administrator-owned configuration.  It never starts services, requests GPIO/I2C devices or claims physical evidence.  Support bundles now export bounded release/runtime-binding/package provenance, allow-listed installer and service event codes, and health reason codes without transcripts or raw journals.
 
 Checkpoint 24 remains host/software evidence until the exact packaged checkpoint is installed on the Raspberry Pi.  Physical relay actuation is explicitly blocked until that installer reaches `INSTALLATION_COMPLETE`, the active release commit matches the delivered archive, application-runtime bindings pass on target, a fresh login has `gonken-envctl`, and GPIO23 mapping is reverified.
+
+
+## 23. V09 comprehensive-closure blueprint and dependency convergence (2026-09-16)
+
+The implementation-grade remaining-work specification is `docs/development/V09_COMPREHENSIVE_CLOSURE_BLUEPRINT_CHECKPOINT_25.md`. It is authoritative for the checkpoint-25 continuation where it refines older V09 text. Existing verified architecture remains preserved. Physical target evidence remains separate from host/simulation evidence.
+
+#### M10.16 Comprehensive closure blueprint and quality-system reconstruction
+
+Reconstruct current state from checkpoint 24 and real target evidence; model dependencies, work packages, false-green controls, SHT31/I2C readiness, lifecycle, package/Git and checkpoint rules before invasive implementation.
+
+#### M10.17 Target Python dependency boundary redesign
+
+Replace the checkpoint-24 broad system-site-packages dependency boundary with a controlled architecture that exposes only required distro hardware bindings or otherwise scopes dependency validation so unrelated target packages cannot invalidate a GonKen release while required APIs remain fail-closed.
+
+#### M10.18 Installer convergence DAG, preflight and failure-evidence hardening
+
+Turn installation into prerequisite/postcondition convergence across clean, dirty, partial and interrupted target states; produce candidate/installer evidence even when the active release is old or absent.
+
+#### M10.19 Accounts, groups, configuration and environment-profile convergence
+
+Prove least-privilege service/operator memberships, file/socket/device ownership and governed simulation, hybrid and full-real environment profile creation/verification without implicit actuation.
+
+#### M10.20 Systemd runtime, service-context and audio closure
+
+Verify application/environment/Ollama runtime contexts, no-login/restart behavior, PipeWire/BlueZ device readiness and fallback paths rather than equating process-running with appliance-ready.
+
+#### M10.21 SHT31/I2C and environment simulation-hybrid-full-real readiness
+
+Complete I2C enablement/reboot/device/service-user convergence, audit/correct exact SHT31 wire-protocol transactions, add bounded sensor diagnostics, preserve simulation parity and prepare all four backend combinations with target/physical gates.
+
+#### M10.22 Voice/environment end-to-end transaction closure
+
+Prove deterministic CLI/voice environment actions and queries through the environment daemon, preserve simulation/hybrid truthfulness and protect wake/audio arbitration and safe failure behavior.
+
+#### M10.23 Clean/dirty lifecycle, support, documentation, package and Git closure
+
+Run clean/dirty/interruption/update/rollback/reinstall host/target-shadow campaigns, strengthen support/privacy diagnostics, synchronize documentation, and package a clean portable Git checkpoint with executable modes/checksums/provenance.
+
+#### M10.24 Final Raspberry Pi environment and release acceptance
+
+Run the exact-package target campaign through installation completion, runtime/audio readiness, real relay/fan, real SHT31, controller modes, voice/wake, fault recovery, reboot/no-login and update/rollback. This remains target-gated until executed.

@@ -1193,3 +1193,19 @@ Checkpoint 24 is a **host-verified repair checkpoint** derived from the first ch
 | CP24-T135 | Physical unloaded relay OFF → ON → OFF and later fan/SHT31 campaign | `docs/RASPBERRY_PI_ACCEPTANCE_RUN.md` after CP24-T134 passes | NOT RUN / BLOCKED TARGET GATE | COM/NO/NC and fan power path remain unloaded until repaired installer/runtime acceptance passes. No physical acceptance claim. |
 
 Checkpoint 24 closes the host-side root cause and adds regression protection, but **M10.7 remains open**. The exact next target action is to install the committed checkpoint-24 archive locally on the Raspberry Pi, require governed `INSTALLATION_COMPLETE`, reconnect the operator session, verify immutable-runtime hardware bindings and control-socket authorization, and only then resume the unloaded relay Stage-2 procedure.
+
+
+## Checkpoint 25 comprehensive-closure verification matrix
+
+| Gate | Scope | Required evidence before PASS |
+|---|---|---|
+| C25-BP | M10.16 blueprint/control reconstruction | milestone-ledger exactness; source/evidence register; dependency graph; preserve-strengths review; false-green/executability review |
+| C25-PY | M10.17 Python dependency boundary | clean isolated runtime; required gpiod/I2C API import; missing/incompatible binding fail; unrelated broken system package metadata cannot fail GonKen-owned dependency gate; update/rollback validation |
+| C25-INST | M10.18 installer convergence | clean, previous checkpoint, failed-candidate residue, wrong ownership, missing groups/packages, interrupted steps, rerun/idempotency, failure evidence without active release |
+| C25-ID | M10.19 identities/config/profiles | least-privilege service/operator groups; socket/device/file ownership; absent/exact/divergent/unsafe config; four backend profiles; no profile-write actuation |
+| C25-SVC | M10.20 systemd/audio | unit syntax/security/runtime-dir/user/group; service-context dependencies; no-login/restart; PipeWire/BlueZ capture+playback and fallback readiness; degraded reason codes |
+| C25-S31 | M10.21 SHT31/I2C | I2C disabled/enabled/reboot-required; `/dev/i2c-1`/service access; 0x44/0x45/none/both; exact I2C transaction bytes/messages; CRC/transport/stale/recovery; >=100 bounded-read runner logic; simulation/hybrid/full-real configuration |
+| C25-ENV | M10.21 controller/cross-component | real-sensor-simulated-actuator host boundary, simulated-sensor-real-actuator host boundary, full simulation, fan-switch sensor error behavior, safe-off on invalid sensor/actuator writes |
+| C25-VOICE | M10.22 voice transaction | on/off/mode/temp/humidity intents over daemon IPC; simulation/hybrid wording; failure responses; wake/progress/transition audio ownership non-regression |
+| C25-LIFE | M10.23 lifecycle/support | clean/dirty/interrupted install; update/rollback/reinstall/uninstall; candidate-independent support; privacy schema; docs/control validation; package/Git re-extract/fsck/checksum/modes |
+| C25-PI | M10.24 physical target | `INSTALLATION_COMPLETE`; operator reconnect; service/audio readiness; GPIO23 CLI ON/OFF/safe lifecycle; SHT31 S0-S9 ladder; controller modes; voice/wake; fault/reboot/update/rollback evidence |
