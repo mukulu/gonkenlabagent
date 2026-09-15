@@ -1,0 +1,3 @@
+[RUN] module=tests.integration.test_release_lifecycle_process timeout=420s log=build/checkpoint13-bounded-release/logs/tests_integration_test_release_lifecycle_process.log
+[WAIT] module=tests.integration.test_release_lifecycle_process elapsed=10.0s tail=no output yet
+[WAIT] module=tests.integration.test_release_lifecycle_process elapsed=20.0s tail=test_failed_post_switch_smoke_rolls_back_previous (tests.integration.test_release_lifecycle_process.ActivationInterruptionTests.test_failed_post_switch_smoke_rolls_back_previous) ... ok | test_operator_rollback_script_restarts_service_after_validated_switch (tests.integration.test_release_lifecycle_process.ActivationInterruptionTests.test_operator_rollback_script_restarts_service_after_validated_switch) ... ok

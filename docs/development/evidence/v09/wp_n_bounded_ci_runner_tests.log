@@ -1,0 +1,14 @@
+test_ci_uses_bounded_runner_for_unit_and_integration_suites (tests.unit.test_bounded_unittest_runner.BoundedUnittestRunnerTests.test_ci_uses_bounded_runner_for_unit_and_integration_suites) ... ok
+test_failing_module_returns_nonzero_but_preserves_manifest (tests.unit.test_bounded_unittest_runner.BoundedUnittestRunnerTests.test_failing_module_returns_nonzero_but_preserves_manifest) ... ok
+test_passing_module_writes_manifest_and_log (tests.unit.test_bounded_unittest_runner.BoundedUnittestRunnerTests.test_passing_module_writes_manifest_and_log) ... ok
+test_timeout_module_returns_nonzero_and_kills_child (tests.unit.test_bounded_unittest_runner.BoundedUnittestRunnerTests.test_timeout_module_returns_nonzero_and_kills_child) ... ok
+test_automated_suites_do_not_import_optional_boundaries (tests.unit.test_test_architecture.TestArchitectureTests.test_automated_suites_do_not_import_optional_boundaries) ... ok
+test_ci_entry_point_has_no_install_or_network_step (tests.unit.test_test_architecture.TestArchitectureTests.test_ci_entry_point_has_no_install_or_network_step) ... ok
+test_hardware_and_live_probe_boundaries_are_documented (tests.unit.test_test_architecture.TestArchitectureTests.test_hardware_and_live_probe_boundaries_are_documented) ... ok
+test_manual_programs_refuse_unintentional_execution (tests.unit.test_test_architecture.TestArchitectureTests.test_manual_programs_refuse_unintentional_execution) ... ok
+test_no_interactive_program_is_named_as_an_automated_test (tests.unit.test_test_architecture.TestArchitectureTests.test_no_interactive_program_is_named_as_an_automated_test) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 5.276s
+
+OK
