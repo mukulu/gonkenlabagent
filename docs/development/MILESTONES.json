@@ -326,19 +326,22 @@
       "evidence": "src/gonken_agent/environment/responses.py; scripts/environment_acceptance_runner.py; tests/unit/test_v09_environment_voice_intents.py; tests/unit/test_v09_environment_acceptance_runner.py; docs/development/evidence/v09/checkpoint19/affected_simulation_voice_hil_tests.log; docs/development/evidence/v09/checkpoint19/t0_static.log",
       "id": "M10.11",
       "notes": "Simulation-aware voice wording and physical acceptance runner simulation-blocking rules are host-verified. Hybrid evidence is retained but cannot close full M10.7 physical acceptance while any backend is simulated.",
-      "remaining": "Implement hybrid sensor/actuator combinations, voice provenance wording and simulation-aware physical acceptance blocking. Physical actuation remains target-gated.",
-      "software": "pending",
+      "remaining": "Hybrid/simulation voice truthfulness and physical acceptance blocking are host-verified. Full physical M10.7 target acceptance remains not-run.",
+      "software": "host-verified",
       "status": "host-verified",
       "target": "not-run",
       "target_status": "not-run",
       "title": "Hybrid HIL and simulation-aware voice"
     },
     {
-      "evidence": "docs/development/V09_SIMULATION_HIL_EXTENSION_PLAN.md",
+      "evidence": "config/defaults.toml; src/gonken_agent/voice_runtime.py; src/gonken_agent/cli.py; src/gonken_agent/environment/service.py; tests/unit/test_voice_appliance.py; tests/unit/test_v09_environment_polling_loop.py; tests/unit/test_m2_1.py; docs/development/evidence/v09/checkpoint20/affected_wake_transition_tests.log; docs/development/evidence/v09/checkpoint20/t0_static.log; docs/development/evidence/v09/checkpoint20/physical_boundary_regression_tests.log; docs/development/evidence/v09/checkpoint20/active_unit_module_followup.log",
       "id": "M10.12",
-      "remaining": "Implement default GonKen wake phrase, high-recall continuous/overlapping wake path, matcher corpus, progress cues, local Piper cue cache, wake diagnostics and voice-owned transition announcements.",
-      "software": "pending",
+      "notes": "Host evidence only. Rolling transcript matcher reduces software blind gaps in fake transcript tests; it does not prove microphone/STT/audio wake behavior on Raspberry Pi.",
+      "remaining": "Default GonKen wake phrase, host wake matcher, progress-cue scheduler, local cue cache contract, wake status diagnostics and voice-owned transition announcements are host-verified. Real wake detection, real progress audio timing and real transition-announcement behavior remain target-gated under M10.7.",
+      "software": "host-verified",
+      "status": "host-verified",
       "target": "not-run",
+      "target_status": "not-run",
       "title": "Mandatory GonKen wake responsiveness and transition announcements"
     },
     {

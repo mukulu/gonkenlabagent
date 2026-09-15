@@ -85,7 +85,7 @@ enabled under systemd and starts automatically whenever the Pi boots.
 Power on the configured speaker/headset (if any), power the Raspberry Pi, and
 wait for the ready announcement. Then say:
 
-> **Hey Gonken**
+> **GonKen**
 
 Wait for the spoken **“Yes?”** acknowledgement, then ask your question. The
 assistant processes it locally, speaks the answer, and returns to wake-word

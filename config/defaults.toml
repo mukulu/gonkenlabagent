@@ -61,7 +61,7 @@ local_prompt = "/usr/local/lib/gonken-agent/current/share/gonken-agent/local_sou
 
 [extensions.wake_word]
 enabled = true
-phrase = "Hey Gonken"
+phrase = "GonKen"
 model = ""
 threshold = 0.5
 monitoring_led_gpio = 22

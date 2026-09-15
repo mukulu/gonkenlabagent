@@ -1104,3 +1104,15 @@ Checkpoint 18 closes the M10.10 host gate for `env simulate`, passive watch and 
 | M10.11-T092 | Interrupted active unit module follow-up | `PYTHONPATH=src python3 -m unittest -v tests.unit.test_runtime_audio` | PASS, 23/23 | Narrow follow-up only; not a full unit-phase PASS. |
 
 Checkpoint 19 closes the M10.11 host gate. It does not close M10.7 physical target acceptance and does not prove SHT31, relay, PENGLIN, fan, wake, or target systemd behavior.
+
+## V09 Checkpoint 20 — Mandatory GonKen wake / responsiveness / transition announcements
+
+| Gate | Command / artifact | Result | Evidence boundary |
+|---|---|---:|---|
+| M10.12-T093 | Wake, progress and transition host tests | `PYTHONPATH=src python3 -m unittest -v tests.unit.test_voice_appliance tests.unit.test_v09_environment_voice_intents tests.unit.test_v09_environment_simulation tests.unit.test_v09_environment_cli tests.unit.test_v09_environment_polling_loop tests.unit.test_m2_1 tests.unit.test_m2_2_config` | PASS, 107/107 | Host software evidence only; no real microphone, STT, Piper playback, wake-latency or Raspberry Pi evidence. |
+| M10.12-T094 | Static gates | `./scripts/ci.sh --phase t0` | PASS | Static/source/config gate only. |
+| M10.12-T095 | Physical-boundary regression tests | `PYTHONPATH=src python3 -m unittest -v tests.unit.test_v09_environment_acceptance_runner tests.unit.test_diagnostics_snapshot tests.unit.test_support_export tests.unit.test_grounding_observability` | PASS, 36/36 | Confirms no simulation or host evidence closes physical acceptance. |
+| M10.12-T096 | Unit phase attempt | `./scripts/ci.sh --phase unit` | INTERRUPTED / not PASS | External execution boundary interrupted the aggregate after partial progress. Diagnostic only. |
+| M10.12-T097 | Interrupted active unit module follow-up | `PYTHONPATH=src python3 -m unittest -v tests.unit.test_m8_uninstall_manager` | PASS, 3/3 | Narrow follow-up only; not a full unit-phase PASS. |
+
+Checkpoint 20 closes the M10.12 host gate for default `GonKen`, host wake matching, progress-cue scheduling, wake diagnostics and voice-owned environment transition announcements. It does not close M10.7 real wake, real audio, or physical environment hardware acceptance.

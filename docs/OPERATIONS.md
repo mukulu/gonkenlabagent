@@ -25,18 +25,26 @@ Linux/systemd
 The default wake phrase is:
 
 ```text
-Hey Gonken
+GonKen
 ```
 
 Say the wake phrase, wait for the spoken `Yes?` acknowledgement, then ask the
 question. Separating wake detection from the question avoids truncating a long
 question inside the short phrase-spotting capture window.
 
-Check the configured phrase with:
+Check the configured phrase and host matcher boundary with:
 
 ```bash
 gonken-agent status
+gonken-agent wake status
+gonken-agent wake status --json
 ```
+
+The host matcher accepts the default `GonKen`, the backward-compatible `Hey GonKen` alias, split-token `Gon Ken`, punctuation/case variants and bounded one-character STT errors for the GonKen token.  This is host software evidence only; real microphone false-accept/false-reject and wake-to-acknowledgement latency evidence still belongs to the Raspberry Pi acceptance run.
+
+After a captured request begins processing, ordinary deterministic environment commands should normally answer without filler.  Slower general-model requests may receive `Just a second.` and, if still unresolved, at most one `I'm still working on that.` cue.  These cues are generated locally through Piper and cached under the voice cache directory; legacy unknown-provenance filler WAVs remain excluded.
+
+Autonomous environment transition announcements are voice-owned.  The environment daemon records typed transition events, and the voice runtime may announce priority automatic/safety transitions without claiming fan blade motion or software speed control.  Simulated transitions are spoken as simulation.
 
 ## Service controls
 
