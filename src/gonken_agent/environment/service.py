@@ -17,6 +17,7 @@ from .controller import ControllerError, EnvironmentController
 from .domain import EnvironmentMode, FanPower, PolicyBounds, SensorQuality, SensorReading
 from .policy import EnvironmentPolicy, PolicyError, PolicyStore
 from .protocol import EnvironmentRequest
+from .simulation import SimulationState, SimulationStateError
 
 
 class EnvironmentServiceError(RuntimeError):
@@ -34,6 +35,11 @@ class ServiceIdentity:
     service_version: str = "0.2.0.dev0"
     hardware_backend: str = "host_fake"
     physical_evidence: bool = False
+    sensor_backend: str = "host_fake"
+    actuator_backend: str = "host_fake"
+    sensor_is_simulated: bool = False
+    actuator_is_simulated: bool = False
+    evidence_mode: str = "HOST_FAKE"
 
     def as_dict(self) -> dict[str, object]:
         return {
@@ -42,6 +48,11 @@ class ServiceIdentity:
             "service_version": self.service_version,
             "hardware_backend": self.hardware_backend,
             "physical_evidence": self.physical_evidence,
+            "sensor_backend": self.sensor_backend,
+            "actuator_backend": self.actuator_backend,
+            "sensor_is_simulated": self.sensor_is_simulated,
+            "actuator_is_simulated": self.actuator_is_simulated,
+            "evidence_mode": self.evidence_mode,
         }
 
 
@@ -92,6 +103,8 @@ class EnvironmentServiceCore:
         fan_actuator: Any | None = None,
         now: Callable[[], float] = monotonic,
         identity: ServiceIdentity | None = None,
+        simulation_state: SimulationState | None = None,
+        simulation_runtime_control_enabled: bool = False,
     ) -> None:
         self.controller = controller
         self.bounds = bounds
@@ -106,6 +119,8 @@ class EnvironmentServiceCore:
         self.fan_actuator = fan_actuator
         self.now = now
         self.identity = ServiceIdentity() if identity is None else identity
+        self.simulation_state = simulation_state
+        self.simulation_runtime_control_enabled = bool(simulation_runtime_control_enabled)
         self._lock = threading.RLock()
         self._request_count = 0
         self._error_count = 0
@@ -148,6 +163,7 @@ class EnvironmentServiceCore:
                 "poll_error_count": self._poll_error_count,
                 "last_poll_monotonic": self._last_poll_monotonic,
                 "last_poll_error_code": self._last_poll_error_code,
+                "simulation": self._simulation_payload(),
             }
         )
         return meta
@@ -157,7 +173,7 @@ class EnvironmentServiceCore:
             self._request_count += 1
             try:
                 return self._handle_locked(request.operation, request.params)
-            except (EnvironmentServiceError, ControllerError, PolicyError) as exc:
+            except (EnvironmentServiceError, ControllerError, PolicyError, SimulationStateError) as exc:
                 self._error_count += 1
                 code = getattr(exc, "code", "INTERNAL_ERROR")
                 raise EnvironmentServiceError(str(code), _public_message(exc)) from exc
@@ -198,6 +214,7 @@ class EnvironmentServiceCore:
                         stale_after_seconds=self.controller.stale_after_seconds,
                     ),
                     "physical_evidence": False,
+                    "provenance": self._provenance_payload(),
                 }
             except EnvironmentServiceError as exc:
                 self._poll_error_count += 1
@@ -210,6 +227,7 @@ class EnvironmentServiceCore:
                         stale_after_seconds=self.controller.stale_after_seconds,
                     ),
                     "physical_evidence": False,
+                    "provenance": self._provenance_payload(),
                 }
 
     def _handle_locked(self, operation: str, params: Mapping[str, Any]) -> dict[str, object]:
@@ -237,6 +255,7 @@ class EnvironmentServiceCore:
                     stale_after_seconds=self.controller.stale_after_seconds,
                 ),
                 "physical_evidence": False,
+                "provenance": self._provenance_payload(),
             }
         if operation == "fan.set":
             _reject_unknown_params(params, {"power"})
@@ -254,7 +273,7 @@ class EnvironmentServiceCore:
             return self._state_result(now, state=state)
         if operation == "policy.get":
             _reject_unknown_params(params, set())
-            return {"policy": self.controller.policy.to_mapping(), "bounds": _bounds_mapping(self.bounds)}
+            return {"policy": self.controller.policy.to_mapping(), "bounds": _bounds_mapping(self.bounds), "provenance": self._provenance_payload(), "physical_evidence": False}
         if operation == "policy.update":
             _reject_unknown_params(
                 params,
@@ -280,6 +299,57 @@ class EnvironmentServiceCore:
             self._apply_actuator_if_needed(now)
             self._save_policy_if_configured()
             return self._state_result(now, state=state)
+        if operation == "state.snapshot.get":
+            _reject_unknown_params(params, set())
+            return self._snapshot_payload(now)
+        if operation == "events.get":
+            _reject_unknown_params(params, {"limit"})
+            limit = _optional_int(params, "limit")
+            return {"events": self._simulation_events(limit=limit), "provenance": self._provenance_payload(), "physical_evidence": False}
+        if operation == "simulation.status.get":
+            _reject_unknown_params(params, set())
+            return {"simulation": self._simulation_payload(), "provenance": self._provenance_payload(), "physical_evidence": False}
+        if operation == "simulation.reset":
+            _reject_unknown_params(params, set())
+            self._require_simulation_control()
+            self._simulation_state().reset_all()
+            return {"simulation": self._simulation_payload(), "provenance": self._provenance_payload(), "physical_evidence": False}
+        if operation == "simulation.sensor.set":
+            _reject_unknown_params(params, {"temperature_c", "relative_humidity_pct"})
+            self._require_simulation_control()
+            self._require_simulated_sensor_active()
+            self._simulation_state().set_sensor(
+                temperature_c=_required_float(params, "temperature_c"),
+                relative_humidity_pct=_required_float(params, "relative_humidity_pct"),
+            )
+            return {"simulation": self._simulation_payload(), "provenance": self._provenance_payload(), "physical_evidence": False}
+        if operation == "simulation.sensor.fault":
+            _reject_unknown_params(params, {"fault", "age_seconds"})
+            self._require_simulation_control()
+            self._require_simulated_sensor_active()
+            self._simulation_state().fault_sensor(
+                fault=_required_string(params, "fault"),
+                stale_age_seconds=_optional_float(params, "age_seconds"),
+            )
+            return {"simulation": self._simulation_payload(), "provenance": self._provenance_payload(), "physical_evidence": False}
+        if operation == "simulation.sensor.reset":
+            _reject_unknown_params(params, set())
+            self._require_simulation_control()
+            self._require_simulated_sensor_active()
+            self._simulation_state().reset_sensor()
+            return {"simulation": self._simulation_payload(), "provenance": self._provenance_payload(), "physical_evidence": False}
+        if operation == "simulation.actuator.behavior.set":
+            _reject_unknown_params(params, {"behavior"})
+            self._require_simulation_control()
+            self._require_simulated_actuator_active()
+            self._simulation_state().set_actuator_behavior(_required_string(params, "behavior"))
+            return {"simulation": self._simulation_payload(), "provenance": self._provenance_payload(), "physical_evidence": False}
+        if operation == "simulation.actuator.reset":
+            _reject_unknown_params(params, set())
+            self._require_simulation_control()
+            self._require_simulated_actuator_active()
+            self._simulation_state().reset_actuator()
+            return {"simulation": self._simulation_payload(), "provenance": self._provenance_payload(), "physical_evidence": False}
         if operation == "probe.run":
             _reject_unknown_params(params, set())
             return {
@@ -287,6 +357,8 @@ class EnvironmentServiceCore:
                 "destructive": False,
                 "hardware_toggled": False,
                 "status": "not_implemented_for_physical_hardware",
+                "provenance": self._provenance_payload(),
+                "physical_evidence": False,
             }
         raise EnvironmentServiceError("UNKNOWN_OPERATION", f"unsupported operation: {operation}")
 
@@ -300,6 +372,7 @@ class EnvironmentServiceCore:
             ),
             "capabilities": self._capabilities_payload(),
             "physical_evidence": False,
+            "provenance": self._provenance_payload(),
         }
 
     def _health_payload(self, now: float) -> dict[str, object]:
@@ -318,6 +391,7 @@ class EnvironmentServiceCore:
                 stale_after_seconds=self.controller.stale_after_seconds,
             ),
             "physical_evidence": False,
+            "provenance": self._provenance_payload(),
         }
 
     def _state_result(self, now: float, *, state) -> dict[str, object]:
@@ -328,6 +402,7 @@ class EnvironmentServiceCore:
             ),
             "policy": self.controller.policy.to_mapping(),
             "physical_evidence": False,
+            "provenance": self._provenance_payload(),
         }
 
     def _overall_environment_state(self) -> str:
@@ -359,6 +434,84 @@ class EnvironmentServiceCore:
             "last_poll_monotonic": self._last_poll_monotonic,
             "last_poll_error_code": self._last_poll_error_code,
         }
+
+    def _snapshot_payload(self, now: float) -> dict[str, object]:
+        return {
+            "service": "READY",
+            "environment": self._overall_environment_state(),
+            "state": self.controller.state.as_dict(
+                now_monotonic=now,
+                stale_after_seconds=self.controller.stale_after_seconds,
+            ),
+            "capabilities": self._capabilities_payload(),
+            "polling": self._polling_payload(),
+            "physical_evidence": False,
+            "provenance": self._provenance_payload(),
+        }
+
+    def _provenance_payload(self) -> dict[str, object]:
+        payload: dict[str, object] = {
+            "sensor_backend": self.identity.sensor_backend,
+            "actuator_backend": self.identity.actuator_backend,
+            "sensor_is_simulated": self.identity.sensor_is_simulated,
+            "actuator_is_simulated": self.identity.actuator_is_simulated,
+            "physical_evidence": self.identity.physical_evidence,
+            "evidence_mode": self.identity.evidence_mode,
+        }
+        if self.simulation_state is not None:
+            payload.update({
+                "simulation_session_id": self.simulation_state.session_id,
+                "simulation_generation": self.simulation_state.generation,
+            })
+        else:
+            payload.update({
+                "simulation_session_id": None,
+                "simulation_generation": None,
+            })
+        return payload
+
+    def _simulation_payload(self) -> dict[str, object]:
+        if self.simulation_state is None:
+            return {
+                "active": False,
+                "runtime_control_enabled": self.simulation_runtime_control_enabled,
+                "sensor_is_simulated": self.identity.sensor_is_simulated,
+                "actuator_is_simulated": self.identity.actuator_is_simulated,
+                "physical_evidence": False,
+            }
+        payload = self.simulation_state.as_dict()
+        payload.update({
+            "active": True,
+            "runtime_control_enabled": self.simulation_runtime_control_enabled,
+            "sensor_is_simulated": self.identity.sensor_is_simulated,
+            "actuator_is_simulated": self.identity.actuator_is_simulated,
+            "evidence_mode": self.identity.evidence_mode,
+            "physical_evidence": False,
+        })
+        return payload
+
+    def _simulation_events(self, *, limit: int | None = None) -> list[dict[str, object]]:
+        if self.simulation_state is None:
+            return []
+        return self.simulation_state.events(limit=limit)
+
+    def _simulation_state(self) -> SimulationState:
+        if self.simulation_state is None:
+            raise EnvironmentServiceError("SIMULATION_DISABLED", "simulation is not active for this daemon")
+        return self.simulation_state
+
+    def _require_simulation_control(self) -> None:
+        if not self.simulation_runtime_control_enabled:
+            raise EnvironmentServiceError("SIMULATION_DISABLED", "simulation runtime control is disabled")
+        self._simulation_state()
+
+    def _require_simulated_sensor_active(self) -> None:
+        if not self.identity.sensor_is_simulated:
+            raise EnvironmentServiceError("SIMULATION_SENSOR_NOT_ACTIVE", "sensor backend is not simulated")
+
+    def _require_simulated_actuator_active(self) -> None:
+        if not self.identity.actuator_is_simulated:
+            raise EnvironmentServiceError("SIMULATION_ACTUATOR_NOT_ACTIVE", "actuator backend is not simulated")
 
     def _read_sensor_locked(self, now: float) -> SensorReading:
         if self.sensor_read is None:
@@ -517,6 +670,13 @@ def _optional_string(params: Mapping[str, Any], key: str) -> str | None:
     if not isinstance(value, str) or not value.strip():
         raise EnvironmentServiceError("BAD_REQUEST", f"{key} must be a non-empty string")
     return value
+
+
+def _required_float(params: Mapping[str, Any], key: str) -> float:
+    value = params.get(key)
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        raise EnvironmentServiceError("BAD_REQUEST", f"{key} must be a number")
+    return float(value)
 
 
 def _optional_float(params: Mapping[str, Any], key: str) -> float | None:

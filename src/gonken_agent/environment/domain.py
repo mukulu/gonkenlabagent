@@ -144,6 +144,7 @@ class SensorReading:
     source_backend: str = "sht31"
     crc_valid: bool = True
     error_code: str | None = None
+    physical_evidence: bool = False
 
     def age_seconds(self, *, now_monotonic: float) -> float:
         age = now_monotonic - self.observed_monotonic
@@ -180,6 +181,7 @@ class SensorReading:
             "crc_valid": self.crc_valid,
             "valid": self.is_valid(),
             "error_code": self.error_code,
+            "physical_evidence": self.physical_evidence,
         }
         if now_monotonic is not None:
             payload["age_seconds"] = self.age_seconds(now_monotonic=now_monotonic)

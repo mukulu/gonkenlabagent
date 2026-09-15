@@ -80,6 +80,42 @@ class EnvironmentClient:
     def policy_update(self, **params: Any) -> Mapping[str, Any]:
         return _result(self.call("policy.update", params))
 
+    def snapshot(self) -> Mapping[str, Any]:
+        return _result(self.call("state.snapshot.get"))
+
+    def events(self, *, limit: int | None = None) -> Mapping[str, Any]:
+        params = {} if limit is None else {"limit": limit}
+        return _result(self.call("events.get", params))
+
+    def simulation_status(self) -> Mapping[str, Any]:
+        return _result(self.call("simulation.status.get"))
+
+    def simulation_reset(self) -> Mapping[str, Any]:
+        return _result(self.call("simulation.reset"))
+
+    def simulation_sensor_set(self, *, temperature_c: float, relative_humidity_pct: float) -> Mapping[str, Any]:
+        return _result(
+            self.call(
+                "simulation.sensor.set",
+                {"temperature_c": temperature_c, "relative_humidity_pct": relative_humidity_pct},
+            )
+        )
+
+    def simulation_sensor_fault(self, fault: str, *, age_seconds: float | None = None) -> Mapping[str, Any]:
+        params: dict[str, Any] = {"fault": fault}
+        if age_seconds is not None:
+            params["age_seconds"] = age_seconds
+        return _result(self.call("simulation.sensor.fault", params))
+
+    def simulation_sensor_reset(self) -> Mapping[str, Any]:
+        return _result(self.call("simulation.sensor.reset"))
+
+    def simulation_actuator_behavior_set(self, behavior: str) -> Mapping[str, Any]:
+        return _result(self.call("simulation.actuator.behavior.set", {"behavior": behavior}))
+
+    def simulation_actuator_reset(self) -> Mapping[str, Any]:
+        return _result(self.call("simulation.actuator.reset"))
+
 
 def _result(response: EnvironmentResponse) -> Mapping[str, Any]:
     if response.result is None:

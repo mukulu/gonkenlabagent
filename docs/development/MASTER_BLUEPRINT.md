@@ -1591,3 +1591,15 @@ Produce the first user-test package labelled `READY_FOR_USER_SIMULATION_AND_SENS
 ### 22.5 Target evidence after user upload
 
 After the user runs the target package and uploads evidence, the next development session must verify package identity and configuration, classify each evidence item as full simulation, hybrid or physical, identify root cause for failures, fix the smallest correct layer, rerun affected host checks, issue the next package and rerun only uncertain target tests.  Do not restart architecture discovery.
+
+### 22.5 Checkpoint 17 — Simulation foundations implementation
+
+Checkpoint 17 implements the first runtime layer of the V09 simulation/HIL extension.  It adds independent simulated sensor and simulated actuator backends behind the existing environment service boundary, rather than creating a separate CLI-owned simulator or weakening the physical controller architecture.
+
+The static configuration schema now accepts `sensor_backend = "simulated"` and `relay_backend = "simulated"` as independent axes while preserving `sht31` and `libgpiod` as the physical backend names.  Simulation runtime mutation remains explicitly controlled by `simulation_runtime_control_enabled`; default configuration remains non-simulating and environment-disabled unless deliberately configured.
+
+The new daemon-owned simulation state records a session identifier, generation, bounded event history, sensor value/fault state and actuator behavior.  Protocol operations for `simulation.status.get`, sensor set/fault/reset, actuator behavior/reset, `state.snapshot.get` and `events.get` expose this state through the same bounded AF_UNIX contract as physical environment operations.  These operations are host-verified, but they do not claim SHT31, relay, fan or Raspberry Pi acceptance.
+
+Checkpoint 17 also closes one safety defect from checkpoint 16: `gonken-agent env serve --check` is now tested as a construction/configuration check that does not call the daemon shutdown safe-off path and therefore does not request or write a relay line merely to validate configuration.  Real daemon shutdown still retains safe-off semantics once resources have actually been acquired.
+
+Remaining simulation/HIL work moves to the operator and evidence layers: `gonken-agent env simulate ...`, passive `env watch`, diagnostics/support/dashboard provenance, simulation-aware voice wording, hybrid HIL evidence classification, wake/progress work and documentation hardening.  M10.7 physical Raspberry Pi acceptance remains not-run.

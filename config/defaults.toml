@@ -90,3 +90,5 @@ minimum_hysteresis_c = 0.5
 maximum_hysteresis_c = 15.0
 minimum_dwell_seconds = 5
 maximum_dwell_seconds = 3600
+simulation_runtime_control_enabled = false
+simulation_event_history_limit = 128

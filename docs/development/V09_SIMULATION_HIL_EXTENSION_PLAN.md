@@ -348,3 +348,9 @@ Detailed traceability is in `docs/development/V09_SIMULATION_HIL_TRACEABILITY.cs
 - **Safety:** hardware instructions require low-voltage-only operation, unloaded relay testing, meter checks and explicit stop conditions.
 - **Executability:** future work names actual modules, docs, tests, scripts and commands where possible.
 - **Cold resume:** start with checkpoint 17 simulation foundations using this plan, `MASTER_BLUEPRINT.md`, `MILESTONES.json`, `TEST_MATRIX.md` and `DECISIONS.md`.
+
+## Checkpoint 17 implementation note — simulation foundations
+
+Checkpoint 17 implements the M10.9 foundation layer: simulated sensor backend, simulated actuator backend, backend factories, daemon-owned simulation state, simulation provenance fields, simulation protocol operations, passive snapshot/event protocol primitives and host tests.  The implementation also verifies that `env serve --check` no longer calls a safe-off cleanup path that could open/request GPIO during a nominally non-actuating check.
+
+The checkpoint remains host/simulation evidence only.  It does not add the operator `env simulate` command family, does not convert `env watch` to passive snapshot mode, does not add simulation-aware voice wording, does not run hybrid HIL and does not close M10.7 physical Raspberry Pi acceptance.

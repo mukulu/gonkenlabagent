@@ -211,6 +211,39 @@ class EnvironmentCliTests(unittest.TestCase):
         self.assertFalse(payload["physical_evidence"])
         self.assertFalse(Path(socket_path).exists())
 
+
+    def test_env_serve_check_does_not_call_safe_off_or_open_resources(self) -> None:
+        class FakeCore:
+            def __init__(self) -> None:
+                self.shutdown_called = False
+
+            def daemon_metadata(self):
+                return {"hardware_backend": "sht31+libgpiod", "physical_evidence": False}
+
+            def shutdown_safe_off(self):
+                self.shutdown_called = True
+
+        fake_core = FakeCore()
+        with tempfile.TemporaryDirectory() as temporary:
+            site = f"{temporary}/site.toml"
+            policy = f"{temporary}/policy.json"
+            socket_path = f"{temporary}/control.sock"
+            with open(site, "w", encoding="utf-8") as handle:
+                handle.write(
+                    "[extensions.environment]\n"
+                    "enabled = true\n"
+                    f"policy_path = \"{policy}\"\n"
+                    f"socket_path = \"{socket_path}\"\n"
+                )
+            stdout = io.StringIO()
+            stderr = io.StringIO()
+            with mock.patch("gonken_agent.environment.build_environment_service_core", return_value=fake_core):
+                with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
+                    result = cli.main(["env", "serve", "--site", site, "--check", "--json"])
+        self.assertEqual(result, 0, stderr.getvalue())
+        self.assertFalse(fake_core.shutdown_called)
+        self.assertFalse(json.loads(stdout.getvalue())["hardware_toggled"])
+
     def test_status_json_uses_ipc_client_and_reports_no_physical_evidence(self) -> None:
         result, stdout, stderr, client = self.run_cli(["status", "--json"])
         payload = json.loads(stdout)

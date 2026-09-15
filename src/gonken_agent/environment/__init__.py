@@ -20,10 +20,11 @@ from .responses import environment_error_response, environment_success_response
 from .protocol import EnvironmentRequest, EnvironmentResponse, ProtocolError
 from .server import EnvironmentUnixServer
 from .service import EnvironmentPollingLoop, EnvironmentServiceCore, EnvironmentServiceError, ScriptedSensorSource, ServiceIdentity
-from .daemon import EnvironmentDaemon, EnvironmentDaemonError, build_environment_service_core, build_environment_unix_server, policy_bounds_from_config
+from .daemon import EnvironmentDaemon, EnvironmentDaemonError, build_actuator_adapter, build_environment_service_core, build_environment_unix_server, build_sensor_adapter, build_simulation_state_from_config, policy_bounds_from_config
 from .policy import EnvironmentPolicy, PolicyError, PolicyStore
-from .sensors import EnvironmentSensor, SHT31Sensor, SensorAdapterError, crc8, decode_sht31_frame
-from .actuators import ActuatorAdapterError, FanActuator, GpiodRelayFanActuator
+from .simulation import SimulationState, SimulationStateError, classify_evidence_mode
+from .sensors import EnvironmentSensor, SHT31Sensor, SensorAdapterError, SimulatedEnvironmentSensor, crc8, decode_sht31_frame
+from .actuators import ActuatorAdapterError, FanActuator, GpiodRelayFanActuator, SimulatedFanActuator
 
 __all__ = [
     "ControllerError",
@@ -54,6 +55,14 @@ __all__ = [
     "FanActuator",
     "GpiodRelayFanActuator",
     "PolicyBounds",
+    "build_actuator_adapter",
+    "build_sensor_adapter",
+    "build_simulation_state_from_config",
+    "SimulatedEnvironmentSensor",
+    "SimulatedFanActuator",
+    "SimulationState",
+    "SimulationStateError",
+    "classify_evidence_mode",
     "build_environment_service_core",
     "build_environment_unix_server",
     "policy_bounds_from_config",
