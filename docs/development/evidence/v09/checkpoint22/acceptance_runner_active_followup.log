@@ -1,0 +1,7 @@
+test_explicit_actuation_runs_fan_cycle_commands_but_still_claims_no_acceptance (tests.unit.test_v09_environment_acceptance_runner.EnvironmentAcceptanceRunnerTests.test_explicit_actuation_runs_fan_cycle_commands_but_still_claims_no_acceptance) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 9.099s
+
+OK
+elapsed=9.79

@@ -354,3 +354,12 @@ Detailed traceability is in `docs/development/V09_SIMULATION_HIL_TRACEABILITY.cs
 Checkpoint 17 implements the M10.9 foundation layer: simulated sensor backend, simulated actuator backend, backend factories, daemon-owned simulation state, simulation provenance fields, simulation protocol operations, passive snapshot/event protocol primitives and host tests.  The implementation also verifies that `env serve --check` no longer calls a safe-off cleanup path that could open/request GPIO during a nominally non-actuating check.
 
 The checkpoint remains host/simulation evidence only.  It does not add the operator `env simulate` command family, does not convert `env watch` to passive snapshot mode, does not add simulation-aware voice wording, does not run hybrid HIL and does not close M10.7 physical Raspberry Pi acceptance.
+
+
+## Checkpoint 22 implementation note — user-test release-candidate gating
+
+Checkpoint 22 implements M10.14 as a host/software release-candidate gate for supervised target testing. `scripts/environment_simulation_runner.py` creates deterministic full-simulation evidence through the existing AF_UNIX/CLI/controller path and verifies that the sensor-simulated/libgpiod profile can be constructed by the non-actuating `env serve --check` path. `scripts/v09_user_test_readiness.py` refuses the final READY label unless the established host milestones, documentation validator, base release-readiness gate, required handoff artifacts and a fresh exact-commit simulation manifest all satisfy their contracts.
+
+The final user-test label is `READY_FOR_USER_SIMULATION_AND_SENSOR_DEFERRED_HIL`. It means the clean committed package is ready for the staged user campaign in `docs/USER_SIMULATION_HIL_HANDOFF.md`; it is not physical Raspberry Pi acceptance. Dirty development trees may only produce the separate `DEVELOPMENT_READY_FOR_USER_SIMULATION_AND_SENSOR_DEFERRED_HIL` status. M10.7, SHT31, relay/PENGLIN/fan physical behavior, blade motion, real wake/audio behavior and target reboot/no-login convergence remain `NOT_RUN`.
+
+The target handoff is deliberately ordered from full simulation to manual unloaded relay verification, then supervised real fan OFF/ON/OFF, then simulated-sensor automatic/semi-automatic HIL. The current libgpiod adapter still assumes `/dev/gpiochip0` line offset 23 for the BCM23 seed; target mapping must establish that identity before actuation. A mismatch blocks the real-actuator tranche and must be returned as evidence instead of being worked around by guesswork.

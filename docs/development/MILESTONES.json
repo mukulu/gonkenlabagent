@@ -1,6 +1,6 @@
 {
   "baseline_commit": "3b25b81c5bc7d4e24268726ad7f7b71296215a03",
-  "checkpoint_scope": "V09 simulation/HIL implementation checkpoint 17 from checkpoint 16",
+  "checkpoint_scope": "V09 checkpoint 22 user simulation and sensor-deferred HIL release-candidate gating",
   "milestones": [
     {
       "evidence": "TEST_MATRIX.md (M2.1)",
@@ -356,12 +356,14 @@
       "title": "Documentation and evidence hardening"
     },
     {
-      "evidence": "docs/development/V09_SIMULATION_HIL_EXTENSION_PLAN.md",
+      "evidence": "scripts/environment_simulation_runner.py; scripts/v09_user_test_readiness.py; docs/USER_SIMULATION_HIL_HANDOFF.md; tests/unit/test_v09_user_test_readiness.py; tests/integration/test_v09_user_test_release_candidate.py; docs/development/evidence/v09/checkpoint22/",
       "id": "M10.14",
-      "remaining": "Produce READY_FOR_USER_SIMULATION_AND_SENSOR_DEFERRED_HIL only after full simulation, sensor-deferred real-fan paths, voice/manual controls, watch, evidence export, docs and rollback/recovery gates pass.",
-      "software": "pending",
+      "remaining": "Host release-candidate gating is implemented. A clean committed package may emit READY_FOR_USER_SIMULATION_AND_SENSOR_DEFERRED_HIL only with a fresh commit-bound simulation manifest. Raspberry Pi simulation, real relay/PENGLIN/fan actuation, SHT31, wake/audio and full M10.7 acceptance remain target NOT_RUN and must be collected by the user.",
+      "software": "host-verified",
       "target": "not-run",
-      "title": "User simulation and sensor-deferred HIL release candidate"
+      "title": "User simulation and sensor-deferred HIL release candidate",
+      "status": "host-verified",
+      "target_status": "not-run"
     }
   ],
   "schema_version": 1

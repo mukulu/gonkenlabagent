@@ -1318,3 +1318,30 @@ The M10.7 environment acceptance runner manifest now includes `evidence_boundary
 **Status:** accepted in checkpoint 21.
 
 The room-environment documentation is split into `HARDWARE_SETUP.md`, `ENVIRONMENT_CONTROL.md`, `SIMULATION.md`, `TROUBLESHOOTING.md`, and `ENVIRONMENT_ACCEPTANCE_RUN.md`. This avoids overloading `OPERATIONS.md` and gives the operator separate entry points for wiring safety, daemon/policy semantics, simulation practice, fault diagnosis and private target evidence collection.
+
+
+## 2026-09-15 — Checkpoint 22 user-test release-candidate decisions
+
+### D-127 — The M10.14 READY label is a supervised-test readiness label, not physical acceptance
+
+**Status:** accepted in checkpoint 22.
+
+`READY_FOR_USER_SIMULATION_AND_SENSOR_DEFERRED_HIL` means the package has passed the required host/software gates to be installed for the staged user campaign. It cannot close M10.7, SHT31, relay/PENGLIN/fan, blade-motion, real wake/audio or target reboot/no-login acceptance.
+
+### D-128 — Final M10.14 readiness requires clean, exact-commit simulation evidence
+
+**Status:** accepted in checkpoint 22.
+
+The final readiness gate accepts only a fresh M10.14 simulation manifest bound to the exact current Git commit and a clean worktree. An explicit dirty-tree development override may produce only `DEVELOPMENT_READY_FOR_USER_SIMULATION_AND_SENSOR_DEFERRED_HIL`; it cannot emit the final READY label. Unknown or stale commit identity is rejected.
+
+### D-129 — Sensor-deferred real-actuator readiness is non-actuating until target preflight succeeds
+
+**Status:** accepted in checkpoint 22.
+
+Host gating validates the `sensor_backend=simulated` plus `relay_backend=libgpiod` profile through the non-actuating `env serve --check` path. It does not request/write GPIO or claim real actuation. On the Pi, the operator must first verify character-device mapping, relay wiring/polarity and the documented low-voltage power path. A mapping mismatch or wiring uncertainty blocks actuation and is returned as target evidence.
+
+### D-130 — Full-simulation release evidence keeps every physical gate explicitly open
+
+**Status:** accepted in checkpoint 22.
+
+The deterministic M10.14 simulation runner exercises manual, AUTO, SEMI, stale/recovery and passive-watch behavior through the public service/CLI boundary, but its manifest always records `physical_acceptance_claimed=false`, `sht31_physical_acceptance=NOT_RUN`, `relay_fan_physical_acceptance=NOT_RUN` and `sensor_deferred_hil_physical_actuation_tested=false`.

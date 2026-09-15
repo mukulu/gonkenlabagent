@@ -35,6 +35,7 @@ REQUIRED_DOCS = (
     "docs/RASPBERRY_PI_ACCEPTANCE_RUN.md",
     "docs/OPERATIONS.md",
     "docs/INSTALLATION.md",
+    "docs/USER_SIMULATION_HIL_HANDOFF.md",
 )
 
 REQUIRED_BOUNDARY_TERMS = {
@@ -71,6 +72,13 @@ REQUIRED_BOUNDARY_TERMS = {
         "physical_acceptance_claimed=false",
         "SIMULATION_ACTIVE_PHYSICAL_ACCEPTANCE_BLOCKED",
         "Exit code 0 means",
+    ),
+    "docs/USER_SIMULATION_HIL_HANDOFF.md": (
+        "READY_FOR_USER_SIMULATION_AND_SENSOR_DEFERRED_HIL",
+        "not Raspberry Pi physical acceptance",
+        "TARGET_HYBRID_SENSOR_SIMULATED",
+        "SIMULATION_ACTIVE_PHYSICAL_ACCEPTANCE_BLOCKED",
+        "Do not actuate",
     ),
 }
 

@@ -1128,3 +1128,17 @@ Checkpoint 20 closes the M10.12 host gate for default `GonKen`, host wake matchi
 | M10.13-T102 | Interrupted active unit module follow-up | `PYTHONPATH=src:. python3 -m unittest -v tests.unit.test_m6_service_manager` | PASS, 8/8 | Narrow follow-up only; not a full unit-phase PASS. |
 
 Checkpoint 21 closes the M10.13 host documentation/evidence hardening gate. It adds hardware setup, environment control, simulation and troubleshooting documents, T0 documentation validation, documented-command parsing, config-key documentation checks, wake default consistency checks and acceptance-runner manifest boundary metadata. It does not close M10.7 physical target acceptance.
+
+
+## V09 Checkpoint 22 — User simulation and sensor-deferred HIL release-candidate gating
+
+| Gate | Command / artifact | Result | Evidence boundary |
+|---|---|---:|---|
+| M10.14-T103 | `PYTHONPATH=src:. python3 -m unittest -v tests.unit.test_v09_user_test_readiness tests.integration.test_v09_user_test_release_candidate tests.unit.test_v09_documentation_hardening` | PASS after final checkpoint edits | New gate/runner and documentation contracts only; no target hardware evidence. |
+| M10.14-T104 | `PYTHONPATH=src:. python3 -m unittest -v tests.unit.test_v09_environment_acceptance_runner` | PASS, 7/7 | Confirms physical evidence collector remains non-oracle and blocks simulated backend payloads. No real actuation was performed. |
+| M10.14-T105 | Affected CLI/simulation/voice/release/update/uninstall/support modules | PASS, 47/47 | Host regression evidence for operator simulation, lifecycle and support-export surfaces. |
+| M10.14-T106 | First broad affected-regression attempt | INTERRUPTED / TIMEOUT after partial PASS output | Preserved in `docs/development/evidence/v09/checkpoint22/affected_regression_attempt_interrupted.log`; not counted as a PASS. Active acceptance-runner module was isolated and rerun successfully. |
+| M10.14-T107 | `./scripts/ci.sh --phase t0` | PASS after one failed close attempt exposed CRLF in newly appended CSV rows | Initial failure is preserved in `checkpoint22/t0_static_initial_fail.log`; final PASS is in `checkpoint22/t0_static.log`. Static/config/docs/milestone/diff evidence only; no physical acceptance. |
+| M10.14-T108 | Final clean `environment_simulation_runner.py` plus `v09_user_test_readiness.py --check` against exact checkpoint commit | Package-close gate; evidence generated outside the committed tree and shipped beside the archive | May emit `READY_FOR_USER_SIMULATION_AND_SENSOR_DEFERRED_HIL`; still leaves M10.7/SHT31/relay/fan/wake/audio physical acceptance `NOT_RUN`. |
+
+The checkpoint-22 label means the committed package is ready for supervised user simulation and sensor-deferred HIL evidence collection. It does **not** mean that the Raspberry Pi, SHT31, relay polarity, PENGLIN power path, fan blade motion, real wake/audio or reboot/no-login acceptance has passed.
