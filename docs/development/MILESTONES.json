@@ -392,18 +392,18 @@
     {
       "id": "M10.18",
       "title": "Installer convergence DAG, preflight and failure-evidence hardening",
-      "software": "pending",
+      "software": "host-verified",
       "target": "not-run",
-      "evidence": "",
-      "remaining": "Implement prerequisite/postcondition convergence and dirty/partial/interrupted-state regression coverage."
+      "evidence": "scripts/target_preflight.py; scripts/installer_failure_bundle.py; scripts/install.sh; tests/unit/test_v09_target_preflight.py; tests/unit/test_v09_installer_failure_bundle.py; tests/integration/test_install_engine_process.py; docs/development/evidence/v09/checkpoint27/m10_18_19_focused_tests.log",
+      "remaining": "Target prerequisite convergence and installer-owned early-failure bundle are host-verified. Real target package/device truth remains target-run evidence."
     },
     {
       "id": "M10.19",
       "title": "Accounts, groups, configuration and environment-profile convergence",
-      "software": "pending",
+      "software": "host-verified",
       "target": "not-run",
-      "evidence": "",
-      "remaining": "Implement least-privilege identity/ownership/profile convergence for simulation, both hybrid modes and full-real."
+      "evidence": "scripts/environment_profile_manager.py; scripts/target_preflight.py; scripts/install.sh; tests/unit/test_v09_environment_profile_manager.py; tests/unit/test_v09_target_preflight.py; docs/development/evidence/v09/checkpoint27/m10_18_19_focused_tests.log",
+      "remaining": "Four governed non-actuating backend profiles and identity/socket-group convergence are host-verified. Device permissions and fresh-login effect remain target-run evidence."
     },
     {
       "id": "M10.20",

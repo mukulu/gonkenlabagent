@@ -1,35 +1,97 @@
 #!/usr/bin/env python3
-"""Create or verify safe static room-environment target profiles.
+"""Create, transition, or verify governed static room-environment profiles.
 
-This helper never starts services, requests GPIO/I2C devices, or actuates
-hardware.  It is intentionally conservative: it creates the supervised
-sensor-deferred relay profile only when the site configuration is absent, and
-refuses to overwrite a differing administrator-owned configuration.
+The helper never starts services, requests GPIO/I2C devices, or actuates
+hardware.  It may create a missing site configuration or atomically transition
+between exact profiles previously managed by this helper.  Unknown or mixed
+administrator configuration always fails closed.
 """
-
 from __future__ import annotations
 
 import argparse
-import os
-import pwd
 import grp
-import stat
+import os
 import sys
 import tempfile
 import tomllib
 from pathlib import Path
 
-
-PROFILE_TEXT = """[extensions.environment]\nenabled = true\nsensor_backend = \"simulated\"\nrelay_backend = \"libgpiod\"\nrelay_bcm = 23\nrelay_active_high = true\nsafe_state = \"off\"\nsimulation_runtime_control_enabled = true\n"""
-EXPECTED = {
-    "enabled": True,
-    "sensor_backend": "simulated",
-    "relay_backend": "libgpiod",
-    "relay_bcm": 23,
-    "relay_active_high": True,
-    "safe_state": "off",
-    "simulation_runtime_control_enabled": True,
+PROFILE_SPECS: dict[str, dict[str, object]] = {
+    "full-simulation": {
+        "enabled": True,
+        "sensor_backend": "simulated",
+        "relay_backend": "simulated",
+        "relay_bcm": 23,
+        "relay_active_high": True,
+        "safe_state": "off",
+        "simulation_runtime_control_enabled": True,
+    },
+    "sensor-deferred-relay": {
+        "enabled": True,
+        "sensor_backend": "simulated",
+        "relay_backend": "libgpiod",
+        "relay_bcm": 23,
+        "relay_active_high": True,
+        "safe_state": "off",
+        "simulation_runtime_control_enabled": True,
+    },
+    "real-sensor-simulated-actuator": {
+        "enabled": True,
+        "sensor_backend": "sht31",
+        "i2c_bus": 1,
+        "i2c_address": 0x44,
+        "sensor_repeatability": "high",
+        "relay_backend": "simulated",
+        "relay_bcm": 23,
+        "relay_active_high": True,
+        "safe_state": "off",
+        "simulation_runtime_control_enabled": True,
+    },
+    "full-real": {
+        "enabled": True,
+        "sensor_backend": "sht31",
+        "i2c_bus": 1,
+        "i2c_address": 0x44,
+        "sensor_repeatability": "high",
+        "relay_backend": "libgpiod",
+        "relay_bcm": 23,
+        "relay_active_high": True,
+        "safe_state": "off",
+        "simulation_runtime_control_enabled": False,
+    },
 }
+
+PROFILE_CODES = {
+    "full-simulation": "FULL_SIMULATION",
+    "sensor-deferred-relay": "SENSOR_DEFERRED_RELAY",
+    "real-sensor-simulated-actuator": "REAL_SENSOR_SIMULATED_ACTUATOR",
+    "full-real": "FULL_REAL",
+}
+
+# Backward-compatible constants retained for checkpoint-24 tests/importers.
+EXPECTED = PROFILE_SPECS["sensor-deferred-relay"]
+
+
+def _toml_value(value: object) -> str:
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    if isinstance(value, str):
+        return f'"{value}"'
+    if isinstance(value, int):
+        if value == 0x44:
+            return "0x44"
+        return str(value)
+    raise TypeError(value)
+
+
+def profile_text(name: str) -> str:
+    spec = PROFILE_SPECS[name]
+    lines = ["[extensions.environment]"]
+    lines.extend(f"{key} = {_toml_value(value)}" for key, value in spec.items())
+    return "\n".join(lines) + "\n"
+
+
+PROFILE_TEXT = profile_text("sensor-deferred-relay")
 
 
 class ProfileError(RuntimeError):
@@ -45,10 +107,7 @@ def fail(code: str, message: str, remediation: str, exit_code: int = 74) -> None
 
 
 def emit(error: ProfileError) -> None:
-    print(
-        f"[ERROR] code={error.code} message={error} remediation={error.remediation}",
-        file=sys.stderr,
-    )
+    print(f"[ERROR] code={error.code} message={error} remediation={error.remediation}", file=sys.stderr)
 
 
 def require_absolute(value: str) -> Path:
@@ -58,35 +117,52 @@ def require_absolute(value: str) -> Path:
     return path
 
 
-def read_environment(path: Path) -> dict[str, object]:
+def _load(path: Path) -> dict[str, object]:
     if path.is_symlink() or not path.is_file():
         fail("ENV_PROFILE_UNSAFE", "existing site configuration is not a regular file", "inspect the site configuration manually before continuing", 75)
     try:
         payload = tomllib.loads(path.read_text(encoding="utf-8"))
     except (OSError, UnicodeError, tomllib.TOMLDecodeError) as exc:
         fail("ENV_PROFILE_INVALID", f"cannot parse existing site configuration: {exc}", "repair the existing configuration before continuing", 65)
+    return payload
+
+
+def read_environment(path: Path) -> dict[str, object]:
+    payload = _load(path)
     extensions = payload.get("extensions")
     environment = extensions.get("environment") if isinstance(extensions, dict) else None
     if not isinstance(environment, dict):
-        fail("ENV_PROFILE_CONFLICT", "existing site configuration does not contain the expected environment section", "merge the sensor-deferred profile manually after review", 75)
+        fail("ENV_PROFILE_CONFLICT", "existing site configuration does not contain the expected environment section", "merge the environment profile manually after review", 75)
     return environment
 
 
-def exact_profile(path: Path) -> bool:
-    environment = read_environment(path)
-    return all(environment.get(key) == value for key, value in EXPECTED.items())
+def detect_managed_profile(path: Path) -> str | None:
+    payload = _load(path)
+    # Managed profile files contain only the exact extensions.environment table.
+    if set(payload) != {"extensions"} or not isinstance(payload.get("extensions"), dict):
+        return None
+    extensions = payload["extensions"]
+    if set(extensions) != {"environment"} or not isinstance(extensions.get("environment"), dict):
+        return None
+    environment = extensions["environment"]
+    for name, expected in PROFILE_SPECS.items():
+        if environment == expected:
+            return name
+    return None
+
+
+def exact_profile(path: Path, name: str = "sensor-deferred-relay") -> bool:
+    return detect_managed_profile(path) == name
 
 
 def _group_gid(group: str) -> int:
     try:
         return grp.getgrnam(group).gr_gid
     except KeyError:
-        fail("ENV_PROFILE_GROUP", f"required control group does not exist: {group}", "run the checkpoint installer successfully before creating the hardware profile", 73)
+        fail("ENV_PROFILE_GROUP", f"required control group does not exist: {group}", "run the checkpoint installer successfully before creating an environment profile", 73)
 
 
-def durable_create(path: Path, *, group: str) -> None:
-    if path.exists() or path.is_symlink():
-        fail("ENV_PROFILE_CONFLICT", "site configuration already exists and differs from the managed profile", "review the existing file; this helper will not overwrite administrator configuration", 75)
+def _atomic_write(path: Path, text: str, *, group: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     if path.parent.is_symlink():
         fail("ENV_PROFILE_UNSAFE", "site configuration parent is a symlink", "restore /etc/gonken-agent as a real root-owned directory", 75)
@@ -98,7 +174,7 @@ def durable_create(path: Path, *, group: str) -> None:
         if os.geteuid() == 0:
             os.fchown(descriptor, 0, gid)
         with os.fdopen(descriptor, "w", encoding="utf-8") as handle:
-            handle.write(PROFILE_TEXT)
+            handle.write(text)
             handle.flush()
             os.fsync(handle.fileno())
         os.replace(temporary, path)
@@ -112,20 +188,38 @@ def durable_create(path: Path, *, group: str) -> None:
             temporary.unlink()
 
 
-def ensure_sensor_deferred(path: Path, *, group: str) -> str:
+def ensure_profile(path: Path, *, name: str, group: str) -> str:
+    if name not in PROFILE_SPECS:
+        fail("ENV_PROFILE_NAME", f"unsupported profile: {name}", "choose a governed environment profile", 64)
     if path.exists() or path.is_symlink():
-        if exact_profile(path):
+        current = detect_managed_profile(path)
+        if current == name:
             return "ALREADY_CONFIGURED"
-        fail("ENV_PROFILE_CONFLICT", "existing site configuration differs from the exact sensor-deferred relay profile", "review and merge the existing administrator configuration manually; no file was changed", 75)
-    durable_create(path, group=group)
-    if not exact_profile(path):
+        if current is None:
+            fail("ENV_PROFILE_CONFLICT", "existing site configuration is not an exact managed environment profile", "review and merge administrator configuration manually; no file was changed", 75)
+        _atomic_write(path, profile_text(name), group=group)
+        if detect_managed_profile(path) != name:
+            fail("ENV_PROFILE_VERIFY", "transitioned site configuration did not verify", "inspect the managed file and restore the prior profile", 74)
+        return f"TRANSITIONED_FROM_{PROFILE_CODES[current]}"
+    _atomic_write(path, profile_text(name), group=group)
+    if detect_managed_profile(path) != name:
         fail("ENV_PROFILE_VERIFY", "written site configuration did not verify", "remove the managed file after inspection and rerun", 74)
     return "CREATED"
 
 
+def durable_create(path: Path, *, group: str) -> None:
+    if path.exists() or path.is_symlink():
+        fail("ENV_PROFILE_CONFLICT", "site configuration already exists and differs from the managed profile", "review the existing file; this helper will not overwrite administrator configuration", 75)
+    _atomic_write(path, PROFILE_TEXT, group=group)
+
+
+def ensure_sensor_deferred(path: Path, *, group: str) -> str:
+    return ensure_profile(path, name="sensor-deferred-relay", group=group)
+
+
 def parser() -> argparse.ArgumentParser:
     result = argparse.ArgumentParser(description=__doc__)
-    result.add_argument("command", choices=["sensor-deferred-relay", "status"])
+    result.add_argument("command", choices=[*PROFILE_SPECS, "status"])
     result.add_argument("--site", default="/etc/gonken-agent/config.toml")
     result.add_argument("--group", default="gonken-envctl")
     return result
@@ -136,20 +230,21 @@ def main(argv: list[str] | None = None) -> int:
     try:
         path = require_absolute(args.site)
         production = path == Path("/etc/gonken-agent/config.toml")
-        if production and args.command == "sensor-deferred-relay" and os.geteuid() != 0:
+        if production and args.command != "status" and os.geteuid() != 0:
             fail("ENV_PROFILE_PRIVILEGE", "production site configuration requires root", "run this maintenance helper with sudo", 77)
         if args.command == "status":
             if not path.exists() and not path.is_symlink():
-                print(f"[OK] code=ENV_PROFILE_STATUS status=ABSENT path={path}")
-            elif exact_profile(path):
-                print(f"[OK] code=ENV_PROFILE_STATUS status=SENSOR_DEFERRED_RELAY path={path}")
+                status = "ABSENT"
             else:
-                print(f"[OK] code=ENV_PROFILE_STATUS status=OTHER_ADMIN_CONFIG path={path}")
+                selected = detect_managed_profile(path)
+                status = PROFILE_CODES[selected] if selected else "OTHER_ADMIN_CONFIG"
+            print(f"[OK] code=ENV_PROFILE_STATUS status={status} path={path}")
             return 0
-        status = ensure_sensor_deferred(path, group=args.group)
+        status = ensure_profile(path, name=args.command, group=args.group)
+        spec = PROFILE_SPECS[args.command]
         print(
-            f"[OK] code=ENV_PROFILE_SENSOR_DEFERRED status={status} path={path} "
-            "sensor_backend=simulated relay_backend=libgpiod relay_bcm=23 "
+            f"[OK] code=ENV_PROFILE_APPLIED profile={args.command} status={status} path={path} "
+            f"sensor_backend={spec['sensor_backend']} relay_backend={spec['relay_backend']} "
             "hardware_toggled=false service_started=false physical_evidence=false"
         )
         return 0

@@ -12,6 +12,8 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 COMMON_LIBRARY="$SCRIPT_DIR/lib/common.sh"
 ENGINE_LIBRARY="$SCRIPT_DIR/lib/install_engine.sh"
 RELEASE_MANAGER="$SCRIPT_DIR/release_manager.py"
+TARGET_PREFLIGHT="$SCRIPT_DIR/target_preflight.py"
+INSTALL_FAILURE_BUNDLE="$SCRIPT_DIR/installer_failure_bundle.py"
 
 for library in "$COMMON_LIBRARY" "$ENGINE_LIBRARY"; do
   if [[ ! -r "$library" ]]; then
@@ -266,8 +268,45 @@ gonken_prerequisite_action() {
     tar util-linux zstd || return 69
 }
 
+gonken_target_preflight_postcondition() {
+  [[ "${GONKEN_SOURCE_RECORD[platform_mode]}" == "target" ]] || {
+    GONKEN_STEP_EVIDENCE="development_target_preflight_skipped"
+    return 0
+  }
+  local artifact="$STATE_DIR/artifacts/target-preflight-prerequisites.json"
+  [[ -x "$TARGET_PREFLIGHT" && -f "$artifact" && ! -L "$artifact" ]] || return 1
+  python3 - "$artifact" <<'PYJSON' >/dev/null 2>&1 || return 1
+import json, sys
+path=sys.argv[1]
+with open(path, encoding="utf-8") as handle:
+    payload=json.load(handle)
+assert payload.get("format") == "gonken-target-preflight-v1"
+assert payload.get("phase") == "prerequisites"
+assert payload.get("status") in {"PASS", "WARN"}
+assert not payload.get("required_failures")
+PYJSON
+  python3 "$TARGET_PREFLIGHT" --phase prerequisites >/dev/null 2>&1 || return 1
+  GONKEN_STEP_EVIDENCE="target_prerequisites_revalidated_non_actuating"
+}
+
+gonken_target_preflight_action() {
+  local step_id="$1"
+  [[ "${GONKEN_SOURCE_RECORD[platform_mode]}" == "target" ]] || return 0
+  [[ -x "$TARGET_PREFLIGHT" ]] || {
+    gonken_error "TARGET_PREFLIGHT_LAYOUT" "target preflight helper is missing or non-executable" "use a complete checkpoint package"
+    return 66
+  }
+  gonken_step_checkpoint "$step_id" "during" || return $?
+  python3 "$TARGET_PREFLIGHT" --phase prerequisites \
+    --output "$STATE_DIR/artifacts/target-preflight-prerequisites.json"
+}
+
 gonken_account_precondition() {
-  gonken_prerequisite_postcondition
+  if [[ "${GONKEN_SOURCE_RECORD[platform_mode]}" == "target" ]]; then
+    gonken_target_preflight_postcondition
+  else
+    gonken_prerequisite_postcondition
+  fi
 }
 
 gonken_account_postcondition() {
@@ -370,6 +409,32 @@ gonken_env_account_action() {
     usermod -a -G gonken-envctl "$operator" || return 73
     printf '[OK] code=ENV_OPERATOR_AUTHORIZED operator=%s group=gonken-envctl session_refresh_required=true\n' "$operator"
   fi
+}
+
+gonken_target_identity_preflight_postcondition() {
+  [[ "${GONKEN_SOURCE_RECORD[platform_mode]}" == "target" ]] || return 0
+  local artifact="$STATE_DIR/artifacts/target-preflight-identities.json"
+  local operator="${GONKEN_SOURCE_RECORD[invoking_user]}"
+  [[ -x "$TARGET_PREFLIGHT" && -f "$artifact" && ! -L "$artifact" ]] || return 1
+  python3 - "$artifact" <<'PYJSON' >/dev/null 2>&1 || return 1
+import json, sys
+with open(sys.argv[1], encoding="utf-8") as handle:
+    payload=json.load(handle)
+assert payload.get("format") == "gonken-target-preflight-v1"
+assert payload.get("phase") == "identities"
+assert payload.get("status") in {"PASS", "WARN"}
+assert not payload.get("required_failures")
+PYJSON
+  python3 "$TARGET_PREFLIGHT" --phase identities --operator "$operator" >/dev/null 2>&1 || return 1
+  GONKEN_STEP_EVIDENCE="target_identity_control_groups_revalidated_operator_${operator}"
+}
+
+gonken_target_identity_preflight_action() {
+  local step_id="$1"
+  local operator="${GONKEN_SOURCE_RECORD[invoking_user]}"
+  gonken_step_checkpoint "$step_id" "during" || return $?
+  python3 "$TARGET_PREFLIGHT" --phase identities --operator "$operator" \
+    --output "$STATE_DIR/artifacts/target-preflight-identities.json"
 }
 
 gonken_target_runtime_bindings_postcondition() {
@@ -875,6 +940,15 @@ if ((ENGINE_ONLY == 0)); then
     "probe_distro_tools_then_install_only_missing_target_prerequisites" \
     "apt_is_convergent_and_not_project_transactional" || exit $?
 
+  if [[ "${GONKEN_SOURCE_RECORD[platform_mode]}" == "target" ]]; then
+    gonken_register_step \
+      "target_platform_preflight" "1" \
+      "gonken_prerequisite_postcondition" "gonken_target_preflight_action" "gonken_target_preflight_postcondition" \
+      "private_non_actuating_target_prerequisite_evidence" \
+      "reprobe_target_truth_and_repair_only_missing_prerequisites_before_release_build" \
+      "preflight_records_are_private_and_do_not_open_or_actuate_hardware" || exit $?
+  fi
+
   gonken_register_step \
     "runtime_account" "2" \
     "gonken_account_precondition" "gonken_account_action" "gonken_account_postcondition" \
@@ -912,8 +986,15 @@ if ((ENGINE_ONLY == 0)); then
       "operator_gets_only_socket_control_group_not_raw_environment_hardware" || exit $?
 
     gonken_register_step \
+      "target_identity_preflight" "1" \
+      "gonken_env_account_postcondition" "gonken_target_identity_preflight_action" "gonken_target_identity_preflight_postcondition" \
+      "private_identity_group_and_operator_control_evidence" \
+      "revalidate_service_identities_and_operator_socket_access_after_account_convergence" \
+      "does_not_grant_or_remove_preexisting_operator_raw_hardware_groups" || exit $?
+
+    gonken_register_step \
       "target_runtime_bindings" "1" \
-      "gonken_env_account_postcondition" "gonken_target_runtime_bindings_action" "gonken_target_runtime_bindings_postcondition" \
+      "gonken_target_identity_preflight_postcondition" "gonken_target_runtime_bindings_action" "gonken_target_runtime_bindings_postcondition" \
       "release_venv_hardware_binding_imports_as_environment_service_account" \
       "validate_gpiod_smbus_inside_active_release_before_any_hardware_service_use" \
       "no_hardware_is_opened_or_actuated_by_import_validation" || exit $?
@@ -1003,6 +1084,11 @@ if gonken_run_registered_steps; then
   :
 else
   result=$?
+  if [[ "${GONKEN_SOURCE_RECORD[platform_mode]}" == "target" && -x "$INSTALL_FAILURE_BUNDLE" ]]; then
+    python3 "$INSTALL_FAILURE_BUNDLE" \
+      --state-dir "$STATE_DIR" --log-dir "$LOG_DIR" --source-record "$GONKEN_SOURCE_RECORD_PATH" \
+      --output-dir "$INSTALL_STATE_ROOT/failures" --exit-code "$result" || true
+  fi
   exit "$result"
 fi
 

@@ -1483,3 +1483,33 @@ The deterministic M10.14 simulation runner exercises manual, AUTO, SEMI, stale/r
 
 - **Status:** Accepted.
 - **Decision:** Portable checkpoints retain `.git`, a descriptive development branch/tag and `origin=https://github.com/mukulu/gonkenlabagent.git`; `main` tracks `origin/main`. Credentials are never stored and external push is never automatic without explicit authorization.
+
+## 2026-09-16 — Checkpoint 27 installer/profile convergence decisions
+
+### D-151 — Target preflight is release-independent and non-actuating
+
+- **Status:** Accepted.
+- **Decision:** Required OS tools/packages, the system `gpiod` API and GPIO character-device presence are re-probed before immutable release construction. I2C device presence and the transitional SMBus binding are reported as optional at generic-install time because the environment extension is not implicitly enabled.
+- **Reason:** A late appliance-readiness error must not be the first signal of a prerequisite that the installer could have established earlier; optional real-sensor readiness must not make a safe generic install impossible.
+- **Consequence:** The installer now persists private prerequisite evidence and revalidates current truth on rerun without opening or actuating hardware.
+
+### D-152 — Early installer failure evidence is owned by the installer source, not the active release
+
+- **Status:** Accepted.
+- **Decision:** When target installation fails, the source package creates a private content-free failure ZIP from allow-listed source identity, preflight records and structured installer events.
+- **Reason:** A candidate can fail before activation, so the currently active release may be absent or too old to diagnose the candidate that failed.
+- **Consequence:** Candidate build failures remain diagnosable without raw logs, credentials, audio, prompts or model content and without requiring successful activation.
+
+### D-153 — Environment backend parity is expressed as four governed non-actuating profiles
+
+- **Status:** Accepted.
+- **Decision:** The profile manager supports full simulation, simulated-sensor/real-actuator, real-sensor/simulated-actuator and full-real profiles. It may transition only between exact files it can prove it previously managed; unknown administrator configuration fails closed.
+- **Reason:** Simulation/HIL/full-real parity must be deterministic while configuration ownership and hardware actuation remain separate concerns.
+- **Consequence:** Profile selection writes validated static configuration only; service start and physical actuation remain explicit later operations.
+
+### D-154 — D-138 broad system-site visibility is superseded by the isolated allow-listed bridge
+
+- **Status:** Superseded by checkpoint 26.
+- **Decision:** The checkpoint-24 `system_site_packages=true` target strategy is retired. Target releases remain isolated and bridge only explicitly allow-listed distro binding import payloads with provenance/hashes.
+- **Reason:** Real Pi evidence showed unrelated `types-*` distributions contaminated `pip check` under broad visibility.
+- **Consequence:** D-139's immutable-interpreter validation principle remains valid, but its dependency source is the checkpoint-26 bridge rather than broad system-site exposure.

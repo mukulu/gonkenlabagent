@@ -1209,3 +1209,15 @@ Checkpoint 24 closes the host-side root cause and adds regression protection, bu
 | C25-VOICE | M10.22 voice transaction | on/off/mode/temp/humidity intents over daemon IPC; simulation/hybrid wording; failure responses; wake/progress/transition audio ownership non-regression |
 | C25-LIFE | M10.23 lifecycle/support | clean/dirty/interrupted install; update/rollback/reinstall/uninstall; candidate-independent support; privacy schema; docs/control validation; package/Git re-extract/fsck/checksum/modes |
 | C25-PI | M10.24 physical target | `INSTALLATION_COMPLETE`; operator reconnect; service/audio readiness; GPIO23 CLI ON/OFF/safe lifecycle; SHT31 S0-S9 ladder; controller modes; voice/wake; fault/reboot/update/rollback evidence |
+
+## Checkpoint 27 — installer convergence and environment-profile parity
+
+| Gate | Evidence | Host status | Target status |
+|---|---|---|---|
+| Target prerequisite preflight | `test_v09_target_preflight.py`; private preflight artifact contract | PASS | NOT_RUN |
+| Installer-owned early failure bundle | `test_v09_installer_failure_bundle.py`; allow-list/privacy assertions | PASS | NOT_RUN |
+| Resume/partial install engine | `test_install_engine_process.py` | PASS | NOT_RUN |
+| Four environment backend profiles | `test_v09_environment_profile_manager.py` | PASS | NOT_RUN |
+| Unknown administrator config refusal | environment profile tests | PASS | NOT_RUN |
+| Operator/service identity convergence | target-preflight identity unit coverage; installer postconditions | PASS | NOT_RUN |
+| Physical device access / fresh login | host cannot establish Pi account/device state | NOT_APPLICABLE | OPEN |
