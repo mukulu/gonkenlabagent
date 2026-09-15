@@ -1441,3 +1441,45 @@ The deterministic M10.14 simulation runner exercises manual, AUTO, SEMI, stale/r
 - **Decision:** No physical GPIO23 relay ON command is permitted during this repair checkpoint. The next target campaign must first show exact-package identity, `INSTALLATION_COMPLETE`, runtime-binding PASS, a fresh `gonken-envctl` operator session, healthy environment control-socket access and unique GPIO23 mapping.
 - **Reason:** Manually patching checkpoint 23 would test a hand-repaired machine rather than the installer/package that must be accepted.
 - **Consequence:** Existing unloaded wiring can remain physically disconnected on COM/NO/NC while software repair is verified.
+
+
+## 2026-09-16 — Checkpoint 25 comprehensive-closure decisions
+
+### D-144 — Checkpoint 24 target dependency failure reopens the binding architecture, not the hardware evidence
+
+- **Status:** Accepted.
+- **Decision:** The checkpoint-24 `system_site_packages` target-vendoring decision is subject to redesign because real target `pip check` consumed unrelated system distributions. Existing GPIO23/relay/fan physical evidence remains valid and is not repeated merely because installation failed earlier.
+- **Consequence:** M10.17 must establish a controlled hardware-binding dependency boundary and regression-test dirty system Python state.
+
+### D-145 — Installation is modeled as a convergent dependency graph
+
+- **Status:** Accepted.
+- **Decision:** Every installer step owns explicit prerequisites, repair/create behavior, postconditions, evidence, invalidation and resumability; downstream readiness cannot substitute for missing prerequisite checks.
+- **Consequence:** Dirty/partial/interrupted target states are first-class test fixtures under M10.18-M10.23.
+
+### D-146 — Environment profile creation is governed but never an implicit actuation event
+
+- **Status:** Accepted.
+- **Decision:** One profile manager owns simulation, both hybrid combinations and full-real static configuration; writing/verifying a profile never starts services or toggles GPIO/I2C.
+- **Consequence:** Physical actuation remains a separate supervised acceptance action.
+
+### D-147 — SHT31 correctness is defined by wire semantics, not fake SMBus method calls
+
+- **Status:** Accepted.
+- **Decision:** The SHT31 production adapter must express Sensirion's actual command/read transaction without adding an unintended register byte. Fake-bus tests must validate message bytes/ordering and be supplemented by target diagnostics.
+- **Consequence:** The existing `read_i2c_block_data(..., 0x00, 6)` path is a forensic target for M10.21 and may not be treated as physically ready until reviewed/corrected.
+
+### D-148 — I2C enablement/reboot/service access are installer/onboarding dependencies
+
+- **Status:** Accepted.
+- **Decision:** Raspberry Pi I2C state, required reboot, `/dev/i2c-1`, `i2c` group/device access and `gonken-env` service-context access are verified before real-sensor activation. A reboot-required state is persisted and resumed, not treated as an arbitrary sensor failure.
+
+### D-149 — Final environment acceptance uses staged backend parity
+
+- **Status:** Accepted.
+- **Decision:** Acceptance progresses full simulation -> simulated sensor/real actuator -> real sensor/simulated actuator -> full real, preserving truthful evidence modes. Humidity remains observational unless a separately specified policy adds humidity control.
+
+### D-150 — Checkpoint packages are merge-ready Git repositories without embedded credentials
+
+- **Status:** Accepted.
+- **Decision:** Portable checkpoints retain `.git`, a descriptive development branch/tag and `origin=https://github.com/mukulu/gonkenlabagent.git`; `main` tracks `origin/main`. Credentials are never stored and external push is never automatic without explicit authorization.
