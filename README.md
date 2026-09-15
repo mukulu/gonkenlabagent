@@ -64,7 +64,17 @@ cd ~/gonkenlabagent
 ./bootstrap.sh
 ```
 
-The official repository and `main` branch are defaults.
+The official repository and `main` branch are defaults. For a downloaded,
+verified checkpoint used in Raspberry Pi acceptance testing, do **not** resolve
+remote `main`; from that checkpoint's clean extracted Git checkout use:
+
+```bash
+./bootstrap.sh --local-checkpoint
+```
+
+This binds the install to the exact checkpoint commit. See the
+[Raspberry Pi acceptance runbook](docs/RASPBERRY_PI_ACCEPTANCE_RUN.md) before
+running target evidence collection.
 
 ## 3. Wait for READY
 
@@ -128,4 +138,4 @@ project provenance, not as the supported appliance entry point.
 Project policy currently prohibits redistribution unless that policy is
 explicitly changed by the project owner.
 
-For the checkpoint-22 user simulation and sensor-deferred HIL sequence, see [docs/USER_SIMULATION_HIL_HANDOFF.md](docs/USER_SIMULATION_HIL_HANDOFF.md).
+Checkpoint 23 is the pre-target completion handoff. Use the [Raspberry Pi acceptance runbook](docs/RASPBERRY_PI_ACCEPTANCE_RUN.md) to install the exact downloaded checkpoint and execute the full target campaign. The staged full-simulation and sensor-deferred environment sequence remains in [docs/USER_SIMULATION_HIL_HANDOFF.md](docs/USER_SIMULATION_HIL_HANDOFF.md).

@@ -1,0 +1,57 @@
+{
+  "schema": "gonken-v09-checkpoint23-integration-accounting-v1",
+  "status": "PASS",
+  "module_count": 10,
+  "test_count": 46,
+  "execution_note": "The canonical integration phase was externally interrupted while entering Ollama lifecycle. All 10 non-release-lifecycle integration modules were accounted by canonical PASS logs or smallest-uncertain direct reruns. Release lifecycle is recorded separately.",
+  "coverage": [
+    {
+      "module": "tests.integration.test_bootstrap_preflight_process",
+      "tests": 4,
+      "status": "PASS",
+      "evidence": "build/ci-logs/integration/tests_integration_test_bootstrap_preflight_process.log"
+    },
+    {
+      "module": "tests.integration.test_cli_process",
+      "tests": 5,
+      "status": "PASS",
+      "evidence": "build/ci-logs/integration/tests_integration_test_cli_process.log"
+    },
+    {
+      "module": "tests.integration.test_first_install_launcher",
+      "tests": 4,
+      "status": "PASS",
+      "evidence": "build/ci-logs/integration/tests_integration_test_first_install_launcher.log"
+    },
+    {
+      "module": "tests.integration.test_install_engine_process",
+      "tests": 10,
+      "status": "PASS",
+      "evidence": "build/ci-logs/integration/tests_integration_test_install_engine_process.log"
+    },
+    {
+      "module": "tests.integration.test_ollama_lifecycle_process",
+      "tests": 5,
+      "status": "PASS",
+      "evidence": "final_integration_resume.log"
+    },
+    {
+      "module": "tests.integration.test_speech_lifecycle_process",
+      "tests": 5,
+      "status": "PASS",
+      "evidence": "final_integration_speech.log + final_integration_speech_resume.log + final_integration_speech_remaining.log"
+    },
+    {
+      "module_group": "support_collection + text_runtime + uninstall_lifecycle + v09_user_test_release_candidate",
+      "tests": 13,
+      "status": "PASS",
+      "evidence": "final_integration_remaining.log"
+    }
+  ],
+  "interrupted_attempts": [
+    "final_integration_phase.log",
+    "final_integration_resume.log",
+    "final_integration_speech.log"
+  ],
+  "diagnostic_error": "One manual follow-up command named a nonexistent speech test method. That command ERROR is retained in final_integration_speech_resume.log; the real interrupted method and all actual speech module methods were subsequently run and passed."
+}

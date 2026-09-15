@@ -1052,22 +1052,22 @@ Checkpoint 15 adds resumable CI phase selection only.  It does not alter product
 | M10.8-T077 | Blueprint plan artifacts | `docs/development/V09_SIMULATION_HIL_EXTENSION_PLAN.md`; `docs/development/V09_SIMULATION_HIL_TRACEABILITY.csv` | PASS | Planning/control artifacts exist and map new requirements to future checkpoints. No runtime feature claim. |
 | M10.8-T078 | Post-update verification | `docs/development/evidence/v09/checkpoint16/post_update_static.log`; `docs/development/evidence/v09/checkpoint16/post_update_focused.log` | PASS | Confirms milestone/status consistency, T0 checks and 75 focused host tests after the blueprint/control edits. |
 
-## Planned V09 simulation/HIL test rows — not yet executed
+## Historical V09 simulation/HIL plan rows — superseded by executed checkpoints 17–22
 
 | ID | Scope | Planned command / artifact | Status | Evidence boundary |
 |---|---|---|---|---|
-| M10.9-P001 | Simulated sensor adapter | Unit tests for simulated sensor set, unavailable, read_error, crc_error, stale, recover and reset | PLANNED / NOT_RUN | Host simulation only. |
-| M10.9-P002 | Simulated actuator adapter | Unit tests for normal, unavailable, fail-next-write, reset and no libgpiod import | PLANNED / NOT_RUN | Host simulation only. |
-| M10.9-P003 | Simulation protocol | IPC validation for simulation.* operations, unknown parameter rejection and disabled-control rejection | PLANNED / NOT_RUN | Host protocol evidence only. |
-| M10.10-P001 | Passive watch | Tests proving watch snapshot does not sample sensor or write actuator | PLANNED / NOT_RUN | Host daemon/fake evidence only. |
-| M10.10-P002 | Full simulation flow | Full simulation AUTO/SEMI/fault/watch/support acceptance test | PLANNED / NOT_RUN | Simulation cannot close physical gates. |
-| M10.11-P001 | Hybrid HIL classification | Sim sensor plus real actuator and real sensor plus sim actuator evidence classification tests | PLANNED / NOT_RUN | Hybrid evidence closes only the physical side actually present. |
-| M10.11-P002 | Simulation-aware voice | Voice responses explicitly say simulated/measured and never overclaim fan motion | PLANNED / NOT_RUN | Host voice contract only. |
-| M10.12-P001 | GonKen default and matcher | Config/default/doc literal tests plus high-recall matcher corpus | PLANNED / NOT_RUN | Host wake software evidence; real Pi tuning later. |
-| M10.12-P002 | Continuous/overlapping wake | Fake capture/recognition queue tests for no transcription-induced blind gap | PLANNED / NOT_RUN | Host concurrency evidence only. |
-| M10.12-P003 | Progress cues and audio arbitration | Fake-clock tests for no cue, first cue, long-wait cue, cancellation, no overlap | PLANNED / NOT_RUN | Host voice runtime evidence only. |
-| M10.13-P001 | Documentation checks | Verify documented commands parse, links exist, config keys match schema and physical docs reject simulation PASS | PLANNED / NOT_RUN | Documentation quality evidence only. |
-| M10.14-P001 | User-test release candidate | End-to-end user simulation and sensor-deferred HIL package readiness gate | PLANNED / NOT_RUN | Does not close full SHT31 physical M10.7 acceptance. |
+| M10.9-P001 | Simulated sensor adapter | Unit tests for simulated sensor set, unavailable, read_error, crc_error, stale, recover and reset | SUPERSEDED | Executed by M10.9-T079/T080; host simulation only. |
+| M10.9-P002 | Simulated actuator adapter | Unit tests for normal, unavailable, fail-next-write, reset and no libgpiod import | SUPERSEDED | Executed by M10.9-T079/T080; host simulation only. |
+| M10.9-P003 | Simulation protocol | IPC validation for simulation.* operations, unknown parameter rejection and disabled-control rejection | SUPERSEDED | Executed by M10.9-T079/T080; host protocol evidence only. |
+| M10.10-P001 | Passive watch | Tests proving watch snapshot does not sample sensor or write actuator | SUPERSEDED | Executed by checkpoint-18 operator/passive-watch evidence; host only. |
+| M10.10-P002 | Full simulation flow | Full simulation AUTO/SEMI/fault/watch/support acceptance test | SUPERSEDED | Executed across checkpoints 18 and 22; simulation cannot close physical gates. |
+| M10.11-P001 | Hybrid HIL classification | Sim sensor plus real actuator and real sensor plus sim actuator evidence classification tests | SUPERSEDED | Host classification/refusal executed by M10.11-T089; real hybrid hardware remains target-run. |
+| M10.11-P002 | Simulation-aware voice | Voice responses explicitly say simulated/measured and never overclaim fan motion | SUPERSEDED | Executed by M10.11-T089; host voice contract only. |
+| M10.12-P001 | GonKen default and matcher | Config/default/doc literal tests plus high-recall matcher corpus | SUPERSEDED | Executed by checkpoint 20 and strengthened by checkpoint 23; real Pi tuning remains. |
+| M10.12-P002 | Continuous/overlapping wake | Fake capture/recognition queue tests for no transcription-induced blind gap | SUPERSEDED | Checkpoint 23 implements bounded pipelined capture and newest-wins queue tests; host concurrency evidence only. |
+| M10.12-P003 | Progress cues and audio arbitration | Fake-clock tests for no cue, first cue, long-wait cue, cancellation, no overlap | SUPERSEDED | Executed by M10.12-T093 and retained regression; host voice runtime evidence only. |
+| M10.13-P001 | Documentation checks | Verify documented commands parse, links exist, config keys match schema and physical docs reject simulation PASS | SUPERSEDED | Executed by M10.13-T098/T100 and checkpoint-23 documentation validation. |
+| M10.14-P001 | User-test release candidate | End-to-end user simulation and sensor-deferred HIL package readiness gate | SUPERSEDED | Executed by checkpoint 22; checkpoint 23 strengthens target handoff without closing M10.7. |
 
 ## V09 Checkpoint 17 — Simulation foundations evidence
 
@@ -1143,3 +1143,29 @@ Checkpoint 21 closes the M10.13 host documentation/evidence hardening gate. It a
 | M10.14-T109 | Clean-environment package-entry regression: `env -u PYTHONPATH python3 scripts/validate_v09_docs.py --json` plus M10.14 documentation/release-candidate tests | PASS after package-entry import repairs | Proves documentation validation and the simulation evidence runner do not depend on CI-provided `PYTHONPATH` or generated/ignored build residue. Host/package-executability evidence only. |
 
 The checkpoint-22 label means the committed package is ready for supervised user simulation and sensor-deferred HIL evidence collection. It does **not** mean that the Raspberry Pi, SHT31, relay polarity, PENGLIN power path, fan blade motion, real wake/audio or reboot/no-login acceptance has passed.
+
+
+## V09 Checkpoint 23 — Pre-target completion audit and target-campaign handoff
+
+| ID | Scope | Command / artifact | Result | Evidence boundary |
+|---|---|---|---:|---|
+| CP23-T108 | Pipelined wake standby and bounded newest-wins recognition queue | `tests.unit.test_voice_appliance`; `src/gonken_agent/voice_runtime.py` | PASS in checkpoint-23 affected regression | Host concurrency/software evidence only; real microphone/STT wake behavior remains target-run. |
+| CP23-T109 | Production PTT, recording LED and wake monitoring indicator with GPIO line-name discovery | `tests.unit.test_m5_1_ptt_runtime`; `src/gonken_agent/interaction/gpiod_ptt.py` | PASS in checkpoint-23 affected regression | Host fake-libgpiod evidence only; physical GPIO mapping/wiring/visible LED behavior remains target-run. |
+| CP23-T110 | Room relay logical-BCM mapping resolved by unique kernel line name and exposed in environment diagnostics | `tests.unit.test_v09_environment_hardware_adapters`; `tests.unit.test_v09_environment_daemon_activation`; `tests.unit.test_v09_environment_cli` | PASS in checkpoint-23 affected regression | Host fake-gpiochip evidence only; relay polarity, boot pulse and fan motion remain physical gates. |
+| CP23-T111 | Exact downloaded-checkpoint installation source mode | `tests.unit.test_m3_1_preflight`; launcher/bootstrap integration tests; `bootstrap.sh --local-checkpoint` | PASS in checkpoint-23 affected regression | Proves source-binding logic on host; actual Pi install remains target-run. |
+| CP23-T112 | Combined runtime/source affected regression | `docs/development/evidence/v09/checkpoint23/pretarget_affected_code_slice_rerun.log` | PASS, 190/190 | Host non-regression evidence only. |
+| CP23-T113 | T0 after runtime/source changes | `docs/development/evidence/v09/checkpoint23/t0_after_runtime_source_changes.log` | PASS | Static/config/source/document gate only. |
+| CP23-T114 | Baseline unit coverage resumed from smallest uncertain module | `docs/development/evidence/v09/checkpoint23/unit_resumption_manifest.json` | PASS, 38 modules / 364 tests | Checkpoint-22 baseline before checkpoint-23 code changes; retained as audit evidence, not final post-change whole-suite evidence. |
+| CP23-T115 | Baseline deterministic integration phase | `docs/development/evidence/v09/checkpoint23/integration_phase.log`; `integration_resumption_manifest.json` if present | PASS, 10 modules | Checkpoint-22 baseline before checkpoint-23 code changes; must be refreshed after final control edits. |
+| CP23-T116 | Baseline release lifecycle phase | `docs/development/evidence/v09/checkpoint23/release_lifecycle_phase.log`; `release_lifecycle_manifest.json` | PASS, 8 cases | Checkpoint-22 baseline before checkpoint-23 code changes; must be refreshed after final control edits. |
+
+### Checkpoint-23 final post-change host accounting
+
+| ID | Scope | Result | Evidence boundary |
+|---|---|---:|---|
+| CP23-T117 | Final unit accounting after all checkpoint-23 runtime/control edits | PASS, 39 modules / 377 tests | `docs/development/evidence/v09/checkpoint23/final_unit_accounting.json`; host software only. Canonical phase wrapper was externally interrupted and is not itself counted PASS; bounded final batches account for every unit module. |
+| CP23-T118 | Final deterministic integration accounting excluding separately decomposed release lifecycle | PASS, 10 modules / 46 tests | `docs/development/evidence/v09/checkpoint23/final_integration_accounting.json`; host/process evidence only. Interrupted aggregate attempts remain diagnostic. |
+| CP23-T119 | Final release-lifecycle accounting | PASS, 8/8 cases | `docs/development/evidence/v09/checkpoint23/final_release_lifecycle_accounting.json`; host sandbox/lifecycle evidence only; no Pi update/rollback claim. |
+| CP23-T120 | Final checkpoint-23 T0/control plane | PASS | `docs/development/evidence/v09/checkpoint23/t0_final_precommit.log`; static/config/documentation/milestone/readiness gates only. |
+
+Checkpoint 23 therefore closes the remaining dependency-ready **host/software** gaps discovered after checkpoint 22. It does not close real Raspberry Pi, SHT31, relay/PENGLIN/fan, blade-motion, real wake/audio, reboot/no-login, real-lab corpus/model evaluation, or target lifecycle gates.

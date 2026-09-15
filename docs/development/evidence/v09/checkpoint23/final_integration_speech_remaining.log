@@ -1,0 +1,8 @@
+test_zero_byte_bad_checksum_and_missing_pair_repair (tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_zero_byte_bad_checksum_and_missing_pair_repair) ... ok
+test_wrong_architecture_native_payload_is_rejected_and_repaired (tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_wrong_architecture_native_payload_is_rejected_and_repaired) ... ok
+test_smoke_failure_does_not_create_success_record_and_reruns (tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_smoke_failure_does_not_create_success_record_and_reruns) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 25.163s
+
+OK

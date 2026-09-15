@@ -34,3 +34,10 @@ DOC-CMD-032,docs/USER_SIMULATION_HIL_HANDOFF.md,gonken-cli,gonken-agent env simu
 DOC-CMD-033,docs/USER_SIMULATION_HIL_HANDOFF.md,gonken-cli,gonken-agent env mode set semi-automatic
 DOC-CMD-034,docs/USER_SIMULATION_HIL_HANDOFF.md,gonken-cli,gonken-agent env simulate sensor stale --age-seconds 30
 DOC-CMD-035,docs/USER_SIMULATION_HIL_HANDOFF.md,gonken-cli,gonken-agent env simulate sensor recover --temperature-c 27 --humidity-pct 50
+DOC-CMD-036,docs/RASPBERRY_PI_ACCEPTANCE_RUN.md,gonken-cli,gonken-agent status --json
+DOC-CMD-037,docs/RASPBERRY_PI_ACCEPTANCE_RUN.md,gonken-cli,gonken-agent wake status --json
+DOC-CMD-038,docs/RASPBERRY_PI_ACCEPTANCE_RUN.md,gonken-cli,gonken-agent doctor --probe-ollama --probe-audio
+DOC-CMD-039,docs/RASPBERRY_PI_ACCEPTANCE_RUN.md,gonken-cli,gonken-agent config show --effective --json
+DOC-CMD-040,docs/RASPBERRY_PI_ACCEPTANCE_RUN.md,gonken-cli,gonken-agent env status --json
+DOC-CMD-041,docs/RASPBERRY_PI_ACCEPTANCE_RUN.md,gonken-cli,gonken-agent env health --json
+DOC-CMD-042,docs/RASPBERRY_PI_ACCEPTANCE_RUN.md,bootstrap,./bootstrap.sh --local-checkpoint

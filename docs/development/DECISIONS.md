@@ -1345,3 +1345,47 @@ Host gating validates the `sensor_backend=simulated` plus `relay_backend=libgpio
 **Status:** accepted in checkpoint 22.
 
 The deterministic M10.14 simulation runner exercises manual, AUTO, SEMI, stale/recovery and passive-watch behavior through the public service/CLI boundary, but its manifest always records `physical_acceptance_claimed=false`, `sht31_physical_acceptance=NOT_RUN`, `relay_fan_physical_acceptance=NOT_RUN` and `sensor_deferred_hil_physical_actuation_tested=false`.
+
+## 2026-09-15 — Checkpoint 23 pre-target completion decisions
+
+### D-131 — Wake standby uses bounded pipelined capture rather than synchronous capture/transcribe gaps
+
+- **Status:** Accepted in checkpoint 23.
+- **Decision:** Production wake standby continuously acquires bounded audio windows through a newest-wins capture queue while the previous window is transcribed. Only one recognition consumer owns Whisper work, stale queued windows are dropped instead of accumulating, and wake capture is stopped before active-turn speech/capture so the assistant cannot recursively trigger on its own output.
+- **Reason:** Checkpoint-20 matching improvements did not by themselves satisfy the V2 requirement to remove intentional transcription-induced listening gaps.
+- **Consequence:** M10.12 host software can be treated as implemented only after the checkpoint-23 concurrency regression passes. Real microphone/STT recall, false wakes and wake-to-acknowledgement latency remain target evidence.
+
+### D-132 — PTT and privacy indicators resolve logical BCM GPIOs by unique kernel line name
+
+- **Status:** Accepted in checkpoint 23.
+- **Decision:** Production push-to-talk GPIO17, wake-monitoring GPIO22 and recording-LED GPIO27 adapters resolve their logical identities from kernel gpiochip line metadata (`GPIO17`, `GPIO22`, `GPIO27`) and fail closed if missing, ambiguous, or incompatible. They do not assume BCM number equals `/dev/gpiochip0` line offset.
+- **Reason:** Pi 5/RP1 character-device layout is a target property. A hidden chip/offset assumption would create false-green host evidence and unsafe target behavior.
+- **Consequence:** Host tests prove the discovery/failure semantics; actual line identity, wiring and visible indicator behavior remain target-gated.
+
+### D-133 — Room relay uses the same fail-closed logical-BCM discovery boundary
+
+- **Status:** Accepted in checkpoint 23.
+- **Decision:** `relay_bcm=23` remains the operator-facing logical pin identity, while the libgpiod relay adapter resolves a unique kernel line named `GPIO23` at runtime and reports the actual gpiochip path/offset in status/health. Missing or ambiguous mapping blocks actuator acquisition.
+- **Reason:** Checkpoint 22 still carried a `/dev/gpiochip0:23` assumption even though the blueprint required a validated discovery mechanism or an explicit target runtime identity.
+- **Consequence:** The software no longer asks the operator to prove a known hard-coded shortcut. Relay polarity, earliest boot behavior, contact wiring and fan motion still require physical evidence.
+
+### D-134 — Downloaded target checkpoints install from their exact clean local Git commit
+
+- **Status:** Accepted in checkpoint 23.
+- **Decision:** `./bootstrap.sh --local-checkpoint` is the supervised acceptance-install path for a downloaded checkpoint. It validates a clean packaged Git checkout, binds the source manifest to its exact full HEAD commit and lets immutable-release construction fetch that commit from the package's own Git object database. Ordinary production installs retain the governed remote HTTPS/ref path.
+- **Reason:** A downloaded checkpoint that resolves remote `main` at install time can silently test a different revision from the archive that passed host verification.
+- **Consequence:** Raspberry Pi evidence can now be bound to the exact delivered package. Normal update behavior is not silently converted into local-file update semantics.
+
+### D-135 — Persistent interaction-content recording is outside release-core
+
+- **Status:** Accepted in checkpoint 23.
+- **Decision:** M7.3 core acceptance is content-free, bounded operational telemetry plus transient in-memory diagnostics. `privacy.interaction_logging=true` and `privacy.telemetry_content=true` continue to fail closed. Persistent interaction-content recording is a separately authorized research extension requiring its own ethics/privacy purpose, retention, access and deletion specification.
+- **Reason:** Treating content persistence as an unfinished core feature would pressure the appliance to weaken an established privacy boundary merely to close a milestone.
+- **Consequence:** M7.3 software may be host-verified without implementing transcript/content retention. Target evidence must still verify that journals, support bundles and telemetry remain content-minimizing in real operation.
+
+### D-136 — Checkpoint 23 is target-campaign readiness, never physical acceptance
+
+- **Status:** Accepted in checkpoint 23.
+- **Decision:** The final pre-target checkpoint may be described as `READY_FOR_RASPBERRY_PI_TARGET_CAMPAIGN` only after the final host/control/package gates pass. This label means the exact checkpoint is ready to install and test; it does not set any target milestone to PASS.
+- **Reason:** The user needs a clear point at which host implementation is complete enough to move onto the Pi, while the project must preserve the host/simulation/hybrid/physical evidence boundary.
+- **Consequence:** M7.1/M7.2/M7.5, M9.1 and M10.7 may remain partial/pending or target-not-run at handoff. Target failures start the next evidence-driven repair checkpoint rather than invalidating already verified independent host work.

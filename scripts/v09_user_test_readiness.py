@@ -52,6 +52,7 @@ REQUIRED_HANDOFF_FILES = {
     "docs/OPERATIONS.md",
     "docs/TROUBLESHOOTING.md",
     "docs/ENVIRONMENT_ACCEPTANCE_RUN.md",
+    "docs/RASPBERRY_PI_ACCEPTANCE_RUN.md",
     "docs/USER_SIMULATION_HIL_HANDOFF.md",
     "scripts/environment_acceptance_runner.py",
     "scripts/collect-support.sh",
@@ -201,9 +202,9 @@ def build_report(*, simulation_manifest: Path | None, allow_dirty: bool) -> dict
         "real_wake_audio_acceptance": "NOT_RUN",
         "errors": errors,
         "next_action": (
-            "Install this checkpoint on the Raspberry Pi and follow docs/USER_SIMULATION_HIL_HANDOFF.md. "
-            "Run full simulation first, then only supervised sensor-deferred relay/fan HIL after GPIO/wiring preflight. "
-            "Export the support ZIP and M10.7 private evidence; do not mark M10.7 PASS locally."
+            "Verify and install this exact checkpoint with ./bootstrap.sh --local-checkpoint, then follow "
+            "docs/RASPBERRY_PI_ACCEPTANCE_RUN.md. Run full simulation before dependency-ready supervised HIL/physical stages, "
+            "export the support ZIP and M10.7 private evidence, and do not mark M10.7 PASS locally."
         ),
     }
 

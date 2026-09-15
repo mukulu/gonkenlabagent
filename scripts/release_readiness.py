@@ -15,11 +15,17 @@ DOCS = ROOT / "docs" / "development"
 REQUIRED_HOST_VERIFIED = {
     "M2.1", "M2.2", "M2.3", "M2.4",
     "M3.1", "M3.2", "M3.3", "M3.4", "M3.5", "M3.6",
-    "M4.1",
+    "M4.1", "M4.2", "M4.3",
+    "M5.1", "M5.2",
     "M6.1", "M6.2",
+    # M7.1/M7.2/M7.5 intentionally remain evaluation gates because they require
+    # the real lab corpus/model/benchmark campaign.  Core privacy/dashboard
+    # software must nevertheless be host-verified before target handoff.
+    "M7.3", "M7.4",
     "M8.1", "M8.2", "M8.3",
-    "M9.3", "M9.4", "M9.5",
+    "M9.2", "M9.3", "M9.4", "M9.5",
     "M10.1", "M10.2", "M10.3", "M10.4", "M10.5", "M10.6",
+    "M10.8", "M10.9", "M10.10", "M10.11", "M10.12", "M10.13", "M10.14",
 }
 TARGET_CAMPAIGN_ITEMS = {
     "M3.1", "M3.2", "M3.3", "M3.4", "M3.5", "M3.6",
@@ -100,7 +106,13 @@ def build_report() -> dict[str, object]:
         "not_host_verified": not_host_verified,
         "secret_findings": secrets,
         "target_gates_remaining": target_gates,
-        "next_action": "Run the documented Raspberry Pi bootstrap and M10.7 environment acceptance collector, then upload the support ZIP and private evidence ledger.",
+        "readiness_scope": "host/software complete enough to begin the recorded Raspberry Pi target campaign; no target gate is implied PASS",
+        "physical_acceptance_claimed": False,
+        "next_action": (
+            "Verify the downloaded checkpoint and install that exact clean commit with ./bootstrap.sh --local-checkpoint; "
+            "then execute docs/RASPBERRY_PI_ACCEPTANCE_RUN.md from full simulation through the dependency-ready hybrid/physical gates, "
+            "collect the support ZIP plus M10.7 private evidence, and upload the evidence without marking physical gates PASS locally."
+        ),
     }
 
 

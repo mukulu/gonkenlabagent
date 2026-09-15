@@ -1,0 +1,13 @@
+test_human_report_has_exact_boundary_language (tests.unit.test_release_readiness.ReleaseReadinessTests.test_human_report_has_exact_boundary_language) ... ok
+test_report_is_ready_for_target_acceptance_from_clean_tree (tests.unit.test_release_readiness.ReleaseReadinessTests.test_report_is_ready_for_target_acceptance_from_clean_tree) ... ok
+test_target_acceptance_runbook_is_user_facing (tests.unit.test_release_readiness.ReleaseReadinessTests.test_target_acceptance_runbook_is_user_facing) ... ok
+test_ci_t0_invokes_v09_documentation_validator (tests.unit.test_v09_documentation_hardening.V09DocumentationHardeningTests.test_ci_t0_invokes_v09_documentation_validator) ... ok
+test_executed_simulation_milestones_have_no_stale_planned_rows (tests.unit.test_v09_documentation_hardening.V09DocumentationHardeningTests.test_executed_simulation_milestones_have_no_stale_planned_rows) ... ok
+test_room_environment_docs_are_user_facing_and_boundary_safe (tests.unit.test_v09_documentation_hardening.V09DocumentationHardeningTests.test_room_environment_docs_are_user_facing_and_boundary_safe) ... ok
+test_v09_documentation_validator_passes (tests.unit.test_v09_documentation_hardening.V09DocumentationHardeningTests.test_v09_documentation_validator_passes) ... ok
+test_wake_default_examples_are_not_stale (tests.unit.test_v09_documentation_hardening.V09DocumentationHardeningTests.test_wake_default_examples_are_not_stale) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 2.785s
+
+OK
