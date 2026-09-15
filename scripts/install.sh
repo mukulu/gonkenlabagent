@@ -14,6 +14,7 @@ ENGINE_LIBRARY="$SCRIPT_DIR/lib/install_engine.sh"
 RELEASE_MANAGER="$SCRIPT_DIR/release_manager.py"
 TARGET_PREFLIGHT="$SCRIPT_DIR/target_preflight.py"
 INSTALL_FAILURE_BUNDLE="$SCRIPT_DIR/installer_failure_bundle.py"
+I2C_MANAGER_SOURCE="$SCRIPT_DIR/i2c_manager.py"
 
 for library in "$COMMON_LIBRARY" "$ENGINE_LIBRARY"; do
   if [[ ! -r "$library" ]]; then
@@ -249,10 +250,10 @@ gonken_prerequisite_postcondition() {
     return 69
   fi
   if [[ "${GONKEN_SOURCE_RECORD[platform_mode]}" == "target" ]]; then
-    for command_name in aplay arecord cmake c++ getent groupadd i2cdetect runuser systemd-tmpfiles tar useradd usermod zstd; do
+    for command_name in aplay arecord cmake c++ getent groupadd i2cdetect raspi-config runuser systemd-tmpfiles tar useradd usermod zstd; do
       command -v "$command_name" >/dev/null 2>&1 || return 1
     done
-    python3 -c 'import smbus, gpiod' >/dev/null 2>&1 || return 1
+    python3 -c 'import gpiod' >/dev/null 2>&1 || return 1
   fi
   GONKEN_STEP_EVIDENCE="python_${GONKEN_SOURCE_RECORD[python_version]}_${RELEASE_PROFILE}"
 }
@@ -263,8 +264,8 @@ gonken_prerequisite_action() {
   DEBIAN_FRONTEND=noninteractive apt-get update || return 69
   gonken_step_checkpoint "$step_id" "during" || return $?
   DEBIAN_FRONTEND=noninteractive apt-get install -y \
-    alsa-utils build-essential cmake i2c-tools \
-    ca-certificates git python3-libgpiod python3-pip python3-setuptools python3-smbus python3-venv \
+    alsa-utils build-essential cmake i2c-tools raspi-config \
+    ca-certificates git python3-libgpiod python3-pip python3-setuptools python3-venv \
     tar util-linux zstd || return 69
 }
 
@@ -444,14 +445,14 @@ gonken_target_runtime_bindings_postcondition() {
     --commit "${GONKEN_SOURCE_RECORD[resolved_commit]}" \
     --profile "$RELEASE_PROFILE" \
     --service-user gonken-env >/dev/null 2>&1 || return 1
-  GONKEN_STEP_EVIDENCE="target_release_runtime_bindings_allowlisted_gpiod_smbus_service_accounts"
+  GONKEN_STEP_EVIDENCE="target_release_runtime_bindings_allowlisted_gpiod_service_accounts"
 }
 
 gonken_target_runtime_bindings_action() {
   gonken_target_runtime_bindings_postcondition && return 0
   gonken_error \
     "TARGET_RUNTIME_BINDINGS" \
-    "active immutable release cannot import the required allow-listed gpiod/smbus APIs as gonken-env" \
+    "active immutable release cannot import the required allow-listed gpiod APIs as gonken-env" \
     "repair the Debian binding prerequisites and rebuild the isolated checkpoint release"
   return 74
 }
@@ -607,6 +608,39 @@ gonken_service_tmpfiles_template() {
 }
 
 
+
+gonken_i2c_manager() {
+  printf '%s\n' "$RELEASE_ROOT/current/maintenance/i2c_manager.py"
+}
+
+gonken_i2c_platform_postcondition() {
+  [[ "${GONKEN_SOURCE_RECORD[platform_mode]}" == "target" ]] || return 69
+  local manager
+  manager="$(gonken_i2c_manager)"
+  [[ -x "$manager" ]] || return 1
+  python3 "$manager" status --user gonken-env --require-ready >/dev/null 2>&1 || return 1
+  GONKEN_STEP_EVIDENCE="i2c_bus1_ready_for_gonken_env_non_actuating"
+}
+
+gonken_i2c_platform_action() {
+  local step_id="$1" manager result
+  manager="$(gonken_i2c_manager)"
+  [[ -x "$manager" ]] || {
+    gonken_error "I2C_MANAGER_LAYOUT" "I2C maintenance helper is missing or non-executable" "rebuild the immutable release from a complete checkpoint"
+    return 66
+  }
+  gonken_step_checkpoint "$step_id" "during" || return $?
+  if python3 "$manager" enable; then
+    :
+  else
+    result=$?
+    if [[ "$result" == "75" ]]; then
+      gonken_error "I2C_REBOOT_REQUIRED" "I2C has been requested but /dev/i2c-1 is not available in this boot" "reboot the Raspberry Pi, then rerun the same installer; it will resume from the persisted checkpoint"
+    fi
+    return "$result"
+  fi
+  python3 "$manager" status --user gonken-env --require-ready
+}
 
 gonken_environment_service_manager() {
   printf '%s\n' "$RELEASE_ROOT/current/maintenance/environment_service_manager.py"
@@ -882,6 +916,38 @@ gonken_bluetooth_autoconnect_action() {
     --unit-template "$(gonken_bluetooth_unit_template)"
 }
 
+
+
+gonken_runtime_context_manager() {
+  printf '%s\n' "$RELEASE_ROOT/current/maintenance/runtime_context_preflight.py"
+}
+
+gonken_runtime_context_postcondition() {
+  local manager
+  manager="$(gonken_runtime_context_manager)"
+  [[ -x "$manager" ]] || return 1
+  local -a args=(status --audio-user "$SERVICE_USER" --require-ready)
+  if [[ "${GONKEN_SOURCE_RECORD[bluetooth_audio]:-disabled}" == "requested" ]]; then
+    args+=(--require-pipewire)
+  fi
+  python3 "$manager" "${args[@]}" >/dev/null 2>&1 || return 1
+  GONKEN_STEP_EVIDENCE="service_runtime_context_headless_audio_session_validated"
+}
+
+gonken_runtime_context_action() {
+  local manager
+  manager="$(gonken_runtime_context_manager)"
+  [[ -x "$manager" ]] || {
+    gonken_error "RUNTIME_CONTEXT_LAYOUT" "runtime context helper is missing or non-executable" "rebuild the immutable release from a complete checkpoint"
+    return 66
+  }
+  local -a args=(status --audio-user "$SERVICE_USER" --require-ready)
+  if [[ "${GONKEN_SOURCE_RECORD[bluetooth_audio]:-disabled}" == "requested" ]]; then
+    args+=(--require-pipewire)
+  fi
+  python3 "$manager" "${args[@]}"
+}
+
 gonken_appliance_postcondition() {
   python3 "$(gonken_appliance_manager)" status >/dev/null 2>&1 || return 1
   GONKEN_STEP_EVIDENCE="voice_appliance_ready_and_enabled"
@@ -993,10 +1059,17 @@ if ((ENGINE_ONLY == 0)); then
       "does_not_grant_or_remove_preexisting_operator_raw_hardware_groups" || exit $?
 
     gonken_register_step \
+      "target_i2c_platform" "1" \
+      "gonken_target_identity_preflight_postcondition" "gonken_i2c_platform_action" "gonken_i2c_platform_postcondition" \
+      "raspberry_pi_i2c_bus1_enabled_and_gonken_env_accessible_without_sensor_probe" \
+      "enable_i2c_non_actuating_and_resume_after_reboot_when_device_node_is_not_yet_present" \
+      "never_probe_sensor_address_start_environment_service_or_actuate_gpio" || exit $?
+
+    gonken_register_step \
       "target_runtime_bindings" "1" \
-      "gonken_target_identity_preflight_postcondition" "gonken_target_runtime_bindings_action" "gonken_target_runtime_bindings_postcondition" \
+      "gonken_i2c_platform_postcondition" "gonken_target_runtime_bindings_action" "gonken_target_runtime_bindings_postcondition" \
       "release_venv_hardware_binding_imports_as_environment_service_account" \
-      "validate_gpiod_smbus_inside_active_release_before_any_hardware_service_use" \
+      "validate_gpiod_inside_active_release_before_any_hardware_service_use" \
       "no_hardware_is_opened_or_actuated_by_import_validation" || exit $?
 
     gonken_register_step \
@@ -1069,9 +1142,25 @@ if ((ENGINE_ONLY == 0)); then
             "disable_extension_service_without_affecting_USB_core" || exit $?
         fi
 
+        if [[ "${GONKEN_SOURCE_RECORD[bluetooth_audio]:-disabled}" == "requested" ]]; then
+          gonken_register_step \
+            "runtime_context" "1" \
+            "gonken_bluetooth_autoconnect_postcondition" "gonken_runtime_context_action" "gonken_runtime_context_postcondition" \
+            "system_service_environment_and_headless_pipewire_user_session" \
+            "verify_generated_xdg_dbus_context_linger_user_manager_pipewire_wireplumber_and_pulse_without_audio_capture" \
+            "does_not_record_play_audio_or_touch_environment_hardware" || exit $?
+        else
+          gonken_register_step \
+            "runtime_context" "1" \
+            "gonken_app_service_postcondition" "gonken_runtime_context_action" "gonken_runtime_context_postcondition" \
+            "system_service_environment_context_for_wired_audio_fallback" \
+            "verify_generated_service_uid_runtime_environment_without_requiring_pipewire" \
+            "does_not_open_capture_playback_gpio_or_i2c_devices" || exit $?
+        fi
+
         gonken_register_step \
-          "appliance_readiness" "3" \
-          "gonken_app_service_postcondition" "gonken_appliance_action" "gonken_appliance_postcondition" \
+          "appliance_readiness" "4" \
+          "gonken_runtime_context_postcondition" "gonken_appliance_action" "gonken_appliance_postcondition" \
           "physical_audio_local_model_wake_runtime_and_enabled_boot_service" \
           "restart_service_wait_for_content_free_ready_record_and_retry_dependencies" \
           "service_remains_enabled_and_runtime_recovers_without_reinstalling_models" || exit $?

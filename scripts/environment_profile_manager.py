@@ -61,6 +61,9 @@ PROFILE_SPECS: dict[str, dict[str, object]] = {
     },
 }
 
+REAL_SENSOR_PROFILES = {"real-sensor-simulated-actuator", "full-real"}
+SHT31_ADDRESSES = (0x44, 0x45)
+
 PROFILE_CODES = {
     "full-simulation": "FULL_SIMULATION",
     "sensor-deferred-relay": "SENSOR_DEFERRED_RELAY",
@@ -84,8 +87,21 @@ def _toml_value(value: object) -> str:
     raise TypeError(value)
 
 
-def profile_text(name: str) -> str:
-    spec = PROFILE_SPECS[name]
+def profile_spec(name: str, *, sensor_address: int = 0x44) -> dict[str, object]:
+    if name not in PROFILE_SPECS:
+        fail("ENV_PROFILE_NAME", f"unsupported profile: {name}", "choose a governed environment profile", 64)
+    if sensor_address not in SHT31_ADDRESSES:
+        fail("ENV_PROFILE_SENSOR_ADDRESS", "SHT31 address must be 0x44 or 0x45", "use the address proven by the targeted SHT31 diagnostic", 64)
+    spec = dict(PROFILE_SPECS[name])
+    if name in REAL_SENSOR_PROFILES:
+        spec["i2c_address"] = sensor_address
+    elif sensor_address != 0x44:
+        fail("ENV_PROFILE_SENSOR_ADDRESS", "sensor address applies only to real-sensor profiles", "omit --sensor-address for simulated-sensor profiles", 64)
+    return spec
+
+
+def profile_text(name: str, *, sensor_address: int = 0x44) -> str:
+    spec = profile_spec(name, sensor_address=sensor_address)
     lines = ["[extensions.environment]"]
     lines.extend(f"{key} = {_toml_value(value)}" for key, value in spec.items())
     return "\n".join(lines) + "\n"
@@ -136,7 +152,7 @@ def read_environment(path: Path) -> dict[str, object]:
     return environment
 
 
-def detect_managed_profile(path: Path) -> str | None:
+def detect_managed_profile_details(path: Path) -> tuple[str, int | None] | None:
     payload = _load(path)
     # Managed profile files contain only the exact extensions.environment table.
     if set(payload) != {"extensions"} or not isinstance(payload.get("extensions"), dict):
@@ -145,14 +161,24 @@ def detect_managed_profile(path: Path) -> str | None:
     if set(extensions) != {"environment"} or not isinstance(extensions.get("environment"), dict):
         return None
     environment = extensions["environment"]
-    for name, expected in PROFILE_SPECS.items():
-        if environment == expected:
-            return name
+    for name in PROFILE_SPECS:
+        addresses = SHT31_ADDRESSES if name in REAL_SENSOR_PROFILES else (0x44,)
+        for address in addresses:
+            if environment == profile_spec(name, sensor_address=address):
+                return name, (address if name in REAL_SENSOR_PROFILES else None)
     return None
 
 
-def exact_profile(path: Path, name: str = "sensor-deferred-relay") -> bool:
-    return detect_managed_profile(path) == name
+def detect_managed_profile(path: Path) -> str | None:
+    details = detect_managed_profile_details(path)
+    return details[0] if details else None
+
+
+def exact_profile(path: Path, name: str = "sensor-deferred-relay", *, sensor_address: int | None = None) -> bool:
+    details = detect_managed_profile_details(path)
+    if not details or details[0] != name:
+        return False
+    return sensor_address is None or details[1] == sensor_address
 
 
 def _group_gid(group: str) -> int:
@@ -188,21 +214,21 @@ def _atomic_write(path: Path, text: str, *, group: str) -> None:
             temporary.unlink()
 
 
-def ensure_profile(path: Path, *, name: str, group: str) -> str:
-    if name not in PROFILE_SPECS:
-        fail("ENV_PROFILE_NAME", f"unsupported profile: {name}", "choose a governed environment profile", 64)
+def ensure_profile(path: Path, *, name: str, group: str, sensor_address: int = 0x44) -> str:
+    target_spec = profile_spec(name, sensor_address=sensor_address)
+    target_text = profile_text(name, sensor_address=sensor_address)
     if path.exists() or path.is_symlink():
-        current = detect_managed_profile(path)
-        if current == name:
+        current = detect_managed_profile_details(path)
+        if current is not None and read_environment(path) == target_spec:
             return "ALREADY_CONFIGURED"
         if current is None:
             fail("ENV_PROFILE_CONFLICT", "existing site configuration is not an exact managed environment profile", "review and merge administrator configuration manually; no file was changed", 75)
-        _atomic_write(path, profile_text(name), group=group)
-        if detect_managed_profile(path) != name:
+        _atomic_write(path, target_text, group=group)
+        if read_environment(path) != target_spec:
             fail("ENV_PROFILE_VERIFY", "transitioned site configuration did not verify", "inspect the managed file and restore the prior profile", 74)
-        return f"TRANSITIONED_FROM_{PROFILE_CODES[current]}"
-    _atomic_write(path, profile_text(name), group=group)
-    if detect_managed_profile(path) != name:
+        return f"TRANSITIONED_FROM_{PROFILE_CODES[current[0]]}"
+    _atomic_write(path, target_text, group=group)
+    if read_environment(path) != target_spec:
         fail("ENV_PROFILE_VERIFY", "written site configuration did not verify", "remove the managed file after inspection and rerun", 74)
     return "CREATED"
 
@@ -222,6 +248,7 @@ def parser() -> argparse.ArgumentParser:
     result.add_argument("command", choices=[*PROFILE_SPECS, "status"])
     result.add_argument("--site", default="/etc/gonken-agent/config.toml")
     result.add_argument("--group", default="gonken-envctl")
+    result.add_argument("--sensor-address", default="0x44", choices=("0x44", "0x45"), help="real SHT31 address; ignored only when left at default for simulated-sensor profiles")
     return result
 
 
@@ -240,12 +267,14 @@ def main(argv: list[str] | None = None) -> int:
                 status = PROFILE_CODES[selected] if selected else "OTHER_ADMIN_CONFIG"
             print(f"[OK] code=ENV_PROFILE_STATUS status={status} path={path}")
             return 0
-        status = ensure_profile(path, name=args.command, group=args.group)
-        spec = PROFILE_SPECS[args.command]
+        sensor_address = int(args.sensor_address, 0)
+        status = ensure_profile(path, name=args.command, group=args.group, sensor_address=sensor_address)
+        spec = profile_spec(args.command, sensor_address=sensor_address)
+        address_text = f"i2c_address=0x{int(spec['i2c_address']):02x} " if args.command in REAL_SENSOR_PROFILES else ""
         print(
             f"[OK] code=ENV_PROFILE_APPLIED profile={args.command} status={status} path={path} "
             f"sensor_backend={spec['sensor_backend']} relay_backend={spec['relay_backend']} "
-            "hardware_toggled=false service_started=false physical_evidence=false"
+            f"{address_text}hardware_toggled=false service_started=false physical_evidence=false"
         )
         return 0
     except ProfileError as error:

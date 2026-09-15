@@ -1733,3 +1733,11 @@ Run the exact-package target campaign through installation completion, runtime/a
 M10.18 now places a source-owned, non-actuating target prerequisite gate before account/release construction and creates a private installer-owned failure bundle if any later step fails. Required core voice/GPIO prerequisites fail closed; optional real-SHT31 readiness is reported without making the generic environment-disabled install impossible.
 
 M10.19 now treats environment configuration as four explicit parity profiles (`full-simulation`, `sensor-deferred-relay`, `real-sensor-simulated-actuator`, `full-real`). The helper may create a missing managed profile or atomically transition between exact managed profiles; it refuses unknown administrator configuration and never starts services or touches hardware. A second target preflight verifies service identities and `gonken-envctl` client authority after account convergence.
+
+## Checkpoint 28 implementation refinement — runtime, SHT31/I2C and voice transaction
+
+Checkpoint 28 implements M10.20-M10.22 host closure under the checkpoint-25 comprehensive blueprint. Runtime-context readiness is now an explicit prerequisite rather than something first discovered at final appliance readiness. The SHT31 transport uses raw I2C command/read semantics, with CRC validation, heater-off/status safeguards and a bounded 100-read target diagnostic. I2C platform enablement, reboot-required state and service-user device access are governed separately from sensor-address probing.
+
+Evidence classification is also strengthened: a daemon configured with `sht31` plus `libgpiod` reports `TARGET_REAL_BACKENDS_UNVERIFIED`. Physical acceptance cannot be created from backend names. The deterministic voice path is verified through the real environment Unix socket and remains a client of the single-owner daemon.
+
+The next host tranche is M10.23 lifecycle/support/documentation/package/Git closure. M10.24 remains exact-package Raspberry Pi acceptance and includes the already established GPIO23/fan facts plus the forthcoming real SHT31 and voice/audio evidence.

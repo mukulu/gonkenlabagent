@@ -65,7 +65,7 @@ This supports four evidence modes:
 | simulated | simulated | `HOST_SIMULATION` or `TARGET_FULL_SIMULATION` | Does not close physical sensor/fan gates |
 | simulated | libgpiod | `TARGET_HYBRID_SENSOR_SIMULATED` | Can test real relay/fan but not real sensor |
 | sht31 | simulated | `TARGET_HYBRID_ACTUATOR_SIMULATED` | Can test real sensor but not real actuator/fan |
-| sht31 | libgpiod | `TARGET_PHYSICAL` | Only this can close full physical environment acceptance |
+| sht31 | libgpiod | `TARGET_REAL_BACKENDS_UNVERIFIED` | Real backends alone do not close physical acceptance; supervised evidence is still required |
 
 Simulation is an adapter choice behind the same daemon/service boundary. It is not a bypass, not a second controller, and not a CLI-owned fake state file.
 

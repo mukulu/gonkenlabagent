@@ -91,7 +91,7 @@ class EnvironmentSimulationConfigTests(unittest.TestCase):
         self.assertEqual(classify_evidence_mode(sensor_backend="simulated", actuator_backend="simulated"), "HOST_SIMULATION")
         self.assertEqual(classify_evidence_mode(sensor_backend="simulated", actuator_backend="libgpiod"), "TARGET_HYBRID_SENSOR_SIMULATED")
         self.assertEqual(classify_evidence_mode(sensor_backend="sht31", actuator_backend="simulated"), "TARGET_HYBRID_ACTUATOR_SIMULATED")
-        self.assertEqual(classify_evidence_mode(sensor_backend="sht31", actuator_backend="libgpiod"), "TARGET_PHYSICAL")
+        self.assertEqual(classify_evidence_mode(sensor_backend="sht31", actuator_backend="libgpiod"), "TARGET_REAL_BACKENDS_UNVERIFIED")
 
 
 class SimulatedAdapterTests(unittest.TestCase):

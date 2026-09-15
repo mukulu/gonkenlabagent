@@ -298,7 +298,7 @@ def classify_evidence_mode(*, sensor_backend: str, actuator_backend: str) -> str
         return "TARGET_HYBRID_SENSOR_SIMULATED"
     if actuator_simulated and not sensor_simulated:
         return "TARGET_HYBRID_ACTUATOR_SIMULATED"
-    return "TARGET_PHYSICAL"
+    return "TARGET_REAL_BACKENDS_UNVERIFIED"
 
 
 def _finite_float(value: float | int, name: str) -> float:

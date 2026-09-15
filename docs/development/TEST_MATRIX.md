@@ -1221,3 +1221,12 @@ Checkpoint 24 closes the host-side root cause and adds regression protection, bu
 | Unknown administrator config refusal | environment profile tests | PASS | NOT_RUN |
 | Operator/service identity convergence | target-preflight identity unit coverage; installer postconditions | PASS | NOT_RUN |
 | Physical device access / fresh login | host cannot establish Pi account/device state | NOT_APPLICABLE | OPEN |
+
+## Checkpoint 28 — runtime, SHT31/I2C and voice transaction host closure
+
+| Gate | Evidence | Host status | Target status |
+|---|---|---|---|
+| M10.20 runtime/service/audio context | `checkpoint28/m10_20_runtime_service_audio.log` — 52 tests | PASS | Physical capture/playback, Bluetooth reconnect and reboot/no-login OPEN |
+| M10.21 SHT31/I2C/profile/release slice | `checkpoint28/m10_21_inprogress_narrow.log` — 77 tests | PASS | Real `/dev/i2c-1`, breakout/address/read campaign OPEN |
+| M10.21 physical-evidence false-green guard | `checkpoint28/m10_21_evidence_mode_fix.log` — 19 tests | PASS | Supervised physical acceptance OPEN |
+| M10.22 deterministic voice→AF_UNIX daemon transaction | `checkpoint28/m10_22_voice_transaction.log` — 3 integration cases | PASS | Real wake/STT/TTS and fan/sensor observations OPEN |

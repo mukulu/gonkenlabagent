@@ -60,18 +60,16 @@ JOURNAL_PHASES = {"prepared", "switched", "post_verified", "rolled_back"}
 TARGET_DISTRO_BINDING_PROFILES = {"core-pi-trixie-py313"}
 DIST_PACKAGES_ROOT = Path("/usr/lib/python3/dist-packages")
 TARGET_BINDING_PACKAGES = {
-    "core-pi-trixie-py313": ("python3-libgpiod", "python3-smbus"),
+    "core-pi-trixie-py313": ("python3-libgpiod",),
 }
 BINDING_MANIFEST_RELATIVE = Path("share/gonken-agent/hardware-bindings.json")
 HARDWARE_BINDING_CHECK = """
 import gpiod
-import smbus
 from gpiod.line import Bias, Direction, Value
 required = {
     "gpiod.Chip": getattr(gpiod, "Chip", None),
     "gpiod.LineSettings": getattr(gpiod, "LineSettings", None),
     "gpiod.request_lines": getattr(gpiod, "request_lines", None),
-    "smbus.SMBus": getattr(smbus, "SMBus", None),
 }
 missing = [name for name, value in required.items() if not callable(value)]
 for name in ("get_info", "get_line_info"):
@@ -512,8 +510,6 @@ def _binding_relative_allowed(package: str, relative: Path) -> bool:
         return False
     if package == "python3-libgpiod":
         return relative.parts[0] == "gpiod"
-    if package == "python3-smbus":
-        return len(relative.parts) == 1 and relative.name.startswith("smbus.") and relative.suffix == ".so"
     return False
 
 
@@ -657,7 +653,7 @@ def validate_runtime_hardware_bindings(
     except ReleaseError as error:
         fail(
             "RELEASE_HARDWARE_BINDINGS",
-            f"target release interpreter cannot use required gpiod/smbus APIs: {error}",
+            f"target release interpreter cannot use required gpiod APIs: {error}",
             "repair the validated distro binding packages and rebuild the immutable release",
             error.exit_code,
         )
@@ -783,6 +779,9 @@ def build_release(
             source / "scripts" / "environment_acceptance_runner.py": maintenance / "environment_acceptance_runner.py",
             source / "scripts" / "environment_profile_manager.py": maintenance / "environment_profile_manager.py",
             source / "scripts" / "target_preflight.py": maintenance / "target_preflight.py",
+            source / "scripts" / "i2c_manager.py": maintenance / "i2c_manager.py",
+            source / "scripts" / "sht31_diagnostic.py": maintenance / "sht31_diagnostic.py",
+            source / "scripts" / "runtime_context_preflight.py": maintenance / "runtime_context_preflight.py",
             source / "scripts" / "installer_failure_bundle.py": maintenance / "installer_failure_bundle.py",
             source / "scripts" / "bluetooth_manager.py": maintenance / "bluetooth_manager.py",
             source / "scripts" / "appliance_manager.py": maintenance / "appliance_manager.py",
@@ -819,6 +818,9 @@ def build_release(
             maintenance / "environment_acceptance_runner.py",
             maintenance / "environment_profile_manager.py",
             maintenance / "target_preflight.py",
+            maintenance / "i2c_manager.py",
+            maintenance / "sht31_diagnostic.py",
+            maintenance / "runtime_context_preflight.py",
             maintenance / "installer_failure_bundle.py",
             maintenance / "bluetooth_manager.py",
             maintenance / "appliance_manager.py",

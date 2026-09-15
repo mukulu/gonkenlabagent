@@ -1513,3 +1513,33 @@ The deterministic M10.14 simulation runner exercises manual, AUTO, SEMI, stale/r
 - **Decision:** The checkpoint-24 `system_site_packages=true` target strategy is retired. Target releases remain isolated and bridge only explicitly allow-listed distro binding import payloads with provenance/hashes.
 - **Reason:** Real Pi evidence showed unrelated `types-*` distributions contaminated `pip check` under broad visibility.
 - **Consequence:** D-139's immutable-interpreter validation principle remains valid, but its dependency source is the checkpoint-26 bridge rather than broad system-site exposure.
+
+## 2026-09-16 — Checkpoint 28 runtime/sensor/voice decisions
+
+### D-155 — Dedicated user-session audio context is an installer prerequisite, not an appliance-readiness surprise
+
+- **Status:** Accepted.
+- **Decision:** The installer verifies the generated `XDG_RUNTIME_DIR`/D-Bus environment and, when Bluetooth audio is requested, the dedicated `gonken-agent` user manager, PipeWire and WirePlumber context before appliance readiness.
+- **Reason:** A running system service is not sufficient evidence that the service account can reach its intended audio session.
+- **Consequence:** Missing user-session audio infrastructure fails earlier with bounded prerequisite evidence; physical capture/playback still requires the Pi campaign.
+
+### D-156 — SHT31 production access uses the sensor's raw I2C transaction contract
+
+- **Status:** Accepted.
+- **Decision:** The production adapter sends the exact 16-bit measurement/status/reset/heater commands and performs raw fixed-length reads without adding an SMBus register byte. CRC remains mandatory.
+- **Reason:** Register-oriented SMBus block APIs can alter the on-wire transaction and fake-bus tests can hide that defect.
+- **Consequence:** Host tests assert byte ordering and CRC; target diagnostics must still prove a real 0x44/0x45 device and repeated reads.
+
+### D-157 — Real backend configuration is not physical acceptance evidence
+
+- **Status:** Accepted.
+- **Decision:** `sht31 + libgpiod` daemon configuration reports `TARGET_REAL_BACKENDS_UNVERIFIED`; `TARGET_PHYSICAL` is reserved for governed supervised acceptance evidence and is never derived solely from backend names.
+- **Reason:** Configuration can be correct while wiring, sensor presence, relay polarity or fan motion is wrong.
+- **Consequence:** The daemon cannot create a false physical PASS simply by starting with real backend names.
+
+### D-158 — Voice environment actions must traverse the daemon transaction boundary
+
+- **Status:** Accepted.
+- **Decision:** Deterministic environment utterances bypass the LLM but use the same bounded `EnvironmentClient` AF_UNIX protocol as the CLI; unavailable/rejected daemon operations produce truthful refusal wording.
+- **Reason:** Voice must not become a second GPIO/I2C owner or invent success independently of the environment service.
+- **Consequence:** Host integration tests exercise real protocol serialization/state changes; microphone/STT/TTS and physical actuation remain target evidence.

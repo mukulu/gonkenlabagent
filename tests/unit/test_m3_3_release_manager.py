@@ -193,6 +193,8 @@ class IntegrityAndPrivilegeTests(unittest.TestCase):
             '"service_manager.py"',
             '"environment_service_manager.py"',
             '"environment_profile_manager.py"',
+            '"i2c_manager.py"',
+            '"sht31_diagnostic.py"',
             '"update.sh"',
             '"update_manager.py"',
             '"collect-support.sh"',
@@ -210,6 +212,9 @@ class IntegrityAndPrivilegeTests(unittest.TestCase):
         self.assertIn("gonken_speech_manager", installer)
         self.assertIn("gonken_service_manager", installer)
         self.assertIn("gonken_environment_service_manager", installer)
+        self.assertIn("target_i2c_platform", installer)
+        self.assertIn("gonken_i2c_platform_postcondition", installer)
+        self.assertIn("I2C_REBOOT_REQUIRED", installer)
         self.assertIn("environment_service", installer)
         self.assertIn("--speech-only", installer)
         self.assertIn("M3_5_SPEECH_COMPLETE", installer)
@@ -329,8 +334,6 @@ class TargetRuntimeBindingTests(unittest.TestCase):
         (site / "gpiod").mkdir(parents=True)
         gpiod = site / "gpiod" / "__init__.py"
         gpiod.write_text("# fixture\n", encoding="utf-8")
-        smbus = site / "smbus.cpython-313-test.so"
-        smbus.write_bytes(b"fixture")
         if manifest:
             path = release / release_manager.BINDING_MANIFEST_RELATIVE
             path.parent.mkdir(parents=True, exist_ok=True)
@@ -344,11 +347,6 @@ class TargetRuntimeBindingTests(unittest.TestCase):
                         "package": "python3-libgpiod",
                         "version": "2.2.1-test",
                         "files": [{"path": "gpiod/__init__.py", "sha256": release_manager.sha256_file(gpiod)}],
-                    },
-                    {
-                        "package": "python3-smbus",
-                        "version": "4.4-test",
-                        "files": [{"path": smbus.name, "sha256": release_manager.sha256_file(smbus)}],
                     },
                 ],
             }
@@ -399,12 +397,9 @@ class TargetRuntimeBindingTests(unittest.TestCase):
 
     def test_binding_allowlist_excludes_distribution_metadata_and_unrelated_packages(self) -> None:
         self.assertTrue(release_manager._binding_relative_allowed("python3-libgpiod", Path("gpiod/__init__.py")))
-        self.assertTrue(release_manager._binding_relative_allowed("python3-smbus", Path("smbus.cpython-313-aarch64-linux-gnu.so")))
         for package, path in (
             ("python3-libgpiod", Path("gpiod-2.2.0.dist-info/METADATA")),
-            ("python3-smbus", Path("smbus-1.1.egg-info/PKG-INFO")),
             ("python3-libgpiod", Path("types_tensorflow-2.18.dist-info/METADATA")),
-            ("python3-smbus", Path("numpy/__init__.py")),
         ):
             with self.subTest(package=package, path=path):
                 self.assertFalse(release_manager._binding_relative_allowed(package, path))
@@ -421,12 +416,10 @@ class TargetRuntimeBindingTests(unittest.TestCase):
             distro = root / "dist-packages"
             gpiod_init = distro / "gpiod" / "__init__.py"
             gpiod_ext = distro / "gpiod" / "_ext.cpython-313-test.so"
-            smbus_ext = distro / "smbus.cpython-313-test.so"
             unrelated = distro / "types_tensorflow-2.18.dist-info" / "METADATA"
             for path, payload in (
                 (gpiod_init, b"# gpiod fixture\n"),
                 (gpiod_ext, b"gpiod-so"),
-                (smbus_ext, b"smbus-so"),
                 (unrelated, b"Requires-Dist: numpy\n"),
             ):
                 path.parent.mkdir(parents=True, exist_ok=True)
@@ -436,13 +429,11 @@ class TargetRuntimeBindingTests(unittest.TestCase):
                 self.assertEqual(source_root, distro)
                 return {
                     "python3-libgpiod": [gpiod_init, gpiod_ext],
-                    "python3-smbus": [smbus_ext],
                 }[package]
 
             with patch.object(release_manager, "_distro_binding_files", side_effect=files), patch.object(
                 release_manager, "_distro_package_version", side_effect=lambda package: {
                     "python3-libgpiod": "2.2.1-test",
-                    "python3-smbus": "4.4-test",
                 }[package]
             ):
                 manifest = release_manager.install_target_distro_bindings(
@@ -452,7 +443,6 @@ class TargetRuntimeBindingTests(unittest.TestCase):
             self.assertIsNotNone(manifest)
             self.assertTrue((site / "gpiod" / "__init__.py").is_file())
             self.assertTrue((site / gpiod_ext.name.replace(gpiod_ext.name, "gpiod/_ext.cpython-313-test.so")).is_file())
-            self.assertTrue((site / smbus_ext.name).is_file())
             self.assertFalse((site / "types_tensorflow-2.18.dist-info" / "METADATA").exists())
             self.assertTrue(release_manager._binding_manifest_valid(release, "core-pi-trixie-py313"))
 
@@ -479,11 +469,12 @@ class TargetRuntimeBindingTests(unittest.TestCase):
     def test_binding_probe_covers_exact_runtime_apis(self) -> None:
         probe = release_manager.HARDWARE_BINDING_CHECK
         for required in (
-            "gpiod", "smbus", "gpiod.line", "Chip", "LineSettings",
-            "request_lines", "SMBus", "get_info", "get_line_info",
+            "gpiod", "gpiod.line", "Chip", "LineSettings",
+            "request_lines", "get_info", "get_line_info",
             "Bias", "Direction", "Value",
         ):
             self.assertIn(required, probe)
+        self.assertNotIn("smbus", probe)
 
     def test_installer_authorizes_invoking_operator_only_for_control_socket(self) -> None:
         installer = (ROOT / "scripts/install.sh").read_text(encoding="utf-8")

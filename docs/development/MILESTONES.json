@@ -1,6 +1,6 @@
 {
   "baseline_commit": "c062a44b2775d34cf29ce868971486b7b8123909",
-  "checkpoint_scope": "V09 checkpoint 25 comprehensive-closure blueprint reconstructed; implementation proceeds through M10.17-M10.23 while M10.24 remains target-only.",
+  "checkpoint_scope": "V09 checkpoint 28 host closure through M10.22; implementation continues through M10.23 while M10.24 remains target-only.",
   "milestones": [
     {
       "evidence": "TEST_MATRIX.md (M2.1)",
@@ -408,26 +408,26 @@
     {
       "id": "M10.20",
       "title": "Systemd runtime, service-context and audio closure",
-      "software": "pending",
+      "software": "host-verified",
       "target": "not-run",
-      "evidence": "",
-      "remaining": "Close service-context and audio/PipeWire/BlueZ readiness on host/target-shadow; physical audio remains target-gated."
+      "evidence": "scripts/runtime_context_preflight.py; scripts/install.sh; scripts/release_manager.py; tests/unit/test_v09_runtime_context_preflight.py; tests/unit/test_m6_service_manager.py; tests/unit/test_x4_bluetooth_manager.py; docs/development/evidence/v09/checkpoint28/m10_20_runtime_service_audio.log",
+      "remaining": "Service/runtime-context and dedicated PipeWire/WirePlumber structural readiness are host-verified. Physical microphone/speaker/BlueZ behavior, reboot/no-login convergence and latency remain target-run evidence."
     },
     {
       "id": "M10.21",
       "title": "SHT31/I2C and environment simulation-hybrid-full-real readiness",
-      "software": "pending",
+      "software": "host-verified",
       "target": "not-run",
-      "evidence": "",
-      "remaining": "Correct/prove SHT31 wire semantics, I2C convergence, diagnostics, profile parity and controller cross-component behavior; physical sensor evidence remains target-gated."
+      "evidence": "scripts/i2c_manager.py; scripts/sht31_diagnostic.py; src/gonken_agent/environment/sensors/sht31.py; scripts/environment_profile_manager.py; src/gonken_agent/environment/simulation.py; tests/unit/test_v09_i2c_manager.py; tests/unit/test_v09_sht31_diagnostic.py; tests/unit/test_v09_environment_hardware_adapters.py; docs/development/evidence/v09/checkpoint28/m10_21_inprogress_narrow.log; docs/development/evidence/v09/checkpoint28/m10_21_evidence_mode_fix.log",
+      "remaining": "Wire-correct SHT31 transaction, I2C convergence helper, heater/status safeguards, four-profile parity and false-green evidence-mode boundary are host-verified. Physical breakout inspection, /dev/i2c-1 target access, 0x44/0x45 detection, repeated real reads and full-real control remain target-run evidence."
     },
     {
       "id": "M10.22",
       "title": "Voice/environment end-to-end transaction closure",
-      "software": "pending",
+      "software": "host-verified",
       "target": "not-run",
-      "evidence": "",
-      "remaining": "Verify CLI/voice environment transactions across simulation/hybrid failure cases; real voice/hardware remains target-gated."
+      "evidence": "src/gonken_agent/environment/intents.py; src/gonken_agent/voice_runtime.py; tests/unit/test_v09_environment_voice_intents.py; tests/integration/test_v09_environment_voice_transaction.py; docs/development/evidence/v09/checkpoint28/m10_22_voice_transaction.log",
+      "remaining": "Deterministic voice-to-daemon Unix-socket transactions and truthful failure/simulation wording are host-verified. Real wake/STT/TTS, physical relay/fan response and physical sensor query remain target-run evidence."
     },
     {
       "id": "M10.23",
