@@ -1,0 +1,10 @@
+test_full_lifecycle_repeat_status_and_private_record (tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_full_lifecycle_repeat_status_and_private_record) ... ok
+test_interrupted_boundaries_converge_on_rerun (tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_interrupted_boundaries_converge_on_rerun) ... ok
+test_smoke_failure_does_not_create_success_record_and_reruns (tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_smoke_failure_does_not_create_success_record_and_reruns) ... ok
+test_wrong_architecture_native_payload_is_rejected_and_repaired (tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_wrong_architecture_native_payload_is_rejected_and_repaired) ... ok
+test_zero_byte_bad_checksum_and_missing_pair_repair (tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_zero_byte_bad_checksum_and_missing_pair_repair) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 65.572s
+
+OK

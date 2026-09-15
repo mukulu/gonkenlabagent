@@ -27,11 +27,14 @@ class ReleaseReadinessTests(unittest.TestCase):
         remaining = {gate["id"] for gate in report["target_gates_remaining"]}
         self.assertIn("M9.1", remaining)
         self.assertIn("M10.7", remaining)
+        self.assertIn("M10.24", remaining)
         self.assertFalse(report["physical_acceptance_claimed"])
         self.assertIn("host/software", report["readiness_scope"])
         self.assertIn("./bootstrap.sh --local-checkpoint", report["next_action"])
         self.assertIn("docs/RASPBERRY_PI_ACCEPTANCE_RUN.md", report["next_action"])
         self.assertIn("M10.7", report["next_action"])
+        self.assertIn("M10.24", report["next_action"])
+        self.assertIn("I2C_REBOOT_REQUIRED", report["next_action"])
         self.assertIn("INSTALLATION_COMPLETE", report["next_action"])
 
     def test_human_report_has_exact_boundary_language(self) -> None:
@@ -53,7 +56,7 @@ class ReleaseReadinessTests(unittest.TestCase):
         self.assertIn("docs/RASPBERRY_PI_ACCEPTANCE_RUN.md", readme)
         for expected in (
             "./bootstrap.sh --local-checkpoint",
-            "sha256sum -c SHA256SUMS_checkpoint24.txt",
+            "sha256sum -c <delivered-sha256-manifest>",
             "git reset --hard HEAD",
             "test -x ./bootstrap.sh",
             "gpioinfo --strict GPIO17",

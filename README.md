@@ -138,4 +138,4 @@ project provenance, not as the supported appliance entry point.
 Project policy currently prohibits redistribution unless that policy is
 explicitly changed by the project owner.
 
-Checkpoint 24 is the target-installer/runtime repair handoff produced from the first checkpoint-23 Raspberry Pi evidence. Use the [Raspberry Pi acceptance runbook](docs/RASPBERRY_PI_ACCEPTANCE_RUN.md) to install the exact downloaded checkpoint and execute the full target campaign. The staged full-simulation and sensor-deferred environment sequence remains in [docs/USER_SIMULATION_HIL_HANDOFF.md](docs/USER_SIMULATION_HIL_HANDOFF.md).
+The current comprehensive-closure checkpoints build on the first Raspberry Pi target evidence and close installer/runtime/I2C/SHT31/voice prerequisites before the next exact-package campaign. Use the [Raspberry Pi acceptance runbook](docs/RASPBERRY_PI_ACCEPTANCE_RUN.md) to install the exact downloaded checkpoint and execute the staged target campaign. The staged full-simulation and sensor-deferred environment sequence remains in [docs/USER_SIMULATION_HIL_HANDOFF.md](docs/USER_SIMULATION_HIL_HANDOFF.md).

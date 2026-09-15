@@ -1,0 +1,29 @@
+{
+  "chunks": [
+    {
+      "log": "docs/development/evidence/v09/checkpoint29/unit_chunk1.log",
+      "status": "PASS",
+      "tests": 168
+    },
+    {
+      "log": "docs/development/evidence/v09/checkpoint29/unit_chunk2.log",
+      "status": "PASS",
+      "tests": 83
+    },
+    {
+      "log": "docs/development/evidence/v09/checkpoint29/unit_chunk3.log",
+      "status": "PASS",
+      "tests": 94
+    },
+    {
+      "log": "docs/development/evidence/v09/checkpoint29/unit_chunk4.log",
+      "status": "PASS",
+      "tests": 90
+    }
+  ],
+  "modules": 44,
+  "note": "Canonical aggregate attempts were interrupted earlier; final bounded chunk accounting covers all 44 unit modules.",
+  "schema": 1,
+  "status": "PASS",
+  "tests": 435
+}

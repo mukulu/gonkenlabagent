@@ -1,0 +1,29 @@
+test_human_report_has_exact_boundary_language (tests.unit.test_release_readiness.ReleaseReadinessTests.test_human_report_has_exact_boundary_language) ... FAIL
+test_report_is_ready_for_target_acceptance_from_clean_tree (tests.unit.test_release_readiness.ReleaseReadinessTests.test_report_is_ready_for_target_acceptance_from_clean_tree) ... FAIL
+test_target_acceptance_runbook_is_user_facing (tests.unit.test_release_readiness.ReleaseReadinessTests.test_target_acceptance_runbook_is_user_facing) ... ok
+
+======================================================================
+FAIL: test_human_report_has_exact_boundary_language (tests.unit.test_release_readiness.ReleaseReadinessTests.test_human_report_has_exact_boundary_language)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/data/ckpt25_run/gonkenlabagent-v09-installer-runtime-repair-checkpoint-24/tests/unit/test_release_readiness.py", line 50, in test_human_report_has_exact_boundary_language
+    self.assertIn("Status: READY_FOR_TARGET_ACCEPTANCE", result.stdout)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'Status: READY_FOR_TARGET_ACCEPTANCE' not found in 'Status: NOT_READY\nBranch: dev/v09-25-comprehensive-closure\nCommit: 1826203d596a541aad77d5f963c6af5a421f4cf6\nDirty tree: True\nHost verified required items: 47/48\nTarget gates remaining: 26\n- M3.1: Bootstrap preflight\n- M3.2: Step engine and install state\n- M3.3: Immutable application release\n- M3.4: Ollama lifecycle and selected model\n- M3.5: Whisper and Piper artifacts\n- M3.6: Install summary\n- M4.1: Coordinator/state/health\n- M4.2: Audio discovery and recovery\n- M4.3: Resampling/STT/TTS lifecycle\n- M5.1: Push-to-talk and recording indication\n- M5.2: Offline boundary\n- M6.1: Application service\n'
+
+======================================================================
+FAIL: test_report_is_ready_for_target_acceptance_from_clean_tree (tests.unit.test_release_readiness.ReleaseReadinessTests.test_report_is_ready_for_target_acceptance_from_clean_tree)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/data/ckpt25_run/gonkenlabagent-v09-installer-runtime-repair-checkpoint-24/tests/unit/test_release_readiness.py", line 23, in test_report_is_ready_for_target_acceptance_from_clean_tree
+    self.assertEqual(report["status"], "READY_FOR_TARGET_ACCEPTANCE")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'NOT_READY' != 'READY_FOR_TARGET_ACCEPTANCE'
+- NOT_READY
++ READY_FOR_TARGET_ACCEPTANCE
+
+
+----------------------------------------------------------------------
+Ran 3 tests in 1.235s
+
+FAILED (failures=2)

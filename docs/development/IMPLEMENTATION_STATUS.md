@@ -6,7 +6,7 @@ Historical implementation detail remains in Git, `TEST_MATRIX.md` and `DECISIONS
 M0/M1 audit and architecture review are complete; the table covers every core implementation item.
 
 <!-- MILESTONES -->
-Checkpoint scope: **V09 checkpoint 28 host closure through M10.22; implementation continues through M10.23 while M10.24 remains target-only.**
+Checkpoint scope: **V09 checkpoint 29 comprehensive host closure through M10.23; M10.24 software prerequisites are host-verified while exact-package Raspberry Pi physical acceptance remains target-only and not-run.**
 
 | Item | Software | Target acceptance | Evidence / remaining work |
 |---|---|---|---|
@@ -62,8 +62,8 @@ Checkpoint scope: **V09 checkpoint 28 host closure through M10.22; implementatio
 | M10.20 — Systemd runtime, service-context and audio closure | host-verified | not-run | scripts/runtime_context_preflight.py; scripts/install.sh; scripts/release_manager.py; tests/unit/test_v09_runtime_context_preflight.py; tests/unit/test_m6_service_manager.py; tests/unit/test_x4_bluetooth_manager.py; docs/development/evidence/v09/checkpoint28/m10_20_runtime_service_audio.log Service/runtime-context and dedicated PipeWire/WirePlumber structural readiness are host-verified. Physical microphone/speaker/BlueZ behavior, reboot/no-login convergence and latency remain target-run evidence. |
 | M10.21 — SHT31/I2C and environment simulation-hybrid-full-real readiness | host-verified | not-run | scripts/i2c_manager.py; scripts/sht31_diagnostic.py; src/gonken_agent/environment/sensors/sht31.py; scripts/environment_profile_manager.py; src/gonken_agent/environment/simulation.py; tests/unit/test_v09_i2c_manager.py; tests/unit/test_v09_sht31_diagnostic.py; tests/unit/test_v09_environment_hardware_adapters.py; docs/development/evidence/v09/checkpoint28/m10_21_inprogress_narrow.log; docs/development/evidence/v09/checkpoint28/m10_21_evidence_mode_fix.log Wire-correct SHT31 transaction, I2C convergence helper, heater/status safeguards, four-profile parity and false-green evidence-mode boundary are host-verified. Physical breakout inspection, /dev/i2c-1 target access, 0x44/0x45 detection, repeated real reads and full-real control remain target-run evidence. |
 | M10.22 — Voice/environment end-to-end transaction closure | host-verified | not-run | src/gonken_agent/environment/intents.py; src/gonken_agent/voice_runtime.py; tests/unit/test_v09_environment_voice_intents.py; tests/integration/test_v09_environment_voice_transaction.py; docs/development/evidence/v09/checkpoint28/m10_22_voice_transaction.log Deterministic voice-to-daemon Unix-socket transactions and truthful failure/simulation wording are host-verified. Real wake/STT/TTS, physical relay/fan response and physical sensor query remain target-run evidence. |
-| M10.23 — Clean/dirty lifecycle, support, documentation, package and Git closure | pending | not-run |  Complete lifecycle/adversarial/support/documentation/package/Git host gates and prepare the next exact checkpoint. |
-| M10.24 — Final Raspberry Pi environment and release acceptance | pending | not-run |  Run exact-package physical target acceptance after M10.17-M10.23 host gates and installer completion; never infer PASS from host evidence. |
+| M10.23 — Clean/dirty lifecycle, support, documentation, package and Git closure | host-verified | not-run | docs/development/V09_CHECKPOINT_29_REPORT.md; docs/development/V09_CHANGE_VERIFICATION_REPORT_CHECKPOINT_29.md; docs/development/evidence/v09/checkpoint29/final_unit_accounting.json; docs/development/evidence/v09/checkpoint29/final_integration_accounting.json; docs/development/evidence/v09/checkpoint29/final_release_lifecycle_accounting.json; src/gonken_agent/support.py; docs/RASPBERRY_PI_ACCEPTANCE_RUN.md; docs/HARDWARE_SETUP.md; scripts/release_readiness.py Host lifecycle/support/documentation/readiness closure is verified. Package integrity is verified at checkpoint packaging. M10.24 remains the exact-package Raspberry Pi campaign and no physical acceptance is inferred. |
+| M10.24 — Final Raspberry Pi environment and release acceptance | host-verified | not-run | docs/development/V09_COMPREHENSIVE_CLOSURE_BLUEPRINT_CHECKPOINT_25.md; docs/RASPBERRY_PI_ACCEPTANCE_RUN.md; checkpoint 29 package verification (delivery artifact) Execute the exact checkpoint on Raspberry Pi: install/I2C resume, simulation, real fan, real SHT31, full-real controller, voice/wake, faults, reboot/no-login, update/rollback/reinstall and final support evidence. Target remains NOT_RUN. |
 <!-- /MILESTONES -->
 
 ## Workflow
@@ -547,3 +547,17 @@ These results are host/target-shadow evidence only. They do not prove the physic
 ### Remaining
 
 M10.23 is now the next dependency-ready host tranche: lifecycle/adversarial/support/documentation/package/Git closure. M10.24 remains the exact-package Raspberry Pi campaign and is the only gate allowed to close remaining physical evidence.
+
+## V09 Checkpoint 29 — lifecycle/support/package host closure — 2026-09-16
+
+**Base:** checkpoint 28 `1826203`.
+
+### Completed
+
+M10.23 is host-verified. The complete unit surface was rerun in bounded chunks (**44 modules / 435 tests PASS**). All 12 integration modules are accounted (**57 tests PASS**), including **8/8** release lifecycle, **5/5** Ollama lifecycle and **5/5** speech lifecycle cases. Support export now adds bounded GPIO23/runtime-context evidence without raw command/journal content. Raspberry Pi/SHT31 documentation is synchronized with raw-I2C transport, the exact 3.3 V four-wire connection, governed I2C reboot/resume, unique 0x44/0x45 discovery and the 100-read diagnostic campaign. Release readiness now depends on M10.16-M10.23.
+
+M10.24 is marked **host-verified / target not-run** only in the sense that its software/runbook prerequisites are present; every physical acceptance sub-gate remains open. The previously observed raw GPIO23/fan success remains valid physical wiring evidence but does not close GonKen-integrated actuator, sensor or voice acceptance.
+
+### Remaining
+
+Only the exact-package Raspberry Pi campaign can close M10.24: governed installation completion, fresh-login permissions, runtime/audio, simulation, GonKen fan CLI, real SHT31, full-real controller, voice/wake, faults, reboot/no-login and update/rollback/reinstall. Any target defect must return to a source checkpoint repair rather than be hidden by an unrecorded live-Pi patch.

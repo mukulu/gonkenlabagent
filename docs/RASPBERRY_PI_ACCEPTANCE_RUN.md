@@ -1,7 +1,7 @@
 # Raspberry Pi target acceptance campaign
 
 This runbook is the authoritative **real-target** procedure for GonKenLab Agent
-V09 checkpoint 24. Host CI, simulation, a clean ZIP, or a READY JSON file cannot
+the current V09 comprehensive-closure checkpoint. Host CI, simulation, a clean ZIP, or a READY JSON file cannot
 substitute for this campaign. Every result must remain classified as host,
 simulation, hybrid HIL, or physical evidence.
 
@@ -17,22 +17,16 @@ For this campaign, do **not** install remote `main` with the public `curl`
 launcher. Doing so would test whatever remote revision is current rather than
 the checkpoint that passed host verification.
 
-Copy these delivered files to the Pi:
+Copy the delivered checkpoint ZIP and its SHA-256 manifest to the Pi. Use the **exact filenames from the delivery message**; do not substitute remote `main`.
 
-```text
-gonkenlabagent-v09-installer-runtime-repair-checkpoint-24.zip
-SHA256SUMS_checkpoint24.txt
-```
-
-Verify the archive and extract it without discarding its `.git` directory:
+Verify the archive, extract it without discarding `.git`, enter the single extracted repository directory, and restore tracked modes/content because Python's ZIP extractor does not preserve Unix executable bits:
 
 ```bash
-sha256sum -c SHA256SUMS_checkpoint24.txt
-mkdir -p ~/gonken-checkpoint24
-python3 -m zipfile -e gonkenlabagent-v09-installer-runtime-repair-checkpoint-24.zip ~/gonken-checkpoint24
-cd ~/gonken-checkpoint24/gonkenlabagent-v09-pi-target-campaign-checkpoint-23
-# Python's standard-library ZIP extractor does not restore Unix execute bits.
-# The archive includes its Git metadata, so restore the exact committed modes/content before validation.
+sha256sum -c <delivered-sha256-manifest>
+rm -rf ~/gonken-target-checkpoint
+mkdir -p ~/gonken-target-checkpoint
+python3 -m zipfile -e <delivered-checkpoint>.zip ~/gonken-target-checkpoint
+cd ~/gonken-target-checkpoint/<extracted-repository-directory>
 git reset --hard HEAD
 test -x ./bootstrap.sh
 git rev-parse HEAD
@@ -44,16 +38,14 @@ python3 scripts/release_readiness.py --json --check
 Acceptance conditions before installation:
 
 - checksum verification passes;
-- `git reset --hard HEAD` completes after checksum verification and restores the exact committed executable modes/content required by the standard-library ZIP extraction path;
-- `./bootstrap.sh` is executable after that restoration;
-- the Git commit matches the commit printed in the checkpoint-24 delivery summary;
+- `git reset --hard HEAD` restores the exact committed modes/content after extraction;
+- `./bootstrap.sh` is executable;
+- the Git commit equals the commit printed in the delivery summary;
 - `git status --porcelain` is empty;
 - `git fsck --strict` succeeds;
-- `release_readiness.py --check` reports `READY_FOR_TARGET_ACCEPTANCE` while
-  still listing target gates as not run.
+- `release_readiness.py --check` reports `READY_FOR_TARGET_ACCEPTANCE` while target-only gates remain open.
 
-If any identity/integrity check fails, **STOP** and return the terminal output.
-The `git reset --hard HEAD` step above is the documented deterministic mode/content restoration required after the Python ZIP extractor; do not make any other in-place repair or edit to force the package to pass.
+If any identity/integrity check fails, **STOP**. Do not make an unrecorded in-place edit to force the package through acceptance.
 
 ## 2. Install this exact checkpoint
 
@@ -74,7 +66,7 @@ For an intended Bluetooth audio device with a known MAC address:
   --bluetooth-audio --bluetooth-device AA:BB:CC:DD:EE:FF
 ```
 
-Checkpoint 24 repairs the first real-Pi installer failure. Do not work around a failed install with `PYTHONPATH`, ad-hoc `pip install`, copied modules, or edits inside the immutable release. The target release must validate `gpiod` and `smbus` using its own interpreter before appliance readiness can complete.
+The comprehensive-closure installer must converge its own prerequisites. Do not work around a failed install with `PYTHONPATH`, ad-hoc `pip install`, copied modules, manual ownership/group changes, or edits inside the immutable release. The release venv remains isolated and its allow-listed hardware-binding bridge must validate the required `gpiod` API with the immutable interpreter. SHT31 transport uses the stdlib Linux `i2c-dev` path rather than a Python `smbus` dependency.
 
 `--local-checkpoint` is deliberate: it binds the installation source record to
 the clean checkout's exact full Git commit. Normal production installs may use
@@ -84,6 +76,8 @@ switch revisions.
 Do not manually preinstall Ollama, Whisper, Piper, Python packages, PipeWire, or
 project virtual environments merely to make the installer pass. Preserve the
 exact installer error if a governed step fails.
+
+The installer now treats Raspberry Pi I2C enablement as a resumable prerequisite. On a first run it may intentionally stop with `I2C_REBOOT_REQUIRED` after enabling I2C because `/dev/i2c-1` cannot exist in the already-running boot. That is not a reason to patch the machine. Reboot the Pi, return to this same clean checkout, and rerun the same `./bootstrap.sh --local-checkpoint ...` command. The persisted step engine must resume and revalidate prior work rather than restarting blindly.
 
 ## 3. Installation-completion and provenance gate
 
@@ -102,16 +96,17 @@ gonken-agent wake status --json
 gonken-agent doctor --probe-ollama --probe-audio
 systemctl status gonken-agent.service --no-pager -l
 readlink -f /usr/local/lib/gonken-agent/current
-/usr/local/lib/gonken-agent/current/.venv/bin/python -c 'import gpiod, smbus; from gpiod.line import Bias, Direction, Value; assert callable(gpiod.Chip); assert callable(gpiod.LineSettings); assert callable(gpiod.request_lines); assert callable(gpiod.Chip.get_info); assert callable(gpiod.Chip.get_line_info); assert callable(smbus.SMBus); print("hardware_bindings=ready")'
+/usr/local/lib/gonken-agent/current/.venv/bin/python -c 'import gpiod; from gpiod.line import Bias, Direction, Value; assert callable(gpiod.Chip); assert callable(gpiod.LineSettings); assert callable(gpiod.request_lines); assert callable(gpiod.Chip.get_info); assert callable(gpiod.Chip.get_line_info); print("gpio_binding=ready")'
+sudo /usr/local/lib/gonken-agent/current/maintenance/i2c_manager.py status --user gonken-env --require-ready
 ```
 
-The final Python command must print `hardware_bindings=ready`. Record the installed release identity and compare it with the downloaded
+The Python command must print `gpio_binding=ready`, and the I2C manager must report bus 1/device access ready for `gonken-env`. Record the installed release identity and compare it with the downloaded
 checkpoint commit. A successful installation of a different commit is a FAIL
 for this campaign.
 
 ## 3.1 Refresh the operator login and prove control-socket authorization
 
-Checkpoint 24 adds the validated non-root installer operator to the local `gonken-envctl` control group only. It does **not** grant that human account raw GPIO/I2C ownership. Supplementary groups do not change inside an already-running SSH shell, so disconnect and reconnect after a successful installation before judging environment CLI permissions.
+The installer adds the validated non-root installer operator to the local `gonken-envctl` control group only. It does **not** grant that human account raw GPIO/I2C ownership. Supplementary groups do not change inside an already-running SSH shell, so disconnect and reconnect after a successful installation before judging environment CLI permissions.
 
 ```bash
 exit
@@ -130,7 +125,7 @@ The fresh `id` output must include `gonken-envctl`. If it does not, **STOP** and
 
 ## 4. GPIO identity inventory before wiring or actuation
 
-Checkpoint 24 preserves the checkpoint-23 rule and does not assume that a BCM number is the same thing as a
+The production GPIO contract does not assume that a BCM number is the same thing as a
 `/dev/gpiochip0` character-device line offset. Production adapters resolve
 logical GPIOs by unique kernel line names and fail closed when the mapping is
 missing or ambiguous.
@@ -182,7 +177,7 @@ Then perform repeated real voice trials:
 6. Record missed intended wakes, benign false wakes, obvious self-triggering,
    wake-to-`Yes?` delay, and whether progress cues ever overlap the final answer.
 
-Checkpoint 24 preserves checkpoint-23 host tests proving the bounded pipelined capture design, not real
+Host tests prove the bounded pipelined capture design, not real
 microphone/STT recall. Real wake behavior is target evidence.
 
 The GPIO22 monitoring LED, if wired per `HARDWARE_SETUP.md`, should be ON only
@@ -252,7 +247,7 @@ Restore `interaction_mode = "wake_word"`, validate, restart, and verify normal
 
 ## 7.1 Checkpoint-24 hard gate before any GPIO23 relay ON command
 
-The first checkpoint-23 target campaign failed before relay actuation. Therefore **do not run `gonken-agent env fan on`** until all of these are true on checkpoint 24:
+Do not use GonKen for physical actuation until the current exact checkpoint has reached governed `INSTALLATION_COMPLETE` and all prerequisite gates below are true:
 
 - the exact archive was verified and installed with `./bootstrap.sh --local-checkpoint`;
 - the installer printed governed `INSTALLATION_COMPLETE`;
@@ -314,6 +309,43 @@ combined voice controls.
 The environment service may report relay logical state; it cannot prove fan
 blade rotation because the current hardware has no tachometer/airflow/current
 feedback.
+
+## 8.1 Real SHT31 sensor acceptance before full-real control
+
+Wire the sensor only with Pi power removed and use this exact planned mapping after confirming the breakout labels:
+
+```text
+Pi physical pin 1 (3.3 V)     -> SHT31 VCC/VIN
+Pi physical pin 3 (GPIO2/SDA) -> SHT31 SDA
+Pi physical pin 5 (GPIO3/SCL) -> SHT31 SCL
+Pi physical pin 6 (GND)       -> SHT31 GND
+```
+
+Do not substitute a 5 V header pin. Inspect the actual breakout board for labels, regulator/level-shifter/pull-up details and address-select state. If its labels do not match, stop rather than guess.
+
+After `INSTALLATION_COMPLETE`, prove the platform first:
+
+```bash
+ls -l /dev/i2c-1
+sudo /usr/local/lib/gonken-agent/current/maintenance/i2c_manager.py status --user gonken-env --require-ready
+```
+
+Then discover the SHT31 using the production transaction path while the real fan actuator is still simulated/off:
+
+```bash
+sudo -u gonken-env /usr/local/lib/gonken-agent/current/.venv/bin/python \
+  /usr/local/lib/gonken-agent/current/maintenance/sht31_diagnostic.py discover --bus 1
+```
+
+Exactly one of `0x44` or `0x45` must be validated. Run the default 100-read campaign at that exact address:
+
+```bash
+sudo -u gonken-env /usr/local/lib/gonken-agent/current/.venv/bin/python \
+  /usr/local/lib/gonken-agent/current/maintenance/sht31_diagnostic.py campaign \
+  --bus 1 --address 0x44 --reads 100
+```
+
+Substitute `0x45` only if discovery established `0x45`. The campaign must keep normal-use heater state off, validate every CRC frame, and report no transport/CRC/plausibility failures. Then select `real-sensor-simulated-actuator` with the proven address, start the environment service under supervision, and verify `gonken-agent env read --json`, stale/fault behavior and recovery before transitioning to `full-real`. A daemon reporting `TARGET_REAL_BACKENDS_UNVERIFIED` is correct before supervised full physical acceptance; backend names alone must never become `TARGET_PHYSICAL`.
 
 ## 9. M10.7 private environment evidence collector
 
@@ -415,7 +447,7 @@ sudo /usr/local/lib/gonken-agent/current/maintenance/uninstall.sh
 ```
 
 `update.sh` normally targets the governed remote source. Do not run it in the
-checkpoint-23 evidence campaign merely to change away from the tested package.
+current exact-package evidence campaign merely to change away from the tested package.
 Use it when a specifically intended successor source/ref exists. Before
 uninstall, collect support evidence. Normal uninstall keeps project data unless
 its explicit purge contract is deliberately selected.
@@ -511,8 +543,8 @@ physical gates until no acceptance-critical issue remains.
 
 **Continuation instruction after upload:**
 
-> Continue from checkpoint 23 using the uploaded Raspberry Pi target evidence.
-> Verify the exact checkpoint-23 package/commit/config first; classify every
+> Continue from the recorded comprehensive-closure checkpoint using the uploaded Raspberry Pi target evidence.
+> Verify the exact delivered package/commit/config first; classify every
 > result as host, simulation, hybrid, or physical evidence; repair only the
 > smallest failed layer; rerun affected host regressions and only the uncertain
 > target gates; do not restart architecture discovery or close M10.7 without

@@ -1741,3 +1741,9 @@ Checkpoint 28 implements M10.20-M10.22 host closure under the checkpoint-25 comp
 Evidence classification is also strengthened: a daemon configured with `sht31` plus `libgpiod` reports `TARGET_REAL_BACKENDS_UNVERIFIED`. Physical acceptance cannot be created from backend names. The deterministic voice path is verified through the real environment Unix socket and remains a client of the single-owner daemon.
 
 The next host tranche is M10.23 lifecycle/support/documentation/package/Git closure. M10.24 remains exact-package Raspberry Pi acceptance and includes the already established GPIO23/fan facts plus the forthcoming real SHT31 and voice/audio evidence.
+
+## Checkpoint 29 implementation refinement — M10.23 host closure
+
+M10.23 is host-verified after bounded full-unit accounting (44 modules / 435 tests), complete integration-family accounting (12 modules / 57 tests), 8/8 release lifecycle cases, 5/5 Ollama lifecycle cases and 5/5 speech lifecycle cases. Support export adds allow-listed GPIO23 identity and dedicated runtime-context summaries while retaining the no-raw-log/privacy boundary. Target hardware/SHT31 documentation now matches the isolated gpiod binding bridge and raw Linux I2C sensor transport.
+
+Release readiness requires M10.16-M10.23 and explicitly leaves M10.24 target acceptance open. M10.24 software/runbook prerequisites are host-verified, but target state remains `not-run`; only exact-package Raspberry Pi evidence may close fan/sensor/audio/voice/reboot/update/rollback gates.

@@ -26,6 +26,7 @@ REQUIRED_HOST_VERIFIED = {
     "M9.2", "M9.3", "M9.4", "M9.5",
     "M10.1", "M10.2", "M10.3", "M10.4", "M10.5", "M10.6",
     "M10.8", "M10.9", "M10.10", "M10.11", "M10.12", "M10.13", "M10.14", "M10.15",
+    "M10.16", "M10.17", "M10.18", "M10.19", "M10.20", "M10.21", "M10.22", "M10.23",
 }
 TARGET_CAMPAIGN_ITEMS = {
     "M3.1", "M3.2", "M3.3", "M3.4", "M3.5", "M3.6",
@@ -34,7 +35,7 @@ TARGET_CAMPAIGN_ITEMS = {
     "M6.1", "M6.2",
     "M7.1", "M7.2", "M7.3", "M7.4", "M7.5",
     "M8.1", "M8.2", "M8.3", "M9.1", "M9.2", "M9.3",
-    "M10.7",
+    "M10.7", "M10.24",
 }
 SECRET_PATTERNS = {
     "private_key": re.compile(r"-----BEGIN (?:RSA |EC |OPENSSH |)PRIVATE KEY-----"),
@@ -109,9 +110,10 @@ def build_report() -> dict[str, object]:
         "readiness_scope": "host/software complete enough to begin the recorded Raspberry Pi target campaign; no target gate is implied PASS",
         "physical_acceptance_claimed": False,
         "next_action": (
-            "Verify the downloaded checkpoint and install that exact clean commit with ./bootstrap.sh --local-checkpoint; "
-            "require governed INSTALLATION_COMPLETE and the checkpoint-24 runtime-binding/operator preflight before any GPIO23 relay actuation; "
-            "then execute docs/RASPBERRY_PI_ACCEPTANCE_RUN.md, collect the support ZIP plus M10.7 private evidence, and upload the evidence without marking physical gates PASS locally."
+            "Verify the delivered comprehensive-closure checkpoint and install that exact clean commit with ./bootstrap.sh --local-checkpoint; "
+            "allow a governed I2C_REBOOT_REQUIRED stop to reboot and resume the same installer, but require INSTALLATION_COMPLETE before integrated hardware actuation; "
+            "then execute docs/RASPBERRY_PI_ACCEPTANCE_RUN.md through simulation, physical fan, real SHT31, full-real voice/fault/reboot/update/rollback stages; "
+            "collect the support ZIP plus M10.7/M10.24 private evidence and do not mark any remaining physical gate PASS without observed target evidence."
         ),
     }
 

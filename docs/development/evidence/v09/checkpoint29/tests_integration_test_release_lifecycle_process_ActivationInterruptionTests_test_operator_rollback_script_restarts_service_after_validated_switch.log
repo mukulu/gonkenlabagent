@@ -1,0 +1,6 @@
+test_operator_rollback_script_restarts_service_after_validated_switch (tests.integration.test_release_lifecycle_process.ActivationInterruptionTests.test_operator_rollback_script_restarts_service_after_validated_switch) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 1.381s
+
+OK

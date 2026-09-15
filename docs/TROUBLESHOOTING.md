@@ -130,12 +130,13 @@ Do not add ad hoc shell playback or multiple Piper/audio owners. Fix the voice a
 Run only diagnostic imports:
 
 ```bash
-python3 -c 'import gpiod, smbus; print("system-bindings=ready")'
-/usr/local/lib/gonken-agent/current/.venv/bin/python -c 'import gpiod, smbus; print("release-bindings=ready")'
+python3 -c 'import gpiod; print("system-gpiod=ready")'
+/usr/local/lib/gonken-agent/current/.venv/bin/python -c 'import gpiod; print("release-gpiod=ready")'
+sudo /usr/local/lib/gonken-agent/current/maintenance/i2c_manager.py status --user gonken-env --require-ready
 sudo /usr/local/lib/gonken-agent/current/maintenance/collect-support.sh
 ```
 
-On checkpoint 24, release validation must fail closed before appliance readiness if the immutable interpreter cannot use the required APIs. If system Python succeeds but release Python fails, do **not** set `PYTHONPATH`, use `pip` workarounds, copy modules, or edit the immutable release. Preserve the support bundle and return it for diagnosis. Physical relay testing remains blocked.
+On the comprehensive-closure checkpoints, release validation must fail closed before appliance readiness if the immutable interpreter cannot use the required APIs. If system Python succeeds but release Python fails, do **not** set `PYTHONPATH`, use `pip` workarounds, copy modules, or edit the immutable release. Preserve the support bundle and return it for diagnosis. Physical relay testing remains blocked.
 
 ## `gonken-agent env ...` reports `ENV_UNAVAILABLE: PermissionError`
 
@@ -146,4 +147,18 @@ id
 getent group gonken-envctl
 ```
 
-Checkpoint 24 adds the validated non-root invoking installer account to `gonken-envctl` only. Existing shells retain their old supplementary groups, so disconnect and reconnect SSH after successful installation. If a fresh login still lacks `gonken-envctl`, STOP and collect support evidence. Do not grant the human operator raw `gpio` or `i2c` as a workaround.
+The installer adds the validated non-root invoking installer account to `gonken-envctl` only. Existing shells retain their old supplementary groups, so disconnect and reconnect SSH after successful installation. If a fresh login still lacks `gonken-envctl`, STOP and collect support evidence. Do not grant the human operator raw `gpio` or `i2c` as a workaround.
+
+## SHT31/I2C installer or sensor diagnostic problems
+
+If installation stops with `I2C_REBOOT_REQUIRED`, reboot and rerun the same exact-checkpoint installer. Do not hand-edit boot configuration or mark the step complete. The resumed installer must revalidate `/dev/i2c-1` and `gonken-env` access.
+
+If the platform is ready but the sensor is unavailable, use the governed sequence rather than guessing from `i2cdetect` alone:
+
+```bash
+sudo /usr/local/lib/gonken-agent/current/maintenance/i2c_manager.py status --user gonken-env --require-ready
+sudo -u gonken-env /usr/local/lib/gonken-agent/current/.venv/bin/python \
+  /usr/local/lib/gonken-agent/current/maintenance/sht31_diagnostic.py discover --bus 1
+```
+
+`SENSOR_NOT_FOUND` means neither supported SHT31 address produced a valid status/read transaction. `SENSOR_ADDRESS_AMBIGUOUS` means both `0x44` and `0x45` appeared valid and configuration must not guess. CRC/transport/heater-state failures must be fixed at wiring/bus/sensor/driver level before controller or voice acceptance.

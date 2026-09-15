@@ -194,6 +194,75 @@ def _i2c_platform_health() -> dict[str, object]:
     }
 
 
+
+def _gpio_platform_health() -> dict[str, object]:
+    """Return bounded, non-actuating GPIO23 discovery evidence."""
+    gpiochips = sorted(Path("/dev").glob("gpiochip*"))
+    valid_chips = [path.name for path in gpiochips if path.exists() and not path.is_symlink()]
+    result: dict[str, object] = {
+        "status": "UNAVAILABLE",
+        "gpiochip_count": len(valid_chips),
+        "gpio23": {"status": "UNRESOLVED", "chip": None, "line_offset": None, "line_name": "GPIO23"},
+    }
+    tool = shutil.which("gpioinfo")
+    if not tool:
+        return result
+    try:
+        completed = subprocess.run(
+            [tool, "--strict", "GPIO23"],
+            check=False, capture_output=True, text=True, timeout=5,
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        return result
+    match = re.search(r'^(gpiochip\d+)\s+(\d+)\s+"GPIO23"(?:\s|$)', completed.stdout, re.M)
+    if completed.returncode == 0 and match:
+        result["status"] = "READY"
+        result["gpio23"] = {
+            "status": "RESOLVED",
+            "chip": match.group(1),
+            "line_offset": int(match.group(2)),
+            "line_name": "GPIO23",
+        }
+    else:
+        result["status"] = "NOT_READY"
+    return result
+
+
+def _runtime_context_health() -> dict[str, object]:
+    """Summarize service-user runtime context without exporting paths or content."""
+    result: dict[str, object] = {
+        "status": "NOT_READY",
+        "audio_user_exists": False,
+        "runtime_environment_file_exists": False,
+        "runtime_dir_exists": False,
+        "runtime_dir_owner_matches": False,
+        "pipewire_socket_exists": False,
+        "pulse_socket_exists": False,
+    }
+    try:
+        account = pwd.getpwnam("gonken-agent")
+    except KeyError:
+        return result
+    result["audio_user_exists"] = True
+    runtime_environment = Path("/etc/gonken-agent/runtime-environment")
+    result["runtime_environment_file_exists"] = runtime_environment.is_file() and not runtime_environment.is_symlink()
+    runtime_dir = Path("/run/user") / str(account.pw_uid)
+    try:
+        stat_result = runtime_dir.stat()
+        result["runtime_dir_exists"] = runtime_dir.is_dir() and not runtime_dir.is_symlink()
+        result["runtime_dir_owner_matches"] = stat_result.st_uid == account.pw_uid
+    except OSError:
+        return result
+    result["pipewire_socket_exists"] = (runtime_dir / "pipewire-0").exists()
+    result["pulse_socket_exists"] = (runtime_dir / "pulse/native").exists()
+    structural_ready = bool(
+        result["runtime_environment_file_exists"]
+        and result["runtime_dir_exists"]
+        and result["runtime_dir_owner_matches"]
+    )
+    result["status"] = "READY" if structural_ready else "NOT_READY"
+    return result
+
 def _runtime_binding_health() -> dict[str, object]:
     gpiod = _module_probe(
         "import gpiod; from gpiod.line import Bias,Direction,Value; "
@@ -211,6 +280,8 @@ def _runtime_binding_health() -> dict[str, object]:
         "bindings": {"gpiod": gpiod},
         "sensor_transport": {"status": "READY", "type": "linux-i2c-dev-stdlib", "python_smbus_required": False},
         "i2c_platform": _i2c_platform_health(),
+        "gpio_platform": _gpio_platform_health(),
+        "runtime_context": _runtime_context_health(),
         "distro_packages": _package_versions(),
     }
 

@@ -54,6 +54,22 @@ class SupportTests(unittest.TestCase):
         self.assertFalse(payload['sensor_transport']['python_smbus_required'])
         self.assertNotIn('stderr', json.dumps(payload))
         self.assertNotIn('stdout', json.dumps(payload))
+        self.assertIn('gpio_platform', payload)
+        self.assertIn('runtime_context', payload)
+
+    def test_gpio_platform_export_is_allowlisted_and_drops_raw_command_text(self):
+        fake = Mock(returncode=0, stdout='gpiochip0 23\t"GPIO23"         output consumer=secret-name\n', stderr='private')
+        with patch('gonken_agent.support.shutil.which', return_value='/usr/bin/gpioinfo'), \
+             patch('gonken_agent.support.subprocess.run', return_value=fake), \
+             patch('gonken_agent.support.Path.glob', return_value=[]):
+            payload = support._gpio_platform_health()
+        self.assertEqual(payload['status'], 'READY')
+        self.assertEqual(payload['gpio23'], {
+            'status': 'RESOLVED', 'chip': 'gpiochip0', 'line_offset': 23, 'line_name': 'GPIO23'
+        })
+        encoded = json.dumps(payload)
+        self.assertNotIn('secret-name', encoded)
+        self.assertNotIn('private', encoded)
 
 
     def test_install_event_export_is_bounded_allow_listed_and_content_free(self):
