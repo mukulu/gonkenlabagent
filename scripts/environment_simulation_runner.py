@@ -428,7 +428,7 @@ def run_campaign(output_dir: Path) -> dict[str, Any]:
             "software_speed_control": False,
             "fan_motion_observed": False,
         },
-        "next_action": "Use the checkpoint-22 user handoff runbook for supervised Raspberry Pi simulation and sensor-deferred HIL; keep M10.7 physical gates open until target evidence is uploaded.",
+        "next_action": "Use docs/RASPBERRY_PI_ACCEPTANCE_RUN.md from the final checkpoint-23 package: verify/install the exact local checkpoint, run full simulation first, then only dependency-ready supervised hybrid/physical gates; keep M10.7 open until real target evidence is uploaded.",
     }
     write_json(out / "m10_14_simulation_manifest.json", manifest)
     write_ledger(out / "m10_14_simulation_ledger.csv", steps)

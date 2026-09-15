@@ -1,0 +1,18 @@
+test_installed_maintenance_wrapper_uses_release_local_entrypoint (tests.integration.test_support_collection_process.SupportCollectionProcessTests.test_installed_maintenance_wrapper_uses_release_local_entrypoint) ... ok
+test_routes_host_origin_content_and_no_mutations (tests.integration.test_text_runtime_process.DashboardHTTPTests.test_routes_host_origin_content_and_no_mutations) ... ok
+test_cancel_timeout_overload_and_single_request_lock (tests.integration.test_text_runtime_process.LocalNetworkTests.test_cancel_timeout_overload_and_single_request_lock) ... ok
+test_cancellation_after_connection_close_response_headers (tests.integration.test_text_runtime_process.LocalNetworkTests.test_cancellation_after_connection_close_response_headers) ... ok
+test_non_loopback_hostname_redirect_path_and_credentials_refused (tests.integration.test_text_runtime_process.LocalNetworkTests.test_non_loopback_hostname_redirect_path_and_credentials_refused) ... ok
+test_response_limit_and_malformed_model_identity (tests.integration.test_text_runtime_process.LocalNetworkTests.test_response_limit_and_malformed_model_identity) ... ok
+test_works_when_dns_proxy_and_external_connections_forbidden (tests.integration.test_text_runtime_process.LocalNetworkTests.test_works_when_dns_proxy_and_external_connections_forbidden) ... ok
+test_build_verify_ask_unknown_doctor_and_no_content_telemetry (tests.integration.test_text_runtime_process.TextCLIProcessTests.test_build_verify_ask_unknown_doctor_and_no_content_telemetry) ... ok
+test_invalid_index_and_calibration_fail_categorically (tests.integration.test_text_runtime_process.TextCLIProcessTests.test_invalid_index_and_calibration_fail_categorically) ... ok
+test_text_session_multiple_lines_eof_and_signal_shutdown (tests.integration.test_text_runtime_process.TextCLIProcessTests.test_text_session_multiple_lines_eof_and_signal_shutdown) ... ok
+test_installed_maintenance_wrapper_uses_local_packaging_templates (tests.integration.test_uninstall_lifecycle_process.UninstallLifecycleProcessTests.test_installed_maintenance_wrapper_uses_local_packaging_templates) ... ok
+test_wrapper_removes_project_owned_installation_and_keeps_data (tests.integration.test_uninstall_lifecycle_process.UninstallLifecycleProcessTests.test_wrapper_removes_project_owned_installation_and_keeps_data) ... ok
+test_full_simulation_runner_and_release_gate (tests.integration.test_v09_user_test_release_candidate.V09UserTestReleaseCandidateIntegrationTests.test_full_simulation_runner_and_release_gate) ... ok
+
+----------------------------------------------------------------------
+Ran 13 tests in 28.996s
+
+OK

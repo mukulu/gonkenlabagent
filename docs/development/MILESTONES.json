@@ -1,6 +1,6 @@
 {
   "baseline_commit": "3b25b81c5bc7d4e24268726ad7f7b71296215a03",
-  "checkpoint_scope": "V09 checkpoint 22 user simulation and sensor-deferred HIL release-candidate gating",
+  "checkpoint_scope": "V09 checkpoint 23 pre-target completion audit and Raspberry Pi target-campaign handoff",
   "milestones": [
     {
       "evidence": "TEST_MATRIX.md (M2.1)",
@@ -91,34 +91,34 @@
       "title": "Coordinator/state/health"
     },
     {
-      "evidence": "tests/unit/test_runtime_audio.py; TEST_MATRIX.md continuation-runtime",
+      "evidence": "src/gonken_agent/audio/; src/gonken_agent/voice_runtime.py; tests/unit/test_runtime_audio.py; tests/unit/test_voice_appliance.py; docs/development/evidence/v09/checkpoint23/unit_resumption_manifest.json; docs/development/evidence/v09/checkpoint23/pretarget_affected_code_slice_rerun.log",
       "id": "M4.2",
-      "remaining": "Selection/recovery/frame buffer tested; real ALSA enumeration, capture backend and hotplug acceptance remain open.",
-      "software": "partial",
+      "remaining": "Host software covers deterministic device selection/re-enumeration, bounded capture lifecycle and recovery logic. Real ALSA/PipeWire enumeration, USB/Bluetooth hotplug, microphone/speaker routing and audible recovery remain target-run evidence.",
+      "software": "host-verified",
       "target": "not-run",
       "title": "Audio discovery and recovery"
     },
     {
-      "evidence": "tests/unit/test_runtime_audio.py; TEST_MATRIX.md continuation-runtime",
+      "evidence": "src/gonken_agent/audio/resample.py; src/gonken_agent/audio/speech.py; src/gonken_agent/voice_runtime.py; tests/unit/test_runtime_audio.py; tests/unit/test_voice_appliance.py; docs/development/evidence/v09/checkpoint23/unit_resumption_manifest.json; docs/development/evidence/v09/checkpoint23/pretarget_affected_code_slice_rerun.log",
       "id": "M4.3",
-      "remaining": "FIR resampling and speech subprocess cleanup tested; pinned real speech binaries, tiny/base comparison and audible Pi acceptance remain open.",
-      "software": "partial",
+      "remaining": "Host software covers FIR resampling, Whisper/Piper subprocess validation/cleanup, wake/question capture and bounded progress-cue lifecycle. Real speech recognition, audible Piper output, latency and thermal/resource behavior remain target-run evidence.",
+      "software": "host-verified",
       "target": "not-run",
       "title": "Resampling/STT/TTS lifecycle"
     },
     {
-      "evidence": "tests/unit/test_runtime_audio.py; TEST_MATRIX.md continuation-runtime",
+      "evidence": "src/gonken_agent/interaction/gpiod_ptt.py; src/gonken_agent/interaction/push_to_talk.py; src/gonken_agent/voice_runtime.py; tests/unit/test_m5_1_ptt_runtime.py; tests/unit/test_voice_appliance.py; docs/development/evidence/v09/checkpoint23/pretarget_affected_code_slice_rerun.log",
       "id": "M5.1",
-      "remaining": "Debounced hold/release controller tested; physical GPIO adapter, crash-default LED-off and wiring acceptance remain open.",
-      "software": "partial",
+      "remaining": "Production PTT, recording LED and wake-monitoring LED adapters are host-verified with unique kernel GPIO line-name discovery and fail-closed mapping. Physical button/LED wiring, line identity, visible states, crash/power-cycle behavior and no-login operation remain target-run evidence.",
+      "software": "host-verified",
       "target": "not-run",
       "title": "Push-to-talk and recording indication"
     },
     {
-      "evidence": "TEST_MATRIX.md continuation-grounding; text runtime guide",
+      "evidence": "src/gonken_agent/llm/ollama.py; src/gonken_agent/dashboard.py; src/gonken_agent/config.py; tests/unit/test_m2_2_config.py; tests/unit/test_m3_4_ollama_manager.py; tests/integration/test_text_runtime_process.py; docs/development/evidence/v09/checkpoint23/integration_phase.log",
       "id": "M5.2",
-      "remaining": "Core text path allows numeric-loopback only, no DNS/proxy/redirect/tool/cloud path. Kernel-observed Pi network denial and voice runtime acceptance remain open.",
-      "software": "partial",
+      "remaining": "Host tests enforce numeric loopback-only Ollama/dashboard access, no proxy/DNS/redirect credential path and offline-first configuration. Kernel-observed operation with WAN/DNS unavailable while loopback services continue remains target-run evidence.",
+      "software": "host-verified",
       "target": "not-run",
       "title": "Offline boundary"
     },
@@ -155,10 +155,10 @@
       "title": "Grounded prompt and response contract"
     },
     {
-      "evidence": "TEST_MATRIX.md continuation-grounding; text runtime guide",
+      "evidence": "src/gonken_agent/telemetry.py; src/gonken_agent/config.py; tests/unit/test_m2_2_config.py; tests/unit/test_grounding_observability.py; tests/unit/test_support_export.py; docs/development/DECISIONS.md (D-135); docs/development/evidence/v09/checkpoint23/unit_resumption_manifest.json",
       "id": "M7.3",
-      "remaining": "Content-free bounded process-serialized JSONL rotation implemented. Opt-in persistent research interaction records/retention remain gated.",
-      "software": "partial",
+      "remaining": "Core telemetry is intentionally content-free, bounded and process-safe; persistent interaction-content logging remains outside release-core pending a separately authorized research/ethics/retention specification. Target inspection must still confirm journals/support/telemetry remain content-minimizing in real operation.",
+      "software": "host-verified",
       "target": "not-run",
       "title": "Privacy-preserving telemetry"
     },
@@ -235,17 +235,17 @@
       "title": "Development-artifact disposition"
     },
     {
-      "evidence": "CONTINUATION_01_REPORT.md; checkpoint/continuation-01 through checkpoint/continuation-08; scripts/release_readiness.py; docs/RASPBERRY_PI_ACCEPTANCE_RUN.md",
+      "evidence": "CONTINUATION_01_REPORT.md; checkpoint/continuation-01 through checkpoint/continuation-08; scripts/release_readiness.py; bootstrap.sh; docs/RASPBERRY_PI_ACCEPTANCE_RUN.md; docs/development/evidence/v09/checkpoint23/",
       "id": "M9.5",
-      "remaining": "Private checkpoint transport has been repeatedly verified through ZIP integrity, extracted branch/tag/HEAD, executable modes, clean Git and strict object checks. Continuation-08 is the private release-candidate handoff for Raspberry Pi acceptance testing; public release remains gated by target evidence and licensing decisions.",
+      "remaining": "Portable Git handoff has repeated ZIP/extraction/object-integrity evidence. Checkpoint 23 adds an explicit exact-package local-checkpoint install source so Raspberry Pi testing can bind to the downloaded commit rather than remote main. Public redistribution remains separately governed by licensing/provenance decisions.",
       "software": "host-verified",
       "target": "not-applicable",
       "title": "Portable Git handoff"
     },
     {
-      "evidence": "docs/development/evidence/v09/wp_a_input_evidence.txt; docs/development/evidence/v09/wp_a_focused_60_tests_after_v09_foundation.log; docs/development/evidence/v09/wp_a_isolated_cli_run_test.log",
+      "evidence": "docs/development/evidence/v09/wp_a_input_evidence.txt; docs/development/evidence/v09/checkpoint23/final_unit_accounting.json; docs/development/evidence/v09/checkpoint23/final_integration_accounting.json; docs/development/evidence/v09/checkpoint23/final_release_lifecycle_accounting.json; docs/development/evidence/v09/checkpoint23/t0_final_precommit.log",
       "id": "M10.1",
-      "remaining": "Broad CI baseline attempt was interrupted by timeout at the integration stage; the apparent slow CLI-run test passed alone. Real Raspberry Pi evidence remains open.",
+      "remaining": "Checkpoint 23 final host accounting covers every unit module, every deterministic integration module, all release-lifecycle cases, and T0/control-plane validation. Canonical aggregate attempts interrupted by the external execution boundary remain preserved as diagnostic evidence and are not relabelled PASS. Real Raspberry Pi target evidence remains open.",
       "software": "host-verified",
       "target": "not-run",
       "title": "V09 baseline audit and branch identity"
@@ -253,7 +253,7 @@
     {
       "evidence": "config/defaults.toml; src/gonken_agent/config.py; tests/unit/test_v09_environment_config.py; tests/unit/test_m2_2_config.py; docs/development/evidence/v09/wp_b_config_policy_tests_rerun.log; docs/development/evidence/v09/wp_b_full_unit.log; docs/development/evidence/v09/wp_b_static_gates.log",
       "id": "M10.2",
-      "remaining": "Host validation covers schema-2 defaults, disabled environment section, schema-1 site migration and static bounds. Target install migration remains open. Full integration/CI remains NEEDS_MANUAL_REVIEW due existing Ollama lifecycle timeout in this environment.",
+      "remaining": "Host schema/migration validation is complete and downstream simulation/environment consumers are implemented. Target installation/migration against the real Raspberry Pi filesystem and services remains open.",
       "software": "host-verified",
       "target": "not-run",
       "title": "Static environment configuration schema"
@@ -261,7 +261,7 @@
     {
       "evidence": "src/gonken_agent/environment/domain.py; src/gonken_agent/environment/policy.py; tests/unit/test_v09_environment_policy.py; docs/development/evidence/v09/wp_b_config_policy_tests_rerun.log",
       "id": "M10.3",
-      "remaining": "Pure host tests cover domain/policy contracts only. Controller, IPC, CLI, voice, installer, diagnostics and physical HIL remain open.",
+      "remaining": "Domain/policy contracts and downstream controller/service/CLI/voice integrations are host-verified through later V09 checkpoints. Physical target policy persistence, sensor/actuator behavior and lifecycle acceptance remain open.",
       "software": "host-verified",
       "target": "not-run",
       "title": "Environment domain and mutable policy foundation"
@@ -269,7 +269,7 @@
     {
       "evidence": "src/gonken_agent/environment/controller.py; tests/unit/test_v09_environment_controller.py; docs/development/evidence/v09/wp_c_controller_affected_tests.log; docs/development/evidence/v09/wp_c_full_unit.log",
       "id": "M10.4",
-      "remaining": "Host validation covers pure deterministic controller semantics only: MANUAL, SEMI_AUTOMATIC, AUTOMATIC, DISABLED, dwell, hysteresis, median valid samples, staleness safe-off, recovery and policy-update stop behavior. No hardware adapter, daemon, IPC, CLI, voice, installer or physical Pi actuation is implemented yet.",
+      "remaining": "Deterministic controller semantics and downstream service/simulation integration are host-verified. Real sensor timing, relay switching, dwell/hysteresis observations and failure/recovery behavior remain physical/hybrid target gates.",
       "software": "host-verified",
       "target": "not-run",
       "title": "Deterministic controller core"
@@ -277,7 +277,7 @@
     {
       "evidence": "src/gonken_agent/environment/protocol.py; src/gonken_agent/environment/service.py; src/gonken_agent/environment/server.py; src/gonken_agent/environment/client.py; tests/unit/test_v09_environment_ipc.py; docs/development/evidence/v09/wp_d_ipc_affected_tests.log; docs/development/evidence/v09/wp_d_full_unit.log; docs/development/evidence/v09/wp_d_static_gates.log",
       "id": "M10.5",
-      "remaining": "Host validation covers bounded JSON protocol validation, host-fake service core, AF_UNIX server/client, socket mode, closed operation parameters, client error propagation and no hardware/shell imports. It does not implement production SHT31/libgpiod adapters, systemd unit installation, CLI command, voice action, dashboard, or real Pi actuation.",
+      "remaining": "AF_UNIX service/IPC plus production/simulated backend integration are implemented and host-verified. Real service-account I2C/GPIO permissions, Pi device mapping and service behavior with physical hardware remain target-run evidence.",
       "software": "host-verified",
       "target": "not-run",
       "title": "Local environment service and IPC"
@@ -301,7 +301,7 @@
     {
       "evidence": "docs/development/V09_SIMULATION_HIL_EXTENSION_PLAN.md; docs/development/V09_SIMULATION_HIL_TRACEABILITY.csv; docs/development/V09_CHECKPOINT_16_REPORT.md; docs/development/V09_CHANGE_VERIFICATION_REPORT_CHECKPOINT_16.md; docs/development/evidence/v09/checkpoint16/focused_baseline.log; docs/development/evidence/v09/checkpoint16/baseline_t0.log",
       "id": "M10.8",
-      "remaining": "Blueprint/control-plane expansion complete. Simulation runtime, mandatory GonKen runtime changes, hardware docs, passive watch, non-actuating check repair and physical acceptance remain implementation work.",
+      "remaining": "Blueprint/control-plane expansion is superseded by implemented checkpoints M10.9-M10.14 and checkpoint-23 pre-target hardening. Its remaining work is only the target evidence that those later checkpoints deliberately leave open.",
       "software": "host-verified",
       "target": "not-run",
       "title": "Simulation/HIL blueprint expansion"
@@ -309,7 +309,7 @@
     {
       "evidence": "TEST_MATRIX.md (Checkpoint 17); tests/unit/test_v09_environment_simulation.py; affected environment/config/IPC/daemon/CLI test slice",
       "id": "M10.9",
-      "remaining": "Simulation foundations are host-verified. Remaining simulation/HIL work is now simulation-aware voice, hybrid physical/simulation evidence gates, mandatory GonKen wake/progress work, documentation hardening and physical M10.7 acceptance.",
+      "remaining": "Simulation foundations are host-verified and consumed by later CLI/voice/readiness checkpoints. Raspberry Pi execution of full simulation/hybrid profiles remains target-run evidence.",
       "software": "host-verified",
       "target": "not-run",
       "title": "Simulation foundations"
@@ -317,7 +317,7 @@
     {
       "evidence": "src/gonken_agent/cli.py; src/gonken_agent/diagnostics.py; src/gonken_agent/support.py; src/gonken_agent/dashboard.py; src/gonken_agent/operations.py; tests/unit/test_v09_environment_cli.py; tests/unit/test_v09_environment_simulation.py; tests/unit/test_diagnostics_snapshot.py; tests/unit/test_grounding_observability.py; tests/unit/test_support_export.py; docs/OPERATIONS.md; docs/development/evidence/v09/checkpoint18/operator_sim_observability_tests.log; docs/development/evidence/v09/checkpoint18/t0_static.log; docs/development/evidence/v09/checkpoint18/targeted_integration.log",
       "id": "M10.10",
-      "remaining": "Operator simulation CLI, passive watch and simulation observability are host-verified. Remaining work moves to simulation-aware voice, hybrid HIL/evidence gates, mandatory GonKen wake/progress work, documentation hardening and real M10.7 physical acceptance.",
+      "remaining": "Operator simulation CLI, passive watch and observability are host-verified. Target execution, service permissions and real/hybrid observations remain target-run evidence.",
       "software": "host-verified",
       "target": "not-run",
       "title": "Operator simulation experience"
@@ -334,10 +334,10 @@
       "title": "Hybrid HIL and simulation-aware voice"
     },
     {
-      "evidence": "config/defaults.toml; src/gonken_agent/voice_runtime.py; src/gonken_agent/cli.py; src/gonken_agent/environment/service.py; tests/unit/test_voice_appliance.py; tests/unit/test_v09_environment_polling_loop.py; tests/unit/test_m2_1.py; docs/development/evidence/v09/checkpoint20/affected_wake_transition_tests.log; docs/development/evidence/v09/checkpoint20/t0_static.log; docs/development/evidence/v09/checkpoint20/physical_boundary_regression_tests.log; docs/development/evidence/v09/checkpoint20/active_unit_module_followup.log",
+      "evidence": "config/defaults.toml; src/gonken_agent/voice_runtime.py; src/gonken_agent/interaction/gpiod_ptt.py; src/gonken_agent/cli.py; tests/unit/test_voice_appliance.py; tests/unit/test_m5_1_ptt_runtime.py; tests/unit/test_m2_1.py; docs/development/evidence/v09/checkpoint20/; docs/development/evidence/v09/checkpoint23/pretarget_affected_code_slice_rerun.log",
       "id": "M10.12",
-      "notes": "Host evidence only. Rolling transcript matcher reduces software blind gaps in fake transcript tests; it does not prove microphone/STT/audio wake behavior on Raspberry Pi.",
-      "remaining": "Default GonKen wake phrase, host wake matcher, progress-cue scheduler, local cue cache contract, wake status diagnostics and voice-owned transition announcements are host-verified. Real wake detection, real progress audio timing and real transition-announcement behavior remain target-gated under M10.7.",
+      "notes": "Checkpoint 23 repairs the checkpoint-20 false-green: production standby now captures into a bounded pipeline while the previous window is transcribed, so host software no longer intentionally stops capture during Whisper work. This still does not prove physical wake performance.",
+      "remaining": "Default GonKen, tolerant matching, bounded pipelined standby capture, progress cues, wake diagnostics, wake monitoring indicator and voice-owned transition announcements are host-verified. Real microphone/STT recall/false-wake/latency, GPIO22 visibility and real progress/announcement audio remain target-gated under M10.7.",
       "software": "host-verified",
       "status": "host-verified",
       "target": "not-run",
@@ -345,10 +345,10 @@
       "title": "Mandatory GonKen wake responsiveness and transition announcements"
     },
     {
-      "evidence": "docs/HARDWARE_SETUP.md; docs/ENVIRONMENT_CONTROL.md; docs/SIMULATION.md; docs/TROUBLESHOOTING.md; docs/ENVIRONMENT_ACCEPTANCE_RUN.md; scripts/validate_v09_docs.py; tests/unit/test_v09_documentation_hardening.py; tests/unit/test_v09_environment_acceptance_runner.py; docs/development/evidence/v09/checkpoint21/affected_docs_evidence_tests.log; docs/development/evidence/v09/checkpoint21/affected_broad_regression_tests.log; docs/development/evidence/v09/checkpoint21/t0_static.log",
+      "evidence": "docs/HARDWARE_SETUP.md; docs/ENVIRONMENT_CONTROL.md; docs/SIMULATION.md; docs/OPERATIONS.md; docs/TROUBLESHOOTING.md; docs/ENVIRONMENT_ACCEPTANCE_RUN.md; docs/RASPBERRY_PI_ACCEPTANCE_RUN.md; scripts/validate_v09_docs.py; tests/unit/test_v09_documentation_hardening.py; docs/development/evidence/v09/checkpoint21/; docs/development/evidence/v09/checkpoint23/",
       "id": "M10.13",
       "notes": "Host documentation and evidence-runner metadata only; does not prove SHT31, relay, fan, wake audio or target systemd behavior.",
-      "remaining": "Documentation/evidence hardening is host-verified. Hardware setup, environment control, simulation, troubleshooting and acceptance-runner boundary documentation now exist, documented commands/config keys/links are checked in T0, and the evidence runner manifest records upload requirements and no-acceptance boundaries. Physical M10.7 target gates remain not-run.",
+      "remaining": "Documentation/evidence hardening is host-verified and checkpoint 23 updates the target campaign for exact-package installation, PTT/wake indicators, GPIO discovery and staged evidence return. Physical execution of those instructions remains target-run.",
       "software": "host-verified",
       "status": "host-verified",
       "target": "not-run",
@@ -356,9 +356,9 @@
       "title": "Documentation and evidence hardening"
     },
     {
-      "evidence": "scripts/environment_simulation_runner.py; scripts/v09_user_test_readiness.py; docs/USER_SIMULATION_HIL_HANDOFF.md; tests/unit/test_v09_user_test_readiness.py; tests/integration/test_v09_user_test_release_candidate.py; docs/development/evidence/v09/checkpoint22/",
+      "evidence": "scripts/environment_simulation_runner.py; scripts/v09_user_test_readiness.py; docs/USER_SIMULATION_HIL_HANDOFF.md; bootstrap.sh; tests/unit/test_v09_user_test_readiness.py; tests/integration/test_v09_user_test_release_candidate.py; docs/development/evidence/v09/checkpoint22/; docs/development/evidence/v09/checkpoint23/",
       "id": "M10.14",
-      "remaining": "Host release-candidate gating is implemented. A clean committed package may emit READY_FOR_USER_SIMULATION_AND_SENSOR_DEFERRED_HIL only with a fresh commit-bound simulation manifest. Raspberry Pi simulation, real relay/PENGLIN/fan actuation, SHT31, wake/audio and full M10.7 acceptance remain target NOT_RUN and must be collected by the user.",
+      "remaining": "Host user-test gating remains implemented. Checkpoint 23 adds exact downloaded-package installation plus pre-target runtime/mapping repairs. Raspberry Pi simulation, real relay/PENGLIN/fan actuation, SHT31, wake/audio and full M10.7 acceptance remain target NOT_RUN.",
       "software": "host-verified",
       "target": "not-run",
       "title": "User simulation and sensor-deferred HIL release candidate",

@@ -1,0 +1,12 @@
+test_interrupted_boundaries_converge_on_rerun (tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_interrupted_boundaries_converge_on_rerun) ... ok
+test_tampered_record_is_refused (unittest.loader._FailedTest.test_tampered_record_is_refused) ... ERROR
+
+======================================================================
+ERROR: test_tampered_record_is_refused (unittest.loader._FailedTest.test_tampered_record_is_refused)
+----------------------------------------------------------------------
+AttributeError: type object 'SpeechLifecycleProcessTests' has no attribute 'test_tampered_record_is_refused'
+
+----------------------------------------------------------------------
+Ran 2 tests in 26.555s
+
+FAILED (errors=1)

@@ -84,6 +84,13 @@ REQUIRED_BOUNDARY_TERMS = {
         "SIMULATION_ACTIVE_PHYSICAL_ACCEPTANCE_BLOCKED",
         "Do not actuate",
     ),
+    "docs/RASPBERRY_PI_ACCEPTANCE_RUN.md": (
+        "--local-checkpoint",
+        "READY_FOR_TARGET_ACCEPTANCE",
+        "M10.7",
+        "not physically accepted",
+        "BLOCKED_NO_PREVIOUS_VALIDATED_RELEASE",
+    ),
 }
 
 DISALLOWED_STALE_DEFAULTS = (
@@ -105,6 +112,7 @@ def main(argv: list[str] | None = None) -> int:
     checks.extend(check_wake_consistency())
     checks.extend(check_environment_config_documented())
     checks.extend(check_documented_commands())
+    checks.extend(check_control_plane_consistency())
     ok = all(item["status"] == "PASS" for item in checks)
     report = {
         "schema": "gonken-v09-docs-validation-v1",
@@ -224,6 +232,30 @@ def check_documented_commands() -> list[dict[str, object]]:
     return rows
 
 
+def check_control_plane_consistency() -> list[dict[str, object]]:
+    rows: list[dict[str, object]] = []
+    milestones = json.loads((ROOT / "docs/development/MILESTONES.json").read_text(encoding="utf-8"))
+    by_id = {row["id"]: row for row in milestones.get("milestones", [])}
+    matrix = (ROOT / "docs/development/TEST_MATRIX.md").read_text(encoding="utf-8")
+    executed = ("M10.9", "M10.10", "M10.11", "M10.12", "M10.13", "M10.14")
+    for milestone_id in executed:
+        row = by_id.get(milestone_id, {})
+        rows.append(result(
+            f"control-host-verified:{milestone_id}",
+            row.get("software") == "host-verified",
+            f"{milestone_id} is host-verified in the milestone ledger",
+            f"{milestone_id} is not host-verified in the milestone ledger",
+        ))
+        stale = re.search(rf"^\| {re.escape(milestone_id)}-P\d+ .*?\| PLANNED / NOT_RUN \|", matrix, re.M)
+        rows.append(result(
+            f"control-no-stale-plan:{milestone_id}",
+            stale is None,
+            f"{milestone_id} has no stale PLANNED / NOT_RUN plan rows",
+            f"{milestone_id} still has a PLANNED / NOT_RUN row after executed evidence",
+        ))
+    return rows
+
+
 def parse_documented_command(command: str, parser_name: str) -> None:
     tokens = shlex.split(command)
     if parser_name == "gonken-cli":
@@ -254,6 +286,20 @@ def parse_documented_command(command: str, parser_name: str) -> None:
                 pass
             else:
                 raise ValueError(f"unknown ci argument {token}")
+        return
+    if parser_name == "bootstrap":
+        if tokens[:1] != ["./bootstrap.sh"]:
+            raise ValueError("bootstrap command must start with ./bootstrap.sh")
+        allowed_flags = {"--local-checkpoint", "--preflight-only", "--development-host", "--bluetooth-audio", "--help", "-h"}
+        value_flags = {"--bluetooth-device", "--source-url", "--ref", "--existing-checkout", "--staging-parent"}
+        iterator = iter(tokens[1:])
+        for token in iterator:
+            if token in allowed_flags:
+                continue
+            if token in value_flags:
+                next(iterator)
+                continue
+            raise ValueError(f"unknown bootstrap argument {token}")
         return
     raise ValueError(f"unknown parser {parser_name}")
 

@@ -1632,6 +1632,36 @@ The checkpoint adds two explicit gate layers. `scripts/environment_simulation_ru
 
 A dirty development tree can produce only `DEVELOPMENT_READY_FOR_USER_SIMULATION_AND_SENSOR_DEFERRED_HIL` when the explicit development override is used. The final user-test label requires a clean tree and a simulation manifest bound to the exact current commit. This prevents an old or unknown-commit manifest from being reused as fresh release evidence.
 
-The target handoff is `docs/USER_SIMULATION_HIL_HANDOFF.md`. It orders testing from full simulation to supervised relay/fan work. Before any real actuator command, the operator must inspect GPIO character-device mapping and wiring. The current adapter still assumes `/dev/gpiochip0` line offset 23 for the configured BCM23 seed; if the actual Pi 5 mapping does not establish that identity, the operator must stop and return mapping evidence rather than actuate. This remains a target-gated mapping risk, not a software PASS.
+The target handoff is `docs/USER_SIMULATION_HIL_HANDOFF.md`. It orders testing from full simulation to supervised relay/fan work. Before any real actuator command, the operator must inspect GPIO character-device mapping and wiring. **Historical checkpoint-22 state:** the adapter still assumed `/dev/gpiochip0` line offset 23 for the configured BCM23 seed. Checkpoint 23 resolves that software assumption by discovering a unique kernel line named `GPIO23` and exposing the resolved gpiochip/offset through environment status; actual target line identity, relay polarity, wiring and fan motion remain physical gates.
 
 Checkpoint 22 therefore closes only M10.14's host/software readiness tranche. It deliberately leaves M10.7 open for evidence-driven continuation after the user uploads the target support/evidence bundle.
+
+
+### 22.11 Checkpoint 23 — Pre-target completion audit and false-green repair
+
+Checkpoint 23 is the final dependency-ready **host/software** tranche before the Raspberry Pi campaign. It does not add a new V09 product milestone merely to create work after M10.14; instead it audits the already-declared blueprint against the production runtime, repairs host-visible false-green gaps, refreshes control-plane truth, and prepares an exact-package target handoff.
+
+The audit found three material gaps that checkpoint-22 readiness had not exposed. First, checkpoint 20 had improved the `GonKen` transcript matcher but the production wake loop still stopped capture while Whisper synchronously transcribed each window. Checkpoint 23 replaces that intentional deaf interval with a bounded producer/consumer wake pipeline: capture continues while the previous window is recognized, only one Whisper consumer runs, the queue is bounded and newest-wins, stale windows are dropped with content-free metrics, and standby is stopped before the assistant speaks or captures the active question. This closes the **software architecture** requirement for overlapping/continuous wake capture; it does not claim physical wake recall.
+
+Second, the configured push-to-talk and privacy-indicator GPIOs had controller/configuration coverage but no production libgpiod adapter. Checkpoint 23 adds production PTT GPIO17, wake-monitoring GPIO22 and recording-LED GPIO27 ownership through unique kernel line-name discovery, with fail-closed handling for absent/ambiguous mappings and safe LED-off acquisition/cleanup behavior. Host fakes prove the contract; target wiring and visible behavior remain not-run.
+
+Third, the room-fan relay still treated the logical BCM23 seed as `/dev/gpiochip0` offset 23. Checkpoint 23 removes that assumption. `relay_bcm` remains the operator-facing logical identity, while production resolves a unique kernel line named `GPIO23`, reports the actual gpiochip path/offset in status/health, and refuses actuator acquisition if the identity is missing or ambiguous. This reduces target risk without pretending to prove active-high polarity, boot pulses, contact wiring, PENGLIN continuity or blade motion.
+
+Checkpoint 23 also makes a downloaded acceptance archive installable as the **exact tested source**. `./bootstrap.sh --local-checkpoint` validates a clean packaged Git checkout, records its full HEAD commit as the source identity and uses that checkout as the immutable-release source. The ordinary remote HTTPS/`main` installation path remains the production default. The target acceptance runbook now requires checksum/Git verification followed by `--local-checkpoint`, preventing an acceptance campaign from silently switching to newer remote code.
+
+The control plane is corrected at the same checkpoint. M4.2, M4.3, M5.1, M5.2 and the privacy-safe core of M7.3 are host-verified software with real-device acceptance still open. Persistent interaction-content logging is explicitly outside release-core unless a separate research/privacy protocol authorizes it. M7.1, M7.2 and M7.5 remain partial because synthetic fixtures cannot replace the approved real lab corpus, real-model factual/adversarial evaluation, or real-device benchmark. M9.1 and M10.7 remain target campaigns by definition. Historical planned rows for M10.9–M10.14 are marked superseded by their executed checkpoint evidence rather than remaining misleadingly `PLANNED / NOT_RUN`.
+
+The **target campaign order** is now:
+
+1. verify the delivered checkpoint ZIP, commit, clean Git state and readiness report;
+2. install that exact commit using `./bootstrap.sh --local-checkpoint`;
+3. prove ordinary `GonKen` wake/audio and manual `talk`;
+4. collect GPIO17/22/23/27 character-device identities;
+5. prove PTT and indicator behavior if wired;
+6. run full environment simulation;
+7. run supervised real-relay/fan manual testing, then simulated-sensor + real-actuator HIL;
+8. when SHT31 is available, run real-sensor + simulated-actuator before full-real integration;
+9. run reboot/no-login, safe failure/recovery, offline-boundary and performance observations;
+10. collect the M10.7 private ledger and support bundle and upload all FAIL/BLOCKED/NEEDS_MANUAL_REVIEW evidence without local relabelling.
+
+Checkpoint 23 may be labelled **`READY_FOR_RASPBERRY_PI_TARGET_CAMPAIGN`** only after fresh whole-project host phases, final documentation/control consistency, exact-commit simulation/readiness gates, and fresh-archive package verification pass. The label is not a physical acceptance claim. If target evidence later exposes a defect, continue from checkpoint 23, fix the smallest correct layer, rerun affected host regressions, issue the next checkpoint and repeat only the uncertain target gates.

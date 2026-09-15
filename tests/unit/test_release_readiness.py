@@ -27,10 +27,11 @@ class ReleaseReadinessTests(unittest.TestCase):
         remaining = {gate["id"] for gate in report["target_gates_remaining"]}
         self.assertIn("M9.1", remaining)
         self.assertIn("M10.7", remaining)
-        self.assertEqual(
-            report["next_action"],
-            "Run the documented Raspberry Pi bootstrap and M10.7 environment acceptance collector, then upload the support ZIP and private evidence ledger.",
-        )
+        self.assertFalse(report["physical_acceptance_claimed"])
+        self.assertIn("host/software", report["readiness_scope"])
+        self.assertIn("./bootstrap.sh --local-checkpoint", report["next_action"])
+        self.assertIn("docs/RASPBERRY_PI_ACCEPTANCE_RUN.md", report["next_action"])
+        self.assertIn("M10.7", report["next_action"])
 
     def test_human_report_has_exact_boundary_language(self) -> None:
         result = subprocess.run(
@@ -50,12 +51,19 @@ class ReleaseReadinessTests(unittest.TestCase):
         runbook = (ROOT / "docs" / "RASPBERRY_PI_ACCEPTANCE_RUN.md").read_text(encoding="utf-8")
         self.assertIn("docs/RASPBERRY_PI_ACCEPTANCE_RUN.md", readme)
         for expected in (
+            "./bootstrap.sh --local-checkpoint",
+            "sha256sum -c SHA256SUMS_checkpoint23.txt",
+            "gpioinfo --strict GPIO17",
+            "gpioinfo --strict GPIO22",
+            "gpioinfo --strict GPIO23",
+            "gpioinfo --strict GPIO27",
             "collect-support.sh",
             "journalctl -u gonken-agent.service",
             "sudo reboot",
             "update.sh",
             "rollback.sh",
             "uninstall.sh",
+            "BLOCKED_NO_PREVIOUS_VALIDATED_RELEASE",
         ):
             self.assertIn(expected, runbook)
 

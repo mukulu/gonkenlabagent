@@ -64,6 +64,16 @@ class V09DocumentationHardeningTests(unittest.TestCase):
             self.assertNotIn("say_Hey_Gonken", text, relative)
         self.assertIn("wake_phrase=GonKen", (ROOT / "scripts/install.sh").read_text(encoding="utf-8"))
 
+
+    def test_executed_simulation_milestones_have_no_stale_planned_rows(self) -> None:
+        report = json.loads(subprocess.run(
+            [sys.executable, "scripts/validate_v09_docs.py", "--json"],
+            cwd=ROOT, check=True, capture_output=True, text=True, timeout=20,
+        ).stdout)
+        control = [item for item in report["checks"] if str(item["id"]).startswith("control-")]
+        self.assertGreaterEqual(len(control), 12)
+        self.assertTrue(all(item["status"] == "PASS" for item in control), control)
+
     def test_ci_t0_invokes_v09_documentation_validator(self) -> None:
         text = (ROOT / "scripts/ci.sh").read_text(encoding="utf-8")
         self.assertIn("validate_v09_docs.py", text)

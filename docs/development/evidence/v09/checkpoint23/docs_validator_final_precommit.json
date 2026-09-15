@@ -1,0 +1,1026 @@
+{
+  "checks": [
+    {
+      "id": "doc-exists:README.md",
+      "message": "README.md exists",
+      "status": "PASS"
+    },
+    {
+      "id": "doc-exists:docs/HARDWARE_SETUP.md",
+      "message": "docs/HARDWARE_SETUP.md exists",
+      "status": "PASS"
+    },
+    {
+      "id": "doc-exists:docs/ENVIRONMENT_CONTROL.md",
+      "message": "docs/ENVIRONMENT_CONTROL.md exists",
+      "status": "PASS"
+    },
+    {
+      "id": "doc-exists:docs/SIMULATION.md",
+      "message": "docs/SIMULATION.md exists",
+      "status": "PASS"
+    },
+    {
+      "id": "doc-exists:docs/TROUBLESHOOTING.md",
+      "message": "docs/TROUBLESHOOTING.md exists",
+      "status": "PASS"
+    },
+    {
+      "id": "doc-exists:docs/ENVIRONMENT_ACCEPTANCE_RUN.md",
+      "message": "docs/ENVIRONMENT_ACCEPTANCE_RUN.md exists",
+      "status": "PASS"
+    },
+    {
+      "id": "doc-exists:docs/RASPBERRY_PI_ACCEPTANCE_RUN.md",
+      "message": "docs/RASPBERRY_PI_ACCEPTANCE_RUN.md exists",
+      "status": "PASS"
+    },
+    {
+      "id": "doc-exists:docs/OPERATIONS.md",
+      "message": "docs/OPERATIONS.md exists",
+      "status": "PASS"
+    },
+    {
+      "id": "doc-exists:docs/INSTALLATION.md",
+      "message": "docs/INSTALLATION.md exists",
+      "status": "PASS"
+    },
+    {
+      "id": "doc-exists:docs/USER_SIMULATION_HIL_HANDOFF.md",
+      "message": "docs/USER_SIMULATION_HIL_HANDOFF.md exists",
+      "status": "PASS"
+    },
+    {
+      "id": "local-link:README.md:docs/INSTALLATION.md",
+      "message": "local link resolves: README.md -> docs/INSTALLATION.md",
+      "status": "PASS"
+    },
+    {
+      "id": "local-link:README.md:docs/BLUETOOTH_AUDIO.md",
+      "message": "local link resolves: README.md -> docs/BLUETOOTH_AUDIO.md",
+      "status": "PASS"
+    },
+    {
+      "id": "local-link:README.md:docs/RASPBERRY_PI_ACCEPTANCE_RUN.md",
+      "message": "local link resolves: README.md -> docs/RASPBERRY_PI_ACCEPTANCE_RUN.md",
+      "status": "PASS"
+    },
+    {
+      "id": "local-link:README.md:docs/OPERATIONS.md",
+      "message": "local link resolves: README.md -> docs/OPERATIONS.md",
+      "status": "PASS"
+    },
+    {
+      "id": "local-link:README.md:docs/INSTALLATION.md",
+      "message": "local link resolves: README.md -> docs/INSTALLATION.md",
+      "status": "PASS"
+    },
+    {
+      "id": "local-link:README.md:docs/OPERATIONS.md",
+      "message": "local link resolves: README.md -> docs/OPERATIONS.md",
+      "status": "PASS"
+    },
+    {
+      "id": "local-link:README.md:docs/BLUETOOTH_AUDIO.md",
+      "message": "local link resolves: README.md -> docs/BLUETOOTH_AUDIO.md",
+      "status": "PASS"
+    },
+    {
+      "id": "local-link:README.md:docs/RASPBERRY_PI_ACCEPTANCE_RUN.md",
+      "message": "local link resolves: README.md -> docs/RASPBERRY_PI_ACCEPTANCE_RUN.md",
+      "status": "PASS"
+    },
+    {
+      "id": "local-link:README.md:docs/HARDWARE_SETUP.md",
+      "message": "local link resolves: README.md -> docs/HARDWARE_SETUP.md",
+      "status": "PASS"
+    },
+    {
+      "id": "local-link:README.md:docs/ENVIRONMENT_CONTROL.md",
+      "message": "local link resolves: README.md -> docs/ENVIRONMENT_CONTROL.md",
+      "status": "PASS"
+    },
+    {
+      "id": "local-link:README.md:docs/SIMULATION.md",
+      "message": "local link resolves: README.md -> docs/SIMULATION.md",
+      "status": "PASS"
+    },
+    {
+      "id": "local-link:README.md:docs/TROUBLESHOOTING.md",
+      "message": "local link resolves: README.md -> docs/TROUBLESHOOTING.md",
+      "status": "PASS"
+    },
+    {
+      "id": "local-link:README.md:docs/ENVIRONMENT_ACCEPTANCE_RUN.md",
+      "message": "local link resolves: README.md -> docs/ENVIRONMENT_ACCEPTANCE_RUN.md",
+      "status": "PASS"
+    },
+    {
+      "id": "local-link:README.md:requirements/README.md",
+      "message": "local link resolves: README.md -> requirements/README.md",
+      "status": "PASS"
+    },
+    {
+      "id": "local-link:README.md:docs/development/",
+      "message": "local link resolves: README.md -> docs/development/",
+      "status": "PASS"
+    },
+    {
+      "id": "local-link:README.md:docs/RASPBERRY_PI_ACCEPTANCE_RUN.md",
+      "message": "local link resolves: README.md -> docs/RASPBERRY_PI_ACCEPTANCE_RUN.md",
+      "status": "PASS"
+    },
+    {
+      "id": "local-link:README.md:docs/USER_SIMULATION_HIL_HANDOFF.md",
+      "message": "local link resolves: README.md -> docs/USER_SIMULATION_HIL_HANDOFF.md",
+      "status": "PASS"
+    },
+    {
+      "id": "local-link:docs/HARDWARE_SETUP.md:ENVIRONMENT_ACCEPTANCE_RUN.md",
+      "message": "local link resolves: docs/HARDWARE_SETUP.md -> ENVIRONMENT_ACCEPTANCE_RUN.md",
+      "status": "PASS"
+    },
+    {
+      "id": "local-link:docs/ENVIRONMENT_ACCEPTANCE_RUN.md:RASPBERRY_PI_ACCEPTANCE_RUN.md",
+      "message": "local link resolves: docs/ENVIRONMENT_ACCEPTANCE_RUN.md -> RASPBERRY_PI_ACCEPTANCE_RUN.md",
+      "status": "PASS"
+    },
+    {
+      "id": "local-link:docs/OPERATIONS.md:HARDWARE_SETUP.md",
+      "message": "local link resolves: docs/OPERATIONS.md -> HARDWARE_SETUP.md",
+      "status": "PASS"
+    },
+    {
+      "id": "local-link:docs/OPERATIONS.md:RASPBERRY_PI_ACCEPTANCE_RUN.md",
+      "message": "local link resolves: docs/OPERATIONS.md -> RASPBERRY_PI_ACCEPTANCE_RUN.md",
+      "status": "PASS"
+    },
+    {
+      "id": "local-link:docs/OPERATIONS.md:BLUETOOTH_AUDIO.md",
+      "message": "local link resolves: docs/OPERATIONS.md -> BLUETOOTH_AUDIO.md",
+      "status": "PASS"
+    },
+    {
+      "id": "local-link:docs/OPERATIONS.md:HARDWARE_SETUP.md",
+      "message": "local link resolves: docs/OPERATIONS.md -> HARDWARE_SETUP.md",
+      "status": "PASS"
+    },
+    {
+      "id": "local-link:docs/OPERATIONS.md:ENVIRONMENT_CONTROL.md",
+      "message": "local link resolves: docs/OPERATIONS.md -> ENVIRONMENT_CONTROL.md",
+      "status": "PASS"
+    },
+    {
+      "id": "local-link:docs/OPERATIONS.md:SIMULATION.md",
+      "message": "local link resolves: docs/OPERATIONS.md -> SIMULATION.md",
+      "status": "PASS"
+    },
+    {
+      "id": "local-link:docs/OPERATIONS.md:TROUBLESHOOTING.md",
+      "message": "local link resolves: docs/OPERATIONS.md -> TROUBLESHOOTING.md",
+      "status": "PASS"
+    },
+    {
+      "id": "local-link:docs/INSTALLATION.md:OPERATIONS.md",
+      "message": "local link resolves: docs/INSTALLATION.md -> OPERATIONS.md",
+      "status": "PASS"
+    },
+    {
+      "id": "local-link:docs/INSTALLATION.md:OPERATIONS.md",
+      "message": "local link resolves: docs/INSTALLATION.md -> OPERATIONS.md",
+      "status": "PASS"
+    },
+    {
+      "id": "local-link:docs/INSTALLATION.md:HARDWARE_SETUP.md",
+      "message": "local link resolves: docs/INSTALLATION.md -> HARDWARE_SETUP.md",
+      "status": "PASS"
+    },
+    {
+      "id": "local-link:docs/INSTALLATION.md:ENVIRONMENT_CONTROL.md",
+      "message": "local link resolves: docs/INSTALLATION.md -> ENVIRONMENT_CONTROL.md",
+      "status": "PASS"
+    },
+    {
+      "id": "local-link:docs/INSTALLATION.md:ENVIRONMENT_ACCEPTANCE_RUN.md",
+      "message": "local link resolves: docs/INSTALLATION.md -> ENVIRONMENT_ACCEPTANCE_RUN.md",
+      "status": "PASS"
+    },
+    {
+      "id": "local-link:docs/USER_SIMULATION_HIL_HANDOFF.md:HARDWARE_SETUP.md",
+      "message": "local link resolves: docs/USER_SIMULATION_HIL_HANDOFF.md -> HARDWARE_SETUP.md",
+      "status": "PASS"
+    },
+    {
+      "id": "local-link:docs/USER_SIMULATION_HIL_HANDOFF.md:HARDWARE_SETUP.md",
+      "message": "local link resolves: docs/USER_SIMULATION_HIL_HANDOFF.md -> HARDWARE_SETUP.md",
+      "status": "PASS"
+    },
+    {
+      "id": "boundary-term:docs/HARDWARE_SETUP.md:not the Raspberry Pi Active Cooler",
+      "message": "required boundary term present in docs/HARDWARE_SETUP.md: not the Raspberry Pi Active Cooler",
+      "status": "PASS"
+    },
+    {
+      "id": "boundary-term:docs/HARDWARE_SETUP.md:software_speed_control=false",
+      "message": "required boundary term present in docs/HARDWARE_SETUP.md: software_speed_control=false",
+      "status": "PASS"
+    },
+    {
+      "id": "boundary-term:docs/HARDWARE_SETUP.md:fan_motion_observed=false",
+      "message": "required boundary term present in docs/HARDWARE_SETUP.md: fan_motion_observed=false",
+      "status": "PASS"
+    },
+    {
+      "id": "boundary-term:docs/HARDWARE_SETUP.md:PENGLIN",
+      "message": "required boundary term present in docs/HARDWARE_SETUP.md: PENGLIN",
+      "status": "PASS"
+    },
+    {
+      "id": "boundary-term:docs/HARDWARE_SETUP.md:ELUTENG",
+      "message": "required boundary term present in docs/HARDWARE_SETUP.md: ELUTENG",
+      "status": "PASS"
+    },
+    {
+      "id": "boundary-term:docs/HARDWARE_SETUP.md:SHT31",
+      "message": "required boundary term present in docs/HARDWARE_SETUP.md: SHT31",
+      "status": "PASS"
+    },
+    {
+      "id": "boundary-term:docs/HARDWARE_SETUP.md:KKHMF",
+      "message": "required boundary term present in docs/HARDWARE_SETUP.md: KKHMF",
+      "status": "PASS"
+    },
+    {
+      "id": "boundary-term:docs/HARDWARE_SETUP.md:physical_evidence=false",
+      "message": "required boundary term present in docs/HARDWARE_SETUP.md: physical_evidence=false",
+      "status": "PASS"
+    },
+    {
+      "id": "boundary-term:docs/ENVIRONMENT_CONTROL.md:The CLI and voice layers are clients of the daemon",
+      "message": "required boundary term present in docs/ENVIRONMENT_CONTROL.md: The CLI and voice layers are clients of the daemon",
+      "status": "PASS"
+    },
+    {
+      "id": "boundary-term:docs/ENVIRONMENT_CONTROL.md:physical_evidence=false",
+      "message": "required boundary term present in docs/ENVIRONMENT_CONTROL.md: physical_evidence=false",
+      "status": "PASS"
+    },
+    {
+      "id": "boundary-term:docs/ENVIRONMENT_CONTROL.md:software_speed_control=false",
+      "message": "required boundary term present in docs/ENVIRONMENT_CONTROL.md: software_speed_control=false",
+      "status": "PASS"
+    },
+    {
+      "id": "boundary-term:docs/ENVIRONMENT_CONTROL.md:fan_motion_observed=false",
+      "message": "required boundary term present in docs/ENVIRONMENT_CONTROL.md: fan_motion_observed=false",
+      "status": "PASS"
+    },
+    {
+      "id": "boundary-term:docs/ENVIRONMENT_CONTROL.md:env watch` is passive",
+      "message": "required boundary term present in docs/ENVIRONMENT_CONTROL.md: env watch` is passive",
+      "status": "PASS"
+    },
+    {
+      "id": "boundary-term:docs/SIMULATION.md:HOST_SIMULATION",
+      "message": "required boundary term present in docs/SIMULATION.md: HOST_SIMULATION",
+      "status": "PASS"
+    },
+    {
+      "id": "boundary-term:docs/SIMULATION.md:TARGET_HYBRID_SENSOR_SIMULATED",
+      "message": "required boundary term present in docs/SIMULATION.md: TARGET_HYBRID_SENSOR_SIMULATED",
+      "status": "PASS"
+    },
+    {
+      "id": "boundary-term:docs/SIMULATION.md:TARGET_HYBRID_ACTUATOR_SIMULATED",
+      "message": "required boundary term present in docs/SIMULATION.md: TARGET_HYBRID_ACTUATOR_SIMULATED",
+      "status": "PASS"
+    },
+    {
+      "id": "boundary-term:docs/SIMULATION.md:SIMULATION_ACTIVE_PHYSICAL_ACCEPTANCE_BLOCKED",
+      "message": "required boundary term present in docs/SIMULATION.md: SIMULATION_ACTIVE_PHYSICAL_ACCEPTANCE_BLOCKED",
+      "status": "PASS"
+    },
+    {
+      "id": "boundary-term:docs/SIMULATION.md:not physical Raspberry Pi acceptance",
+      "message": "required boundary term present in docs/SIMULATION.md: not physical Raspberry Pi acceptance",
+      "status": "PASS"
+    },
+    {
+      "id": "boundary-term:docs/TROUBLESHOOTING.md:SIMULATION_ACTIVE_PHYSICAL_ACCEPTANCE_BLOCKED",
+      "message": "required boundary term present in docs/TROUBLESHOOTING.md: SIMULATION_ACTIVE_PHYSICAL_ACCEPTANCE_BLOCKED",
+      "status": "PASS"
+    },
+    {
+      "id": "boundary-term:docs/TROUBLESHOOTING.md:Do not interpret `fan_power=on` as measured blade motion",
+      "message": "required boundary term present in docs/TROUBLESHOOTING.md: Do not interpret `fan_power=on` as measured blade motion",
+      "status": "PASS"
+    },
+    {
+      "id": "boundary-term:docs/TROUBLESHOOTING.md:GonKen",
+      "message": "required boundary term present in docs/TROUBLESHOOTING.md: GonKen",
+      "status": "PASS"
+    },
+    {
+      "id": "boundary-term:docs/ENVIRONMENT_ACCEPTANCE_RUN.md:physical_acceptance_claimed=false",
+      "message": "required boundary term present in docs/ENVIRONMENT_ACCEPTANCE_RUN.md: physical_acceptance_claimed=false",
+      "status": "PASS"
+    },
+    {
+      "id": "boundary-term:docs/ENVIRONMENT_ACCEPTANCE_RUN.md:SIMULATION_ACTIVE_PHYSICAL_ACCEPTANCE_BLOCKED",
+      "message": "required boundary term present in docs/ENVIRONMENT_ACCEPTANCE_RUN.md: SIMULATION_ACTIVE_PHYSICAL_ACCEPTANCE_BLOCKED",
+      "status": "PASS"
+    },
+    {
+      "id": "boundary-term:docs/ENVIRONMENT_ACCEPTANCE_RUN.md:Exit code 0 means",
+      "message": "required boundary term present in docs/ENVIRONMENT_ACCEPTANCE_RUN.md: Exit code 0 means",
+      "status": "PASS"
+    },
+    {
+      "id": "boundary-term:docs/USER_SIMULATION_HIL_HANDOFF.md:READY_FOR_USER_SIMULATION_AND_SENSOR_DEFERRED_HIL",
+      "message": "required boundary term present in docs/USER_SIMULATION_HIL_HANDOFF.md: READY_FOR_USER_SIMULATION_AND_SENSOR_DEFERRED_HIL",
+      "status": "PASS"
+    },
+    {
+      "id": "boundary-term:docs/USER_SIMULATION_HIL_HANDOFF.md:not Raspberry Pi physical acceptance",
+      "message": "required boundary term present in docs/USER_SIMULATION_HIL_HANDOFF.md: not Raspberry Pi physical acceptance",
+      "status": "PASS"
+    },
+    {
+      "id": "boundary-term:docs/USER_SIMULATION_HIL_HANDOFF.md:TARGET_HYBRID_SENSOR_SIMULATED",
+      "message": "required boundary term present in docs/USER_SIMULATION_HIL_HANDOFF.md: TARGET_HYBRID_SENSOR_SIMULATED",
+      "status": "PASS"
+    },
+    {
+      "id": "boundary-term:docs/USER_SIMULATION_HIL_HANDOFF.md:SIMULATION_ACTIVE_PHYSICAL_ACCEPTANCE_BLOCKED",
+      "message": "required boundary term present in docs/USER_SIMULATION_HIL_HANDOFF.md: SIMULATION_ACTIVE_PHYSICAL_ACCEPTANCE_BLOCKED",
+      "status": "PASS"
+    },
+    {
+      "id": "boundary-term:docs/USER_SIMULATION_HIL_HANDOFF.md:Do not actuate",
+      "message": "required boundary term present in docs/USER_SIMULATION_HIL_HANDOFF.md: Do not actuate",
+      "status": "PASS"
+    },
+    {
+      "id": "boundary-term:docs/RASPBERRY_PI_ACCEPTANCE_RUN.md:--local-checkpoint",
+      "message": "required boundary term present in docs/RASPBERRY_PI_ACCEPTANCE_RUN.md: --local-checkpoint",
+      "status": "PASS"
+    },
+    {
+      "id": "boundary-term:docs/RASPBERRY_PI_ACCEPTANCE_RUN.md:READY_FOR_TARGET_ACCEPTANCE",
+      "message": "required boundary term present in docs/RASPBERRY_PI_ACCEPTANCE_RUN.md: READY_FOR_TARGET_ACCEPTANCE",
+      "status": "PASS"
+    },
+    {
+      "id": "boundary-term:docs/RASPBERRY_PI_ACCEPTANCE_RUN.md:M10.7",
+      "message": "required boundary term present in docs/RASPBERRY_PI_ACCEPTANCE_RUN.md: M10.7",
+      "status": "PASS"
+    },
+    {
+      "id": "boundary-term:docs/RASPBERRY_PI_ACCEPTANCE_RUN.md:not physically accepted",
+      "message": "required boundary term present in docs/RASPBERRY_PI_ACCEPTANCE_RUN.md: not physically accepted",
+      "status": "PASS"
+    },
+    {
+      "id": "boundary-term:docs/RASPBERRY_PI_ACCEPTANCE_RUN.md:BLOCKED_NO_PREVIOUS_VALIDATED_RELEASE",
+      "message": "required boundary term present in docs/RASPBERRY_PI_ACCEPTANCE_RUN.md: BLOCKED_NO_PREVIOUS_VALIDATED_RELEASE",
+      "status": "PASS"
+    },
+    {
+      "id": "wake-default-config",
+      "message": "packaged wake phrase is GonKen",
+      "status": "PASS"
+    },
+    {
+      "id": "wake-stale-default:README.md:wake_phrase=Hey_Gonken",
+      "message": "README.md has no stale wake default token wake_phrase=Hey_Gonken",
+      "status": "PASS"
+    },
+    {
+      "id": "wake-stale-default:README.md:say_Hey_Gonken",
+      "message": "README.md has no stale wake default token say_Hey_Gonken",
+      "status": "PASS"
+    },
+    {
+      "id": "wake-stale-default:docs/INSTALLATION.md:wake_phrase=Hey_Gonken",
+      "message": "docs/INSTALLATION.md has no stale wake default token wake_phrase=Hey_Gonken",
+      "status": "PASS"
+    },
+    {
+      "id": "wake-stale-default:docs/INSTALLATION.md:say_Hey_Gonken",
+      "message": "docs/INSTALLATION.md has no stale wake default token say_Hey_Gonken",
+      "status": "PASS"
+    },
+    {
+      "id": "wake-stale-default:docs/RASPBERRY_PI_ACCEPTANCE_RUN.md:wake_phrase=Hey_Gonken",
+      "message": "docs/RASPBERRY_PI_ACCEPTANCE_RUN.md has no stale wake default token wake_phrase=Hey_Gonken",
+      "status": "PASS"
+    },
+    {
+      "id": "wake-stale-default:docs/RASPBERRY_PI_ACCEPTANCE_RUN.md:say_Hey_Gonken",
+      "message": "docs/RASPBERRY_PI_ACCEPTANCE_RUN.md has no stale wake default token say_Hey_Gonken",
+      "status": "PASS"
+    },
+    {
+      "id": "wake-stale-default:scripts/install.sh:wake_phrase=Hey_Gonken",
+      "message": "scripts/install.sh has no stale wake default token wake_phrase=Hey_Gonken",
+      "status": "PASS"
+    },
+    {
+      "id": "wake-stale-default:scripts/install.sh:say_Hey_Gonken",
+      "message": "scripts/install.sh has no stale wake default token say_Hey_Gonken",
+      "status": "PASS"
+    },
+    {
+      "id": "env-config-documented:enabled",
+      "message": "environment config key documented: enabled",
+      "status": "PASS"
+    },
+    {
+      "id": "env-config-documented:i2c_address",
+      "message": "environment config key documented: i2c_address",
+      "status": "PASS"
+    },
+    {
+      "id": "env-config-documented:i2c_bus",
+      "message": "environment config key documented: i2c_bus",
+      "status": "PASS"
+    },
+    {
+      "id": "env-config-documented:maximum_dwell_seconds",
+      "message": "environment config key documented: maximum_dwell_seconds",
+      "status": "PASS"
+    },
+    {
+      "id": "env-config-documented:maximum_hysteresis_c",
+      "message": "environment config key documented: maximum_hysteresis_c",
+      "status": "PASS"
+    },
+    {
+      "id": "env-config-documented:minimum_dwell_seconds",
+      "message": "environment config key documented: minimum_dwell_seconds",
+      "status": "PASS"
+    },
+    {
+      "id": "env-config-documented:minimum_hysteresis_c",
+      "message": "environment config key documented: minimum_hysteresis_c",
+      "status": "PASS"
+    },
+    {
+      "id": "env-config-documented:policy_path",
+      "message": "environment config key documented: policy_path",
+      "status": "PASS"
+    },
+    {
+      "id": "env-config-documented:poll_interval_seconds",
+      "message": "environment config key documented: poll_interval_seconds",
+      "status": "PASS"
+    },
+    {
+      "id": "env-config-documented:relay_active_high",
+      "message": "environment config key documented: relay_active_high",
+      "status": "PASS"
+    },
+    {
+      "id": "env-config-documented:relay_backend",
+      "message": "environment config key documented: relay_backend",
+      "status": "PASS"
+    },
+    {
+      "id": "env-config-documented:relay_bcm",
+      "message": "environment config key documented: relay_bcm",
+      "status": "PASS"
+    },
+    {
+      "id": "env-config-documented:safe_state",
+      "message": "environment config key documented: safe_state",
+      "status": "PASS"
+    },
+    {
+      "id": "env-config-documented:sensor_backend",
+      "message": "environment config key documented: sensor_backend",
+      "status": "PASS"
+    },
+    {
+      "id": "env-config-documented:sensor_repeatability",
+      "message": "environment config key documented: sensor_repeatability",
+      "status": "PASS"
+    },
+    {
+      "id": "env-config-documented:simulation_event_history_limit",
+      "message": "environment config key documented: simulation_event_history_limit",
+      "status": "PASS"
+    },
+    {
+      "id": "env-config-documented:simulation_runtime_control_enabled",
+      "message": "environment config key documented: simulation_runtime_control_enabled",
+      "status": "PASS"
+    },
+    {
+      "id": "env-config-documented:socket_path",
+      "message": "environment config key documented: socket_path",
+      "status": "PASS"
+    },
+    {
+      "id": "env-config-documented:stale_after_seconds",
+      "message": "environment config key documented: stale_after_seconds",
+      "status": "PASS"
+    },
+    {
+      "id": "env-config-documented:temperature_policy_max_c",
+      "message": "environment config key documented: temperature_policy_max_c",
+      "status": "PASS"
+    },
+    {
+      "id": "env-config-documented:temperature_policy_min_c",
+      "message": "environment config key documented: temperature_policy_min_c",
+      "status": "PASS"
+    },
+    {
+      "id": "env-config-documented:valid_samples_to_recover",
+      "message": "environment config key documented: valid_samples_to_recover",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-present:DOC-CMD-001",
+      "message": "documented command appears in README.md: gonken-agent status",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-parses:DOC-CMD-001",
+      "message": "command parses: gonken-agent status",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-present:DOC-CMD-002",
+      "message": "documented command appears in README.md: gonken-agent wake status --json",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-parses:DOC-CMD-002",
+      "message": "command parses: gonken-agent wake status --json",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-present:DOC-CMD-003",
+      "message": "documented command appears in docs/ENVIRONMENT_CONTROL.md: gonken-agent env status --json",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-parses:DOC-CMD-003",
+      "message": "command parses: gonken-agent env status --json",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-present:DOC-CMD-004",
+      "message": "documented command appears in docs/ENVIRONMENT_CONTROL.md: gonken-agent env health",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-parses:DOC-CMD-004",
+      "message": "command parses: gonken-agent env health",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-present:DOC-CMD-005",
+      "message": "documented command appears in docs/ENVIRONMENT_CONTROL.md: gonken-agent env read",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-parses:DOC-CMD-005",
+      "message": "command parses: gonken-agent env read",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-present:DOC-CMD-006",
+      "message": "documented command appears in docs/ENVIRONMENT_CONTROL.md: gonken-agent env watch --interval 2 --count 3",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-parses:DOC-CMD-006",
+      "message": "command parses: gonken-agent env watch --interval 2 --count 3",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-present:DOC-CMD-007",
+      "message": "documented command appears in docs/ENVIRONMENT_CONTROL.md: gonken-agent env fan on",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-parses:DOC-CMD-007",
+      "message": "command parses: gonken-agent env fan on",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-present:DOC-CMD-008",
+      "message": "documented command appears in docs/ENVIRONMENT_CONTROL.md: gonken-agent env fan off",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-parses:DOC-CMD-008",
+      "message": "command parses: gonken-agent env fan off",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-present:DOC-CMD-009",
+      "message": "documented command appears in docs/ENVIRONMENT_CONTROL.md: gonken-agent env mode set automatic",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-parses:DOC-CMD-009",
+      "message": "command parses: gonken-agent env mode set automatic",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-present:DOC-CMD-010",
+      "message": "documented command appears in docs/ENVIRONMENT_CONTROL.md: gonken-agent env policy set --start-c 28 --stop-c 26.5",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-parses:DOC-CMD-010",
+      "message": "command parses: gonken-agent env policy set --start-c 28 --stop-c 26.5",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-present:DOC-CMD-011",
+      "message": "documented command appears in docs/SIMULATION.md: gonken-agent env simulate status",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-parses:DOC-CMD-011",
+      "message": "command parses: gonken-agent env simulate status",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-present:DOC-CMD-012",
+      "message": "documented command appears in docs/SIMULATION.md: gonken-agent env simulate sensor set --temperature-c 27 --humidity-pct 50",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-parses:DOC-CMD-012",
+      "message": "command parses: gonken-agent env simulate sensor set --temperature-c 27 --humidity-pct 50",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-present:DOC-CMD-013",
+      "message": "documented command appears in docs/SIMULATION.md: gonken-agent env simulate sensor stale --age-seconds 30",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-parses:DOC-CMD-013",
+      "message": "command parses: gonken-agent env simulate sensor stale --age-seconds 30",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-present:DOC-CMD-014",
+      "message": "documented command appears in docs/SIMULATION.md: gonken-agent env simulate sensor recover --temperature-c 27 --humidity-pct 50",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-parses:DOC-CMD-014",
+      "message": "command parses: gonken-agent env simulate sensor recover --temperature-c 27 --humidity-pct 50",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-present:DOC-CMD-015",
+      "message": "documented command appears in docs/SIMULATION.md: gonken-agent env simulate fan behavior normal",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-parses:DOC-CMD-015",
+      "message": "command parses: gonken-agent env simulate fan behavior normal",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-present:DOC-CMD-016",
+      "message": "documented command appears in docs/SIMULATION.md: gonken-agent env simulate fan fail-next-write",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-parses:DOC-CMD-016",
+      "message": "command parses: gonken-agent env simulate fan fail-next-write",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-present:DOC-CMD-017",
+      "message": "documented command appears in docs/ENVIRONMENT_ACCEPTANCE_RUN.md: environment_acceptance_runner.py --output-dir /tmp/gonken-m10-7-evidence --plan-only --json",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-parses:DOC-CMD-017",
+      "message": "command parses: environment_acceptance_runner.py --output-dir /tmp/gonken-m10-7-evidence --plan-only --json",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-present:DOC-CMD-018",
+      "message": "documented command appears in docs/ENVIRONMENT_ACCEPTANCE_RUN.md: environment_acceptance_runner.py --output-dir /tmp/gonken-m10-7-evidence --allow-actuation --json",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-parses:DOC-CMD-018",
+      "message": "command parses: environment_acceptance_runner.py --output-dir /tmp/gonken-m10-7-evidence --allow-actuation --json",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-present:DOC-CMD-019",
+      "message": "documented command appears in docs/TROUBLESHOOTING.md: gonken-agent env probe --json",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-parses:DOC-CMD-019",
+      "message": "command parses: gonken-agent env probe --json",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-present:DOC-CMD-020",
+      "message": "documented command appears in docs/TROUBLESHOOTING.md: gonken-agent env policy show --json",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-parses:DOC-CMD-020",
+      "message": "command parses: gonken-agent env policy show --json",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-present:DOC-CMD-021",
+      "message": "documented command appears in docs/TROUBLESHOOTING.md: gonken-agent wake status --json",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-parses:DOC-CMD-021",
+      "message": "command parses: gonken-agent wake status --json",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-present:DOC-CMD-022",
+      "message": "documented command appears in docs/development/V09_SIMULATION_HIL_EXTENSION_PLAN.md: ./scripts/ci.sh --phase t0",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-parses:DOC-CMD-022",
+      "message": "command parses: ./scripts/ci.sh --phase t0",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-present:DOC-CMD-023",
+      "message": "documented command appears in docs/USER_SIMULATION_HIL_HANDOFF.md: gonken-agent env simulate status --json",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-parses:DOC-CMD-023",
+      "message": "command parses: gonken-agent env simulate status --json",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-present:DOC-CMD-024",
+      "message": "documented command appears in docs/USER_SIMULATION_HIL_HANDOFF.md: gonken-agent env watch --interval 1",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-parses:DOC-CMD-024",
+      "message": "command parses: gonken-agent env watch --interval 1",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-present:DOC-CMD-025",
+      "message": "documented command appears in docs/USER_SIMULATION_HIL_HANDOFF.md: gonken-agent env mode set manual",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-parses:DOC-CMD-025",
+      "message": "command parses: gonken-agent env mode set manual",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-present:DOC-CMD-026",
+      "message": "documented command appears in docs/USER_SIMULATION_HIL_HANDOFF.md: gonken-agent env fan on",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-parses:DOC-CMD-026",
+      "message": "command parses: gonken-agent env fan on",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-present:DOC-CMD-027",
+      "message": "documented command appears in docs/USER_SIMULATION_HIL_HANDOFF.md: gonken-agent env fan off",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-parses:DOC-CMD-027",
+      "message": "command parses: gonken-agent env fan off",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-present:DOC-CMD-028",
+      "message": "documented command appears in docs/USER_SIMULATION_HIL_HANDOFF.md: gonken-agent status --json",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-parses:DOC-CMD-028",
+      "message": "command parses: gonken-agent status --json",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-present:DOC-CMD-029",
+      "message": "documented command appears in docs/USER_SIMULATION_HIL_HANDOFF.md: gonken-agent wake status --json",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-parses:DOC-CMD-029",
+      "message": "command parses: gonken-agent wake status --json",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-present:DOC-CMD-030",
+      "message": "documented command appears in docs/USER_SIMULATION_HIL_HANDOFF.md: gonken-agent env status --json",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-parses:DOC-CMD-030",
+      "message": "command parses: gonken-agent env status --json",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-present:DOC-CMD-031",
+      "message": "documented command appears in docs/USER_SIMULATION_HIL_HANDOFF.md: gonken-agent env policy set --mode automatic --start-c 28 --stop-c 26.5",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-parses:DOC-CMD-031",
+      "message": "command parses: gonken-agent env policy set --mode automatic --start-c 28 --stop-c 26.5",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-present:DOC-CMD-032",
+      "message": "documented command appears in docs/USER_SIMULATION_HIL_HANDOFF.md: gonken-agent env simulate sensor set --temperature-c 27 --humidity-pct 50",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-parses:DOC-CMD-032",
+      "message": "command parses: gonken-agent env simulate sensor set --temperature-c 27 --humidity-pct 50",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-present:DOC-CMD-033",
+      "message": "documented command appears in docs/USER_SIMULATION_HIL_HANDOFF.md: gonken-agent env mode set semi-automatic",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-parses:DOC-CMD-033",
+      "message": "command parses: gonken-agent env mode set semi-automatic",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-present:DOC-CMD-034",
+      "message": "documented command appears in docs/USER_SIMULATION_HIL_HANDOFF.md: gonken-agent env simulate sensor stale --age-seconds 30",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-parses:DOC-CMD-034",
+      "message": "command parses: gonken-agent env simulate sensor stale --age-seconds 30",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-present:DOC-CMD-035",
+      "message": "documented command appears in docs/USER_SIMULATION_HIL_HANDOFF.md: gonken-agent env simulate sensor recover --temperature-c 27 --humidity-pct 50",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-parses:DOC-CMD-035",
+      "message": "command parses: gonken-agent env simulate sensor recover --temperature-c 27 --humidity-pct 50",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-present:DOC-CMD-036",
+      "message": "documented command appears in docs/RASPBERRY_PI_ACCEPTANCE_RUN.md: gonken-agent status --json",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-parses:DOC-CMD-036",
+      "message": "command parses: gonken-agent status --json",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-present:DOC-CMD-037",
+      "message": "documented command appears in docs/RASPBERRY_PI_ACCEPTANCE_RUN.md: gonken-agent wake status --json",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-parses:DOC-CMD-037",
+      "message": "command parses: gonken-agent wake status --json",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-present:DOC-CMD-038",
+      "message": "documented command appears in docs/RASPBERRY_PI_ACCEPTANCE_RUN.md: gonken-agent doctor --probe-ollama --probe-audio",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-parses:DOC-CMD-038",
+      "message": "command parses: gonken-agent doctor --probe-ollama --probe-audio",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-present:DOC-CMD-039",
+      "message": "documented command appears in docs/RASPBERRY_PI_ACCEPTANCE_RUN.md: gonken-agent config show --effective --json",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-parses:DOC-CMD-039",
+      "message": "command parses: gonken-agent config show --effective --json",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-present:DOC-CMD-040",
+      "message": "documented command appears in docs/RASPBERRY_PI_ACCEPTANCE_RUN.md: gonken-agent env status --json",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-parses:DOC-CMD-040",
+      "message": "command parses: gonken-agent env status --json",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-present:DOC-CMD-041",
+      "message": "documented command appears in docs/RASPBERRY_PI_ACCEPTANCE_RUN.md: gonken-agent env health --json",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-parses:DOC-CMD-041",
+      "message": "command parses: gonken-agent env health --json",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-present:DOC-CMD-042",
+      "message": "documented command appears in docs/RASPBERRY_PI_ACCEPTANCE_RUN.md: ./bootstrap.sh --local-checkpoint",
+      "status": "PASS"
+    },
+    {
+      "id": "documented-command-parses:DOC-CMD-042",
+      "message": "command parses: ./bootstrap.sh --local-checkpoint",
+      "status": "PASS"
+    },
+    {
+      "id": "control-host-verified:M10.9",
+      "message": "M10.9 is host-verified in the milestone ledger",
+      "status": "PASS"
+    },
+    {
+      "id": "control-no-stale-plan:M10.9",
+      "message": "M10.9 has no stale PLANNED / NOT_RUN plan rows",
+      "status": "PASS"
+    },
+    {
+      "id": "control-host-verified:M10.10",
+      "message": "M10.10 is host-verified in the milestone ledger",
+      "status": "PASS"
+    },
+    {
+      "id": "control-no-stale-plan:M10.10",
+      "message": "M10.10 has no stale PLANNED / NOT_RUN plan rows",
+      "status": "PASS"
+    },
+    {
+      "id": "control-host-verified:M10.11",
+      "message": "M10.11 is host-verified in the milestone ledger",
+      "status": "PASS"
+    },
+    {
+      "id": "control-no-stale-plan:M10.11",
+      "message": "M10.11 has no stale PLANNED / NOT_RUN plan rows",
+      "status": "PASS"
+    },
+    {
+      "id": "control-host-verified:M10.12",
+      "message": "M10.12 is host-verified in the milestone ledger",
+      "status": "PASS"
+    },
+    {
+      "id": "control-no-stale-plan:M10.12",
+      "message": "M10.12 has no stale PLANNED / NOT_RUN plan rows",
+      "status": "PASS"
+    },
+    {
+      "id": "control-host-verified:M10.13",
+      "message": "M10.13 is host-verified in the milestone ledger",
+      "status": "PASS"
+    },
+    {
+      "id": "control-no-stale-plan:M10.13",
+      "message": "M10.13 has no stale PLANNED / NOT_RUN plan rows",
+      "status": "PASS"
+    },
+    {
+      "id": "control-host-verified:M10.14",
+      "message": "M10.14 is host-verified in the milestone ledger",
+      "status": "PASS"
+    },
+    {
+      "id": "control-no-stale-plan:M10.14",
+      "message": "M10.14 has no stale PLANNED / NOT_RUN plan rows",
+      "status": "PASS"
+    }
+  ],
+  "schema": "gonken-v09-docs-validation-v1",
+  "status": "PASS"
+}

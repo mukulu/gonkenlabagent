@@ -1,0 +1,45 @@
+{
+  "schema": "gonken-v09-checkpoint23-unit-accounting-v1",
+  "status": "PASS",
+  "module_count": 39,
+  "test_count": 377,
+  "execution_note": "The canonical --phase unit command was externally interrupted after 15 modules. All 39 modules were then rerun/accounted in bounded final batches against the post-change tree. Interrupted aggregate is retained as diagnostic, not PASS.",
+  "batches": [
+    {
+      "modules": "tests.unit.test_bounded_unittest_runner through tests.unit.test_m5_1_ptt_runtime (15 sorted modules)",
+      "tests": 176,
+      "status": "PASS",
+      "log": "final_unit_batch_a.log"
+    },
+    {
+      "modules": "tests.unit.test_m6_service_manager through tests.unit.test_v09_documentation_hardening (9 sorted modules)",
+      "tests": 57,
+      "status": "PASS",
+      "log": "final_unit_resume_a.log"
+    },
+    {
+      "modules": "tests.unit.test_v09_environment_acceptance_runner through tests.unit.test_v09_environment_polling_loop (9 sorted modules)",
+      "tests": 72,
+      "status": "PASS",
+      "log": "final_unit_batch_c1.log"
+    },
+    {
+      "modules": "tests.unit.test_v09_environment_service_manager; test_v09_environment_simulation; test_v09_environment_voice_intents; test_v09_user_test_readiness",
+      "tests": 35,
+      "status": "PASS",
+      "log": "final_unit_batch_c_resume.log"
+    },
+    {
+      "modules": "tests.unit.test_voice_appliance; tests.unit.test_x4_bluetooth_manager",
+      "tests": 37,
+      "status": "PASS",
+      "log": "final_unit_batch_d.log"
+    }
+  ],
+  "interrupted_attempts": [
+    "final_unit_phase.log",
+    "final_unit_resume_b.log",
+    "final_unit_uncertain_followup.log"
+  ],
+  "resolved_defect": "The rewritten target runbook initially omitted the literal physical_acceptance_claimed=false required by the acceptance-runner regression. The runbook was corrected and the affected test/documentation validator reran PASS."
+}

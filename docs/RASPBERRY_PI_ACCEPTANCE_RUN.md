@@ -1,167 +1,287 @@
-# Raspberry Pi acceptance run
+# Raspberry Pi target acceptance campaign
 
-This is the final real-target acceptance procedure. Passing host-side tests is
-not enough; appliance readiness must be demonstrated on a freshly imaged Pi.
+This runbook is the authoritative **real-target** procedure for GonKenLab Agent
+V09 checkpoint 23. Host CI, simulation, a clean ZIP, or a READY JSON file cannot
+substitute for this campaign. Every result must remain classified as host,
+simulation, hybrid HIL, or physical evidence.
 
-## 1. Fresh-image install
+The target is Raspberry Pi 5 (4 GB or greater) running Raspberry Pi OS Lite
+64-bit based on Debian 13/Trixie. The room fan is the ELUTENG demonstration
+actuator; it is **not** the Raspberry Pi Active Cooler. Current room-fan software
+controls power only. It does not provide software fan-speed selection or
+independent blade-motion/RPM feedback.
 
-Prepare Raspberry Pi OS Lite 64-bit/Trixie in Raspberry Pi Imager. Configure
-SSH and, if Wi-Fi is used, SSID/passphrase/WLAN country before first boot.
+## 1. Verify the exact downloaded checkpoint before installation
 
-Core USB/default-audio installation:
+For this campaign, do **not** install remote `main` with the public `curl`
+launcher. Doing so would test whatever remote revision is current rather than
+the checkpoint that passed host verification.
 
-```bash
-curl -fsSL https://raw.githubusercontent.com/mukulu/gonkenlabagent/main/install-gonken.sh | bash
+Copy these delivered files to the Pi:
+
+```text
+gonkenlabagent-v09-pi-target-campaign-checkpoint-23.zip
+SHA256SUMS_checkpoint23.txt
 ```
 
-Bluetooth installation when the intended device MAC is known:
+Verify the archive and extract it without discarding its `.git` directory:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/mukulu/gonkenlabagent/main/install-gonken.sh | \
-  bash -s -- --bluetooth-audio --bluetooth-device AA:BB:CC:DD:EE:FF
+sha256sum -c SHA256SUMS_checkpoint23.txt
+mkdir -p ~/gonken-checkpoint23
+python3 -m zipfile -e gonkenlabagent-v09-pi-target-campaign-checkpoint-23.zip ~/gonken-checkpoint23
+cd ~/gonken-checkpoint23/gonkenlabagent-v09-pi-target-campaign-checkpoint-23
+git rev-parse HEAD
+git status --porcelain
+git fsck --strict
+python3 scripts/release_readiness.py --json --check
 ```
 
-Do not manually preinstall Ollama, Whisper, Piper, Python packages, PipeWire or
-project virtual environments. The acceptance test is intended to prove that the
-launcher/bootstrap owns those prerequisites.
+Acceptance conditions before installation:
 
-## 2. Installation-completion gate
+- checksum verification passes;
+- the Git commit matches the commit printed in the checkpoint-23 delivery summary;
+- `git status --porcelain` is empty;
+- `git fsck --strict` succeeds;
+- `release_readiness.py --check` reports `READY_FOR_TARGET_ACCEPTANCE` while
+  still listing target gates as not run.
 
-Accept only a final `READY` boundary. Record the exact terminal output.
-Expected shape:
+If any identity/integrity check fails, **STOP** and return the terminal output.
+Do not repair the downloaded package in place.
+
+## 2. Install this exact checkpoint
+
+Prepare a fresh Raspberry Pi OS Lite 64-bit/Trixie image. Configure an
+administrator account, SSH if required, and the Wi-Fi country/credentials if
+Wi-Fi will be used.
+
+From the verified extracted checkpoint run:
+
+```bash
+./bootstrap.sh --local-checkpoint
+```
+
+For an intended Bluetooth audio device with a known MAC address:
+
+```bash
+./bootstrap.sh --local-checkpoint \
+  --bluetooth-audio --bluetooth-device AA:BB:CC:DD:EE:FF
+```
+
+`--local-checkpoint` is deliberate: it binds the installation source record to
+the clean checkout's exact full Git commit. Normal production installs may use
+the official remote source later; this acceptance campaign must not silently
+switch revisions.
+
+Do not manually preinstall Ollama, Whisper, Piper, Python packages, PipeWire, or
+project virtual environments merely to make the installer pass. Preserve the
+exact installer error if a governed step fails.
+
+## 3. Installation-completion and provenance gate
+
+Accept only the governed final READY boundary. Expected shape:
 
 ```text
 [READY] code=APPLIANCE_READY ... wake_phrase=GonKen reboot_required=false
 [READY] code=INSTALLATION_COMPLETE ... autostart=enabled ...
 ```
 
-The target should also audibly announce readiness when its output path is
-available.
-
 Run:
 
 ```bash
 gonken-agent status --json
+gonken-agent wake status --json
 gonken-agent doctor --probe-ollama --probe-audio
 systemctl status gonken-agent.service --no-pager -l
+readlink -f /usr/local/lib/gonken-agent/current
 ```
 
-## 3. Live voice test
+Record the installed release identity and compare it with the downloaded
+checkpoint commit. A successful installation of a different commit is a FAIL
+for this campaign.
 
-With the service running, say:
+## 4. GPIO identity inventory before wiring or actuation
 
-```text
-GonKen
+Checkpoint 23 no longer assumes that a BCM number is the same thing as a
+`/dev/gpiochip0` character-device line offset. Production adapters resolve
+logical GPIOs by unique kernel line names and fail closed when the mapping is
+missing or ambiguous.
+
+Before connecting the room relay or PTT indicators, collect:
+
+```bash
+gpiodetect
+gpioinfo --strict GPIO17
+gpioinfo --strict GPIO22
+gpioinfo --strict GPIO23
+gpioinfo --strict GPIO27
+gonken-agent wake status --json
+gonken-agent env status --json
+gonken-agent env health --json
 ```
 
-Then ask a short question. Record whether:
+Expected logical roles:
 
-1. wake phrase was recognized;
-2. the question was understood;
-3. an offline Qwen response was generated;
-4. Piper played the response through the intended output;
-5. the service returned to wake standby;
-6. a second turn also succeeded.
+- GPIO17 — push-to-talk input;
+- GPIO22 — wake-standby monitoring LED;
+- GPIO23 — room-fan relay candidate;
+- GPIO27 — recording LED.
 
-Follow categorical runtime state if required:
+**STOP and do not actuate** if a required GPIO line is absent, ambiguous, the
+reported runtime identity is unresolved, or the physical header/wiring cannot be
+matched confidently. Return the mapping output for diagnosis instead of
+guessing a chip/offset.
+
+## 5. Voice/audio and default `GonKen` wake campaign
+
+First prove the ordinary wake path with the environment subsystem disabled if
+necessary.
+
+Run in one terminal:
 
 ```bash
 journalctl -fu gonken-agent.service
 ```
 
-No transcript should be persisted by the normal service.
+Then perform repeated real voice trials:
 
-## 4. Manual runtime test
+1. Say `GonKen` and wait for `Yes?`.
+2. Ask a short question.
+3. Confirm local Qwen inference and audible Piper output.
+4. Confirm the service returns to wake standby.
+5. Repeat across representative distance/noise conditions and the speakers who
+   will actually use the system.
+6. Record missed intended wakes, benign false wakes, obvious self-triggering,
+   wake-to-`Yes?` delay, and whether progress cues ever overlap the final answer.
+
+Checkpoint 23 host tests prove the bounded pipelined capture design, not real
+microphone/STT recall. Real wake behavior is target evidence.
+
+The GPIO22 monitoring LED, if wired per `HARDWARE_SETUP.md`, should be ON only
+while continuous wake standby is active and OFF during the active turn. Its
+visible physical behavior must be recorded separately from software state.
+
+## 6. Manual foreground voice test
 
 Stop the daemon so it releases the microphone:
 
 ```bash
 sudo systemctl stop gonken-agent.service
-```
-
-Test one explicit turn:
-
-```bash
 gonken-agent talk --seconds 8
-```
-
-For exact Bluetooth service-user testing, use the command in
-[OPERATIONS.md](OPERATIONS.md). Restore automatic operation:
-
-```bash
 sudo systemctl start gonken-agent.service
 ```
 
-## 5. Reboot/no-login test
+Confirm microphone capture, transcription, local answer generation and audible
+speech. For exact Bluetooth service-user diagnostics, follow `OPERATIONS.md`.
+
+## 7. Push-to-talk recovery/privacy path
+
+Wire only after power is removed and after reviewing `HARDWARE_SETUP.md`.
+Candidate Pi header mapping is:
+
+| Function | BCM | Physical pin |
+|---|---:|---:|
+| Push-to-talk button to GND | GPIO17 | 11 |
+| Wake monitoring LED via resistor | GPIO22 | 15 |
+| Recording LED via resistor | GPIO27 | 13 |
+
+The PTT input uses an internal pull-up and active-low press semantics. LEDs must
+use appropriate current-limiting resistors. Never feed 5 V into a GPIO.
+
+Edit the existing site configuration carefully:
 
 ```bash
-sudo reboot
+sudoedit /etc/gonken-agent/config.toml
 ```
 
-Do not log in immediately merely to start the application. Wait for normal boot
-and the ready announcement. If Bluetooth is used, power on the trusted device
-and verify it reconnects automatically.
+Set the existing runtime mode to:
 
-Afterward, SSH in only for evidence collection:
+```toml
+[runtime]
+interaction_mode = "push_to_talk"
+```
+
+Do not create a duplicate TOML table if `[runtime]` already exists. Validate the
+merged configuration before restart:
 
 ```bash
-systemctl is-enabled gonken-agent.service
-systemctl is-active gonken-agent.service
-gonken-agent status --json
-journalctl -u gonken-agent.service -b --no-pager -n 100
+gonken-agent config show --effective --json
+sudo systemctl restart gonken-agent.service
+journalctl -u gonken-agent.service -b --no-pager -n 120
 ```
 
-Repeat a real `GonKen` voice interaction.
+Physically verify:
 
-## 6. Degraded/recovery tests
+- service starts only if GPIO17/GPIO27 resolve uniquely;
+- recording LED is OFF at acquisition/idle;
+- holding the button starts capture and recording indication;
+- release completes the turn and the LED returns OFF;
+- an excessive hold is bounded/discarded rather than capturing indefinitely;
+- stop/restart/cleanup leaves the recording LED OFF.
 
-At minimum record these without deleting the installation:
+Restore `interaction_mode = "wake_word"`, validate, restart, and verify normal
+`GonKen` operation again.
 
-- boot with Bluetooth device off, then turn it on and verify recovery;
-- temporarily disconnect USB audio where applicable, restore it and verify
-  readiness returns;
-- restart `ollama.service` and verify voice runtime waits/recovers;
-- stop/start/restart `gonken-agent.service`;
-- rerun bootstrap and verify completed model/artifact stages are reused;
-- if Wi-Fi is not used, verify Ethernet-only operation is unaffected by Wi-Fi
-  rfkill state.
+## 8. Environment campaign — safest to riskiest
 
-## 7. Lifecycle/recovery commands
+Read these documents before enabling actuation:
 
-After the primary voice/reboot evidence is captured, exercise the maintained
-lifecycle helpers:
+- `docs/HARDWARE_SETUP.md`
+- `docs/ENVIRONMENT_CONTROL.md`
+- `docs/SIMULATION.md`
+- `docs/USER_SIMULATION_HIL_HANDOFF.md`
+- `docs/ENVIRONMENT_ACCEPTANCE_RUN.md`
 
-```bash
-sudo /usr/local/lib/gonken-agent/current/maintenance/update.sh
-sudo /usr/local/lib/gonken-agent/current/maintenance/rollback.sh
-```
+Use the staged sequence; a later stage must not be used to erase a failure in an
+earlier one.
 
-For the dedicated uninstall/reinstall campaign, first preserve support evidence,
-then run:
+### Stage A — full simulation
 
-```bash
-sudo /usr/local/lib/gonken-agent/current/maintenance/uninstall.sh
-```
+Prove CLI, passive watch, MANUAL, AUTO, SEMI, stale/recovery, simulation-aware
+voice wording, diagnostics, and support export without touching GPIO/I2C.
+Follow the exact profile and commands in `USER_SIMULATION_HIL_HANDOFF.md`.
 
-The normal uninstall keeps project data unless its explicit purge contract is
-used. Reinstall with the same one-command launcher and repeat the READY/wake
-gates.
+### Stage B — real relay/fan, manual only
 
+The SHT31 may remain unavailable. Verify GPIO23 mapping, relay labels/polarity,
+unloaded OFF→ON→OFF behavior, PENGLIN VBUS/GND continuity and no back-power
+path before connecting the fan. Use an independent regulated 5 V fan supply and
+start with the fan's physical speed selector on Low.
 
-## 8. Environment-control private evidence
+A software ON result is only a relay-power command result. Record separately
+whether the relay changed electrically and whether the blades physically moved.
 
-The V09 room-environment subsystem has a separate target evidence collector. Review [V09 room-environment hardware setup](HARDWARE_SETUP.md), [V09 environment control reference](ENVIRONMENT_CONTROL.md), [V09 simulation and hybrid-HIL guide](SIMULATION.md), and [V09 troubleshooting guide](TROUBLESHOOTING.md) before enabling target actuation. The V09 room-environment subsystem has a separate target evidence collector. See [V09 room-environment acceptance evidence run](ENVIRONMENT_ACCEPTANCE_RUN.md) for the detailed procedure. Run it only on the physical Raspberry Pi after the environment profile has been reviewed and the SHT31/relay/PENGLIN/ELUTENG wiring has been inspected. The collector creates private evidence files and a ledger; it does not decide final acceptance and always records `physical_acceptance_claimed=false`.
+### Stage C — simulated sensor + real relay/fan
 
-First collect non-destructive evidence:
+After Stage B passes, exercise AUTO/SEMI/hysteresis/dwell and simulated sensor
+failure safe-OFF using the real relay/fan. The sensor evidence remains simulated.
+
+### Stage D — real SHT31 + simulated actuator
+
+When the SHT31 is available, first prove I2C address, CRC-valid readings,
+staleness/recovery and plausible placement without switching the real fan.
+
+### Stage E — full real
+
+Only after Stages B and D pass independently, run real SHT31 + real actuator
+MANUAL/SEMI/AUTO/DISABLED, unplug/replug sensor recovery, reboot/no-login and
+combined voice controls.
+
+The environment service may report relay logical state; it cannot prove fan
+blade rotation because the current hardware has no tachometer/airflow/current
+feedback.
+
+## 9. M10.7 private environment evidence collector
+
+First collect non-actuating evidence:
 
 ```bash
 sudo /usr/local/lib/gonken-agent/current/maintenance/environment_acceptance_runner.py \
   --output-dir /var/lib/gonken-environment/acceptance/$(date -u +%Y%m%dT%H%M%SZ)
 ```
 
-After power-off wiring inspection and physical supervision, run the fan relay
-cycle evidence. This is the only collector mode that may issue fan ON/OFF
-commands:
+After power-off wiring inspection, mapping verification, and physical
+supervision, the explicit actuator campaign may use:
 
 ```bash
 sudo /usr/local/lib/gonken-agent/current/maintenance/environment_acceptance_runner.py \
@@ -169,32 +289,187 @@ sudo /usr/local/lib/gonken-agent/current/maintenance/environment_acceptance_runn
   --allow-actuation
 ```
 
-Preserve the generated `m10_7_evidence_manifest.json`,
-`m10_7_private_evidence_ledger.csv`, and the `private_evidence/` directory. A
-PASS command result is still only command evidence. A person must separately
-record blade movement, relay polarity, USB wiring, sensor placement, reboot
-behavior, and wake-phrase observations before M10.7 can pass.
+Preserve:
 
-## 9. Support evidence
+```text
+m10_7_evidence_manifest.json
+m10_7_private_evidence_ledger.csv
+private_evidence/
+```
+
+The runner is an evidence collector, not an acceptance oracle. Its manifest must keep `physical_acceptance_claimed=false` until the evidence is reviewed against the manual physical gates. `exit 0`, JSON READY, or a relay command cannot establish blade motion, relay polarity, PENGLIN correctness, SHT31 placement, or real wake/audio behavior.
+
+## 10. Offline/network-boundary observation
+
+Do not intentionally sever the only SSH path to a headless Pi. Perform this
+only with local console access or a network arrangement that keeps
+administrative LAN access while upstream Internet/DNS is unavailable.
+
+Verify that loopback Ollama operation and normal already-provisioned voice use
+continue without cloud access. Record:
+
+```bash
+ss -ltnp
+ss -tpn
+journalctl -u gonken-agent.service -b --no-pager -n 150
+```
+
+The goal is to confirm the expected local/loopback runtime boundary, not to
+claim that the Pi can install/update without the network resources those
+maintenance operations legitimately require.
+
+## 11. Reboot, no-login, failure and recovery campaign
+
+After primary voice/environment evidence is stable:
+
+```bash
+sudo reboot
+```
+
+Do not log in merely to start GonKen. After normal boot, collect:
+
+```bash
+systemctl is-enabled gonken-agent.service
+systemctl is-active gonken-agent.service
+systemctl is-enabled gonken-environment.service || true
+systemctl is-active gonken-environment.service || true
+gonken-agent status --json
+gonken-agent wake status --json
+journalctl -u gonken-agent.service -b --no-pager -n 150
+```
+
+Repeat a real `GonKen` interaction. Where the environment profile is enabled,
+verify its documented boot SAFE-OFF and recovery behavior.
+
+Also exercise only the failure cases that are safe for the current wiring:
+
+- stop/start/restart `gonken-agent.service`;
+- stop/start/restart `gonken-environment.service` when enabled;
+- restart `ollama.service` and observe bounded recovery;
+- disconnect/reconnect USB audio where applicable;
+- Bluetooth-off-at-boot then reconnect where Bluetooth is in scope;
+- sensor unplug/replug only after Stage D wiring has passed;
+- preserve evidence before any destructive uninstall/reinstall campaign.
+
+## 12. Update, rollback, uninstall and reinstall
+
+Host tests cover update/rollback/uninstall logic, but target lifecycle evidence
+must use real installed releases.
+
+A first exact local-checkpoint installation may have **no previous validated
+release** to roll back to. In that case, record rollback as
+`BLOCKED_NO_PREVIOUS_VALIDATED_RELEASE`; do not manufacture a PASS. After a later
+checkpoint/fix package is available, use the two real releases to exercise
+forward update and rollback and then rerun only the affected target gates.
+
+The maintained installed helpers are:
+
+```bash
+sudo /usr/local/lib/gonken-agent/current/maintenance/update.sh
+sudo /usr/local/lib/gonken-agent/current/maintenance/rollback.sh
+sudo /usr/local/lib/gonken-agent/current/maintenance/uninstall.sh
+```
+
+`update.sh` normally targets the governed remote source. Do not run it in the
+checkpoint-23 evidence campaign merely to change away from the tested package.
+Use it when a specifically intended successor source/ref exists. Before
+uninstall, collect support evidence. Normal uninstall keeps project data unless
+its explicit purge contract is deliberately selected.
+
+## 13. Research/evaluation gates that remain distinct from appliance mechanics
+
+M7.1, M7.2 and M7.5 intentionally remain partial because synthetic fixtures are
+not a substitute for the approved real lab corpus, factual-support/adversarial
+model evaluation, and real-device performance campaign. The existing synthetic
+smoke benchmark may be rerun as regression evidence:
+
+```bash
+python3 /usr/local/lib/gonken-agent/current/maintenance/benchmark_grounding.py \
+  --output /tmp/gonken-grounding-smoke.json
+```
+
+If the installed maintenance payload does not expose that helper, run it from
+the exact checkpoint checkout instead:
+
+```bash
+python3 scripts/benchmark_grounding.py --output /tmp/gonken-grounding-smoke.json
+```
+
+Do not label this synthetic output as real-lab evidence. If the approved lab
+corpus/evaluation set is not available in the campaign, mark those evaluation
+gates `BLOCKED_INPUT_NOT_AVAILABLE` and continue independent hardware work.
+
+## 14. Performance/thermal observations
+
+During sustained real operation record, where available:
+
+```bash
+free -m
+vcgencmd get_throttled || true
+ps -eo pid,comm,%cpu,rss --sort=-%cpu | head -n 25
+systemctl status gonken-agent.service --no-pager -l
+systemctl status gonken-environment.service --no-pager -l || true
+```
+
+The V09 environment target is average environment-daemon CPU <=5% and RSS <=50
+MiB over a representative 30-minute steady run. Wake, STT/TTS and LLM latency
+must be measured on the real Pi rather than inferred from host tests. A threshold
+miss triggers diagnosis; do not weaken the criterion merely to obtain PASS.
+
+## 15. Support/evidence bundle to upload
+
+Collect the standard support bundle:
 
 ```bash
 sudo /usr/local/lib/gonken-agent/current/maintenance/collect-support.sh
 ```
 
-Preserve the printed ZIP and the exact bootstrap/service errors if any. Installer
-state/events remain under the root-owned `/var/lib/gonken-agent/install` tree.
+Upload the following after the campaign, without editing them to make results
+look cleaner:
 
-## 10. Acceptance decision
+1. the support ZIP printed by the collector;
+2. `m10_7_evidence_manifest.json`;
+3. `m10_7_private_evidence_ledger.csv`;
+4. the `private_evidence/` directory (ZIP it if convenient);
+5. GPIO mapping output for GPIO17/22/23/27;
+6. exact checkpoint commit and installed release path;
+7. manual observation notes for wake/audio/PTT/LED/relay/fan/sensor/reboot;
+8. exact error output for every FAIL/BLOCKED/NEEDS_MANUAL_REVIEW item.
 
-The build is appliance-ready only when all of these pass on the physical target:
+Raw audio is not required by default. Do not upload credentials, Wi-Fi
+passphrases, or unrelated personal data.
 
-- clean install reaches `READY`;
-- live wake + spoken question + spoken answer succeeds;
-- service starts without interactive login;
-- reboot returns to wake standby;
-- configured Bluetooth reconnects automatically where Bluetooth is in scope;
-- manual start/stop/restart/talk/log procedures work;
-- no Critical/High new defect remains unexplained.
+## 16. Acceptance decision and continuation rule
 
-A Pi 4 is not covered by this Pi 5 acceptance run. It requires a separate target
-profile and physical performance evidence.
+The package is **ready for the Raspberry Pi target campaign** when its host gate
+passes. It is not physically accepted until all acceptance-critical target rows
+have fresh evidence at the required tier.
+
+A final target PASS requires, as applicable:
+
+- exact-checkpoint clean install and provenance;
+- real wake, STT, local model, TTS and audio recovery;
+- no-login reboot convergence;
+- PTT/recording/wake indicators where in scope;
+- observed offline runtime boundary;
+- safe GPIO mapping and relay polarity;
+- real fan start/stop observation;
+- real SHT31/I2C/CRC/stale-recovery evidence when the sensor is available;
+- MANUAL/SEMI/AUTO/DISABLED semantics on the real controller;
+- failure/recovery and lifecycle evidence;
+- support/evidence bundle integrity;
+- no unresolved acceptance-critical defect.
+
+This is not a promise that the first physical campaign will be error-free. The
+engineering objective is to detect target-only defects, repair the smallest
+correct layer, rerun affected host regressions, and repeat only the uncertain
+physical gates until no acceptance-critical issue remains.
+
+**Continuation instruction after upload:**
+
+> Continue from checkpoint 23 using the uploaded Raspberry Pi target evidence.
+> Verify the exact checkpoint-23 package/commit/config first; classify every
+> result as host, simulation, hybrid, or physical evidence; repair only the
+> smallest failed layer; rerun affected host regressions and only the uncertain
+> target gates; do not restart architecture discovery or close M10.7 without
+> real evidence.
