@@ -19,6 +19,7 @@ from gonken_agent.environment import (
     SensorReading,
     TransitionReason,
 )
+from gonken_agent.environment.protocol import make_request
 from gonken_agent.environment.sensors import SensorAdapterError
 
 
@@ -133,6 +134,10 @@ class EnvironmentPollingLoopTests(unittest.TestCase):
         self.assertEqual(result["state"]["last_transition_reason"], TransitionReason.AUTO_START_THRESHOLD.value)
         self.assertEqual(actuator.commands[-1], FanPower.ON)
         self.assertEqual(core.daemon_metadata()["poll_count"], 1)
+        events = core.handle(make_request("events.get", {"limit": 4}))
+        controller_events = [event for event in events["events"] if event.get("event_type") == "controller.transition"]
+        self.assertEqual(controller_events[-1]["detail"]["reason"], TransitionReason.AUTO_START_THRESHOLD.value)
+        self.assertFalse(controller_events[-1]["physical_evidence"])
         self.assertFalse(result["physical_evidence"])
 
     def test_poll_once_converts_sensor_exception_to_degraded_safe_off(self) -> None:

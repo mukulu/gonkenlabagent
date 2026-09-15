@@ -135,7 +135,7 @@ The expected final boundary resembles:
 ```
 
 No reboot is normally required. The service is already started. If the output
-path is available the assistant announces readiness; say **Hey Gonken** to use
+path is available the assistant announces readiness; say **GonKen** to use
 it.
 
 ## Resume after failure/interruption

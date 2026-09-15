@@ -1272,3 +1272,29 @@ When daemon provenance reports a simulated sensor or actuator, voice responses m
 **Status:** accepted in checkpoint 19.
 
 The M10.7 physical acceptance runner may collect useful hybrid/simulation JSON, but if the parsed payload reports `sensor_is_simulated`, `actuator_is_simulated`, a simulated backend, or a hybrid/simulation evidence mode, the step is recorded as `BLOCKED` with `blocking_code=SIMULATION_ACTIVE_PHYSICAL_ACCEPTANCE_BLOCKED`. Exit code 0 from a daemon command is not enough to close a physical gate.
+
+## 2026-09-15 — Checkpoint 20 wake/responsiveness/announcement decisions
+
+### D-096 — Default packaged wake phrase is `GonKen`
+
+**Status:** accepted in checkpoint 20.
+
+The packaged default wake phrase is now `GonKen`. The host matcher accepts the legacy `Hey GonKen` phrase, split `Gon Ken` tokens and bounded one-edit variants of the `gonken` token to reduce software-side missed activations. This is host transcript-matching evidence only; real microphone/STT/wake false-trigger and latency acceptance remains target-gated.
+
+### D-097 — Wake diagnostics must not imply physical acceptance
+
+**Status:** accepted in checkpoint 20.
+
+`gonken-agent wake status --json` reports the configured phrase, matcher version, aliases and matcher boundary with `physical_evidence=false` and `real_wake_acceptance=NOT_RUN`. It is an operator diagnostic for software configuration and matching policy, not a claim that the physical Pi wake path has passed.
+
+### D-098 — Progress cues are bounded and local to the voice runtime
+
+**Status:** accepted in checkpoint 20.
+
+The voice runtime may issue at most the configured bounded post-question cues when a non-deterministic answer is still pending. Deterministic environment commands should normally skip progress cues. Cue audio is produced through the local Piper cache contract and does not use quarantined legacy filler WAVs.
+
+### D-099 — Environment transition announcements are voice-owned
+
+**Status:** accepted in checkpoint 20.
+
+The environment service records controller transition events; it does not own audio. The voice runtime may read those events and announce selected automatic/semi-automatic/safe-off transitions. Announcement wording must preserve simulation provenance and the current hardware boundary: relay/fan-power state is not blade-motion evidence and there is no software speed control.

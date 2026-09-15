@@ -51,7 +51,7 @@ systemctl status gonken-agent.service --no-pager -l
 With the service running, say:
 
 ```text
-Hey Gonken
+GonKen
 ```
 
 Then ask a short question. Record whether:
@@ -111,7 +111,7 @@ gonken-agent status --json
 journalctl -u gonken-agent.service -b --no-pager -n 100
 ```
 
-Repeat a real `Hey Gonken` voice interaction.
+Repeat a real `GonKen` voice interaction.
 
 ## 6. Degraded/recovery tests
 

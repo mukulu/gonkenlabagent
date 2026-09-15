@@ -14,9 +14,15 @@ from gonken_agent.audio.process import ProcessFailure
 from gonken_agent.voice_runtime import (
     AudioBackend,
     ConversationBrain,
+    EnvironmentTransitionAnnouncer,
+    ProcessingCuePlan,
+    RollingWakeTranscriptMatcher,
     VoiceAppliance,
     VoiceRuntimeError,
+    WAKE_MATCHER_VERSION,
+    _transition_announcement_text,
     _wake_remainder,
+    wake_matcher_aliases,
 )
 
 
@@ -27,6 +33,51 @@ class VoiceWakeTests(unittest.TestCase):
         self.assertEqual(_wake_remainder("please hey gonken", "Hey Gonken"), "")
         self.assertIsNone(_wake_remainder("hello assistant", "Hey Gonken"))
         self.assertIsNone(_wake_remainder("hay gonken", "Hey Gonken"))
+
+
+    def test_gonken_default_aliases_match_split_tokens_errors_and_legacy_hey_form(self) -> None:
+        self.assertEqual(_wake_remainder("GonKen what is the temperature", "GonKen"), "what is the temperature")
+        self.assertEqual(_wake_remainder("Gon Ken turn fan off", "GonKen"), "turn fan off")
+        self.assertEqual(_wake_remainder("Hey GonKen status", "GonKen"), "status")
+        self.assertEqual(_wake_remainder("gonkin tell me a joke", "GonKen"), "tell me a joke")
+        self.assertIsNone(_wake_remainder("gone camping is relaxing", "GonKen"))
+        self.assertIn("Hey GonKen", wake_matcher_aliases("GonKen"))
+        self.assertEqual(wake_matcher_aliases("Hey Gonken"), ["Hey Gonken"])
+
+    def test_rolling_wake_matcher_carries_short_tail_across_capture_windows(self) -> None:
+        matcher = RollingWakeTranscriptMatcher("GonKen")
+        self.assertIsNone(matcher.observe("gon"))
+        match = matcher.observe("ken what is the humidity")
+        self.assertIsNotNone(match)
+        self.assertEqual(match.remainder, "what is the humidity")
+        self.assertEqual(match.matcher_version, WAKE_MATCHER_VERSION)
+
+    def test_processing_cue_plan_cancels_unstarted_cues_when_answer_is_ready(self) -> None:
+        plan = ProcessingCuePlan()
+        self.assertIsNone(plan.due(elapsed_seconds=0.2, final_ready=False))
+        first = plan.due(elapsed_seconds=1.0, final_ready=False)
+        self.assertIsNotNone(first)
+        self.assertEqual(first.text, "Just a second.")
+        plan.mark_spoken(first)
+        self.assertIsNone(plan.due(elapsed_seconds=4.5, final_ready=True))
+        second = plan.due(elapsed_seconds=4.5, final_ready=False)
+        self.assertIsNotNone(second)
+        self.assertEqual(second.text, "I'm still working on that.")
+
+    def test_transition_announcement_text_preserves_simulation_and_motion_boundary(self) -> None:
+        event = {
+            "sequence": 1,
+            "source": "controller",
+            "event_type": "controller.transition",
+            "detail": {"reason": "AUTO_START_THRESHOLD", "fan_power": "on"},
+            "provenance": {"sensor_is_simulated": True, "actuator_is_simulated": True},
+        }
+        text = _transition_announcement_text(event)
+        self.assertIn("In simulation", text)
+        self.assertIn("automatic control", text)
+        self.assertIn("not physical blade-motion evidence", text)
+        event["detail"]["reason"] = "USER_MANUAL_ON"
+        self.assertIsNone(_transition_announcement_text(event))
 
     def test_alsa_card_parser_and_unique_selector(self) -> None:
         output = (
@@ -310,6 +361,27 @@ class VoiceTurnTests(unittest.TestCase):
         self.assertEqual(appliance.brain.question, "What is Python?")
         self.assertEqual(spoken[0], "Yes?")
         self.assertEqual(spoken[1], "Python is a programming language.")
+
+
+    def test_transition_announcer_returns_one_priority_message_without_daemon_audio_ownership(self) -> None:
+        class Client:
+            def __init__(self):
+                self.calls = 0
+            def events(self, *, limit=None):
+                self.calls += 1
+                return {
+                    "events": [
+                        {"sequence": 1, "source": "controller", "event_type": "controller.transition",
+                         "detail": {"reason": "AUTO_START_THRESHOLD", "fan_power": "on"},
+                         "provenance": {"sensor_is_simulated": False, "actuator_is_simulated": False}},
+                    ]
+                }
+        client = Client()
+        announcer = EnvironmentTransitionAnnouncer(lambda: client)
+        first = announcer.pending()
+        self.assertIn("room fan relay power on", first)
+        self.assertIn("not physical blade-motion evidence", first)
+        self.assertIsNone(announcer.pending())
 
     def test_ready_is_published_only_after_real_ready_announcement_playback(self) -> None:
         order = []

@@ -129,6 +129,12 @@ class EnvironmentServiceCore:
         self._poll_error_count = 0
         self._last_poll_monotonic: float | None = None
         self._last_poll_error_code: str | None = None
+        self._transition_sequence = 0
+        self._transition_events: list[dict[str, object]] = []
+        self._last_transition_key: tuple[str, float] | None = (
+            self.controller.state.last_transition_reason.value,
+            self.controller.state.last_transition_monotonic,
+        )
         self._closed = False
 
     @classmethod
@@ -202,6 +208,7 @@ class EnvironmentServiceCore:
                 reading = self._read_sensor_locked(now)
                 state = self.controller.observe(reading, now_monotonic=now)
                 self._apply_actuator_if_needed(now)
+                self._record_controller_transition_if_changed(now, self.controller.state)
                 self._last_poll_error_code = None if reading.is_valid() else reading.error_code
                 return {
                     "ok": True,
@@ -245,6 +252,7 @@ class EnvironmentServiceCore:
             reading = self._read_sensor_locked(now)
             state = self.controller.observe(reading, now_monotonic=now)
             self._apply_actuator_if_needed(now)
+            self._record_controller_transition_if_changed(now, self.controller.state)
             return {
                 "reading": reading.as_dict(
                     now_monotonic=now,
@@ -262,6 +270,7 @@ class EnvironmentServiceCore:
             power = _required_string(params, "power")
             state = self.controller.set_fan_power(FanPower.parse(power), now_monotonic=now)
             self._apply_actuator_if_needed(now)
+            self._record_controller_transition_if_changed(now, self.controller.state)
             self._save_policy_if_configured()
             return self._state_result(now, state=state)
         if operation == "mode.set":
@@ -269,6 +278,7 @@ class EnvironmentServiceCore:
             mode = _required_string(params, "mode")
             state = self.controller.set_mode(EnvironmentMode.parse(mode), now_monotonic=now)
             self._apply_actuator_if_needed(now)
+            self._record_controller_transition_if_changed(now, self.controller.state)
             self._save_policy_if_configured()
             return self._state_result(now, state=state)
         if operation == "policy.get":
@@ -297,6 +307,7 @@ class EnvironmentServiceCore:
             )
             state = self.controller.update_policy(next_policy, now_monotonic=now)
             self._apply_actuator_if_needed(now)
+            self._record_controller_transition_if_changed(now, self.controller.state)
             self._save_policy_if_configured()
             return self._state_result(now, state=state)
         if operation == "state.snapshot.get":
@@ -305,7 +316,7 @@ class EnvironmentServiceCore:
         if operation == "events.get":
             _reject_unknown_params(params, {"limit"})
             limit = _optional_int(params, "limit")
-            return {"events": self._simulation_events(limit=limit), "provenance": self._provenance_payload(), "physical_evidence": False}
+            return {"events": self._events_payload(limit=limit), "provenance": self._provenance_payload(), "physical_evidence": False}
         if operation == "simulation.status.get":
             _reject_unknown_params(params, set())
             return {"simulation": self._simulation_payload(), "provenance": self._provenance_payload(), "physical_evidence": False}
@@ -489,6 +500,39 @@ class EnvironmentServiceCore:
             "physical_evidence": False,
         })
         return payload
+
+    def _events_payload(self, *, limit: int | None = None) -> list[dict[str, object]]:
+        events = [*self._transition_events, *self._simulation_events(limit=None)]
+        events.sort(key=lambda item: float(item.get("monotonic", 0.0)))
+        if limit is not None:
+            events = events[-max(0, int(limit)):]
+        return events
+
+    def _record_controller_transition_if_changed(self, now: float, state: Any) -> None:
+        reason = getattr(getattr(state, "last_transition_reason", ""), "value", str(getattr(state, "last_transition_reason", "")))
+        transitioned_at = float(getattr(state, "last_transition_monotonic", now))
+        key = (str(reason), transitioned_at)
+        if key == self._last_transition_key:
+            return
+        self._last_transition_key = key
+        self._transition_sequence += 1
+        self._transition_events.append({
+            "sequence": self._transition_sequence,
+            "source": "controller",
+            "event_type": "controller.transition",
+            "monotonic": float(now),
+            "detail": {
+                "reason": str(reason),
+                "mode": getattr(getattr(state, "mode", ""), "value", str(getattr(state, "mode", ""))),
+                "fan_power": getattr(getattr(state, "fan_power", ""), "value", str(getattr(state, "fan_power", ""))),
+                "sensor_quality": getattr(getattr(state, "sensor_quality", ""), "value", str(getattr(state, "sensor_quality", ""))),
+                "last_transition_monotonic": transitioned_at,
+            },
+            "provenance": self._provenance_payload(),
+            "physical_evidence": False,
+        })
+        if len(self._transition_events) > 128:
+            del self._transition_events[: len(self._transition_events) - 128]
 
     def _simulation_events(self, *, limit: int | None = None) -> list[dict[str, object]]:
         if self.simulation_state is None:

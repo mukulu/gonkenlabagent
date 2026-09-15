@@ -13,6 +13,7 @@ operator's terminal.
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import re
@@ -23,6 +24,7 @@ import tempfile
 import threading
 import time
 import wave
+from dataclasses import dataclass
 from pathlib import Path
 
 from .audio.speech import Piper, Whisper, validate_wav
@@ -82,6 +84,12 @@ def _safe_run(args: list[str], *, timeout: float = 20.0) -> subprocess.Completed
         raise VoiceRuntimeError("AUDIO_COMMAND_FAILED", f"{args[0]} {type(exc).__name__}") from exc
 
 
+WAKE_MATCHER_VERSION = "v09-gonken-recall-1"
+WAKE_DEFAULT_PHRASE = "GonKen"
+_WAKE_ALIAS_PHRASES = ("GonKen", "Gonken", "Hey GonKen", "Hey Gonken", "Gon Ken", "Hey Gon Ken")
+_WAKE_GONKEN_TOKENS = {"gonken", "gon", "ken"}
+
+
 def _normalize_words(text: str) -> list[str]:
     return re.findall(r"[a-z0-9]+", text.casefold())
 
@@ -105,21 +113,266 @@ def _edit_distance_at_most_one(left: str, right: str) -> bool:
     return True
 
 
-def _wake_remainder(text: str, phrase: str) -> str | None:
-    words = _normalize_words(text)
-    target = _normalize_words(phrase)
-    if not target or len(words) < len(target):
+@dataclass(frozen=True, slots=True)
+class WakeMatch:
+    phrase: str
+    alias: str
+    remainder: str
+    matched_tokens: tuple[str, ...]
+    matcher_version: str = WAKE_MATCHER_VERSION
+
+
+def wake_matcher_aliases(phrase: str) -> list[str]:
+    """Return the governed host-matcher phrases for diagnostics/tests.
+
+    When the configured phrase is the mandatory V09 default ``GonKen``, retain
+    ``Hey GonKen`` as a backward-compatible alias.  When an operator explicitly
+    configures a longer phrase such as ``Hey Gonken``, do not silently add the
+    shorter one-word phrase because that would expand the operator's wake
+    surface.
+    """
+
+    ordered: list[str] = []
+    normalized_phrase_words = _normalize_words(phrase)
+    candidates = (phrase, *_WAKE_ALIAS_PHRASES) if normalized_phrase_words in (["gonken"], ["gon", "ken"]) else (phrase,)
+    for candidate in candidates:
+        normalized = " ".join(candidate.split())
+        if normalized and normalized.casefold() not in {item.casefold() for item in ordered}:
+            ordered.append(normalized)
+    return ordered
+
+
+def _candidate_token_sequences(words: list[str]) -> list[tuple[list[str], list[tuple[int, int]]]]:
+    """Return bounded tokenizations, including adjacent-token joins.
+
+    The matcher is transcript-based.  Adjacent-token joining lets "Gon Ken" or
+    a capture boundary represented as two tokens still match the configured
+    single-token wake phrase, without opening a raw fuzzy substring surface.
+    """
+
+    sequences: list[tuple[list[str], list[tuple[int, int]]]] = [(list(words), [(idx, idx + 1) for idx in range(len(words))])]
+    for join_at in range(max(0, len(words) - 1)):
+        joined_words: list[str] = []
+        spans: list[tuple[int, int]] = []
+        idx = 0
+        while idx < len(words):
+            if idx == join_at:
+                joined_words.append(words[idx] + words[idx + 1])
+                spans.append((idx, idx + 2))
+                idx += 2
+            else:
+                joined_words.append(words[idx])
+                spans.append((idx, idx + 1))
+                idx += 1
+        sequences.append((joined_words, spans))
+    return sequences
+
+
+def _wake_token_matches(actual: str, expected: str) -> bool:
+    if actual == expected:
+        return True
+    # One-edit matching is restricted to the GonKen-like token.  Short generic
+    # tokens such as "hey" remain exact to avoid accepting ordinary speech as a
+    # wake phrase.
+    if expected == "gonken" and len(actual) >= 5:
+        return _edit_distance_at_most_one(actual, expected)
+    return False
+
+
+def _wake_match(text: str, phrase: str) -> WakeMatch | None:
+    original_words = _normalize_words(text)
+    if not original_words:
         return None
-    for start in range(0, len(words) - len(target) + 1):
-        candidate = words[start : start + len(target)]
-        matches = all(
-            actual == expected
-            or (len(expected) >= 5 and _edit_distance_at_most_one(actual, expected))
-            for actual, expected in zip(candidate, target)
-        )
-        if matches:
-            return " ".join(words[start + len(target) :]).strip()
+    for alias in wake_matcher_aliases(phrase):
+        target = _normalize_words(alias)
+        if not target:
+            continue
+        for candidate_words, spans in _candidate_token_sequences(original_words):
+            if len(candidate_words) < len(target):
+                continue
+            for start in range(0, len(candidate_words) - len(target) + 1):
+                selected = candidate_words[start : start + len(target)]
+                if all(_wake_token_matches(actual, expected) for actual, expected in zip(selected, target)):
+                    source_end = spans[start + len(target) - 1][1]
+                    remainder = " ".join(original_words[source_end:]).strip()
+                    return WakeMatch(
+                        phrase=phrase,
+                        alias=alias,
+                        remainder=remainder,
+                        matched_tokens=tuple(selected),
+                    )
     return None
+
+
+def _wake_remainder(text: str, phrase: str) -> str | None:
+    match = _wake_match(text, phrase)
+    return None if match is None else match.remainder
+
+
+class RollingWakeTranscriptMatcher:
+    """Bounded transcript matcher that carries a short tail across captures."""
+
+    def __init__(self, phrase: str, *, max_tail_words: int = 3) -> None:
+        self.phrase = phrase
+        self.max_tail_words = max(0, int(max_tail_words))
+        self._tail: list[str] = []
+
+    def observe(self, transcript: str) -> WakeMatch | None:
+        words = _normalize_words(transcript)
+        combined = " ".join([*self._tail, *words])
+        match = _wake_match(combined, self.phrase)
+        self._tail = words[-self.max_tail_words :] if self.max_tail_words else []
+        return match
+
+
+@dataclass(frozen=True, slots=True)
+class ProcessingCue:
+    code: str
+    text: str
+    due_after_seconds: float
+
+
+class ProcessingCuePlan:
+    """Deterministic progress-cue state machine for host tests and runtime."""
+
+    DEFAULT_CUES = (
+        ProcessingCue("ACK_DELAY", "Just a second.", 0.9),
+        ProcessingCue("STILL_WORKING", "I'm still working on that.", 4.0),
+    )
+
+    def __init__(self, cues: tuple[ProcessingCue, ...] | None = None, *, enabled: bool = True) -> None:
+        self.cues = cues or self.DEFAULT_CUES
+        self.enabled = enabled
+        self._spoken: set[str] = set()
+
+    def due(self, *, elapsed_seconds: float, final_ready: bool) -> ProcessingCue | None:
+        if not self.enabled or final_ready:
+            return None
+        for cue in self.cues:
+            if cue.code not in self._spoken and elapsed_seconds >= cue.due_after_seconds:
+                return cue
+        return None
+
+    def mark_spoken(self, cue: ProcessingCue) -> None:
+        self._spoken.add(cue.code)
+
+
+class VoiceCueCache:
+    """Local Piper-generated cache for short governed progress cues."""
+
+    def __init__(self, cache_dir: Path) -> None:
+        self.cache_dir = Path(cache_dir)
+        self.manifest_path = self.cache_dir / "manifest.json"
+
+    def ensure(self, *, text: str, piper: Piper, stop: threading.Event) -> Path:
+        self.cache_dir.mkdir(mode=0o700, parents=True, exist_ok=True)
+        key = hashlib.sha256(f"{piper.voice}\0{text}".encode("utf-8")).hexdigest()
+        wav_path = self.cache_dir / f"{key}.wav"
+        manifest = self._read_manifest()
+        entry = manifest.get(key)
+        if isinstance(entry, dict) and wav_path.is_file():
+            try:
+                validate_wav(wav_path, max_seconds=10)
+                return wav_path
+            except Exception:
+                wav_path.unlink(missing_ok=True)
+        with piper.synthesize(text, stop) as generated:
+            data = generated.read_bytes()
+        wav_path.write_bytes(data)
+        validate_wav(wav_path, max_seconds=10)
+        digest = hashlib.sha256(data).hexdigest()
+        manifest[key] = {
+            "text": text,
+            "voice": str(piper.voice),
+            "wav_sha256": digest,
+            "physical_evidence": False,
+        }
+        temporary = self.manifest_path.with_name(f".{self.manifest_path.name}.{os.getpid()}")
+        temporary.write_text(json.dumps(manifest, sort_keys=True, indent=2) + "\n", encoding="utf-8")
+        os.replace(temporary, self.manifest_path)
+        return wav_path
+
+    def _read_manifest(self) -> dict[str, object]:
+        try:
+            if self.manifest_path.is_file() and not self.manifest_path.is_symlink() and self.manifest_path.stat().st_size <= 65536:
+                value = json.loads(self.manifest_path.read_text(encoding="utf-8"))
+                if isinstance(value, dict):
+                    return value
+        except (OSError, json.JSONDecodeError):
+            pass
+        return {}
+
+
+_ANNOUNCED_TRANSITION_REASONS = {
+    "AUTO_START_THRESHOLD",
+    "AUTO_STOP_THRESHOLD",
+    "SEMI_AUTO_STOP",
+    "SENSOR_STALE_SAFE_OFF",
+    "ACTUATOR_ERROR_SAFE_OFF",
+}
+
+
+def _transition_announcement_text(event: dict[str, object]) -> str | None:
+    detail = event.get("detail") if isinstance(event.get("detail"), dict) else {}
+    provenance = event.get("provenance") if isinstance(event.get("provenance"), dict) else {}
+    reason = str(detail.get("reason", ""))
+    if reason not in _ANNOUNCED_TRANSITION_REASONS:
+        return None
+    simulated = bool(provenance.get("sensor_is_simulated") or provenance.get("actuator_is_simulated"))
+    prefix = "In simulation, " if simulated else ""
+    fan_power = str(detail.get("fan_power", "off"))
+    if reason == "AUTO_START_THRESHOLD":
+        subject = "the simulated fan actuator" if simulated else "the room fan relay"
+        return f"{prefix}automatic control set {subject} power {fan_power} after the start threshold. This is not physical blade-motion evidence."
+    if reason == "AUTO_STOP_THRESHOLD":
+        subject = "the simulated fan actuator" if simulated else "the room fan relay"
+        return f"{prefix}automatic control set {subject} power {fan_power} after the stop threshold."
+    if reason == "SEMI_AUTO_STOP":
+        subject = "the simulated fan actuator" if simulated else "the room fan relay"
+        return f"{prefix}semi-automatic control set {subject} power off after the stop threshold."
+    if reason == "SENSOR_STALE_SAFE_OFF":
+        return f"{prefix}sensor data became stale, so environment control forced safe off."
+    if reason == "ACTUATOR_ERROR_SAFE_OFF":
+        return f"{prefix}the actuator reported an error, so environment control forced safe off."
+    return None
+
+
+class EnvironmentTransitionAnnouncer:
+    """Voice-owned observer for daemon transition events.
+
+    The environment daemon records typed events; only the voice runtime may turn
+    them into speech, preserving the single audio owner boundary.
+    """
+
+    def __init__(self, client_factory, *, limit: int = 8) -> None:
+        self.client_factory = client_factory
+        self.limit = limit
+        self._seen: set[tuple[str, int]] = set()
+
+    def pending(self) -> str | None:
+        try:
+            payload = self.client_factory().events(limit=self.limit)
+        except EnvironmentClientError:
+            return None
+        events = payload.get("events") if isinstance(payload, dict) else None
+        if not isinstance(events, list):
+            return None
+        for event in events:
+            if not isinstance(event, dict):
+                continue
+            source = str(event.get("source", event.get("event_type", "unknown")))
+            try:
+                sequence = int(event.get("sequence", -1))
+            except (TypeError, ValueError):
+                continue
+            key = (source, sequence)
+            if key in self._seen:
+                continue
+            self._seen.add(key)
+            text = _transition_announcement_text(event)
+            if text:
+                return text
+        return None
 
 
 class AudioBackend:
@@ -569,6 +822,10 @@ class ConversationBrain:
         self.history = self.history[-8:]
         return answer
 
+    def is_fast_deterministic(self, question: str) -> bool:
+        result = parse_environment_intent(" ".join(question.split()))
+        return isinstance(result, (EnvironmentClarification, EnvironmentIntent))
+
     def _environment_reply(self, intent: EnvironmentIntent) -> str:
         try:
             client = self.environment_client_factory()
@@ -618,7 +875,11 @@ class VoiceAppliance:
             config.paths.piper_voice,
             self.runtime_dir,
         )
+        self.cue_cache = VoiceCueCache(Path(config.paths.cache_dir) / "voice-cues")
         self.brain = ConversationBrain(config)
+        self.transition_announcer = EnvironmentTransitionAnnouncer(
+            lambda: EnvironmentClient(config.extensions.environment.socket_path, timeout_seconds=1.0)
+        )
         self.ready = False
         self.publish_ready = not foreground
         self._last_wait_code = ""
@@ -659,6 +920,57 @@ class VoiceAppliance:
     def speak(self, text: str) -> None:
         with self.piper.synthesize(text, self.stop) as wav:
             self.audio.play(wav)
+
+    def speak_progress_cue(self, text: str) -> None:
+        wav = self.cue_cache.ensure(text=text, piper=self.piper, stop=self.stop)
+        self.audio.play(wav)
+
+    def _answer_question(self, question: str) -> str:
+        fast_check = getattr(self.brain, "is_fast_deterministic", None)
+        if not callable(fast_check):
+            return self.brain.reply(question, self.stop)
+        if fast_check(question):
+            return self.brain.reply(question, self.stop)
+        return self._reply_with_progress_cues(question)
+
+    def _reply_with_progress_cues(self, question: str) -> str:
+        plan = ProcessingCuePlan()
+        holder: dict[str, object] = {}
+
+        def worker() -> None:
+            try:
+                holder["answer"] = self.brain.reply(question, self.stop)
+            except BaseException as exc:  # preserve exact runtime exception for main thread
+                holder["error"] = exc
+
+        thread = threading.Thread(target=worker, name="gonken-reply", daemon=True)
+        started = time.monotonic()
+        thread.start()
+        while thread.is_alive() and not self.stop.is_set():
+            cue = plan.due(elapsed_seconds=time.monotonic() - started, final_ready=False)
+            if cue is not None:
+                self._event("RUNNING", "VOICE_PROGRESS_CUE", cue=cue.code)
+                try:
+                    self.speak_progress_cue(cue.text)
+                finally:
+                    plan.mark_spoken(cue)
+            thread.join(timeout=0.05)
+        thread.join(timeout=0.1)
+        if "error" in holder:
+            raise holder["error"]  # type: ignore[misc]
+        if "answer" not in holder:
+            raise VoiceRuntimeError("LOCAL_MODEL_RESPONSE_INTERRUPTED")
+        return str(holder["answer"])
+
+    def _announce_environment_transitions(self) -> None:
+        announcer = getattr(self, "transition_announcer", None)
+        if announcer is None:
+            return
+        text = announcer.pending()
+        if not text:
+            return
+        self._event("RUNNING", "ENVIRONMENT_TRANSITION_ANNOUNCEMENT")
+        self.speak(text)
 
     def probe(self) -> dict[str, object]:
         audio = self.audio.probe()
@@ -724,7 +1036,7 @@ class VoiceAppliance:
         if foreground:
             print(f"You: {question}", flush=True)
         self._event("RUNNING", "VOICE_THINKING")
-        answer = self.brain.reply(question, self.stop)
+        answer = self._answer_question(question)
         if foreground:
             print(f"GonKen: {answer}", flush=True)
         self._event("RUNNING", "VOICE_SPEAKING")
@@ -738,13 +1050,16 @@ class VoiceAppliance:
         phrase = self.config.extensions.wake_word.phrase
         if not self.wait_until_ready():
             return 0
-        self._event("RUNNING", "WAKE_STANDBY", phrase=phrase)
+        matcher = RollingWakeTranscriptMatcher(phrase)
+        self._event("RUNNING", "WAKE_STANDBY", phrase=phrase, matcher=WAKE_MATCHER_VERSION)
         while not self.stop.is_set():
             try:
+                self._announce_environment_transitions()
                 heard = self.capture_text(2)
-                if _wake_remainder(heard, phrase) is None:
+                match = matcher.observe(heard)
+                if match is None:
                     continue
-                self._event("OK", "WAKE_DETECTED")
+                self._event("OK", "WAKE_DETECTED", alias=match.alias, matcher=match.matcher_version)
                 # Wake detection and question capture are intentionally two
                 # separate turns.  A two-second phrase-spotting window can cut a
                 # same-breath question mid-sentence; acknowledging first gives
@@ -758,11 +1073,11 @@ class VoiceAppliance:
                 if not question:
                     self._event("INFO", "VOICE_NO_SPEECH")
                     continue
-                answer = self.brain.reply(question, self.stop)
+                answer = self._answer_question(question)
                 self._event("RUNNING", "VOICE_SPEAKING")
                 self.speak(answer)
                 self._event("OK", "VOICE_TURN_COMPLETE")
-                self._event("RUNNING", "WAKE_STANDBY", phrase=phrase)
+                self._event("RUNNING", "WAKE_STANDBY", phrase=phrase, matcher=WAKE_MATCHER_VERSION)
             except Exception as exc:
                 if self.stop.is_set():
                     break
@@ -776,7 +1091,7 @@ class VoiceAppliance:
                 self.stop.wait(5)
                 if not self.wait_until_ready():
                     break
-                self._event("RUNNING", "WAKE_STANDBY", phrase=phrase)
+                self._event("RUNNING", "WAKE_STANDBY", phrase=phrase, matcher=WAKE_MATCHER_VERSION)
         return 0
 
     def close(self) -> None:

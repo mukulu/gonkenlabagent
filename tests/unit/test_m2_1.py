@@ -125,6 +125,18 @@ class CliTests(unittest.TestCase):
         self.assertEqual(payload["extensions"]["wake_word"], "enabled")
         self.assertEqual(payload["extensions"]["bluetooth"], "disabled")
 
+    def test_wake_status_reports_gonken_default_without_physical_acceptance_claim(self) -> None:
+        output = io.StringIO()
+        with contextlib.redirect_stdout(output):
+            result = cli.main(["wake", "status", "--json"])
+        payload = json.loads(output.getvalue())
+
+        self.assertEqual(result, 0)
+        self.assertEqual(payload["wake_phrase"], "GonKen")
+        self.assertIn("Hey GonKen", payload["aliases"])
+        self.assertFalse(payload["physical_evidence"])
+        self.assertEqual(payload["real_wake_acceptance"], "NOT_RUN")
+
     def test_packaged_run_enters_voice_appliance_runtime(self) -> None:
         with mock.patch("gonken_agent.voice_runtime.run_appliance", return_value=0) as runtime:
             result = cli.main(["run"])

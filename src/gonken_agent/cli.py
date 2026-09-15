@@ -22,7 +22,7 @@ EXIT_UNSUPPORTED = 3
 def _status() -> dict[str, object]:
     ready_file = Path("/run/gonken-agent/ready.json")
     runtime_ready = False
-    wake_phrase = "Hey Gonken"
+    wake_phrase = "GonKen"
     try:
         if ready_file.is_file() and not ready_file.is_symlink() and ready_file.stat().st_size <= 8192:
             payload = json.loads(ready_file.read_text(encoding="utf-8"))
@@ -71,6 +71,11 @@ def _build_parser() -> argparse.ArgumentParser:
         "status", help="show the implementation boundary"
     )
     status_parser.add_argument("--json", action="store_true", dest="as_json")
+
+    wake_parser = subparsers.add_parser("wake", help="inspect wake phrase and matcher boundary")
+    wake_commands = wake_parser.add_subparsers(dest="wake_command", required=True)
+    wake_status = wake_commands.add_parser("status", help="show configured wake phrase and host matcher metadata")
+    wake_status.add_argument("--json", action="store_true", dest="as_json")
 
     run_parser = subparsers.add_parser(
         "run", help="run an available runtime entry point"
@@ -182,6 +187,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             print("Redistribution: prohibited; no project license is granted")
             print(f"Bluetooth: {status['extensions']['bluetooth']}")
         return 0
+    if args.command == "wake":
+        return _execute_wake_command(args)
     if args.command == "run":
         if args.text_only:
             if args.legacy_source:
@@ -274,6 +281,41 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     parser.error(f"unsupported command: {args.command}")
     return EXIT_UNSUPPORTED
+
+
+def _execute_wake_command(args: argparse.Namespace) -> int:
+    if args.wake_command != "status":
+        raise ValueError("unsupported wake command")
+    try:
+        effective = load_config()
+        from .voice_runtime import WAKE_MATCHER_VERSION, wake_matcher_aliases
+
+        phrase = effective.config.extensions.wake_word.phrase
+        payload = {
+            "status": "READY_FOR_HOST_MATCHING",
+            "wake_phrase": phrase,
+            "wake_matcher_version": WAKE_MATCHER_VERSION,
+            "aliases": wake_matcher_aliases(phrase),
+            "matching": {
+                "unicode_case_punctuation_normalization": True,
+                "adjacent_token_joining": True,
+                "bounded_one_edit_for_gonken_like_tokens": True,
+                "hey_gonken_alias": True,
+            },
+            "physical_evidence": False,
+            "real_wake_acceptance": "NOT_RUN",
+        }
+    except (ConfigError, OSError) as exc:
+        print(f"Wake configuration error: {exc}", file=sys.stderr)
+        return EXIT_FAILED
+    if args.as_json:
+        print(json.dumps(payload, sort_keys=True))
+    else:
+        print(f"Wake phrase: {payload['wake_phrase']}")
+        print(f"Matcher: {payload['wake_matcher_version']}")
+        print("Aliases: " + ", ".join(str(alias) for alias in payload["aliases"]))
+        print("Physical wake acceptance: NOT_RUN")
+    return 0
 
 
 def _add_env_json_flag(parser: argparse.ArgumentParser) -> None:
