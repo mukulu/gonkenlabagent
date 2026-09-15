@@ -83,7 +83,31 @@ def _sanitize_environment(environment):
             'overall': _bounded_token(ipc.get('overall', 'UNKNOWN')),
             'physical_evidence': bool(ipc.get('physical_evidence', False)),
         }
-    for key in ('sensor_backend', 'i2c_address_hex', 'relay_backend'):
+    simulation = environment.get('simulation', {})
+    if isinstance(simulation, Mapping):
+        result['simulation'] = {
+            'status': _bounded_token(simulation.get('status', 'UNAVAILABLE')),
+            'active': bool(simulation.get('active', False)),
+            'runtime_control_enabled': bool(simulation.get('runtime_control_enabled', False)),
+            'sensor_is_simulated': bool(simulation.get('sensor_is_simulated', False)),
+            'actuator_is_simulated': bool(simulation.get('actuator_is_simulated', False)),
+            'evidence_mode': _bounded_token(simulation.get('evidence_mode', 'UNKNOWN')),
+            'actuator_behavior': _bounded_token(simulation.get('actuator_behavior', 'unknown')),
+            'actuator_modeled_power': _bounded_token(simulation.get('actuator_modeled_power', 'unknown')),
+            'physical_evidence': bool(simulation.get('physical_evidence', False)),
+        }
+    snapshot = environment.get('snapshot', {})
+    if isinstance(snapshot, Mapping):
+        result['snapshot'] = {
+            'status': _bounded_token(snapshot.get('status', 'UNAVAILABLE')),
+            'environment': _bounded_token(snapshot.get('environment', 'UNKNOWN')),
+            'mode': _bounded_token(snapshot.get('mode', 'unknown')),
+            'fan_power': _bounded_token(snapshot.get('fan_power', 'unknown')),
+            'sensor_quality': _bounded_token(snapshot.get('sensor_quality', 'unknown')),
+            'last_transition_reason': _bounded_token(snapshot.get('last_transition_reason', 'unknown')),
+            'physical_evidence': bool(snapshot.get('physical_evidence', False)),
+        }
+    for key in ('sensor_backend', 'i2c_address_hex', 'relay_backend', 'evidence_mode'):
         if key in environment:
             result[key] = _bounded_token(environment[key])
     for key in ('i2c_bus', 'relay_bcm'):

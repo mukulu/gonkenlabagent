@@ -1251,3 +1251,12 @@ transport checks are repeated.
 - **Decision:** Checkpoint 17 exposes simulation operations in protocol/client/core tests but does not yet add the `gonken-agent env simulate ...` command family.
 - **Reason:** The lower-level service contract must be verified before adding operator ergonomics, documentation and support-bundle commitments.
 - **Consequence:** Checkpoint 18 should add the CLI layer, passive watch and diagnostics/support simulation visibility using the checkpoint-17 protocol surface.
+
+
+## 2026-09-15 — Checkpoint 18 operator simulation and passive watch decisions
+
+- **Decision:** `gonken-agent env simulate ...` is the operator-facing simulation command family.  It uses the same bounded AF_UNIX environment client as normal environment commands and exposes no raw GPIO, I2C, shell or arbitrary object-construction surface.
+- **Decision:** Simulation mutation is accepted only when `simulation_runtime_control_enabled=true` and the relevant backend axis is simulated.  The daemon, not the CLI, enforces the final guardrail.
+- **Decision:** `gonken-agent env watch` is a passive observer of `state.snapshot.get`.  `gonken-agent env read` remains the explicit active sensor-read command.
+- **Decision:** Diagnostics, support and dashboard may expose content-free simulation provenance, snapshot state and physical-evidence flags.  They must not include raw voice content, raw audio, arbitrary files or physical-acceptance claims.
+- **Remaining:** Simulation-aware voice wording, hybrid HIL blocking/refusal behavior, default `GonKen` wake, progress cues and autonomous transition announcements remain separate follow-on checkpoints.

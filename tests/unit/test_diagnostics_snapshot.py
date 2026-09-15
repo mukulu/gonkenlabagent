@@ -89,6 +89,33 @@ class StartupSnapshotTests(unittest.TestCase):
                     "controller": "ACTIVE",
                     "physical_evidence": False,
                 }
+            def simulation_status(self):
+                return {
+                    "simulation": {
+                        "active": True,
+                        "runtime_control_enabled": True,
+                        "sensor_is_simulated": True,
+                        "actuator_is_simulated": True,
+                        "evidence_mode": "HOST_SIMULATION",
+                        "simulation_generation": 7,
+                        "sensor": {"fault": None},
+                        "actuator": {"behavior": "normal", "modeled_power": "off"},
+                    },
+                    "physical_evidence": False,
+                }
+            def snapshot(self):
+                return {
+                    "environment": "READY",
+                    "state": {
+                        "mode": "automatic",
+                        "fan_power": "off",
+                        "sensor_quality": "ready",
+                        "last_transition_reason": "BOOT_SAFE_OFF",
+                    },
+                    "polling": {"poll_count": 3},
+                    "provenance": {"sensor_backend": "simulated", "actuator_backend": "simulated"},
+                    "physical_evidence": False,
+                }
         socket_path = self.root / "run" / "env.sock"
         socket_path.parent.mkdir(parents=True, exist_ok=True)
         socket_path.touch()
@@ -108,6 +135,10 @@ class StartupSnapshotTests(unittest.TestCase):
         self.assertEqual(diag["static"]["i2c_address_hex"], "0x44")
         self.assertEqual(diag["ipc"]["status"], "READY")
         self.assertEqual(diag["ipc"]["overall"], "READY")
+        self.assertTrue(diag["ipc"]["simulation"]["active"])
+        self.assertEqual(diag["ipc"]["simulation"]["evidence_mode"], "HOST_SIMULATION")
+        self.assertEqual(diag["ipc"]["snapshot"]["mode"], "automatic")
+        self.assertFalse(diag["ipc"]["snapshot"]["physical_evidence"])
         self.assertNotIn(str(self.root), json.dumps(diag, sort_keys=True))
 
     def test_unsafe_snapshot_input_rejected(self):

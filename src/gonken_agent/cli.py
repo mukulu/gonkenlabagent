@@ -362,6 +362,54 @@ def _add_environment_commands(subparsers: argparse._SubParsersAction[argparse.Ar
     policy_set.add_argument("--minimum-off-seconds", type=int)
     _add_env_json_flag(policy_set)
 
+    simulate_parser = env_commands.add_parser(
+        "simulate",
+        help="inspect or mutate daemon-owned simulation state through local IPC",
+    )
+    simulate_commands = simulate_parser.add_subparsers(dest="simulate_command", required=True)
+
+    simulate_status = simulate_commands.add_parser("status", help="show simulation state and provenance")
+    _add_env_json_flag(simulate_status)
+    simulate_reset = simulate_commands.add_parser("reset", help="reset simulated sensor and actuator state")
+    _add_env_json_flag(simulate_reset)
+
+    simulate_sensor = simulate_commands.add_parser("sensor", help="control simulated sensor state")
+    simulate_sensor_commands = simulate_sensor.add_subparsers(dest="simulate_sensor_command", required=True)
+    sensor_set = simulate_sensor_commands.add_parser("set", help="set simulated temperature and humidity")
+    sensor_set.add_argument("--temperature-c", type=float, required=True)
+    sensor_set.add_argument("--humidity-pct", type=float, required=True)
+    _add_env_json_flag(sensor_set)
+    for sensor_fault, help_text in (
+        ("unavailable", "make the simulated sensor unavailable"),
+        ("crc-error", "make the simulated sensor report a CRC failure"),
+    ):
+        sensor_fault_parser = simulate_sensor_commands.add_parser(sensor_fault, help=help_text)
+        _add_env_json_flag(sensor_fault_parser)
+    sensor_stale = simulate_sensor_commands.add_parser("stale", help="make the simulated sensor reading stale")
+    sensor_stale.add_argument("--age-seconds", type=float, required=True)
+    _add_env_json_flag(sensor_stale)
+    sensor_recover = simulate_sensor_commands.add_parser("recover", help="recover the simulated sensor with a valid reading")
+    sensor_recover.add_argument("--temperature-c", type=float, required=True)
+    sensor_recover.add_argument("--humidity-pct", type=float, required=True)
+    _add_env_json_flag(sensor_recover)
+    sensor_reset = simulate_sensor_commands.add_parser("reset", help="reset simulated sensor state")
+    _add_env_json_flag(sensor_reset)
+
+    simulate_fan = simulate_commands.add_parser("fan", help="inspect or fault the simulated fan actuator")
+    simulate_fan_commands = simulate_fan.add_subparsers(dest="simulate_fan_command", required=True)
+    fan_show = simulate_fan_commands.add_parser("show", help="show simulated fan actuator state")
+    _add_env_json_flag(fan_show)
+    fan_behavior = simulate_fan_commands.add_parser("behavior", help="set simulated actuator behavior")
+    fan_behavior.add_argument("behavior", choices=("normal", "unavailable", "fail-next-write"))
+    _add_env_json_flag(fan_behavior)
+    for fan_fault, help_text in (
+        ("unavailable", "make the simulated fan actuator unavailable"),
+        ("fail-next-write", "make the next simulated actuator write fail"),
+        ("reset", "reset simulated fan actuator state"),
+    ):
+        fan_fault_parser = simulate_fan_commands.add_parser(fan_fault, help=help_text)
+        _add_env_json_flag(fan_fault_parser)
+
 
 def _execute_environment_command(args: argparse.Namespace) -> int:
     if args.env_command == "serve":
@@ -398,7 +446,11 @@ def _run_environment_watch(args: argparse.Namespace) -> int:
         client = _environment_client_from_args(args)
         samples = 0
         while True:
-            payload = client.read_sensor()  # type: ignore[attr-defined]
+            # Watch is deliberately passive: it observes the daemon-owned latest
+            # snapshot and must not create extra sensor samples, alter recovery
+            # windows, or trigger actuator writes. Explicit `env read` remains
+            # the active read-now command.
+            payload = client.snapshot()  # type: ignore[attr-defined]
             if args.as_json:
                 print(json.dumps(payload, sort_keys=True), flush=True)
             else:
@@ -529,7 +581,45 @@ def _call_environment_command(client: object, args: argparse.Namespace) -> Mappi
             if not selected:
                 raise ValueError("policy set requires at least one field")
             return client.policy_update(**selected)  # type: ignore[attr-defined]
+    if command == "simulate":
+        return _call_environment_simulation_command(client, args)
     raise ValueError(f"unsupported env command: {command}")
+
+
+def _call_environment_simulation_command(client: object, args: argparse.Namespace) -> Mapping[str, object]:
+    command = args.simulate_command
+    if command == "status":
+        return client.simulation_status()  # type: ignore[attr-defined]
+    if command == "reset":
+        return client.simulation_reset()  # type: ignore[attr-defined]
+    if command == "sensor":
+        sensor_command = args.simulate_sensor_command
+        if sensor_command in {"set", "recover"}:
+            return client.simulation_sensor_set(  # type: ignore[attr-defined]
+                temperature_c=args.temperature_c,
+                relative_humidity_pct=args.humidity_pct,
+            )
+        if sensor_command == "unavailable":
+            return client.simulation_sensor_fault("unavailable")  # type: ignore[attr-defined]
+        if sensor_command == "crc-error":
+            return client.simulation_sensor_fault("crc_error")  # type: ignore[attr-defined]
+        if sensor_command == "stale":
+            return client.simulation_sensor_fault("stale", age_seconds=args.age_seconds)  # type: ignore[attr-defined]
+        if sensor_command == "reset":
+            return client.simulation_sensor_reset()  # type: ignore[attr-defined]
+    if command == "fan":
+        fan_command = args.simulate_fan_command
+        if fan_command == "show":
+            return client.simulation_status()  # type: ignore[attr-defined]
+        if fan_command == "behavior":
+            return client.simulation_actuator_behavior_set(args.behavior)  # type: ignore[attr-defined]
+        if fan_command == "unavailable":
+            return client.simulation_actuator_behavior_set("unavailable")  # type: ignore[attr-defined]
+        if fan_command == "fail-next-write":
+            return client.simulation_actuator_behavior_set("fail_next_write")  # type: ignore[attr-defined]
+        if fan_command == "reset":
+            return client.simulation_actuator_reset()  # type: ignore[attr-defined]
+    raise ValueError("unsupported simulation command")
 
 
 def _print_environment_payload(args: argparse.Namespace, payload: Mapping[str, object]) -> None:
@@ -577,6 +667,9 @@ def _print_environment_payload(args: argparse.Namespace, payload: Mapping[str, o
         print(f"Hardware toggled: {payload.get('hardware_toggled', False)}")
         print(f"Status: {payload.get('status', 'unknown')}")
         return
+    if command == "simulate":
+        _print_environment_simulation_payload(payload)
+        return
     if command in {"fan", "mode"} or command == "policy" and getattr(args, "policy_command", None) == "set":
         state = _payload_state(payload)
         policy = payload.get("policy") if isinstance(payload.get("policy"), Mapping) else state.get("policy")
@@ -610,19 +703,41 @@ def _print_environment_payload(args: argparse.Namespace, payload: Mapping[str, o
 
 
 def _print_environment_watch_row(payload: Mapping[str, object]) -> None:
-    reading = payload.get("reading")
-    reading_map = reading if isinstance(reading, Mapping) else {}
     state = _payload_state(payload)
+    reading = payload.get("reading")
+    if not isinstance(reading, Mapping):
+        reading = state.get("last_reading")
+    reading_map = reading if isinstance(reading, Mapping) else {}
+    provenance = payload.get("provenance") if isinstance(payload.get("provenance"), Mapping) else {}
+    policy = state.get("policy") if isinstance(state.get("policy"), Mapping) else {}
     print(
         f"{time.strftime('%H:%M:%S')}  "
         f"{_format_value(reading_map.get('temperature_c'), 'C')}  "
         f"{_format_value(reading_map.get('relative_humidity_pct'), '%RH')}  "
+        f"sensor={reading_map.get('source_backend', provenance.get('sensor_backend', 'unknown'))}  "
+        f"actuator={provenance.get('actuator_backend', 'unknown')}  "
         f"mode={state.get('mode', 'unknown')}  "
         f"fan={state.get('fan_power', 'unknown')}  "
-        f"sensor={reading_map.get('quality', state.get('sensor_quality', 'unknown'))}  "
+        f"reason={state.get('last_transition_reason', 'unknown')}  "
+        f"policy_generation={policy.get('generation', 'unknown')}  "
         f"physical_evidence={payload.get('physical_evidence', False)}",
         flush=True,
     )
+
+
+def _print_environment_simulation_payload(payload: Mapping[str, object]) -> None:
+    simulation = payload.get("simulation") if isinstance(payload.get("simulation"), Mapping) else {}
+    sensor = simulation.get("sensor") if isinstance(simulation.get("sensor"), Mapping) else {}
+    actuator = simulation.get("actuator") if isinstance(simulation.get("actuator"), Mapping) else {}
+    print(f"Simulation active: {simulation.get('active', False)}")
+    print(f"Runtime control enabled: {simulation.get('runtime_control_enabled', False)}")
+    print(f"Sensor simulated: {simulation.get('sensor_is_simulated', False)}")
+    print(f"Actuator simulated: {simulation.get('actuator_is_simulated', False)}")
+    print(f"Evidence mode: {simulation.get('evidence_mode', 'unknown')}")
+    print(f"Generation: {simulation.get('simulation_generation', 'unknown')}")
+    print(f"Sensor: temp={_format_value(sensor.get('temperature_c'), 'C')} humidity={_format_value(sensor.get('relative_humidity_pct'), '%RH')} fault={sensor.get('fault')}")
+    print(f"Fan: behavior={actuator.get('behavior', 'unknown')} commanded={actuator.get('commanded_power', 'unknown')} modeled={actuator.get('modeled_power', 'unknown')}")
+    print(f"Physical Pi evidence: {payload.get('physical_evidence', False)}")
 
 
 def _payload_state(payload: Mapping[str, object]) -> Mapping[str, object]:

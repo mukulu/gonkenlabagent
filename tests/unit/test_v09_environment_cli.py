@@ -121,6 +121,60 @@ PROBE_PAYLOAD = {
     "status": "not_implemented_for_physical_hardware",
 }
 
+SNAPSHOT_PAYLOAD = {
+    "service": "READY",
+    "environment": "READY",
+    "state": {
+        "mode": "automatic",
+        "fan_power": "off",
+        "sensor_quality": "ready",
+        "control_temperature_c": 27.6,
+        "last_transition_reason": "BOOT_SAFE_OFF",
+        "policy": {"generation": 4},
+        "last_reading": {
+            "temperature_c": 27.6,
+            "relative_humidity_pct": 61.4,
+            "quality": "ready",
+            "source_backend": "simulated",
+            "valid": True,
+        },
+    },
+    "provenance": {
+        "sensor_backend": "simulated",
+        "actuator_backend": "simulated",
+        "physical_evidence": False,
+    },
+    "physical_evidence": False,
+}
+
+SIMULATION_PAYLOAD = {
+    "simulation": {
+        "active": True,
+        "runtime_control_enabled": True,
+        "sensor_is_simulated": True,
+        "actuator_is_simulated": True,
+        "evidence_mode": "HOST_SIMULATION",
+        "simulation_generation": 7,
+        "sensor": {
+            "temperature_c": 27.0,
+            "relative_humidity_pct": 50.0,
+            "fault": None,
+            "source_backend": "simulated",
+            "physical_evidence": False,
+        },
+        "actuator": {
+            "behavior": "normal",
+            "commanded_power": "off",
+            "modeled_power": "off",
+            "source_backend": "simulated",
+            "software_speed_control": False,
+            "fan_motion_observed": False,
+            "physical_evidence": False,
+        },
+    },
+    "physical_evidence": False,
+}
+
 
 class FakeResponse:
     def __init__(self, result):
@@ -142,6 +196,38 @@ class FakeEnvironmentClient:
     def read_sensor(self):
         self.calls.append(("read_sensor", None))
         return READ_PAYLOAD
+
+    def snapshot(self):
+        self.calls.append(("snapshot", None))
+        return SNAPSHOT_PAYLOAD
+
+    def simulation_status(self):
+        self.calls.append(("simulation_status", None))
+        return SIMULATION_PAYLOAD
+
+    def simulation_reset(self):
+        self.calls.append(("simulation_reset", None))
+        return SIMULATION_PAYLOAD
+
+    def simulation_sensor_set(self, *, temperature_c, relative_humidity_pct):
+        self.calls.append(("simulation_sensor_set", {"temperature_c": temperature_c, "relative_humidity_pct": relative_humidity_pct}))
+        return SIMULATION_PAYLOAD
+
+    def simulation_sensor_fault(self, fault, *, age_seconds=None):
+        self.calls.append(("simulation_sensor_fault", {"fault": fault, "age_seconds": age_seconds}))
+        return SIMULATION_PAYLOAD
+
+    def simulation_sensor_reset(self):
+        self.calls.append(("simulation_sensor_reset", None))
+        return SIMULATION_PAYLOAD
+
+    def simulation_actuator_behavior_set(self, behavior):
+        self.calls.append(("simulation_actuator_behavior_set", behavior))
+        return SIMULATION_PAYLOAD
+
+    def simulation_actuator_reset(self):
+        self.calls.append(("simulation_actuator_reset", None))
+        return SIMULATION_PAYLOAD
 
     def fan_set(self, power):
         self.calls.append(("fan_set", power))
@@ -324,19 +410,46 @@ class EnvironmentCliTests(unittest.TestCase):
         self.assertEqual(client.calls, [("call", "probe.run")])
 
 
-    def test_watch_reads_sensor_repeatedly_without_mutating_policy_or_hardware(self) -> None:
+    def test_watch_observes_snapshots_passively_without_extra_sensor_reads(self) -> None:
         result, stdout, stderr, client = self.run_cli(["watch", "--count", "2", "--interval", "0"])
         self.assertEqual(result, 0, stderr)
-        self.assertEqual(client.calls, [("read_sensor", None), ("read_sensor", None)])
+        self.assertEqual(client.calls, [("snapshot", None), ("snapshot", None)])
         self.assertEqual(stdout.count("physical_evidence=False"), 2)
         self.assertIn("fan=off", stdout)
+        self.assertIn("sensor=simulated", stdout)
+        self.assertIn("policy_generation=4", stdout)
 
         result, stdout, stderr, client = self.run_cli(["watch", "--count", "2", "--interval", "0", "--json"])
         self.assertEqual(result, 0, stderr)
         rows = [json.loads(line) for line in stdout.splitlines()]
         self.assertEqual(len(rows), 2)
         self.assertFalse(rows[0]["physical_evidence"])
-        self.assertEqual(client.calls, [("read_sensor", None), ("read_sensor", None)])
+        self.assertEqual(client.calls, [("snapshot", None), ("snapshot", None)])
+
+    def test_simulation_cli_commands_use_typed_ipc_only(self) -> None:
+        result, stdout, stderr, client = self.run_cli(["simulate", "status"])
+        self.assertEqual(result, 0, stderr)
+        self.assertIn("Simulation active: True", stdout)
+        self.assertIn("Physical Pi evidence: False", stdout)
+        self.assertEqual(client.calls, [("simulation_status", None)])
+
+        result, _stdout, stderr, client = self.run_cli([
+            "simulate", "sensor", "set", "--temperature-c", "29", "--humidity-pct", "55", "--json"
+        ])
+        self.assertEqual(result, 0, stderr)
+        self.assertEqual(client.calls, [("simulation_sensor_set", {"temperature_c": 29.0, "relative_humidity_pct": 55.0})])
+
+        result, _stdout, stderr, client = self.run_cli(["simulate", "sensor", "stale", "--age-seconds", "30"])
+        self.assertEqual(result, 0, stderr)
+        self.assertEqual(client.calls, [("simulation_sensor_fault", {"fault": "stale", "age_seconds": 30.0})])
+
+        result, _stdout, stderr, client = self.run_cli(["simulate", "fan", "fail-next-write"])
+        self.assertEqual(result, 0, stderr)
+        self.assertEqual(client.calls, [("simulation_actuator_behavior_set", "fail_next_write")])
+
+        result, _stdout, stderr, client = self.run_cli(["simulate", "reset"])
+        self.assertEqual(result, 0, stderr)
+        self.assertEqual(client.calls, [("simulation_reset", None)])
 
     def test_daemon_rejection_is_reported_without_fake_success(self) -> None:
         class RejectingClient(FakeEnvironmentClient):

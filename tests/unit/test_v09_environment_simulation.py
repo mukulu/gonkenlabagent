@@ -1,11 +1,15 @@
 from __future__ import annotations
 
+import contextlib
+import io
+import json
 import tempfile
 import threading
 import unittest
 from pathlib import Path
 
 from gonken_agent.config import ConfigError, load_config
+from gonken_agent import cli
 from gonken_agent.environment import (
     EnvironmentClient,
     EnvironmentClientError,
@@ -223,6 +227,47 @@ class EnvironmentSimulationProtocolTests(unittest.TestCase):
             finally:
                 server.shutdown()
                 server.server_close()
+
+
+    def test_operator_simulation_cli_over_unix_socket_drives_full_sim_without_physical_claim(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            env = _env_config(temporary, control=True)
+            core = build_environment_service_core(env)
+            server = EnvironmentUnixServer(env.socket_path, core)
+            thread = threading.Thread(target=server.serve_forever, daemon=True)
+            thread.start()
+            try:
+                def run(arguments: list[str]) -> tuple[int, str, str]:
+                    stdout = io.StringIO()
+                    stderr = io.StringIO()
+                    with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
+                        rc = cli.main(["env", "--socket", str(env.socket_path), *arguments])
+                    return rc, stdout.getvalue(), stderr.getvalue()
+
+                rc, out, err = run(["simulate", "sensor", "set", "--temperature-c", "29", "--humidity-pct", "50", "--json"])
+                self.assertEqual(rc, 0, err)
+                self.assertFalse(json.loads(out)["physical_evidence"])
+
+                rc, _out, err = run(["policy", "set", "--mode", "automatic", "--minimum-on-seconds", "0", "--minimum-off-seconds", "0"])
+                self.assertEqual(rc, 0, err)
+                core.poll_once()
+
+                rc, out, err = run(["watch", "--count", "1", "--interval", "0", "--json"])
+                self.assertEqual(rc, 0, err)
+                snapshot = json.loads(out)
+                self.assertEqual(snapshot["state"]["fan_power"], "on")
+                self.assertEqual(snapshot["state"]["last_reading"]["source_backend"], "simulated")
+                self.assertFalse(snapshot["physical_evidence"])
+
+                rc, out, err = run(["simulate", "fan", "show", "--json"])
+                self.assertEqual(rc, 0, err)
+                payload = json.loads(out)
+                self.assertEqual(payload["simulation"]["actuator"]["modeled_power"], "on")
+                self.assertEqual(payload["simulation"]["evidence_mode"], "HOST_SIMULATION")
+            finally:
+                server.shutdown()
+                server.server_close()
+                thread.join(timeout=2.0)
 
     def test_simulated_actuator_fail_next_write_surfaces_service_error_and_safe_off(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
