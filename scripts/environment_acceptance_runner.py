@@ -328,23 +328,73 @@ def make_step_payload(
     return payload
 
 
-def classify_command(result: CommandResult) -> tuple[str, str, object | None, list[str]]:
+
+def simulation_physical_acceptance_blocking_code(parsed: object) -> str | None:
+    """Return a stable block code when a physical evidence command exposes simulation.
+
+    The physical acceptance runner may collect hybrid/simulation evidence, but it
+    must never let a JSON success from a simulated sensor or actuator silently
+    close a physical M10.7 gate.
+    """
+
+    if not _contains_simulation_backend(parsed):
+        return None
+    return "SIMULATION_ACTIVE_PHYSICAL_ACCEPTANCE_BLOCKED"
+
+
+def _contains_simulation_backend(value: object) -> bool:
+    if isinstance(value, dict):
+        for key, item in value.items():
+            normalized_key = str(key).lower()
+            if normalized_key in {"sensor_is_simulated", "actuator_is_simulated"} and item is True:
+                return True
+            if normalized_key == "active" and item is True and _dict_context_is_simulation(value):
+                return True
+            if normalized_key == "evidence_mode" and str(item).upper() in {
+                "HOST_SIMULATION",
+                "TARGET_HYBRID_SENSOR_SIMULATED",
+                "TARGET_HYBRID_ACTUATOR_SIMULATED",
+            }:
+                return True
+            if normalized_key in {"sensor_backend", "actuator_backend", "source_backend"} and str(item).lower() == "simulated":
+                return True
+            if _contains_simulation_backend(item):
+                return True
+    elif isinstance(value, list):
+        return any(_contains_simulation_backend(item) for item in value)
+    return False
+
+
+def _dict_context_is_simulation(value: dict[object, object]) -> bool:
+    return (
+        "runtime_control_enabled" in value
+        or "simulation_session_id" in value
+        or "simulation_generation" in value
+        or value.get("sensor_is_simulated") is True
+        or value.get("actuator_is_simulated") is True
+    )
+
+def classify_command(result: CommandResult) -> tuple[str, str, object | None, list[str], str | None]:
     notes: list[str] = []
     parsed: object | None = None
     if result.missing_tool:
-        return "BLOCKED", "BLOCKED", None, ["Required tool was not found on this host."]
+        return "BLOCKED", "BLOCKED", None, ["Required tool was not found on this host."], None
     if result.timed_out:
-        return "FAIL", "TIMEOUT", None, ["Command exceeded the bounded timeout."]
+        return "FAIL", "TIMEOUT", None, ["Command exceeded the bounded timeout."], None
     if result.stdout.strip().startswith("{") or result.stdout.strip().startswith("["):
         try:
             parsed = json.loads(result.stdout)
         except json.JSONDecodeError:
             notes.append("Command looked like JSON but could not be parsed.")
             if result.returncode == 0:
-                return "NEEDS_MANUAL_REVIEW", "COMPLETED", None, notes
+                return "NEEDS_MANUAL_REVIEW", "COMPLETED", None, notes, None
     if result.returncode == 0:
-        return "PASS", "COMPLETED", parsed, notes
-    return "FAIL", "COMPLETED", parsed, notes
+        blocking_code = simulation_physical_acceptance_blocking_code(parsed)
+        if blocking_code is not None:
+            notes.append(f"code={blocking_code}: simulated backend active; physical acceptance cannot be closed from this command.")
+            return "BLOCKED", "BLOCKED", parsed, notes, blocking_code
+        return "PASS", "COMPLETED", parsed, notes, None
+    return "FAIL", "COMPLETED", parsed, notes, None
 
 
 def write_json(path: Path, payload: object, *, mode: int = 0o600) -> None:
@@ -463,7 +513,7 @@ def run_collection(args: argparse.Namespace) -> dict[str, object]:
         else:
             assert spec.command is not None
             result = runner.run(spec.command)
-            status, state, parsed, notes = classify_command(result)
+            status, state, parsed, notes, blocking_code = classify_command(result)
             payload = make_step_payload(
                 spec,
                 status=status,
@@ -473,6 +523,8 @@ def run_collection(args: argparse.Namespace) -> dict[str, object]:
                 parsed_json=parsed,
                 notes=notes,
             )
+            if blocking_code is not None:
+                payload["blocking_code"] = blocking_code
         file_name = f"{spec.step_id}.json"
         write_json(private / file_name, payload)
         rows.append(row_for_step(payload, file_name))

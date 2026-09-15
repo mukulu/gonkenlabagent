@@ -69,6 +69,62 @@ MUTATION_RESULT = {
     "physical_evidence": False,
 }
 
+SIMULATED_READ_RESULT = {
+    "reading": {
+        "temperature_c": 30.0,
+        "relative_humidity_pct": 55.0,
+        "quality": "ready",
+        "source_backend": "simulated",
+        "valid": True,
+    },
+    "provenance": {
+        "sensor_backend": "simulated",
+        "actuator_backend": "simulated",
+        "sensor_is_simulated": True,
+        "actuator_is_simulated": True,
+        "evidence_mode": "HOST_SIMULATION",
+        "physical_evidence": False,
+    },
+    "physical_evidence": False,
+}
+
+SIMULATED_MUTATION_RESULT = {
+    "state": {
+        "mode": "manual",
+        "fan_power": "on",
+        "sensor_quality": "ready",
+        "last_transition_reason": "USER_MANUAL_ON",
+    },
+    "policy": MUTATION_RESULT["policy"],
+    "provenance": {
+        "sensor_backend": "simulated",
+        "actuator_backend": "simulated",
+        "sensor_is_simulated": True,
+        "actuator_is_simulated": True,
+        "evidence_mode": "HOST_SIMULATION",
+        "physical_evidence": False,
+    },
+    "physical_evidence": False,
+}
+
+HYBRID_MUTATION_RESULT = {
+    "state": {
+        "mode": "manual",
+        "fan_power": "on",
+        "sensor_quality": "ready",
+        "last_transition_reason": "USER_MANUAL_ON",
+    },
+    "policy": MUTATION_RESULT["policy"],
+    "provenance": {
+        "sensor_backend": "sht31",
+        "actuator_backend": "simulated",
+        "sensor_is_simulated": False,
+        "actuator_is_simulated": True,
+        "evidence_mode": "TARGET_HYBRID_ACTUATOR_SIMULATED",
+        "physical_evidence": False,
+    },
+    "physical_evidence": False,
+}
 
 class FakeEnvironmentClient:
     def __init__(self) -> None:
@@ -174,14 +230,35 @@ class EnvironmentVoiceResponseTests(unittest.TestCase):
     def test_responses_are_derived_from_daemon_results_and_do_not_claim_speed_or_motion(self) -> None:
         intent = EnvironmentIntent("fan.set", {"power": "on"}, "fan_set", mutating=True)
         response = environment_success_response(intent, MUTATION_RESULT)
-        self.assertIn("Room fan power is on", response)
+        self.assertIn("Room fan relay power is on", response)
         self.assertIn("daemon's relay-power state", response)
         self.assertIn("not physical blade rotation", response)
 
         status = EnvironmentIntent("status.get", {}, "fan_status")
         response = environment_success_response(status, STATUS_RESULT)
-        self.assertIn("Room fan power is off", response)
-        self.assertIn("not blade motion or software speed", response)
+        self.assertIn("Room fan relay power is off", response)
+        self.assertIn("not physical blade rotation or software speed", response)
+
+    def test_simulation_voice_wording_never_sounds_like_physical_room_or_fan_evidence(self) -> None:
+        temperature = EnvironmentIntent("sensor.read", {}, "temperature")
+        response = environment_success_response(temperature, SIMULATED_READ_RESULT)
+        self.assertIn("In simulation", response)
+        self.assertIn("not a physical room reading", response)
+        self.assertNotIn("The room temperature is", response)
+
+        fan = EnvironmentIntent("fan.set", {"power": "on"}, "fan_set", mutating=True)
+        response = environment_success_response(fan, SIMULATED_MUTATION_RESULT)
+        self.assertIn("Simulated fan actuator power is on", response)
+        self.assertIn("full simulation evidence", response)
+        self.assertIn("not physical fan motion", response)
+        self.assertNotIn("Room fan relay power is on", response)
+
+    def test_hybrid_voice_wording_identifies_simulated_side(self) -> None:
+        fan = EnvironmentIntent("fan.set", {"power": "on"}, "fan_set", mutating=True)
+        response = environment_success_response(fan, HYBRID_MUTATION_RESULT)
+        self.assertIn("Simulated fan actuator power is on", response)
+        self.assertIn("fan actuator side is simulated", response)
+        self.assertIn("relay wiring or blade motion", response)
 
 
 class ConversationBrainEnvironmentActionTests(unittest.TestCase):
@@ -197,7 +274,7 @@ class ConversationBrainEnvironmentActionTests(unittest.TestCase):
         env = FakeEnvironmentClient()
         brain = self._brain(env)
         answer = brain.reply("Turn the fan on", threading.Event())
-        self.assertIn("Room fan power is on", answer)
+        self.assertIn("Room fan relay power is on", answer)
         self.assertEqual(env.calls, [("fan_set", "on")])
         self.assertEqual(brain.client.calls, [])
         self.assertEqual(brain.history, [])

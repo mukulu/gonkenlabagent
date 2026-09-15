@@ -1260,3 +1260,15 @@ transport checks are repeated.
 - **Decision:** `gonken-agent env watch` is a passive observer of `state.snapshot.get`.  `gonken-agent env read` remains the explicit active sensor-read command.
 - **Decision:** Diagnostics, support and dashboard may expose content-free simulation provenance, snapshot state and physical-evidence flags.  They must not include raw voice content, raw audio, arbitrary files or physical-acceptance claims.
 - **Remaining:** Simulation-aware voice wording, hybrid HIL blocking/refusal behavior, default `GonKen` wake, progress cues and autonomous transition announcements remain separate follow-on checkpoints.
+
+## D-094 — Simulation-aware voice wording is mandatory
+
+**Status:** accepted in checkpoint 19.
+
+When daemon provenance reports a simulated sensor or actuator, voice responses must explicitly identify the simulated side. A simulated temperature must not be spoken as a physical room reading, and a simulated actuator command must not be spoken as observed relay/fan hardware. This preserves the deterministic daemon boundary while preventing simulation evidence from being mistaken for M10.7 physical acceptance.
+
+## D-095 — Physical acceptance runner blocks simulated backend JSON
+
+**Status:** accepted in checkpoint 19.
+
+The M10.7 physical acceptance runner may collect useful hybrid/simulation JSON, but if the parsed payload reports `sensor_is_simulated`, `actuator_is_simulated`, a simulated backend, or a hybrid/simulation evidence mode, the step is recorded as `BLOCKED` with `blocking_code=SIMULATION_ACTIVE_PHYSICAL_ACCEPTANCE_BLOCKED`. Exit code 0 from a daemon command is not enough to close a physical gate.

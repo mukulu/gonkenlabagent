@@ -18,6 +18,7 @@ class AcceptanceRunnerFixture:
     def __init__(self, root: Path) -> None:
         self.root = root
         self.log = root / "commands.log"
+        self.simulation_active = False
         self.gonken = self._fake("gonken-agent")
         self.systemctl = self._fake("systemctl")
         self.journalctl = self._fake("journalctl")
@@ -49,20 +50,37 @@ if name == \"journalctl\":
     print(\"fixture journal line without transcript\")
     raise SystemExit(0)
 payload = {
-    \"status\": \"PASS\",
-    \"command\": args,
-    \"physical_evidence\": False,
-    \"capabilities\": {
-        \"power_control\": True,
-        \"software_speed_control\": False,
-        \"fan_motion_observed\": False,
+    "status": "PASS",
+    "command": args,
+    "physical_evidence": False,
+    "capabilities": {
+        "power_control": True,
+        "software_speed_control": False,
+        "fan_motion_observed": False,
     },
-    \"reading\": {
-        \"temperature_c\": 27.5,
-        \"relative_humidity_pct\": 61.0,
-        \"quality\": \"VALID\",
+    "reading": {
+        "temperature_c": 27.5,
+        "relative_humidity_pct": 61.0,
+        "quality": "VALID",
     },
 }
+if os.environ.get("GONKEN_FAKE_SIMULATION") == "1":
+    payload["provenance"] = {
+        "sensor_backend": "simulated",
+        "actuator_backend": "libgpiod",
+        "sensor_is_simulated": True,
+        "actuator_is_simulated": False,
+        "evidence_mode": "TARGET_HYBRID_SENSOR_SIMULATED",
+        "physical_evidence": False,
+    }
+    payload["simulation"] = {
+        "active": True,
+        "sensor_is_simulated": True,
+        "actuator_is_simulated": False,
+        "evidence_mode": "TARGET_HYBRID_SENSOR_SIMULATED",
+        "runtime_control_enabled": True,
+        "physical_evidence": False,
+    }
 print(json.dumps(payload, sort_keys=True))
 raise SystemExit(0)
 """,
@@ -75,6 +93,8 @@ raise SystemExit(0)
         out = output_dir or (self.root / "out")
         env = os.environ.copy()
         env["GONKEN_FAKE_COMMAND_LOG"] = str(self.log)
+        if self.simulation_active:
+            env["GONKEN_FAKE_SIMULATION"] = "1"
         return subprocess.run(
             [
                 sys.executable,
@@ -139,6 +159,39 @@ class EnvironmentAcceptanceRunnerTests(unittest.TestCase):
         status_step = json.loads((fixture.root / "out/private_evidence/m10_7_env_status_json.json").read_text(encoding="utf-8"))
         self.assertEqual(status_step["status"], "PASS")
         self.assertEqual(status_step["parsed_json"]["capabilities"]["software_speed_control"], False)
+
+    def test_physical_acceptance_runner_blocks_simulated_backend_json(self) -> None:
+        _temporary, fixture = self.fixture()
+        fixture.simulation_active = True
+        result = fixture.run("--json")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        manifest = json.loads((fixture.root / "out/m10_7_evidence_manifest.json").read_text(encoding="utf-8"))
+        self.assertEqual(manifest["summary_status"], "BLOCKED")
+        self.assertFalse(manifest["physical_acceptance_claimed"])
+        status_step = json.loads((fixture.root / "out/private_evidence/m10_7_env_status_json.json").read_text(encoding="utf-8"))
+        self.assertEqual(status_step["status"], "BLOCKED")
+        self.assertEqual(status_step["blocking_code"], "SIMULATION_ACTIVE_PHYSICAL_ACCEPTANCE_BLOCKED")
+        self.assertEqual(status_step["parsed_json"]["provenance"]["evidence_mode"], "TARGET_HYBRID_SENSOR_SIMULATED")
+        self.assertIn("simulated backend active", " ".join(status_step["notes"]))
+
+    def test_simulation_detector_blocks_nested_status_payloads(self) -> None:
+        from scripts.environment_acceptance_runner import simulation_physical_acceptance_blocking_code
+
+        nested = {
+            "environment": {
+                "simulation": {
+                    "active": True,
+                    "sensor_is_simulated": False,
+                    "actuator_is_simulated": True,
+                    "evidence_mode": "TARGET_HYBRID_ACTUATOR_SIMULATED",
+                }
+            }
+        }
+        self.assertEqual(
+            simulation_physical_acceptance_blocking_code(nested),
+            "SIMULATION_ACTIVE_PHYSICAL_ACCEPTANCE_BLOCKED",
+        )
+        self.assertIsNone(simulation_physical_acceptance_blocking_code({"physical_evidence": False}))
 
     def test_explicit_actuation_runs_fan_cycle_commands_but_still_claims_no_acceptance(self) -> None:
         _temporary, fixture = self.fixture()

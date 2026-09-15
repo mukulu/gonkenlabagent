@@ -1093,3 +1093,14 @@ Checkpoint 17 verifies simulation foundations and the non-actuating `env serve -
 | Interrupted active unit module follow-up | PASS, 3/3 | `docs/development/evidence/v09/checkpoint18/release_readiness_module.log` | Narrow follow-up only; not a full unit-phase PASS |
 
 Checkpoint 18 closes the M10.10 host gate for `env simulate`, passive watch and simulation observability.  It does not close M10.7 physical target acceptance.
+
+## V09 Checkpoint 19 — Simulation-aware voice / hybrid-HIL evidence refusal
+
+| Gate | Command / artifact | Result | Evidence boundary |
+|---|---|---:|---|
+| M10.11-T089 | Simulation-aware voice and acceptance-runner tests | `PYTHONPATH=src python3 -m unittest -v tests.unit.test_v09_environment_voice_intents tests.unit.test_v09_environment_acceptance_runner tests.unit.test_v09_environment_simulation tests.unit.test_v09_environment_cli tests.unit.test_diagnostics_snapshot tests.unit.test_support_export tests.unit.test_grounding_observability` | PASS, 72/72 | Host/simulation evidence only; confirms voice names simulated boundaries and physical acceptance runner blocks simulated/hybrid backend JSON. |
+| M10.11-T090 | Static gates | `./scripts/ci.sh --phase t0` | PASS | Static/source/config gate only. |
+| M10.11-T091 | Unit phase attempt | `./scripts/ci.sh --phase unit` | INTERRUPTED / not PASS | External execution boundary interrupted the aggregate after partial progress. Diagnostic only. |
+| M10.11-T092 | Interrupted active unit module follow-up | `PYTHONPATH=src python3 -m unittest -v tests.unit.test_runtime_audio` | PASS, 23/23 | Narrow follow-up only; not a full unit-phase PASS. |
+
+Checkpoint 19 closes the M10.11 host gate. It does not close M10.7 physical target acceptance and does not prove SHT31, relay, PENGLIN, fan, wake, or target systemd behavior.
