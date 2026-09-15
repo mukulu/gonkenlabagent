@@ -1230,3 +1230,17 @@ Checkpoint 24 closes the host-side root cause and adds regression protection, bu
 | M10.21 SHT31/I2C/profile/release slice | `checkpoint28/m10_21_inprogress_narrow.log` — 77 tests | PASS | Real `/dev/i2c-1`, breakout/address/read campaign OPEN |
 | M10.21 physical-evidence false-green guard | `checkpoint28/m10_21_evidence_mode_fix.log` — 19 tests | PASS | Supervised physical acceptance OPEN |
 | M10.22 deterministic voice→AF_UNIX daemon transaction | `checkpoint28/m10_22_voice_transaction.log` — 3 integration cases | PASS | Real wake/STT/TTS and fan/sensor observations OPEN |
+
+## V09 Checkpoint 29 — comprehensive host closure and target handoff
+
+| Gate | Evidence | Host result | Physical/target boundary |
+|---|---|---:|---|
+| CP29-U | `checkpoint29/final_unit_accounting.json` | PASS — 44 modules / 435 tests | Host only |
+| CP29-I | `checkpoint29/final_integration_accounting.json` | PASS — 12 modules / 57 tests | Process/simulation only |
+| CP29-R | `checkpoint29/final_release_lifecycle_accounting.json` | PASS — 8/8 cases | Host sandbox release lifecycle only |
+| CP29-O | `checkpoint29/ollama_lifecycle.log` | PASS — 5/5 | Synthetic lifecycle; no target model/audio claim |
+| CP29-S | `checkpoint29/speech_lifecycle.log` | PASS — 5/5 | Synthetic lifecycle; no microphone/speaker claim |
+| CP29-SUP | support export + `test_support_export.py` + support process integration | PASS | No raw journal/transcript/consumer strings exported; target values still require target collection |
+| CP29-S31 | SHT31/I2C docs + checkpoint28 sensor tests | PASS host readiness | Breakout labels, `/dev/i2c-1`, address and repeated real readings OPEN |
+| CP29-READY | M10.16-M10.23 release-readiness dependency gate | PASS after final control checks | M10.24 remains NOT_RUN |
+| CP29-PI | Exact delivered package via `docs/RASPBERRY_PI_ACCEPTANCE_RUN.md` | NOT APPLICABLE | **NOT RUN / BLOCKED TARGET GATE** until exact package is installed and observed |

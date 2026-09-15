@@ -1,0 +1,6 @@
+test_default_install_after_release_boundary_stops_before_target_only_steps (tests.integration.test_release_lifecycle_process.EndToEndReleaseTests.test_default_install_after_release_boundary_stops_before_target_only_steps) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 22.173s
+
+OK

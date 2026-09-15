@@ -48,6 +48,58 @@ The production GPIO adapters resolve these identities from libgpiod line names s
 
 For the first target test, wire LEDs with the Pi powered off, verify polarity/resistor placement, then confirm: recording LED OFF at idle, ON only while PTT is physically held, OFF before processing; wake-monitoring LED ON only during wake standby and OFF while the assistant acknowledges, listens to the full question, or speaks. These observations are physical acceptance evidence and cannot be replaced by host tests.
 
+### 2.2 Exact SHT31 four-wire connection
+
+For the project SHT31 breakout, use the Raspberry Pi 5 3.3 V I2C header mapping below **only after confirming the actual breakout labels are VCC/VIN, SDA, SCL and GND (or documented equivalents)**. Do not infer a breakout pin order from a photograph or another vendor revision.
+
+| Raspberry Pi physical pin | Function | SHT31 breakout |
+|---:|---|---|
+| 1 | 3.3 V | VCC / VIN |
+| 3 | GPIO2 / SDA | SDA |
+| 5 | GPIO3 / SCL | SCL |
+| 6 | GND | GND |
+
+```text
+WIRE 1: Pi pin 1  (3.3 V)    -> SHT31 VCC/VIN
+WIRE 2: Pi pin 3  (GPIO2/SDA)-> SHT31 SDA
+WIRE 3: Pi pin 5  (GPIO3/SCL)-> SHT31 SCL
+WIRE 4: Pi pin 6  (GND)      -> SHT31 GND
+```
+
+The project uses 3.3 V for this connection. Do not move the sensor to a Pi 5 V pin merely because an SHT31 IC or another breakout can tolerate a wider supply; breakout regulators, pull-ups and level shifting are board-specific and must be inspected/documented. Power the Pi off before changing these wires.
+
+Before applying power, inspect and record the actual breakout markings, whether pull-up resistors or level shifting are visibly present/documented, and whether the address-select pad is in its default state. If labels differ from the table, STOP and identify the board rather than guessing.
+
+### 2.3 I2C platform and SHT31 diagnostic ladder
+
+The installer owns I2C platform convergence. It may enable I2C non-interactively and deliberately stop with `I2C_REBOOT_REQUIRED`; after reboot, rerun the **same exact checkpoint installer** so its persisted step engine resumes. The installer does not probe a sensor address or start the environment controller as part of this prerequisite step.
+
+After installation reaches `INSTALLATION_COMPLETE` and the sensor is wired/powered, verify the platform without actuation:
+
+```bash
+ls -l /dev/i2c-1
+sudo /usr/local/lib/gonken-agent/current/maintenance/i2c_manager.py status --user gonken-env --require-ready
+```
+
+`i2cdetect -y 1` may be used as a human diagnostic, but its table alone is not acceptance evidence. The governed production diagnostic uses the same raw Linux I2C transaction semantics as the GonKen SHT31 adapter and checks both supported addresses without accepting ambiguity:
+
+```bash
+sudo -u gonken-env /usr/local/lib/gonken-agent/current/.venv/bin/python \
+  /usr/local/lib/gonken-agent/current/maintenance/sht31_diagnostic.py discover --bus 1
+```
+
+Exactly one supported address must answer as a valid SHT31 (`0x44` normally, `0x45` when the actual board is configured that way). Neither address is `SENSOR_NOT_FOUND`; two valid addresses are `SENSOR_ADDRESS_AMBIGUOUS`. Do not silently change static configuration merely because a scan displayed another device.
+
+After discovery, run the bounded repeated-read campaign at the discovered address. The default is 100 reads and normal ambient operation verifies the SHT31 heater is off:
+
+```bash
+sudo -u gonken-env /usr/local/lib/gonken-agent/current/.venv/bin/python \
+  /usr/local/lib/gonken-agent/current/maintenance/sht31_diagnostic.py campaign \
+  --bus 1 --address 0x44 --reads 100
+```
+
+Use `0x45` only when discovery established that address. This campaign validates transport/CRC/plausibility at the adapter boundary but still does not, by itself, prove correct room placement or close full physical acceptance.
+
 ## 3. Power-off inspection before any actuation
 
 Before running any command that can turn the relay/fan on:

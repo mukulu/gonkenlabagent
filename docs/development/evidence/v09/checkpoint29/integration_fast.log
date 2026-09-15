@@ -1,0 +1,57 @@
+test_bluetooth_audio_is_target_only_and_does_not_mutate_development_staging (tests.integration.test_bootstrap_preflight_process.BootstrapProcessTests.test_bluetooth_audio_is_target_only_and_does_not_mutate_development_staging) ... ok
+test_default_routes_to_release_manager_and_never_legacy_setup (tests.integration.test_bootstrap_preflight_process.BootstrapProcessTests.test_default_routes_to_release_manager_and_never_legacy_setup) ... ok
+test_development_preflight_process_writes_exact_private_manifest (tests.integration.test_bootstrap_preflight_process.BootstrapProcessTests.test_development_preflight_process_writes_exact_private_manifest) ... ok
+test_unsupported_target_fails_before_network_or_staging (tests.integration.test_bootstrap_preflight_process.BootstrapProcessTests.test_unsupported_target_fails_before_network_or_staging) ... ok
+test_effective_config_process_can_explicitly_show_installer_paths (tests.integration.test_cli_process.CliProcessTests.test_effective_config_process_can_explicitly_show_installer_paths) ... ok
+test_effective_config_process_is_local_and_redacted (tests.integration.test_cli_process.CliProcessTests.test_effective_config_process_is_local_and_redacted) ... ok
+test_run_process_fails_categorically_when_target_voice_dependencies_are_absent (tests.integration.test_cli_process.CliProcessTests.test_run_process_fails_categorically_when_target_voice_dependencies_are_absent) ... ok
+test_service_process_once_is_content_free_and_degraded (tests.integration.test_cli_process.CliProcessTests.test_service_process_once_is_content_free_and_degraded) ... ok
+test_version_and_status_process_contracts (tests.integration.test_cli_process.CliProcessTests.test_version_and_status_process_contracts) ... ok
+test_launcher_help_is_non_mutating_and_documents_bootstrap_passthrough (tests.integration.test_first_install_launcher.FirstInstallLauncherTests.test_launcher_help_is_non_mutating_and_documents_bootstrap_passthrough) ... ok
+test_readme_primary_install_is_one_command_and_manual_bootstrap_is_short (tests.integration.test_first_install_launcher.FirstInstallLauncherTests.test_readme_primary_install_is_one_command_and_manual_bootstrap_is_short) ... ok
+test_standard_bootstrap_has_official_source_and_main_defaults (tests.integration.test_first_install_launcher.FirstInstallLauncherTests.test_standard_bootstrap_has_official_source_and_main_defaults) ... ok
+test_stream_launcher_prepares_checkout_and_forwards_bluetooth_parameters (tests.integration.test_first_install_launcher.FirstInstallLauncherTests.test_stream_launcher_prepares_checkout_and_forwards_bluetooth_parameters) ... ok
+test_duplicate_or_permissive_record_fails_before_state_mutation (tests.integration.test_install_engine_process.InstallProcessTests.test_duplicate_or_permissive_record_fails_before_state_mutation) ... ok
+test_engine_only_stops_before_release_provisioning (tests.integration.test_install_engine_process.InstallProcessTests.test_engine_only_stops_before_release_provisioning) ... ok
+test_false_complete_state_is_repaired_from_probe_truth (tests.integration.test_install_engine_process.InstallProcessTests.test_false_complete_state_is_repaired_from_probe_truth) ... ok
+test_good_probe_repairs_missing_advisory_state_without_action (tests.integration.test_install_engine_process.InstallProcessTests.test_good_probe_repairs_missing_advisory_state_without_action) ... ok
+test_moved_remote_ref_fails_before_state_mutation (tests.integration.test_install_engine_process.InstallProcessTests.test_moved_remote_ref_fails_before_state_mutation) ... ok
+test_record_is_data_and_never_shell_executed (tests.integration.test_install_engine_process.InstallProcessTests.test_record_is_data_and_never_shell_executed) ... ok
+test_successful_engine_run_is_private_and_repeatable (tests.integration.test_install_engine_process.InstallProcessTests.test_successful_engine_run_is_private_and_repeatable) ... ok
+test_abrupt_kill_leaves_recoverable_stale_state (tests.integration.test_install_engine_process.InterruptionProcessTests.test_abrupt_kill_leaves_recoverable_stale_state) ... ok
+test_advisory_complete_state_never_overrides_failed_probe (tests.integration.test_install_engine_process.InterruptionProcessTests.test_advisory_complete_state_never_overrides_failed_probe) ... ok
+test_term_interrupt_before_during_after_every_fake_step_then_converges (tests.integration.test_install_engine_process.InterruptionProcessTests.test_term_interrupt_before_during_after_every_fake_step_then_converges) ... ok
+test_installed_maintenance_wrapper_uses_release_local_entrypoint (tests.integration.test_support_collection_process.SupportCollectionProcessTests.test_installed_maintenance_wrapper_uses_release_local_entrypoint) ... ok
+test_text_runtime_process (unittest.loader._FailedTest.test_text_runtime_process) ... ERROR
+test_installed_maintenance_wrapper_uses_local_packaging_templates (tests.integration.test_uninstall_lifecycle_process.UninstallLifecycleProcessTests.test_installed_maintenance_wrapper_uses_local_packaging_templates) ... ok
+test_wrapper_removes_project_owned_installation_and_keeps_data (tests.integration.test_uninstall_lifecycle_process.UninstallLifecycleProcessTests.test_wrapper_removes_project_owned_installation_and_keeps_data) ... ok
+test_v09_environment_voice_transaction (unittest.loader._FailedTest.test_v09_environment_voice_transaction) ... ERROR
+
+======================================================================
+ERROR: test_text_runtime_process (unittest.loader._FailedTest.test_text_runtime_process)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_text_runtime_process
+Traceback (most recent call last):
+  File "/usr/lib/python3.13/unittest/loader.py", line 137, in loadTestsFromName
+    module = __import__(module_name)
+  File "/mnt/data/ckpt25_run/gonkenlabagent-v09-installer-runtime-repair-checkpoint-24/tests/integration/test_text_runtime_process.py", line 17, in <module>
+    from gonken_agent.config import load_config
+ModuleNotFoundError: No module named 'gonken_agent'
+
+
+======================================================================
+ERROR: test_v09_environment_voice_transaction (unittest.loader._FailedTest.test_v09_environment_voice_transaction)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_v09_environment_voice_transaction
+Traceback (most recent call last):
+  File "/usr/lib/python3.13/unittest/loader.py", line 137, in loadTestsFromName
+    module = __import__(module_name)
+  File "/mnt/data/ckpt25_run/gonkenlabagent-v09-installer-runtime-repair-checkpoint-24/tests/integration/test_v09_environment_voice_transaction.py", line 8, in <module>
+    from gonken_agent.config import load_config
+ModuleNotFoundError: No module named 'gonken_agent'
+
+
+----------------------------------------------------------------------
+Ran 28 tests in 22.313s
+
+FAILED (errors=2)

@@ -1543,3 +1543,20 @@ The deterministic M10.14 simulation runner exercises manual, AUTO, SEMI, stale/r
 - **Decision:** Deterministic environment utterances bypass the LLM but use the same bounded `EnvironmentClient` AF_UNIX protocol as the CLI; unavailable/rejected daemon operations produce truthful refusal wording.
 - **Reason:** Voice must not become a second GPIO/I2C owner or invent success independently of the environment service.
 - **Consequence:** Host integration tests exercise real protocol serialization/state changes; microphone/STT/TTS and physical actuation remain target evidence.
+
+## 2026-09-16 — Checkpoint 29 lifecycle/support/package decisions
+
+### D-159 — Support evidence is allow-listed platform truth, never a raw troubleshooting dump
+
+- **Decision:** expose only bounded GPIO23 resolution, runtime-context booleans/status, I2C/release/binding/service provenance and allow-listed event codes. Do not export raw `gpioinfo` consumer text, journal lines, transcripts, prompts or arbitrary stdout/stderr.
+- **Reason:** target diagnosis needs enough provenance to locate dependency failures without weakening the offline/privacy boundary.
+
+### D-160 — Comprehensive target readiness depends on the reconstructed closure milestones
+
+- **Decision:** `release_readiness.py` requires M10.16-M10.23 host-verified and lists M10.24 as an open target gate. `INSTALLATION_COMPLETE` is necessary but not sufficient for physical acceptance.
+- **Reason:** otherwise an older readiness gate could become false green while the new Python/I2C/SHT31/service/lifecycle requirements are still pending.
+
+### D-161 — Portable package Git state is merge-ready but never self-pushing
+
+- **Decision:** the delivered repository retains full Git history, `origin=https://github.com/mukulu/gonkenlabagent.git`, local `main` tracking `origin/main`, and the descriptive development branch/checkpoint tag. Credentials are not embedded and no remote push is performed automatically.
+- **Reason:** the user can inspect, switch to `main`, merge the development checkpoint and push explicitly while package production itself remains side-effect free.

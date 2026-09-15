@@ -1,0 +1,52 @@
+{
+  "evidence": [
+    {
+      "log": "docs/development/evidence/v09/checkpoint29/integration_fast.log",
+      "note": "Aggregate also included two source-importing modules invoked without PYTHONPATH; those harness errors are not counted and were corrected separately.",
+      "scope": "process-only bootstrap/cli/launcher/install/support/uninstall",
+      "status": "PASS",
+      "tests": 26
+    },
+    {
+      "log": "docs/development/evidence/v09/checkpoint29/integration_source_importing_corrected.log",
+      "scope": "text runtime + V09 voice transaction",
+      "status": "PASS",
+      "tests": 12
+    },
+    {
+      "log": "docs/development/evidence/v09/checkpoint29/integration_user_test_release_candidate.log",
+      "scope": "user test release candidate",
+      "status": "PASS",
+      "tests": 1
+    },
+    {
+      "log": "docs/development/evidence/v09/checkpoint29/final_release_lifecycle_accounting.json",
+      "scope": "release lifecycle",
+      "status": "PASS",
+      "tests": 8
+    },
+    {
+      "log": "docs/development/evidence/v09/checkpoint29/ollama_lifecycle.log",
+      "scope": "Ollama lifecycle",
+      "status": "PASS",
+      "tests": 5
+    },
+    {
+      "log": "docs/development/evidence/v09/checkpoint29/speech_lifecycle.log",
+      "scope": "speech lifecycle",
+      "status": "PASS",
+      "tests": 5
+    }
+  ],
+  "invalid_or_interrupted_attempts": [
+    {
+      "classification": "HARNESS_ERROR_FOR_2_MODULES",
+      "detail": "Two source-importing modules were invoked without PYTHONPATH=src; all process-only tests in that run passed and the two modules passed in the corrected run.",
+      "log": "docs/development/evidence/v09/checkpoint29/integration_fast.log"
+    }
+  ],
+  "modules": 12,
+  "schema": 1,
+  "status": "PASS",
+  "tests": 57
+}

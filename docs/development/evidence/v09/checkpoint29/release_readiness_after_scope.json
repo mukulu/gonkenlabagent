@@ -1,0 +1,224 @@
+{
+  "checkpoint_scope": "V09 checkpoint 29 comprehensive host closure through M10.23; M10.24 software prerequisites are host-verified while exact-package Raspberry Pi physical acceptance remains target-only and not-run.",
+  "git": {
+    "branch": "dev/v09-25-comprehensive-closure",
+    "commit": "1826203d596a541aad77d5f963c6af5a421f4cf6",
+    "dirty": true
+  },
+  "host_verified": [
+    "M10.1",
+    "M10.10",
+    "M10.11",
+    "M10.12",
+    "M10.13",
+    "M10.14",
+    "M10.15",
+    "M10.16",
+    "M10.17",
+    "M10.18",
+    "M10.19",
+    "M10.2",
+    "M10.20",
+    "M10.21",
+    "M10.22",
+    "M10.23",
+    "M10.3",
+    "M10.4",
+    "M10.5",
+    "M10.6",
+    "M10.8",
+    "M10.9",
+    "M2.1",
+    "M2.2",
+    "M2.3",
+    "M2.4",
+    "M3.1",
+    "M3.2",
+    "M3.3",
+    "M3.4",
+    "M3.5",
+    "M3.6",
+    "M4.1",
+    "M4.2",
+    "M4.3",
+    "M5.1",
+    "M5.2",
+    "M6.1",
+    "M6.2",
+    "M7.3",
+    "M7.4",
+    "M8.1",
+    "M8.2",
+    "M8.3",
+    "M9.2",
+    "M9.3",
+    "M9.4",
+    "M9.5"
+  ],
+  "missing_milestones": [],
+  "next_action": "Verify the delivered comprehensive-closure checkpoint and install that exact clean commit with ./bootstrap.sh --local-checkpoint; allow a governed I2C_REBOOT_REQUIRED stop to reboot and resume the same installer, but require INSTALLATION_COMPLETE before integrated hardware actuation; then execute docs/RASPBERRY_PI_ACCEPTANCE_RUN.md through simulation, physical fan, real SHT31, full-real voice/fault/reboot/update/rollback stages; collect the support ZIP plus M10.7/M10.24 private evidence and do not mark any remaining physical gate PASS without observed target evidence.",
+  "not_host_verified": [],
+  "physical_acceptance_claimed": false,
+  "readiness_scope": "host/software complete enough to begin the recorded Raspberry Pi target campaign; no target gate is implied PASS",
+  "schema": 1,
+  "secret_findings": [],
+  "status": "READY_FOR_TARGET_ACCEPTANCE",
+  "target_gates_remaining": [
+    {
+      "id": "M3.1",
+      "remaining": "Physical Pi acceptance remains open.",
+      "target": "not-run",
+      "title": "Bootstrap preflight"
+    },
+    {
+      "id": "M3.2",
+      "remaining": "Physical Pi acceptance remains open.",
+      "target": "not-run",
+      "title": "Step engine and install state"
+    },
+    {
+      "id": "M3.3",
+      "remaining": "Physical Pi acceptance remains open.",
+      "target": "not-run",
+      "title": "Immutable application release"
+    },
+    {
+      "id": "M3.4",
+      "remaining": "Physical Pi acceptance remains open.",
+      "target": "not-run",
+      "title": "Ollama lifecycle and selected model"
+    },
+    {
+      "id": "M3.5",
+      "remaining": "Real Raspberry Pi build/download/install, Piper synthesis, Whisper transcription, audio hardware and reboot acceptance remain open.",
+      "target": "not-run",
+      "title": "Whisper and Piper artifacts"
+    },
+    {
+      "id": "M3.6",
+      "remaining": "Target invocation after real M3.5 provisioning remains unrun; service and hardware readiness remain M6/T4/T5 gates.",
+      "target": "not-run",
+      "title": "Install summary"
+    },
+    {
+      "id": "M4.1",
+      "remaining": "Physical/service adapters and process-level Pi acceptance remain open.",
+      "target": "not-run",
+      "title": "Coordinator/state/health"
+    },
+    {
+      "id": "M4.2",
+      "remaining": "Host software covers deterministic device selection/re-enumeration, bounded capture lifecycle and recovery logic. Real ALSA/PipeWire enumeration, USB/Bluetooth hotplug, microphone/speaker routing and audible recovery remain target-run evidence.",
+      "target": "not-run",
+      "title": "Audio discovery and recovery"
+    },
+    {
+      "id": "M4.3",
+      "remaining": "Host software covers FIR resampling, Whisper/Piper subprocess validation/cleanup, wake/question capture and bounded progress-cue lifecycle. Real speech recognition, audible Piper output, latency and thermal/resource behavior remain target-run evidence.",
+      "target": "not-run",
+      "title": "Resampling/STT/TTS lifecycle"
+    },
+    {
+      "id": "M5.1",
+      "remaining": "Production PTT, recording LED and wake-monitoring LED adapters are host-verified with unique kernel GPIO line-name discovery and fail-closed mapping. Physical button/LED wiring, line identity, visible states, crash/power-cycle behavior and no-login operation remain target-run evidence.",
+      "target": "not-run",
+      "title": "Push-to-talk and recording indication"
+    },
+    {
+      "id": "M5.2",
+      "remaining": "Host tests enforce numeric loopback-only Ollama/dashboard access, no proxy/DNS/redirect credential path and offline-first configuration. Kernel-observed operation with WAN/DNS unavailable while loopback services continue remains target-run evidence.",
+      "target": "not-run",
+      "title": "Offline boundary"
+    },
+    {
+      "id": "M6.1",
+      "remaining": "Headless service command and systemd unit are host-tested as degraded supervisor. Raspberry Pi systemd start/stop/restart, reboot/no-login persistence, real audio/GPIO recovery and journal review remain target gates.",
+      "target": "not-run",
+      "title": "Application service"
+    },
+    {
+      "id": "M6.2",
+      "remaining": "Atomic unit/tmpfiles install, exact conflict refusal and reversible removal are host-tested with fake systemctl. Real root install/remove, systemd-analyze verify and target ownership validation remain target gates.",
+      "target": "not-run",
+      "title": "Service installer/removal"
+    },
+    {
+      "id": "M7.1",
+      "remaining": "Safe deterministic calibrated BM25 and 60-case synthetic regression pass. Real-lab 40/20 evaluation and support calibration remain open.",
+      "target": "not-run",
+      "title": "Corpus and lexical index"
+    },
+    {
+      "id": "M7.2",
+      "remaining": "Untrusted-data prompt and citation/abstention format enforced. Real model factual support, contradiction and prompt-injection evaluation remain open.",
+      "target": "not-run",
+      "title": "Grounded prompt and response contract"
+    },
+    {
+      "id": "M7.3",
+      "remaining": "Core telemetry is intentionally content-free, bounded and process-safe; persistent interaction-content logging remains outside release-core pending a separately authorized research/ethics/retention specification. Target inspection must still confirm journals/support/telemetry remain content-minimizing in real operation.",
+      "target": "not-run",
+      "title": "Privacy-preserving telemetry"
+    },
+    {
+      "id": "M7.4",
+      "remaining": "Integrated text dashboard, privacy/Host/Origin/read-only tests pass. Physical runtime integration remains open.",
+      "target": "not-run",
+      "title": "Read-only dashboard"
+    },
+    {
+      "id": "M7.5",
+      "remaining": "Reproducible synthetic retrieval benchmark and result schema provided. Real grounded/ungrounded LLM, STT, latency/RAM/thermal campaign remains open.",
+      "target": "not-run",
+      "title": "Research benchmarks"
+    },
+    {
+      "id": "M8.1",
+      "remaining": "Content-free startup snapshot capture, bounded debug retention, production latest-only mode, service startup recording and support ZIP inclusion are host-tested. Real target snapshot contents must be uploaded after Raspberry Pi installation to confirm USB audio, GPIO, systemd, thermal and resource observations.",
+      "target": "not-run",
+      "title": "Doctor and support bundle"
+    },
+    {
+      "id": "M8.2",
+      "remaining": "Explicit update and rollback are host-tested through immutable release activation, Git ref resolution, no-op update detection, restart orchestration and previous-release rollback. Real target update/rollback execution, future schema migrators and service restart failure handling remain target/future-version gates.",
+      "target": "not-run",
+      "title": "Update/rollback"
+    },
+    {
+      "id": "M8.3",
+      "remaining": "Keep-data uninstall, explicit purge confirmation, managed-file conflict refusal, maintenance-layout wrapper behavior and shared Ollama protection are host-tested. Real target uninstall/reinstall, user/group disposition, service stop failures and clean-image reinstall acceptance remain target gates.",
+      "target": "not-run",
+      "title": "Uninstall/reinstall"
+    },
+    {
+      "id": "M9.1",
+      "remaining": "Cloud cannot perform physical clean-image acceptance. The repository now provides a target acceptance runbook, startup hardware/software evidence capture, support ZIP export and release-readiness reporting; actual clean-install, reboot, power-loss, hotplug, latency, thermal and hardware observations remain target-run work.",
+      "target": "not-run",
+      "title": "Clean-install and failure campaign"
+    },
+    {
+      "id": "M9.2",
+      "remaining": "Private target-acceptance readiness now has host-verified status, secret-pattern scanning over active release paths, privacy tests, privilege-pattern service checks, uninstall protection tests and content-free diagnostic snapshot tests. Public redistribution approval, third-party artifact licensing and target hardening observations remain later release gates.",
+      "target": "not-run",
+      "title": "Security/license review"
+    },
+    {
+      "id": "M9.3",
+      "remaining": "README and target runbook cover end-user Raspberry Pi OS, SSH, bootstrap, service check, log/support export, update, rollback, uninstall, configuration and acceptance evidence collection. Target screenshots/operator feedback remain future refinements after a real Pi run.",
+      "target": "not-run",
+      "title": "Documentation and onboarding"
+    },
+    {
+      "id": "M10.7",
+      "remaining": "Run the physical M10.7 acceptance campaign on the target Pi and preserve support ZIP plus private environment evidence ledger.",
+      "target": "not-run",
+      "title": "Real Raspberry Pi HIL and release acceptance"
+    },
+    {
+      "id": "M10.24",
+      "remaining": "Execute the exact checkpoint on Raspberry Pi: install/I2C resume, simulation, real fan, real SHT31, full-real controller, voice/wake, faults, reboot/no-login, update/rollback/reinstall and final support evidence. Target remains NOT_RUN.",
+      "target": "not-run",
+      "title": "Final Raspberry Pi environment and release acceptance"
+    }
+  ]
+}

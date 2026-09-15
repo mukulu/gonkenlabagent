@@ -1,0 +1,6 @@
+test_every_journal_switch_and_postcheck_boundary_reconciles (tests.integration.test_release_lifecycle_process.ActivationInterruptionTests.test_every_journal_switch_and_postcheck_boundary_reconciles) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 10.434s
+
+OK

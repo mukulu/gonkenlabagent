@@ -1,6 +1,6 @@
 {
   "baseline_commit": "c062a44b2775d34cf29ce868971486b7b8123909",
-  "checkpoint_scope": "V09 checkpoint 28 host closure through M10.22; implementation continues through M10.23 while M10.24 remains target-only.",
+  "checkpoint_scope": "V09 checkpoint 29 comprehensive host closure through M10.23; M10.24 software prerequisites are host-verified while exact-package Raspberry Pi physical acceptance remains target-only and not-run.",
   "milestones": [
     {
       "evidence": "TEST_MATRIX.md (M2.1)",
@@ -432,18 +432,18 @@
     {
       "id": "M10.23",
       "title": "Clean/dirty lifecycle, support, documentation, package and Git closure",
-      "software": "pending",
+      "software": "host-verified",
       "target": "not-run",
-      "evidence": "",
-      "remaining": "Complete lifecycle/adversarial/support/documentation/package/Git host gates and prepare the next exact checkpoint."
+      "evidence": "docs/development/V09_CHECKPOINT_29_REPORT.md; docs/development/V09_CHANGE_VERIFICATION_REPORT_CHECKPOINT_29.md; docs/development/evidence/v09/checkpoint29/final_unit_accounting.json; docs/development/evidence/v09/checkpoint29/final_integration_accounting.json; docs/development/evidence/v09/checkpoint29/final_release_lifecycle_accounting.json; src/gonken_agent/support.py; docs/RASPBERRY_PI_ACCEPTANCE_RUN.md; docs/HARDWARE_SETUP.md; scripts/release_readiness.py",
+      "remaining": "Host lifecycle/support/documentation/readiness closure is verified. Package integrity is verified at checkpoint packaging. M10.24 remains the exact-package Raspberry Pi campaign and no physical acceptance is inferred."
     },
     {
       "id": "M10.24",
       "title": "Final Raspberry Pi environment and release acceptance",
-      "software": "pending",
+      "software": "host-verified",
       "target": "not-run",
-      "evidence": "",
-      "remaining": "Run exact-package physical target acceptance after M10.17-M10.23 host gates and installer completion; never infer PASS from host evidence."
+      "evidence": "docs/development/V09_COMPREHENSIVE_CLOSURE_BLUEPRINT_CHECKPOINT_25.md; docs/RASPBERRY_PI_ACCEPTANCE_RUN.md; checkpoint 29 package verification (delivery artifact)",
+      "remaining": "Execute the exact checkpoint on Raspberry Pi: install/I2C resume, simulation, real fan, real SHT31, full-real controller, voice/wake, faults, reboot/no-login, update/rollback/reinstall and final support evidence. Target remains NOT_RUN."
     }
   ],
   "schema_version": 1

@@ -58,7 +58,7 @@ class ApplianceManagerTests(unittest.TestCase):
     def test_fix7_installer_revalidates_service_and_physical_readiness_contract(self) -> None:
         install = (ROOT / "scripts/install.sh").read_text(encoding="utf-8")
         self.assertIn('"application_service" "3"', install)
-        self.assertIn('"appliance_readiness" "3"', install)
+        self.assertIn('"appliance_readiness" "4"', install)
         self.assertIn('"bluetooth_audio_pairing" "2"', install)
         self.assertIn('installed-status', install)
         self.assertIn('--service-uid', install)
