@@ -384,10 +384,10 @@
     {
       "id": "M10.17",
       "title": "Target Python dependency boundary redesign",
-      "software": "pending",
+      "software": "host-verified",
       "target": "not-run",
-      "evidence": "",
-      "remaining": "Select and verify a controlled target binding architecture; reproduce checkpoint-24 dirty-system-package contamination and convert it into regression protection."
+      "evidence": "scripts/release_manager.py; scripts/install.sh; src/gonken_agent/support.py; requirements/README.md; tests/unit/test_m3_3_release_manager.py; tests/unit/test_support_export.py; docs/development/evidence/v09/checkpoint26/m10_17_release_lifecycle_interruption.log",
+      "remaining": "Allow-listed distro binding bridge and isolated target venv are host-verified, including dirty-system-metadata regression. Target build/import remains target-run evidence. Continue with M10.18 installer convergence."
     },
     {
       "id": "M10.18",

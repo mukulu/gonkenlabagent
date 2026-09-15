@@ -26,6 +26,7 @@ RELEASE_ROOT = Path("/usr/local/lib/gonken-agent")
 INSTALL_EVENTS_DIR = Path("/var/lib/gonken-agent/install/logs/events")
 SERVICE_UNITS = ("gonken-agent.service", "gonken-environment.service")
 BINDING_PACKAGES = ("python3-libgpiod", "python3-smbus")
+BINDING_MANIFEST = Path(sys.prefix).parent / "share/gonken-agent/hardware-bindings.json"
 
 
 def _safe_release_identity() -> dict[str, object]:
@@ -140,6 +141,34 @@ def _package_versions() -> dict[str, object]:
     return output
 
 
+def _binding_bridge() -> dict[str, object]:
+    path = BINDING_MANIFEST
+    try:
+        if path.is_symlink() or not path.is_file() or path.stat().st_size > 65536:
+            return {"status": "UNAVAILABLE", "format": None, "profile": None, "packages": []}
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError):
+        return {"status": "UNAVAILABLE", "format": None, "profile": None, "packages": []}
+    if payload.get("format") != "gonken-hardware-binding-bridge-v1":
+        return {"status": "INVALID", "format": None, "profile": None, "packages": []}
+    packages = []
+    for item in payload.get("packages", []):
+        if not isinstance(item, dict):
+            continue
+        name = item.get("package")
+        version = item.get("version")
+        files = item.get("files")
+        if name not in BINDING_PACKAGES or not isinstance(version, str) or not isinstance(files, list):
+            continue
+        packages.append({"package": name, "version": version, "file_count": len(files)})
+    return {
+        "status": "READY" if {item["package"] for item in packages} == set(BINDING_PACKAGES) else "DEGRADED",
+        "format": payload.get("format"),
+        "profile": payload.get("profile"),
+        "packages": sorted(packages, key=lambda item: item["package"]),
+    }
+
+
 def _runtime_binding_health() -> dict[str, object]:
     gpiod = _module_probe(
         "import gpiod; from gpiod.line import Bias,Direction,Value; "
@@ -154,6 +183,7 @@ def _runtime_binding_health() -> dict[str, object]:
     return {
         "release": _safe_release_identity(),
         "venv": _venv_policy(),
+        "binding_bridge": _binding_bridge(),
         "bindings": {"gpiod": gpiod, "smbus": smbus},
         "distro_packages": _package_versions(),
     }

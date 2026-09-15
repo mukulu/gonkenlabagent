@@ -8,18 +8,20 @@ generated views; do not edit them directly.
 The maintained Python package profile has no third-party **pip/wheel** core or
 test dependency. Raspberry Pi hardware bindings are a separate, explicit
 target-OS contract: the installer provisions Debian `python3-libgpiod` and
-`python3-smbus`, and only the `core-pi-trixie-py313` immutable venv is created
-with system-site visibility so those root-managed distro bindings are visible
-to the production interpreter. Development profiles remain isolated. The
-release validator checks the exact hardware API surface before target
-installation can proceed, so an APT-level install cannot be mistaken for a
-usable application runtime.
+`python3-smbus`, while the immutable application venv remains isolated from
+general system site-packages. During target release construction, the release
+manager copies only the allow-listed import payload owned by those Debian
+packages into the candidate venv and records package/file provenance in
+`share/gonken-agent/hardware-bindings.json`. Distribution metadata and unrelated
+system Python packages are deliberately excluded. The release validator checks
+the exact hardware API surface with the immutable interpreter before target
+installation can proceed.
 
 ## Profiles
 
 | Profile | Purpose | State |
 |---|---|---|
-| `core-pi-trixie-py313` | Headless production target | Installable; zero pip/wheel dependencies; consumes validated Debian `python3-libgpiod` + `python3-smbus` through the target-only system-site policy |
+| `core-pi-trixie-py313` | Headless production target | Installable; zero pip/wheel dependencies; isolated venv consumes only allow-listed import payload copied from validated Debian `python3-libgpiod` + `python3-smbus` packages |
 | `dev-py312` | Current x86 host unit/static checks | Installable; zero third-party dependencies |
 | `ui-pi-trixie-py313` | Optional Raspberry Pi UI evaluation | Installable separately; `pygame` exact/hash-locked |
 | `ui-dev-py312` | Optional x86 UI import evaluation | Installable separately; `pygame` exact/hash-locked |

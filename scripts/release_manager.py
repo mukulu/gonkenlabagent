@@ -57,7 +57,12 @@ JOURNAL_FIELDS = (
     "message",
 )
 JOURNAL_PHASES = {"prepared", "switched", "post_verified", "rolled_back"}
-TARGET_SYSTEM_BINDING_PROFILES = {"core-pi-trixie-py313"}
+TARGET_DISTRO_BINDING_PROFILES = {"core-pi-trixie-py313"}
+DIST_PACKAGES_ROOT = Path("/usr/lib/python3/dist-packages")
+TARGET_BINDING_PACKAGES = {
+    "core-pi-trixie-py313": ("python3-libgpiod", "python3-smbus"),
+}
+BINDING_MANIFEST_RELATIVE = Path("share/gonken-agent/hardware-bindings.json")
 HARDWARE_BINDING_CHECK = """
 import gpiod
 import smbus
@@ -480,9 +485,9 @@ def _build_wheel(source: Path, output: Path) -> tuple[Path, str]:
     return wheel, f"setuptools-{setuptools.__version__}"
 
 
-def profile_uses_system_site_packages(profile: str) -> bool:
-    """Return whether a release profile intentionally consumes distro Python bindings."""
-    return profile in TARGET_SYSTEM_BINDING_PROFILES
+def profile_uses_distro_bindings(profile: str) -> bool:
+    """Return whether a release profile consumes an allow-listed distro binding bridge."""
+    return profile in TARGET_DISTRO_BINDING_PROFILES
 
 
 def _venv_system_site_packages_enabled(release: Path) -> bool:
@@ -501,19 +506,149 @@ def _venv_system_site_packages_enabled(release: Path) -> bool:
     return values.get("include-system-site-packages") == "true"
 
 
+def _binding_relative_allowed(package: str, relative: Path) -> bool:
+    """Allow only import payloads, never unrelated distro metadata/site packages."""
+    if not relative.parts or any(part in {"", ".", ".."} for part in relative.parts):
+        return False
+    if package == "python3-libgpiod":
+        return relative.parts[0] == "gpiod"
+    if package == "python3-smbus":
+        return len(relative.parts) == 1 and relative.name.startswith("smbus.") and relative.suffix == ".so"
+    return False
+
+
+def _venv_site_packages(release: Path) -> Path:
+    return release / ".venv" / "lib" / f"python{sys.version_info.major}.{sys.version_info.minor}" / "site-packages"
+
+
+def _distro_package_version(package: str) -> str:
+    result = run(["dpkg-query", "-W", "-f=${db:Status-Abbrev}\t${Version}", package])
+    fields = result.stdout.strip().split("\t", 1)
+    if len(fields) != 2 or not fields[0].startswith("ii") or not re.fullmatch(r"[A-Za-z0-9.+:~_-]{1,128}", fields[1]):
+        fail("RELEASE_BINDING_PACKAGE", f"required distro binding package is not installed: {package}", "repair target prerequisites and rebuild the release", 74)
+    return fields[1]
+
+
+def _distro_binding_files(package: str, *, source_root: Path = DIST_PACKAGES_ROOT) -> list[Path]:
+    result = run(["dpkg-query", "-L", package])
+    files: list[Path] = []
+    for line in result.stdout.splitlines():
+        candidate = Path(line.strip())
+        if not candidate.is_absolute():
+            continue
+        try:
+            relative = candidate.relative_to(source_root)
+        except ValueError:
+            continue
+        if not _binding_relative_allowed(package, relative):
+            continue
+        if candidate.is_symlink():
+            fail("RELEASE_BINDING_SOURCE", f"distro binding source must not be a symlink: {candidate}", "repair the distro package installation", 74)
+        if candidate.is_file():
+            files.append(candidate)
+    if not files:
+        fail("RELEASE_BINDING_SOURCE", f"no allow-listed import files found for {package}", "reinstall the required distro binding package", 74)
+    return sorted(set(files))
+
+
+def install_target_distro_bindings(
+    release: Path,
+    profile: str,
+    *,
+    source_root: Path = DIST_PACKAGES_ROOT,
+) -> dict[str, object] | None:
+    """Copy only approved distro binding import payloads into an isolated venv."""
+    if not profile_uses_distro_bindings(profile):
+        return None
+    if _venv_system_site_packages_enabled(release):
+        fail(
+            "RELEASE_VENV_POLICY",
+            "target release venv unexpectedly exposes all system site-packages",
+            "rebuild the release with an isolated venv and the allow-listed binding bridge",
+            74,
+        )
+    site_packages = _venv_site_packages(release)
+    if not site_packages.is_dir() or site_packages.is_symlink():
+        fail("RELEASE_BINDING_DESTINATION", "release venv site-packages directory is missing or unsafe", "rebuild the immutable release", 74)
+    records: list[dict[str, object]] = []
+    for package in TARGET_BINDING_PACKAGES.get(profile, ()):
+        version = _distro_package_version(package)
+        copied = []
+        for source in _distro_binding_files(package, source_root=source_root):
+            relative = source.relative_to(source_root)
+            destination = site_packages / relative
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(source, destination, follow_symlinks=False)
+            copied.append({"path": relative.as_posix(), "sha256": sha256_file(destination)})
+        records.append({"package": package, "version": version, "files": copied})
+    manifest = {
+        "format": "gonken-hardware-binding-bridge-v1",
+        "profile": profile,
+        "source_root": str(source_root),
+        "system_site_packages": False,
+        "packages": records,
+    }
+    path = release / BINDING_MANIFEST_RELATIVE
+    path.parent.mkdir(parents=True, exist_ok=True, mode=0o755)
+    path.write_text(json.dumps(manifest, sort_keys=True, indent=2) + "\n", encoding="utf-8")
+    path.chmod(0o444)
+    return manifest
+
+
+def _binding_manifest_valid(release: Path, profile: str) -> bool:
+    path = release / BINDING_MANIFEST_RELATIVE
+    try:
+        if path.is_symlink() or not path.is_file() or path.stat().st_size > 65536:
+            return False
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError):
+        return False
+    if payload.get("format") != "gonken-hardware-binding-bridge-v1" or payload.get("profile") != profile:
+        return False
+    if payload.get("system_site_packages") is not False:
+        return False
+    packages = payload.get("packages")
+    if not isinstance(packages, list) or {item.get("package") for item in packages if isinstance(item, dict)} != set(TARGET_BINDING_PACKAGES.get(profile, ())):
+        return False
+    site_packages = _venv_site_packages(release)
+    for item in packages:
+        if not isinstance(item, dict) or not isinstance(item.get("version"), str):
+            return False
+        files = item.get("files")
+        if not isinstance(files, list) or not files:
+            return False
+        for entry in files:
+            if not isinstance(entry, dict) or not isinstance(entry.get("path"), str) or not isinstance(entry.get("sha256"), str):
+                return False
+            relative = Path(entry["path"])
+            if relative.is_absolute() or ".." in relative.parts or not _binding_relative_allowed(item["package"], relative):
+                return False
+            destination = site_packages / relative
+            if not destination.is_file() or destination.is_symlink() or sha256_file(destination) != entry["sha256"]:
+                return False
+    return True
+
+
 def validate_runtime_hardware_bindings(
     release: Path,
     profile: str,
     service_user: str,
 ) -> None:
-    """Fail closed when the target release interpreter cannot use distro hardware APIs."""
-    if not profile_uses_system_site_packages(profile):
+    """Fail closed when the target release interpreter cannot use bridged hardware APIs."""
+    if not profile_uses_distro_bindings(profile):
         return
-    if not _venv_system_site_packages_enabled(release):
+    if _venv_system_site_packages_enabled(release):
         fail(
             "RELEASE_VENV_POLICY",
-            "target release venv does not expose distro system site-packages",
-            "rebuild the target release with the governed system-site-packages profile",
+            "target release venv exposes broad system site-packages",
+            "rebuild with the allow-listed distro binding bridge",
+            74,
+        )
+    if not _binding_manifest_valid(release, profile):
+        fail(
+            "RELEASE_BINDING_MANIFEST",
+            "target release hardware-binding bridge is missing or invalid",
+            "rebuild the target release from validated distro binding packages",
             74,
         )
     python = release / ".venv" / "bin" / "python"
@@ -523,7 +658,7 @@ def validate_runtime_hardware_bindings(
         fail(
             "RELEASE_HARDWARE_BINDINGS",
             f"target release interpreter cannot use required gpiod/smbus APIs: {error}",
-            "install compatible python3-libgpiod/python3-smbus packages and rebuild the immutable release",
+            "repair the validated distro binding packages and rebuild the immutable release",
             error.exit_code,
         )
 
@@ -618,11 +753,12 @@ def build_release(
         venv.EnvBuilder(
             with_pip=True,
             symlinks=True,
-            system_site_packages=profile_uses_system_site_packages(profile),
+            system_site_packages=False,
         ).create(release / ".venv")
         venv_python = release / ".venv" / "bin" / "python"
         run([str(venv_python), "-m", "pip", "install", "--no-index", "-r", str(lock)])
         run([str(venv_python), "-m", "pip", "install", "--no-index", "--no-deps", str(wheel)])
+        install_target_distro_bindings(release, profile)
         share = release / "share" / "gonken-agent"
         share.mkdir(parents=True, exist_ok=True, mode=0o755)
         local_prompt = source / "config" / "local_soul.md"
