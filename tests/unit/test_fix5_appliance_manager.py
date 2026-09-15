@@ -29,12 +29,36 @@ class ApplianceManagerTests(unittest.TestCase):
             path.write_text(
                 '{"status":"READY","code":"VOICE_RUNTIME_READY",'
                 '"wake_phrase":"Hey Gonken","audio_backend":"alsa-usb",'
-                '"model":"qwen3.5:2b-q4_K_M","observed_epoch":1}\n',
+                '"model":"qwen3.5:2b-q4_K_M","release_commit":"fixture",'
+                '"observed_epoch":1}\n',
                 encoding="utf-8",
             )
-            self.assertEqual(module.read_ready()["wake_phrase"], "Hey Gonken")
+            with mock.patch.object(module, "current_release_commit", return_value=None):
+                self.assertEqual(module.read_ready()["wake_phrase"], "Hey Gonken")
             path.write_text('{"status":"READY","code":"OTHER","wake_phrase":"Hey Gonken"}\n')
             self.assertIsNone(module.read_ready())
+
+    def test_ready_record_is_bound_to_current_immutable_release(self) -> None:
+        module = load_module()
+        with tempfile.TemporaryDirectory() as temporary:
+            path = Path(temporary) / "ready.json"
+            module.READY_FILE = path
+            current = "a" * 40
+            previous = "b" * 40
+            path.write_text(
+                '{"status":"READY","code":"VOICE_RUNTIME_READY",'
+                '"wake_phrase":"GonKen","release_commit":"' + previous + '"}\n',
+                encoding="utf-8",
+            )
+            with mock.patch.object(module, "current_release_commit", return_value=current):
+                self.assertIsNone(module.read_ready())
+            path.write_text(
+                '{"status":"READY","code":"VOICE_RUNTIME_READY",'
+                '"wake_phrase":"GonKen","release_commit":"' + current + '"}\n',
+                encoding="utf-8",
+            )
+            with mock.patch.object(module, "current_release_commit", return_value=current):
+                self.assertEqual(module.read_ready()["release_commit"], current)
 
     def test_status_requires_enabled_active_and_runtime_ready_independently(self) -> None:
         module = load_module()

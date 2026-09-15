@@ -21,6 +21,7 @@ import re
 import shutil
 import signal
 import subprocess
+import sys
 import tempfile
 import threading
 import time
@@ -47,6 +48,26 @@ from .interaction.push_to_talk import PushToTalk
 def _diagnostic_text(value: object) -> str:
     text = " ".join(str(value).replace("\r", " ").replace("\n", " ").split())
     return "".join(ch if ch.isprintable() else "?" for ch in text)[:320]
+
+
+def _runtime_release_commit() -> str:
+    """Return the immutable release identity executing this process.
+
+    Production executables resolve beneath ``.../releases/<40hex>/.venv``.
+    Development/test interpreters deliberately return ``development`` rather
+    than inventing a production identity.
+    """
+    try:
+        executable = Path(sys.executable).resolve(strict=True)
+    except OSError:
+        return "development"
+    for parent in executable.parents:
+        if (
+            re.fullmatch(r"[0-9a-f]{40}", parent.name)
+            and parent.parent.name == "releases"
+        ):
+            return parent.name
+    return "development"
 
 
 class VoiceRuntimeError(RuntimeError):
@@ -1298,6 +1319,7 @@ class VoiceAppliance:
             "interaction_mode": self.config.runtime.interaction_mode,
             "audio_backend": probe["audio"]["backend"],
             "model": probe["model"]["model"],
+            "release_commit": _runtime_release_commit(),
             "observed_epoch": int(time.time()),
         }
         temporary = self.READY_FILE.with_name(f".{self.READY_FILE.name}.{os.getpid()}")

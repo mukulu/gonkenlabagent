@@ -172,3 +172,20 @@ The release commit named in the error matters.
 - A bridge-era release with a missing/corrupt manifest is never considered legacy simply because the file is absent.
 
 On any failure, keep the active release/journal intact and collect the installer-owned failure bundle. Re-running an unchanged older checkpoint will not repair a deterministic contract mismatch.
+
+
+## `RELEASE_PRUNE_SKIPPED` after a successful activation
+
+Checkpoint 31 treats stale-release cleanup as best-effort maintenance. If the new release has already reached `ACTIVATION_COMPLETE` and an unrelated stale historical release is malformed or cannot be removed, the installer may emit `RELEASE_PRUNE_SKIPPED`. Do not edit the active release or fabricate a binding manifest for the stale release. Preserve the warning/support evidence; the current/previous journal releases remain protected.
+
+## `I2C_REBOOT_REQUIRED` / `INSTALLATION_PAUSED`
+
+Checkpoint 31 distinguishes an expected boot transition from a product error. After requesting Raspberry Pi I2C enablement it waits for `/dev/i2c-1`. If the device still requires a reboot, the expected terminal state is `PAUSED`, not `INSTALL_ACTION`. Reboot, reconnect, return to the same exact checkpoint directory and rerun the same installer command. A planned pause should not create an installer-failure bundle.
+
+## `BLUETOOTH_INPUT_UNAVAILABLE` or `AUDIO_INPUT_AMBIGUOUS`
+
+When `--bluetooth-audio` is requested, checkpoint 31 proves an input route before the final appliance-readiness wait. `BLUETOOTH_INPUT_UNAVAILABLE` means the connected headset exposes playback but no Bluetooth HFP/HSP capture source and the service user cannot enumerate one deterministic direct ALSA capture fallback. `AUDIO_INPUT_AMBIGUOUS` means more than one direct capture card could be chosen. Keep the requested headset powered and expose its headset microphone profile, or connect exactly one intended USB microphone; do not grant broad device permissions or bypass the check.
+
+## Service appears ready immediately after an upgrade
+
+Readiness is now tied to the exact immutable release commit. A previous release's `/run/gonken-agent/ready.json` is intentionally ignored. The new current release must restart and create a fresh readiness record. If the commit in the ready record does not match the current release, collect support evidence instead of copying or editing the file.

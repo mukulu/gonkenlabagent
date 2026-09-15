@@ -1,0 +1,34 @@
+test_autoconnect_status_detects_managed_template_drift (tests.unit.test_x4_bluetooth_manager.BluetoothManagerTests.test_autoconnect_status_detects_managed_template_drift) ... ok
+test_autoconnect_unit_is_bounded_to_one_managed_record (tests.unit.test_x4_bluetooth_manager.BluetoothManagerTests.test_autoconnect_unit_is_bounded_to_one_managed_record) ... ok
+test_connected_headset_status_allows_capture_to_be_proven_by_appliance_gate (tests.unit.test_x4_bluetooth_manager.BluetoothManagerTests.test_connected_headset_status_allows_capture_to_be_proven_by_appliance_gate) ... ok
+test_connected_headset_status_fails_early_without_any_capture_route (tests.unit.test_x4_bluetooth_manager.BluetoothManagerTests.test_connected_headset_status_fails_early_without_any_capture_route) ... ok
+test_device_record_round_trip_is_closed_schema (tests.unit.test_x4_bluetooth_manager.BluetoothManagerTests.test_device_record_round_trip_is_closed_schema) ... ok
+test_direct_capture_fallback_prefers_one_usb_card_and_ignores_hdmi (tests.unit.test_x4_bluetooth_manager.BluetoothManagerTests.test_direct_capture_fallback_prefers_one_usb_card_and_ignores_hdmi) ... ok
+test_direct_capture_fallback_refuses_ambiguous_usb_cards (tests.unit.test_x4_bluetooth_manager.BluetoothManagerTests.test_direct_capture_fallback_refuses_ambiguous_usb_cards) ... ok
+test_exact_mac_reuses_known_audio_identity_before_scanning (tests.unit.test_x4_bluetooth_manager.BluetoothManagerTests.test_exact_mac_reuses_known_audio_identity_before_scanning) ... [OK] code=BLUETOOTH_AUDIO_STATUS state=connected output_nodes=1 input_nodes=0
+[FOUND] code=BLUETOOTH_DEVICE_KNOWN address=AA:BB:CC:DD:EE:FF name=Known Headset paired=true
+ok
+test_fix6_pairing_step_revalidates_connected_output_route (tests.unit.test_x4_bluetooth_manager.BluetoothManagerTests.test_fix6_pairing_step_revalidates_connected_output_route) ... ok
+test_headless_wireplumber_fragment_disables_logind_seat_monitoring (tests.unit.test_x4_bluetooth_manager.BluetoothManagerTests.test_headless_wireplumber_fragment_disables_logind_seat_monitoring) ... ok
+test_headset_profile_prefers_available_msbc_capture_profile (tests.unit.test_x4_bluetooth_manager.BluetoothManagerTests.test_headset_profile_prefers_available_msbc_capture_profile) ... ok
+test_installer_explicitly_provisions_pipewire_bluetooth_plugin (tests.unit.test_x4_bluetooth_manager.BluetoothManagerTests.test_installer_explicitly_provisions_pipewire_bluetooth_plugin) ... ok
+test_known_fix4_autoconnect_unit_is_upgraded_exactly (tests.unit.test_x4_bluetooth_manager.BluetoothManagerTests.test_known_fix4_autoconnect_unit_is_upgraded_exactly) ... ok
+test_pairing_allows_output_only_headset_for_direct_microphone_fallback (tests.unit.test_x4_bluetooth_manager.BluetoothManagerTests.test_pairing_allows_output_only_headset_for_direct_microphone_fallback) ... [OK] code=BLUETOOTH_AUTOCONNECT_MANAGED_UPGRADE path=/tmp/tmpeo4cmxw3/gonken-bluetooth-autoconnect.service
+[OK] code=BLUETOOTH_AUTOCONNECT_INSTALLED
+[RUNNING] code=BLUETOOTH_PAIR address=AA:BB:CC:DD:EE:FF name=Lab Headset
+[OK] code=BLUETOOTH_AUDIO_PAIRED address=AA:BB:CC:DD:EE:FF name=Lab Headset output=ready microphone=direct_ready:plughw:CARD=Mic,DEV=0
+ok
+test_pairing_fails_early_when_headset_has_no_capture_route (tests.unit.test_x4_bluetooth_manager.BluetoothManagerTests.test_pairing_fails_early_when_headset_has_no_capture_route) ... [RUNNING] code=BLUETOOTH_PAIR address=AA:BB:CC:DD:EE:FF name=Lab Headset
+ok
+test_pairing_requires_verified_paired_trusted_connected_state (tests.unit.test_x4_bluetooth_manager.BluetoothManagerTests.test_pairing_requires_verified_paired_trusted_connected_state) ... [RUNNING] code=BLUETOOTH_PAIR address=AA:BB:CC:DD:EE:FF name=Lab Headset
+[OK] code=BLUETOOTH_AUDIO_PAIRED address=AA:BB:CC:DD:EE:FF name=Lab Headset output=ready microphone=bluetooth_ready
+ok
+test_parse_capture_cards_matches_voice_runtime_alsa_identity (tests.unit.test_x4_bluetooth_manager.BluetoothManagerTests.test_parse_capture_cards_matches_voice_runtime_alsa_identity) ... ok
+test_parse_devices_is_bounded_to_valid_mac_and_single_line_name (tests.unit.test_x4_bluetooth_manager.BluetoothManagerTests.test_parse_devices_is_bounded_to_valid_mac_and_single_line_name) ... ok
+test_parse_info_distinguishes_output_and_headset_capability (tests.unit.test_x4_bluetooth_manager.BluetoothManagerTests.test_parse_info_distinguishes_output_and_headset_capability) ... ok
+test_stack_status_requires_unblocked_powered_controller (tests.unit.test_x4_bluetooth_manager.BluetoothManagerTests.test_stack_status_requires_unblocked_powered_controller) ... ok
+
+----------------------------------------------------------------------
+Ran 20 tests in 0.009s
+
+OK

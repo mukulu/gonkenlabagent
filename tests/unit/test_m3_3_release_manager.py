@@ -276,6 +276,81 @@ class IntegrityAndPrivilegeTests(unittest.TestCase):
                 {active, previous},
             )
 
+
+    def test_pruning_ignores_obsolete_runtime_contract_for_stale_pre_bridge_release(self) -> None:
+        """Exact Pi shape: legacy stale + legacy previous + strict active must converge."""
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            release_root = root / "release"
+            state_root = root / "state"
+            state_root.mkdir()
+            stale, previous, active = ("3" * 40, "8" * 40, "9" * 40)
+            create_fake_release(release_root, stale, profile="core-pi-trixie-py313", binding_bridge=False)
+            create_fake_release(release_root, previous, profile="core-pi-trixie-py313", binding_bridge=False)
+            create_fake_release(release_root, active, profile="core-pi-trixie-py313", binding_bridge=True)
+            point_current(release_root, active)
+            release_manager.write_journal(state_root, active, previous, "post_verified", "fixture")
+
+            release_manager.prune_releases(release_root, state_root, current_user())
+
+            self.assertEqual(
+                {path.name for path in (release_root / "releases").iterdir()},
+                {active, previous},
+            )
+
+    def test_pruning_corrupt_stale_release_is_nonblocking_and_preserves_it(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            release_root = root / "release"
+            state_root = root / "state"
+            state_root.mkdir()
+            stale, previous, active = ("2" * 40, "8" * 40, "9" * 40)
+            for commit in (stale, previous, active):
+                create_fake_release(release_root, commit)
+            # Break static integrity of the unrelated stale release.
+            stale_record = release_root / "releases" / stale / "release.record"
+            stale_record.chmod(0o644)
+            stale_record.write_text(stale_record.read_text(encoding="utf-8") + "junk=1\n", encoding="utf-8")
+            stale_record.chmod(0o444)
+            point_current(release_root, active)
+            release_manager.write_journal(state_root, active, previous, "post_verified", "fixture")
+
+            output = io.StringIO()
+            with contextlib.redirect_stderr(output):
+                release_manager.prune_releases(release_root, state_root, current_user())
+
+            self.assertTrue((release_root / "releases" / stale).exists())
+            self.assertIn("code=RELEASE_PRUNE_SKIPPED", output.getvalue())
+            self.assertEqual(release_manager.current_commit(release_root), active)
+
+    def test_pruning_filesystem_error_is_nonblocking_after_successful_activation(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            release_root = root / "release"
+            state_root = root / "state"
+            state_root.mkdir()
+            stale, previous, active = ("4" * 40, "8" * 40, "9" * 40)
+            for commit in (stale, previous, active):
+                create_fake_release(release_root, commit)
+            point_current(release_root, active)
+            release_manager.write_journal(state_root, active, previous, "post_verified", "fixture")
+
+            output = io.StringIO()
+            original_remove = release_manager._remove_validated_release
+
+            def fail_one(path, releases):
+                if path.name == stale:
+                    raise OSError("fixture")
+                return original_remove(path, releases)
+
+            with patch.object(release_manager, "_remove_validated_release", side_effect=fail_one), \
+                 contextlib.redirect_stderr(output):
+                release_manager.prune_releases(release_root, state_root, current_user())
+
+            self.assertTrue((release_root / "releases" / stale).exists())
+            self.assertIn("reason=FILESYSTEM_ERROR", output.getvalue())
+            self.assertEqual(release_manager.current_commit(release_root), active)
+
     def test_explicit_rollback_returns_to_previous_validated_release(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

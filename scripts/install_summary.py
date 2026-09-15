@@ -166,7 +166,7 @@ def validate_service(root: Path, commit: str) -> bool:
             return False
     return True
 
-def validate_appliance(root: Path) -> dict[str, object] | None:
+def validate_appliance(root: Path, expected_commit: str | None = None) -> dict[str, object] | None:
     path = mapped(root, "/run/gonken-agent/ready.json")
     if not path.is_file() or path.is_symlink() or path.stat().st_size > 8192:
         return None
@@ -177,6 +177,8 @@ def validate_appliance(root: Path) -> dict[str, object] | None:
     if not isinstance(value, dict) or value.get("status") != "READY" or value.get("code") != "VOICE_RUNTIME_READY":
         return None
     if not isinstance(value.get("wake_phrase"), str) or not value["wake_phrase"].strip():
+        return None
+    if expected_commit is not None and value.get("release_commit") != expected_commit:
         return None
     return value
 
@@ -192,7 +194,7 @@ def build_summary(root: Path, commit: str) -> dict[str, object]:
     ollama = validate_ollama(root)
     speech = validate_speech(root)
     service_ready = validate_service(root, commit)
-    appliance = validate_appliance(root)
+    appliance = validate_appliance(root, commit)
     appliance_ready = service_ready and appliance is not None
     milestones = ["M3.3", "M3.4", "M3.5"]
     if service_ready:

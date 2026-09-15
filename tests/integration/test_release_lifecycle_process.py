@@ -237,6 +237,42 @@ class TargetBridgeUpgradeCompatibilityTests(unittest.TestCase):
             self.assertIn(f"candidate_commit={candidate}", journal)
             self.assertIn(f"previous_commit={previous}", journal)
 
+    def test_process_activation_does_not_fail_after_success_when_older_stale_release_is_pre_bridge(self) -> None:
+        """Reproduce checkpoint-30 Pi: stale legacy A, active legacy B, new strict C."""
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            release_root = root / "release-root"
+            state_root = root / "state-root"
+            state_root.mkdir()
+            stale, previous, candidate = ("2" * 40, "3" * 40, "4" * 40)
+            create_fake_release(release_root, stale, profile="core-pi-trixie-py313", binding_bridge=False)
+            create_fake_release(release_root, previous, profile="core-pi-trixie-py313", binding_bridge=False)
+            create_fake_release(release_root, candidate, profile="core-pi-trixie-py313", binding_bridge=True)
+            point_current(release_root, previous)
+            (state_root / "activation.record").write_text(
+                activation_record(previous, stale, "post_verified"), encoding="utf-8"
+            )
+            (state_root / "activation.record").chmod(0o600)
+
+            result = subprocess.run(
+                [
+                    sys.executable, str(MANAGER), "activate",
+                    "--release-root", str(release_root),
+                    "--state-root", str(state_root),
+                    "--service-user", current_user(),
+                    "--commit", candidate,
+                ],
+                cwd=ROOT, check=False, capture_output=True, text=True, timeout=20,
+            )
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn("code=ACTIVATION_COMPLETE", result.stdout)
+            self.assertIn(f"code=RELEASE_PRUNED commit={stale}", result.stdout)
+            self.assertEqual(os.readlink(release_root / "current"), f"releases/{candidate}")
+            self.assertFalse((release_root / "releases" / stale).exists())
+            self.assertTrue((release_root / "releases" / previous).exists())
+            self.assertTrue((release_root / "releases" / candidate).exists())
+
 
 class ActivationInterruptionTests(unittest.TestCase):
     def prepare(self, root: Path, *, failing_candidate: bool = False) -> tuple[Path, Path]:

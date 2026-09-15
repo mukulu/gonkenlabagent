@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "status": "PASS",
+  "cases": 10,
+  "evidence": {
+    "end_to_end_first_three": "release_endtoend.log",
+    "repeat_idempotent": "release_repeat.log",
+    "target_bridge_two": "release_process_2.log",
+    "activation_boundaries": "release_activation_boundaries.log",
+    "failed_smoke_rollback": "release_activation_smoke_rollback.log",
+    "operator_rollback": "release_operator_rollback.log",
+    "finalization": "release_finalization.log"
+  },
+  "note": "The class-level EndToEnd aggregate timed out while the fourth case was active; the three completed cases were preserved and only the unaccounted fourth case was rerun."
+}

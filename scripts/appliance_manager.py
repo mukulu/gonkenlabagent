@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import subprocess
 import sys
 import time
@@ -12,6 +13,8 @@ from pathlib import Path
 
 SERVICE = "gonken-agent.service"
 READY_FILE = Path("/run/gonken-agent/ready.json")
+CURRENT_LINK = Path("/usr/local/lib/gonken-agent/current")
+COMMIT_RE = re.compile(r"^[0-9a-f]{40}$")
 
 
 class ApplianceError(RuntimeError):
@@ -41,6 +44,18 @@ def systemctl(*args: str, check: bool = True) -> subprocess.CompletedProcess[str
     return result
 
 
+def current_release_commit() -> str | None:
+    if not CURRENT_LINK.is_symlink():
+        return None
+    try:
+        resolved = CURRENT_LINK.resolve(strict=True)
+    except OSError:
+        return None
+    if resolved.parent.name != "releases" or not COMMIT_RE.fullmatch(resolved.name):
+        return None
+    return resolved.name
+
+
 def read_ready() -> dict[str, object] | None:
     if not READY_FILE.is_file() or READY_FILE.is_symlink() or READY_FILE.stat().st_size > 8192:
         return None
@@ -51,6 +66,10 @@ def read_ready() -> dict[str, object] | None:
     if not isinstance(value, dict) or value.get("status") != "READY" or value.get("code") != "VOICE_RUNTIME_READY":
         return None
     if not isinstance(value.get("wake_phrase"), str) or not value["wake_phrase"].strip():
+        return None
+    current = current_release_commit()
+    recorded = value.get("release_commit")
+    if current is not None and recorded != current:
         return None
     return value
 

@@ -1,0 +1,31 @@
+{
+  "schema": 1,
+  "status": "PASS",
+  "modules": 46,
+  "tests": 461,
+  "chunks": [
+    {
+      "log": "unit_chunk1.log",
+      "tests": 177,
+      "result": "PASS"
+    },
+    {
+      "log": "unit_chunk2.log",
+      "tests": 84,
+      "result": "PASS"
+    },
+    {
+      "log": "unit_chunk3.log",
+      "tests": 108,
+      "result": "PASS"
+    },
+    {
+      "log": "unit_chunk4_final.log",
+      "tests": 92,
+      "result": "PASS"
+    }
+  ],
+  "notes": [
+    "unit_chunk4.log was superseded by unit_chunk4_final.log after two additional Bluetooth false-green regression tests were added."
+  ]
+}

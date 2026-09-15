@@ -218,6 +218,42 @@ gonken_run_registered_steps
         self.assertEqual(result.returncode, 42)
         self.assertIn("code=INSTALL_ACTION", result.stderr)
 
+
+    def test_action_exit_78_is_recorded_as_planned_pause_not_failure(self) -> None:
+        result = self.run_one_step(
+            "pre(){ :; }; action(){ return 78; }; post(){ return 1; }"
+        )
+        self.assertEqual(result.returncode, 78)
+        self.assertIn("code=INSTALL_PAUSED", result.stdout)
+        self.assertNotIn("code=INSTALL_ACTION", result.stderr)
+
+    def test_planned_pause_state_converges_on_rerun_after_external_condition(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            state = root / "state"
+            logs = root / "logs"
+            ready = root / "ready"
+            body = f"""
+pre(){{ :; }}
+action(){{ [[ -f {shlex.quote(str(ready))} ]] && return 0; return 78; }}
+post(){{ [[ -f {shlex.quote(str(ready))} ]]; }}
+gonken_engine_initialize {shlex.quote(str(state))} {shlex.quote(str(logs))}
+gonken_register_step alpha 1 pre action post mutations rerun rollback
+gonken_run_registered_steps
+"""
+            first = run_engine(body)
+            self.assertEqual(first.returncode, 78, first.stderr)
+            paused = (state / "steps" / "alpha.record").read_text(encoding="utf-8")
+            self.assertIn("status=paused", paused)
+            self.assertNotIn("INSTALL_ACTION", first.stderr)
+
+            ready.write_text("ready\n", encoding="utf-8")
+            second = run_engine(body)
+            self.assertEqual(second.returncode, 0, second.stderr)
+            completed = (state / "steps" / "alpha.record").read_text(encoding="utf-8")
+            self.assertIn("status=complete", completed)
+            self.assertIn("INSTALL_STEP_SATISFIED step=alpha", second.stdout)
+
     def test_failed_postcondition_has_stable_io_exit_code(self) -> None:
         result = self.run_one_step(
             "pre(){ :; }; action(){ :; }; post(){ return 1; }"

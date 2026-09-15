@@ -284,6 +284,18 @@ def stack_status(audio_user: str) -> None:
             "install pulseaudio-utils and rerun Bluetooth stack preparation",
             1,
         )
+    package = run(
+        ["dpkg-query", "-W", "-f=${Status}", "libspa-0.2-bluetooth"],
+        timeout=8,
+        check=False,
+    )
+    if package.returncode != 0 or "install ok installed" not in clean_text(package.stdout).casefold():
+        fail(
+            "BLUETOOTH_PIPEWIRE_PLUGIN",
+            "PipeWire Bluetooth SPA plugin package is not installed",
+            "install libspa-0.2-bluetooth through the governed Bluetooth stack step and rerun",
+            1,
+        )
     _account, _env = user_context(audio_user)
     pipewire = run_as_user(audio_user, ["systemctl", "--user", "is-active", "--quiet", "pipewire.service"], timeout=8, check=False)
     wireplumber = run_as_user(audio_user, ["systemctl", "--user", "is-active", "--quiet", "wireplumber.service"], timeout=8, check=False)
@@ -483,6 +495,84 @@ def pipewire_nodes(audio_user: str, address: str) -> tuple[list[str], list[str]]
     return names(sinks_result.stdout, "bluez_output"), names(sources_result.stdout, "bluez_input")
 
 
+def _parse_capture_cards(output: str) -> list[tuple[str, str, str]]:
+    """Parse ``arecord -l`` into stable direct-ALSA capture candidates.
+
+    Keep this helper self-contained because Bluetooth provisioning runs before
+    the application service is considered ready.  The selection semantics
+    intentionally mirror ``voice_runtime.AudioBackend``: one USB capture card
+    is preferred; otherwise exactly one non-HDMI capture card is acceptable.
+    """
+    rows: list[tuple[str, str, str]] = []
+    pattern = re.compile(
+        r"^card\s+(\d+):\s*([^\[]+)\[([^\]]+)\],\s*device\s+(\d+):\s*(.*)$",
+        re.I,
+    )
+    for raw in clean_text(output).splitlines():
+        match = pattern.match(raw.strip())
+        if not match:
+            continue
+        card, short, long_name, device, tail = match.groups()
+        card_id = short.strip()
+        locator = card_id if re.fullmatch(r"[A-Za-z0-9_]+", card_id) else card
+        text = " ".join((short.strip(), long_name.strip(), tail.strip()))
+        rows.append((f"plughw:CARD={locator},DEV={device}", text, device))
+    return rows
+
+
+def _one_capture_card(rows: list[tuple[str, str, str]]) -> str | None:
+    if not rows:
+        return None
+    cards: dict[str, list[tuple[str, str, str]]] = {}
+    for row in rows:
+        cards.setdefault(row[0].split(",", 1)[0], []).append(row)
+    if len(cards) != 1:
+        return None
+    choices = next(iter(cards.values()))
+    zero = [row for row in choices if row[2] == "0"]
+    return (zero[0] if zero else choices[0])[0]
+
+
+def direct_capture_fallback(audio_user: str) -> str | None:
+    """Return the one deterministic direct capture route available to GonKen.
+
+    This is an enumeration/preflight only; it never records audio.  Ambiguous
+    capture hardware fails closed so appliance readiness cannot silently pick a
+    different microphone than the operator expects.
+    """
+    result = run_as_user(audio_user, ["arecord", "-l"], timeout=8, check=False)
+    rows = _parse_capture_cards(result.stdout + result.stderr)
+    usb = [row for row in rows if "usb" in row[1].casefold()]
+    selected = _one_capture_card(usb)
+    if selected:
+        return selected
+    usb_cards = {row[0].split(",", 1)[0] for row in usb}
+    if len(usb_cards) > 1:
+        fail(
+            "AUDIO_INPUT_AMBIGUOUS",
+            "multiple direct USB capture cards are available",
+            "disconnect extra microphones or set one explicit audio input selector before rerunning",
+            65,
+        )
+    non_hdmi = [
+        row
+        for row in rows
+        if not any(token in row[1].casefold() for token in ("hdmi", "displayport", "vc4"))
+    ]
+    selected = _one_capture_card(non_hdmi)
+    if selected:
+        return selected
+    non_hdmi_cards = {row[0].split(",", 1)[0] for row in non_hdmi}
+    if len(non_hdmi_cards) > 1:
+        fail(
+            "AUDIO_INPUT_AMBIGUOUS",
+            "multiple direct capture cards are available",
+            "disconnect extra microphones or set one explicit audio input selector before rerunning",
+            65,
+        )
+    return None
+
+
 def _headset_profile(audio_user: str, address: str) -> tuple[str, str] | None:
     """Return one available Bluetooth profile that exposes a capture source."""
     token = address.replace(":", "_").casefold()
@@ -542,7 +632,9 @@ def route_defaults(
                 flush=True,
             )
             run_as_user(audio_user, ["pactl", "set-card-profile", card, profile], timeout=12, check=False)
-            profile_deadline = time.monotonic() + 12
+            # Give WirePlumber/BlueZ a bounded settle window after a profile
+            # change.  Headless target enumeration can lag card-profile change.
+            profile_deadline = time.monotonic() + max(12, min(wait_seconds, 30))
             while time.monotonic() < profile_deadline:
                 sinks, sources = pipewire_nodes(audio_user, address)
                 if sources:
@@ -629,15 +721,22 @@ def pair(selector: str, audio_user: str, record: Path, timeout: int) -> None:
             f"inspect WirePlumber for user {audio_user} and Bluetooth profiles",
             69,
         )
-    # A headset-capable device may still expose playback only on a particular
-    # firmware/profile combination.  Pairing owns Bluetooth identity/output; it
-    # does not prove the appliance input path.  The appliance-readiness gate
-    # independently requires a working microphone and can safely use one
-    # unambiguous direct USB capture device when the Bluetooth HFP/HSP source
-    # is unavailable.  This keeps mixed USB-input/Bluetooth-output deployments
-    # usable without weakening final physical readiness.
+    # Do not defer a missing microphone until the 180-second appliance gate.
+    # If the headset does not expose HFP/HSP capture, prove now that the exact
+    # service user can at least enumerate one deterministic direct ALSA capture
+    # fallback.  Final appliance readiness still performs the real recording.
+    fallback = None
+    if info["headset_capable"] and not sources:
+        fallback = direct_capture_fallback(audio_user)
+        if fallback is None:
+            fail(
+                "BLUETOOTH_INPUT_UNAVAILABLE",
+                "headset is connected for playback but no Bluetooth or direct capture input is available",
+                "keep the headset powered and expose an HFP/HSP microphone profile, or connect exactly one USB microphone, then rerun",
+                69,
+            )
     write_device_record(record, address=address, name=name, audio_user=audio_user, info=info)
-    source_state = "ready" if sources else "direct_audio_fallback_pending"
+    source_state = "bluetooth_ready" if sources else f"direct_ready:{fallback}" if fallback else "not_required"
     print(
         f"[OK] code=BLUETOOTH_AUDIO_PAIRED address={address} name={safe_record_name(name)} "
         f"output={'ready' if sinks else 'not_advertised'} microphone={source_state}",
@@ -695,11 +794,18 @@ def device_status(record: Path, audio_user: str, *, require_connected: bool) -> 
             "reconnect the device and rerun Bluetooth routing",
             1,
         )
-    # Do not make the Bluetooth identity postcondition equivalent to full
-    # appliance input readiness.  A deployment may intentionally use a direct
-    # USB microphone with Bluetooth output.  The later appliance-readiness
-    # boundary performs an actual capture and therefore remains the authority
-    # for whether any input path is usable.
+    # The pairing postcondition must not claim a usable headset deployment when
+    # no input route can even be enumerated.  This remains non-actuating: the
+    # later appliance-readiness gate is still the authority for real capture.
+    if require_connected and values.get("headset_capable") == "yes" and not sources:
+        fallback = direct_capture_fallback(audio_user)
+        if fallback is None:
+            fail(
+                "BLUETOOTH_INPUT_UNAVAILABLE",
+                "recorded headset has playback but no Bluetooth or direct capture input route",
+                "expose the headset HFP/HSP microphone or connect exactly one USB microphone, then rerun",
+                1,
+            )
     state = "connected" if info["connected"] else "paired_offline"
     print(
         f"[OK] code=BLUETOOTH_AUDIO_STATUS state={state} output_nodes={len(sinks)} input_nodes={len(sources)}"

@@ -1,0 +1,6 @@
+test_failed_post_switch_smoke_rolls_back_previous (tests.integration.test_release_lifecycle_process.ActivationInterruptionTests.test_failed_post_switch_smoke_rolls_back_previous) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.655s
+
+OK

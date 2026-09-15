@@ -702,6 +702,14 @@ gonken_run_step() {
     :
   else
     result=$?
+    if ((result == 78)); then
+      gonken_write_step_state "$step_id" "paused" "planned_resume_required" || return $?
+      gonken_log_event "info" "INSTALL_PAUSED" "$step_id" "planned_resume_exit_78" || return $?
+      printf '[PAUSED] code=INSTALL_PAUSED step=%s version=%s action=resume_after_required_system_transition\n' \
+        "$step_id" "${GONKEN_STEP_VERSION[$step_id]}"
+      GONKEN_ENGINE_CURRENT_STEP="none"
+      return 78
+    fi
     gonken_write_step_state "$step_id" "failed" "action_failed" || return $?
     gonken_log_event "error" "INSTALL_ACTION" "$step_id" "action_failed_exit_$result" || return $?
     gonken_error "INSTALL_ACTION" "action failed for step $step_id with exit $result" "inspect the event log, correct the cause, and rerun"

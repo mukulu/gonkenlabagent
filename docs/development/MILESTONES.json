@@ -1,6 +1,6 @@
 {
   "baseline_commit": "6466f26a1a9cb97e4c24182505b37cefb766b3c3",
-  "checkpoint_scope": "V09 checkpoint 30 repairs the checkpoint-29 Raspberry Pi activation migration defect; M10.25 is host-verified, while M10.24 exact-package Raspberry Pi acceptance remains open after partial actuator evidence and a blocked checkpoint-29 install.",
+  "checkpoint_scope": "V09 checkpoint 31 closes the checkpoint-30 Raspberry Pi installation-convergence gaps discovered after activation: stale-release garbage collection is noncritical, I2C reboot is a governed pause/resume transition, Bluetooth installation proves an input route early, and appliance readiness is bound to the exact immutable release. M10.26 is host-verified after regression closure; M10.24 exact-package Raspberry Pi acceptance remains open.",
   "milestones": [
     {
       "evidence": "TEST_MATRIX.md (M2.1)",
@@ -442,8 +442,8 @@
       "title": "Final Raspberry Pi environment and release acceptance",
       "software": "host-verified",
       "target": "not-run",
-      "evidence": "docs/development/V09_COMPREHENSIVE_CLOSURE_BLUEPRINT_CHECKPOINT_25.md; docs/RASPBERRY_PI_ACCEPTANCE_RUN.md; checkpoint-29 target transcript: GPIO23 gpiochip0:23 manual 0/OFF, 1/ON, 0/OFF physical fan response; checkpoint-29 installer reached target preflight/build then BLOCKED at activate_release with RELEASE_BINDING_MANIFEST while reconciling a pre-bridge active release",
-      "remaining": "Partial target evidence is preserved: the Raspberry Pi 5 GPIO23/relay/PENGLIN/ELUTENG load path works manually. Full M10.24 remains NOT_RUN because checkpoint 29 did not reach INSTALLATION_COMPLETE. Retest exact checkpoint 30; then complete GonKen CLI actuator, SHT31, full-real controller, voice/wake, faults, reboot/no-login, update/rollback/reinstall and final support evidence."
+      "evidence": "docs/development/V09_COMPREHENSIVE_CLOSURE_BLUEPRINT_CHECKPOINT_25.md; docs/RASPBERRY_PI_ACCEPTANCE_RUN.md; checkpoint-29/30 target transcripts: GPIO23 gpiochip0:23 manual 0/OFF, 1/ON, 0/OFF physical fan response; checkpoint-30 activation migrated to 34aee184d348f35db46fecacd36a369d9974c5a4, then a stale historical release 3b25b81c5bc7d4e24268726ad7f7b71296215a03 incorrectly failed post-activation pruning; checkpoint-30 local rerun authorized gonkenlab, passed identity preflight, requested I2C enablement, and paused before INSTALLATION_COMPLETE; support evidence then showed the active checkpoint-30 binding bridge and /dev/i2c-1 ready",
+      "remaining": "Partial target evidence is preserved: the Raspberry Pi 5 GPIO23/relay/PENGLIN/ELUTENG load path works manually and checkpoint 30 successfully activated its new release. Full M10.24 remains NOT_RUN because INSTALLATION_COMPLETE was not reached. Retest exact checkpoint 31 through governed install convergence, then complete GonKen CLI actuator, SHT31, full-real controller, voice/wake, faults, reboot/no-login, update/rollback/reinstall and final support evidence."
     },
     {
       "id": "M10.25",
@@ -452,6 +452,14 @@
       "target": "not-run",
       "evidence": "scripts/release_manager.py; tests/fixtures/release_fakes.py; tests/unit/test_m3_3_release_manager.py; tests/integration/test_release_lifecycle_process.py; docs/development/evidence/v09/checkpoint30/affected_unit.log; docs/development/evidence/v09/checkpoint30/affected_integration.log; docs/development/evidence/v09/checkpoint30/final_unit_accounting.json; docs/development/evidence/v09/checkpoint30/final_integration_accounting.json; docs/development/evidence/v09/checkpoint30/final_release_lifecycle_accounting.json; docs/development/V09_CHECKPOINT_30_REPORT.md",
       "remaining": "Install exact checkpoint 30 on the Raspberry Pi. The old post-verified pre-bridge active release may be used only as a bounded state-bound transition source; the new candidate remains under the strict bridge manifest/API contract. Target acceptance is not claimed until INSTALLATION_COMPLETE and the remaining M10.24 campaign pass."
+    },
+    {
+      "id": "M10.26",
+      "title": "Target install convergence, planned reboot and voice prerequisite hardening",
+      "software": "host-verified",
+      "target": "not-run",
+      "evidence": "scripts/release_manager.py; scripts/i2c_manager.py; scripts/lib/install_engine.sh; scripts/install.sh; scripts/bluetooth_manager.py; scripts/appliance_manager.py; scripts/install_summary.py; src/gonken_agent/voice_runtime.py; tests/unit/test_v09_install_dependency_graph.py; docs/development/evidence/v09/checkpoint31/target_incident_summary.json; docs/development/evidence/v09/checkpoint31/final_unit_accounting.json; docs/development/evidence/v09/checkpoint31/final_integration_accounting.json; docs/development/evidence/v09/checkpoint31/final_release_lifecycle_accounting.json; docs/development/V09_CHECKPOINT_31_REPORT.md; docs/development/V09_CHANGE_VERIFICATION_REPORT_CHECKPOINT_31.md",
+      "remaining": "Retest exact checkpoint 31 on the Raspberry Pi. Best-effort stale-release cleanup must never invalidate an already-complete activation; genuine I2C reboot must pause/resume without a failure bundle; Bluetooth must prove either a headset capture source or exactly one deterministic direct ALSA capture route before final appliance readiness; and the ready record must belong to the current immutable commit. Physical audio, INSTALLATION_COMPLETE and the rest of M10.24 remain target evidence."
     }
   ],
   "schema_version": 1

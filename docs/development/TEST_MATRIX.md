@@ -1261,3 +1261,25 @@ Checkpoint 24 closes the host-side root cause and adds regression protection, bu
 | CP30-T145 | Release lifecycle accounting | `checkpoint30/final_release_lifecycle_accounting.json` | PASS, 9/9 cases | Includes new target migration plus build/repeat/low-space/activation/finalization/rollback boundaries. |
 | CP30-T146 | Checkpoint-30 control plane | `checkpoint30/final_control_unit.log`; `checkpoint30/final_control_integration.log`; `checkpoint30/final_readiness_docs.log`; `checkpoint30/t0_final.log` | PASS | 41/41 focused control unit tests, 2/2 focused control integration tests, documentation/readiness checks and canonical T0 pass after M10.25 synchronization. |
 | CP30-T147 | Exact checkpoint-30 Raspberry Pi install | Exact delivered checkpoint 30; governed installer; active commit; failure bundle on any error | NOT RUN / BLOCKED TARGET GATE | Must reach `INSTALLATION_COMPLETE` without live-target patching before integrated M10.24 testing resumes. |
+
+
+## V09 Checkpoint 31 — target-install convergence and next-gate prevention
+
+| ID | Scope | Command / artifact | Host result | Target boundary |
+|---|---|---|---:|---|
+| CP31-T148 | Checkpoint-30 incident classification | target failure/support bundles; terminal transcript | VERIFIED | New release `34aee184...` activated; subsequent `3b25b81...` binding error was stale-release pruning, not candidate failure. Local rerun reached I2C planned transition; no `INSTALLATION_COMPLETE`. |
+| CP31-T149 | Stale-release GC noncritical | release-manager unit/process cases incl. stale pre-bridge + active/previous + new strict release | PASS | Pi retest must not report completed activation failed solely because stale cleanup is skipped. |
+| CP31-T150 | Corrupt/unremovable stale release | prune warning regressions | PASS | Stale release retained with `RELEASE_PRUNE_SKIPPED`; activation remains valid. |
+| CP31-T151 | I2C bounded settle | delayed-device and immediate-ready unit cases | PASS | Target may continue without reboot if `/dev/i2c-1` appears within the bounded window. |
+| CP31-T152 | Planned I2C pause/resume | install-engine pause state + first-run pause/second-run convergence regression | PASS | Genuine reboot returns planned code 78, no generic failure bundle; same checkpoint resumes after reboot. |
+| CP31-T153 | Bluetooth capture-route prerequisite | Bluetooth parser/fallback/zero/ambiguous route tests | PASS | Physical AIRHUG/USB microphone route remains target observation; zero/ambiguous capture now fails early with explicit code. |
+| CP31-T154 | Bluetooth runtime package dependency | installer contract includes `libspa-0.2-bluetooth` | PASS | Target package install still observed by apt/system runtime. |
+| CP31-T155 | Release-specific ready record | appliance manager/install summary/voice runtime tests | PASS | Target new service must produce a ready record matching current immutable commit. |
+| CP31-T156 | Installer dependency ordering | `test_v09_install_dependency_graph.py` | PASS | Locks prerequisite order and non-actuating environment-service boundary. |
+| CP31-T157 | Exact checkpoint-31 Raspberry Pi install | exact delivered package; governed installer | NOT RUN / BLOCKED TARGET GATE | Must reach `INSTALLATION_COMPLETE`; then M10.24 continues with CLI fan, SHT31 and voice/wake acceptance. |
+
+| CP31-T158 | Complete unit accounting | `checkpoint31/final_unit_accounting.json` | PASS — 46 modules / 461 tests | Host only. |
+| CP31-T159 | Deterministic integration accounting | `checkpoint31/final_integration_accounting.json` | PASS — 12 modules / 59 tests | Aggregate timeouts preserved; only unaccounted cases rerun. |
+| CP31-T160 | Release lifecycle accounting | `checkpoint31/final_release_lifecycle_accounting.json` | PASS — 10/10 | Includes stale-prune-after-success, migration, rollback and interruption/finalization. |
+| CP31-T161 | Ollama lifecycle | `checkpoint31/ollama_lifecycle.log` | PASS — 5/5 | Synthetic host lifecycle only. |
+| CP31-T162 | Speech lifecycle | `checkpoint31/speech_cases/` | PASS — 5/5 | Synthetic host lifecycle only; physical microphone/speaker remains target gate. |

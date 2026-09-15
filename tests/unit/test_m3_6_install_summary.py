@@ -132,7 +132,8 @@ class InstallSummaryTests(unittest.TestCase):
         ready = self.system / "run/gonken-agent/ready.json"
         ready.parent.mkdir(parents=True, exist_ok=True)
         ready.write_text(
-            '{"status":"READY","code":"VOICE_RUNTIME_READY","wake_phrase":"Hey Gonken","model":"qwen3.5:2b-q4_K_M"}\n',
+            '{"status":"READY","code":"VOICE_RUNTIME_READY","wake_phrase":"Hey Gonken",'
+            '"model":"qwen3.5:2b-q4_K_M","release_commit":"' + COMMIT + '"}\n',
             encoding="utf-8",
         )
         data = install_summary.build_summary(self.system, COMMIT)
@@ -142,6 +143,18 @@ class InstallSummaryTests(unittest.TestCase):
         components = {row["component"]: row for row in data["components"]}
         self.assertEqual(components["input_audio"]["status"], "READY")
         self.assertEqual(components["wake_runtime"]["code"], "WAKE_STANDBY_READY")
+
+    def test_summary_rejects_ready_record_from_previous_release(self) -> None:
+        ready = self.system / "run/gonken-agent/ready.json"
+        ready.parent.mkdir(parents=True, exist_ok=True)
+        ready.write_text(
+            '{"status":"READY","code":"VOICE_RUNTIME_READY","wake_phrase":"GonKen",'
+            '"model":"qwen3.5:2b-q4_K_M","release_commit":"' + ("b" * 40) + '"}\n',
+            encoding="utf-8",
+        )
+        data = install_summary.build_summary(self.system, COMMIT)
+        self.assertEqual(data["status"], "DEGRADED")
+        self.assertFalse(data["ready"])
 
     def test_summary_reports_service_degraded_when_unit_differs(self) -> None:
         installed = self.system / "etc/systemd/system/gonken-agent.service"
