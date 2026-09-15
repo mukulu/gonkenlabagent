@@ -1513,3 +1513,9 @@ M10.6 is now host-verified as a complete software/documentation/scaffold tranche
 Host-side quality work now includes a bounded per-module unittest runner. `scripts/ci.sh` still executes the T0 static gates and the T1 unit/integration suites, but each test module runs as an independent subprocess with an explicit timeout, heartbeat output, per-module log file and JSON manifest. This does not reduce the required test set; it makes a broad run auditable when a module is slow, interrupted or failed.
 
 This checkpoint addresses the previous false-unknown quality state where monolithic aggregate runs could be interrupted without identifying the active module. It does not close physical M10.7 acceptance and it does not claim that the heavier release lifecycle aggregate has passed in this container. The release lifecycle is now observable and bounded; completing it still requires either a long enough host run or further decomposition of the release end-to-end fixture.
+
+### Checkpoint 14 — Release lifecycle CI decomposition
+
+Checkpoint 14 keeps V09 in the host-verifiable quality phase and does not add new physical acceptance claims. The bounded unittest runner now supports two execution granularities: module-level for ordinary unit/integration modules and case-level for release lifecycle E2E cases that are heavier and need finer evidence. `scripts/ci.sh` runs `tests.integration.test_release_lifecycle_process` separately with `--granularity case`, and the release-only/default-boundary E2E test has been decomposed into named build/freeze, repeat/idempotency, target-boundary and low-space cases.
+
+This change improves observability and continuation safety without weakening release acceptance. The same host release behavior remains tested, but a future timeout now identifies the exact case rather than only the aggregate module. M10.7 physical Raspberry Pi evidence remains not-run.

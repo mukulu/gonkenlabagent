@@ -18,6 +18,7 @@ import subprocess
 import select
 import sys
 import time
+import unittest
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -66,6 +67,31 @@ def discover_modules(root: Path, suite_dir: Path, pattern: str) -> list[str]:
         raise FileNotFoundError(f"suite directory does not exist: {directory}")
     modules = [module_name(root, path) for path in sorted(directory.glob(pattern)) if path.is_file()]
     return [module for module in modules if not module.endswith(".__init__")]
+
+
+def _iter_suite_tests(suite: unittest.TestSuite):
+    for item in suite:
+        if isinstance(item, unittest.TestSuite):
+            yield from _iter_suite_tests(item)
+        else:
+            yield item
+
+
+def discover_test_cases(root: Path, modules: Sequence[str]) -> list[str]:
+    src_path = str(root / "src")
+    root_path = str(root)
+    for candidate in (src_path, root_path):
+        if candidate not in sys.path:
+            sys.path.insert(0, candidate)
+    loader = unittest.TestLoader()
+    test_ids: list[str] = []
+    for module in modules:
+        suite = loader.loadTestsFromName(module)
+        discovered = [test.id() for test in _iter_suite_tests(suite)]
+        if not discovered:
+            raise ValueError(f"no unittest cases discovered in {module}")
+        test_ids.extend(discovered)
+    return test_ids
 
 
 def safe_log_name(module: str) -> str:
@@ -190,13 +216,14 @@ def run_module(
     return ModuleResult(module, "FAIL", returncode, duration, str(log_path))
 
 
-def write_manifest(path: Path, *, label: str, results: list[ModuleResult]) -> None:
+def write_manifest(path: Path, *, label: str, granularity: str, results: list[ModuleResult]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     statuses = [result.status for result in results]
     payload = {
         "schema": "gonken-bounded-unittest-v1",
         "label": label,
         "created_utc": utc_now(),
+        "granularity": granularity,
         "result": "PASS" if statuses and all(status == "PASS" for status in statuses) else "FAIL",
         "module_count": len(results),
         "status_counts": {status: statuses.count(status) for status in sorted(set(statuses))},
@@ -225,6 +252,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--suite-dir", type=Path, required=True, help="suite directory relative to --root, e.g. tests/unit")
     parser.add_argument("--pattern", default=DEFAULT_PATTERN)
     parser.add_argument("--module", action="append", default=[], help="explicit module to run; bypasses discovery when supplied")
+    parser.add_argument("--exclude-module", action="append", default=[], help="test module to omit from discovery; useful when a long module is run in finer granularity")
+    parser.add_argument("--granularity", choices=("module", "case"), default="module", help="run whole modules or individual unittest case IDs as bounded subprocesses")
     parser.add_argument("--label", required=True)
     parser.add_argument("--log-dir", type=Path, required=True)
     parser.add_argument("--manifest", type=Path, required=True)
@@ -244,14 +273,26 @@ def main(argv: Sequence[str] | None = None) -> int:
     root = args.root.resolve()
     explicit = args.module or []
     modules = explicit if explicit else discover_modules(root, args.suite_dir, args.pattern)
+    excluded = set(args.exclude_module or [])
+    modules = [module for module in modules if module not in excluded]
     if not modules:
         parser.error("no test modules selected")
     for module in modules:
         if not MODULE_RE.fullmatch(module):
             parser.error(f"unsafe module name: {module}")
+    if args.granularity == "case":
+        try:
+            selected = discover_test_cases(root, modules)
+        except Exception as exc:  # pragma: no cover - argparse renders this branch.
+            parser.error(str(exc))
+    else:
+        selected = modules
+    for test_name in selected:
+        if not MODULE_RE.fullmatch(test_name):
+            parser.error(f"unsafe test identifier: {test_name}")
     extra_env = parse_env(args.env)
     results: list[ModuleResult] = []
-    for module in modules:
+    for module in selected:
         results.append(
             run_module(
                 module=module,
@@ -265,10 +306,10 @@ def main(argv: Sequence[str] | None = None) -> int:
             )
         )
         if results[-1].status != "PASS":
-            # Continue to the next independent module so the manifest identifies all
-            # immediate failures, but never return success once one module fails.
+            # Continue to the next independent module/case so the manifest identifies all
+            # immediate failures, but never return success once one item fails.
             pass
-    write_manifest(args.manifest, label=args.label, results=results)
+    write_manifest(args.manifest, label=args.label, granularity=args.granularity, results=results)
     failures = [result for result in results if result.status != "PASS"]
     if failures:
         print(f"[SUMMARY] label={args.label} result=FAIL modules={len(results)} failures={len(failures)} manifest={args.manifest}", flush=True)

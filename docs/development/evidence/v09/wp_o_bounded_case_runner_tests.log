@@ -1,0 +1,11 @@
+test_case_granularity_runs_each_unittest_method_with_separate_log (tests.unit.test_bounded_unittest_runner.BoundedUnittestRunnerTests.test_case_granularity_runs_each_unittest_method_with_separate_log) ... ok
+test_ci_uses_bounded_runner_for_unit_and_integration_suites (tests.unit.test_bounded_unittest_runner.BoundedUnittestRunnerTests.test_ci_uses_bounded_runner_for_unit_and_integration_suites) ... ok
+test_excluded_module_is_not_selected_during_discovery (tests.unit.test_bounded_unittest_runner.BoundedUnittestRunnerTests.test_excluded_module_is_not_selected_during_discovery) ... ok
+test_failing_module_returns_nonzero_but_preserves_manifest (tests.unit.test_bounded_unittest_runner.BoundedUnittestRunnerTests.test_failing_module_returns_nonzero_but_preserves_manifest) ... ok
+test_passing_module_writes_manifest_and_log (tests.unit.test_bounded_unittest_runner.BoundedUnittestRunnerTests.test_passing_module_writes_manifest_and_log) ... ok
+test_timeout_module_returns_nonzero_and_kills_child (tests.unit.test_bounded_unittest_runner.BoundedUnittestRunnerTests.test_timeout_module_returns_nonzero_and_kills_child) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 6.483s
+
+OK

@@ -63,10 +63,23 @@ echo "[T1] deterministic integration suite (bounded per module)"
 "$PYTHON_BIN" "$SCRIPT_DIR/bounded_unittest.py" \
   --root "$PROJECT_ROOT" \
   --suite-dir tests/integration \
+  --exclude-module tests.integration.test_release_lifecycle_process \
   --label integration \
   --log-dir "$CI_LOG_DIR/integration" \
   --manifest "$CI_LOG_DIR/integration_manifest.json" \
   --timeout-seconds "${GONKEN_CI_INTEGRATION_MODULE_TIMEOUT:-300}" \
+  --heartbeat-seconds "${GONKEN_CI_HEARTBEAT_SECONDS:-15}"
+
+echo "[T1] release lifecycle integration suite (bounded per case)"
+"$PYTHON_BIN" "$SCRIPT_DIR/bounded_unittest.py" \
+  --root "$PROJECT_ROOT" \
+  --suite-dir tests/integration \
+  --module tests.integration.test_release_lifecycle_process \
+  --granularity case \
+  --label integration-release-lifecycle \
+  --log-dir "$CI_LOG_DIR/integration-release-lifecycle" \
+  --manifest "$CI_LOG_DIR/integration_release_lifecycle_manifest.json" \
+  --timeout-seconds "${GONKEN_CI_RELEASE_CASE_TIMEOUT:-240}" \
   --heartbeat-seconds "${GONKEN_CI_HEARTBEAT_SECONDS:-15}"
 
 echo "T0/T1 checks passed"
