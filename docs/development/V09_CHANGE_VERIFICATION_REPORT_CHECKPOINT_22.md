@@ -37,6 +37,8 @@ Checkpoint 21 left M10.14 `software=pending`, `target=not-run` and had no machin
 
 During implementation, the first end-to-end gate run correctly refused readiness when the new handoff document did not satisfy the documentation validator's exact safety term. The document was corrected before milestone status was changed. A later broad affected-regression command hit the execution timeout during the existing environment acceptance-runner module; the partial log was preserved, the active module was isolated, and all independent remaining modules were completed separately. The first T0 close attempt then rejected CRLF line endings introduced by the checkpoint CSV append path. The historical ledgers were preserved, the new rows were normalized to LF, `git diff --check` passed and T0 passed on rerun.
 
+The first fresh source-ZIP extraction then reproduced a package-only defect: `python3 scripts/validate_v09_docs.py --json` failed documented acceptance-runner parsing with `ModuleNotFoundError: scripts` because T0 had supplied repository-root `PYTHONPATH`. The archive was not accepted. The validator now establishes ROOT/SRC imports itself, and the documentation-hardening regression deliberately removes `PYTHONPATH`. A clean-environment run passes all 175 validator checks and the strengthened unit module passes 4/4.
+
 ## Checks executed
 
 | Check | Command/method | Result | Evidence |
@@ -50,6 +52,7 @@ During implementation, the first end-to-end gate run correctly refused readiness
 | T0 | `./scripts/ci.sh --phase t0` | PASS after repairing appended CSV CRLF line endings | `checkpoint22/t0_static.log` |
 | Final clean M10.14 gate | exact checkpoint commit; generated outside committed tree | pending until final commit/package close | external checkpoint-22 verification bundle |
 | Change-verification report structure | skill validator | PASS | `checkpoint22/change_report_validator.log` |
+| Clean-package import regression | validator with `PYTHONPATH` removed + documentation-hardening unit module | PASS, 175 checks + 4/4 | `checkpoint22/package_integrity_import_repair.log` |
 
 ## Generated artifacts and manual review
 
@@ -62,6 +65,7 @@ The simulation runner produces `m10_14_simulation_manifest.json` and `m10_14_sim
 - Existing acceptance-runner tests confirm simulated/hybrid payloads remain blocked from physical PASS.
 - Existing CLI simulation tests preserve passive-watch behavior and the non-actuating `env serve --check` contract.
 - Lifecycle/update/uninstall/support tests protect rollback/recovery and evidence export surfaces required by M10.14.
+- Documentation validation now proves it runs from a clean extracted package without CI-provided `PYTHONPATH` or generated build residue.
 
 ## Skipped or unavailable checks
 

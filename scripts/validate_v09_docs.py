@@ -22,8 +22,12 @@ from typing import Iterable
 
 ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "src"
-if str(SRC) not in sys.path:
-    sys.path.insert(0, str(SRC))
+# Direct execution sets sys.path[0] to scripts/, not the repository root.
+# Add both canonical source roots explicitly so documented-command validation
+# never depends on CI-provided PYTHONPATH or ignored/generated build residue.
+for import_root in (ROOT, SRC):
+    if str(import_root) not in sys.path:
+        sys.path.insert(0, str(import_root))
 
 REQUIRED_DOCS = (
     "README.md",

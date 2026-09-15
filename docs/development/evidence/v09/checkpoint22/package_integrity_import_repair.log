@@ -1,0 +1,23 @@
+Checkpoint 22 package-integrity repair
+Date: 2026-09-15
+
+Reproduction:
+- A fresh ZIP extraction was clean at commit 8c2efd97925236214b3dd1b67efa12b43a55b279.
+- Direct `python3 scripts/validate_v09_docs.py --json` failed DOC-CMD-017 and DOC-CMD-018 with `ModuleNotFoundError: No module named 'scripts'`.
+- T0 had masked the defect because scripts/ci.sh exports PYTHONPATH="$PROJECT_ROOT/src:$PROJECT_ROOT".
+
+Root cause:
+- Direct script execution puts the repository `scripts/` directory on sys.path but not its parent repository root.
+- `validate_v09_docs.py` imported `from scripts import environment_acceptance_runner` without adding ROOT itself.
+- Clean packaging correctly removed ignored/generated residue; packaging must not restore generated files to hide the import defect.
+
+Repair:
+- `validate_v09_docs.py` now adds both repository ROOT and SRC to sys.path explicitly.
+- `test_v09_documentation_hardening.py` removes PYTHONPATH before launching the validator so the clean-package execution contract is regression-protected.
+
+Narrow verification:
+- `env -u PYTHONPATH python3 scripts/validate_v09_docs.py --json` -> PASS, 175 checks.
+- `python3 -m unittest -v tests.unit.test_v09_documentation_hardening` -> PASS, 4/4.
+
+Evidence boundary:
+- Host/package-executability evidence only. No Raspberry Pi, SHT31, relay, PENGLIN, fan, wake/audio, reboot or no-login physical acceptance is claimed.
