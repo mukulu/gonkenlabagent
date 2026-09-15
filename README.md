@@ -71,8 +71,8 @@ The official repository and `main` branch are defaults.
 A successful appliance installation ends with output similar to:
 
 ```text
-[READY] code=APPLIANCE_READY service=gonken-agent.service wake_phrase=Hey_Gonken reboot_required=false
-[READY] code=INSTALLATION_COMPLETE service=gonken-agent.service autostart=enabled reboot_required=false wake_phrase=Hey_Gonken
+[READY] code=APPLIANCE_READY service=gonken-agent.service wake_phrase=GonKen reboot_required=false
+[READY] code=INSTALLATION_COMPLETE service=gonken-agent.service autostart=enabled reboot_required=false wake_phrase=GonKen
 ```
 
 When audio is available, the assistant also announces that it is ready.
@@ -95,6 +95,7 @@ To check readiness from SSH:
 
 ```bash
 gonken-agent status
+gonken-agent wake status --json
 ```
 
 For manual foreground operation, one-turn testing, service start/stop/restart,
@@ -107,6 +108,10 @@ logs, `doctor`, and support collection, see
 - [Operating, starting/stopping, logs and diagnostics](docs/OPERATIONS.md)
 - [Headless Bluetooth audio](docs/BLUETOOTH_AUDIO.md)
 - [Raspberry Pi acceptance runbook](docs/RASPBERRY_PI_ACCEPTANCE_RUN.md)
+- [V09 room-environment hardware setup](docs/HARDWARE_SETUP.md)
+- [V09 environment control reference](docs/ENVIRONMENT_CONTROL.md)
+- [V09 simulation and hybrid-HIL guide](docs/SIMULATION.md)
+- [V09 troubleshooting guide](docs/TROUBLESHOOTING.md)
 - [V09 room-environment acceptance evidence run](docs/ENVIRONMENT_ACCEPTANCE_RUN.md)
 - [Dependency profiles](requirements/README.md)
 

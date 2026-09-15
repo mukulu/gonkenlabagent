@@ -345,11 +345,14 @@
       "title": "Mandatory GonKen wake responsiveness and transition announcements"
     },
     {
-      "evidence": "docs/development/V09_SIMULATION_HIL_EXTENSION_PLAN.md",
+      "evidence": "docs/HARDWARE_SETUP.md; docs/ENVIRONMENT_CONTROL.md; docs/SIMULATION.md; docs/TROUBLESHOOTING.md; docs/ENVIRONMENT_ACCEPTANCE_RUN.md; scripts/validate_v09_docs.py; tests/unit/test_v09_documentation_hardening.py; tests/unit/test_v09_environment_acceptance_runner.py; docs/development/evidence/v09/checkpoint21/affected_docs_evidence_tests.log; docs/development/evidence/v09/checkpoint21/affected_broad_regression_tests.log; docs/development/evidence/v09/checkpoint21/t0_static.log",
       "id": "M10.13",
-      "remaining": "Create hardware setup, environment control, simulation, troubleshooting and evidence/export docs plus documentation command/link/config checks.",
-      "software": "pending",
+      "notes": "Host documentation and evidence-runner metadata only; does not prove SHT31, relay, fan, wake audio or target systemd behavior.",
+      "remaining": "Documentation/evidence hardening is host-verified. Hardware setup, environment control, simulation, troubleshooting and acceptance-runner boundary documentation now exist, documented commands/config keys/links are checked in T0, and the evidence runner manifest records upload requirements and no-acceptance boundaries. Physical M10.7 target gates remain not-run.",
+      "software": "host-verified",
+      "status": "host-verified",
       "target": "not-run",
+      "target_status": "not-run",
       "title": "Documentation and evidence hardening"
     },
     {

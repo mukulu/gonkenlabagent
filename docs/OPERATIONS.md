@@ -324,6 +324,8 @@ id -u gonken-agent
 
 ## V09 room-environment operator and voice boundary
 
+For hardware preparation, see [V09 room-environment hardware setup](HARDWARE_SETUP.md). For the full control reference, see [V09 environment control reference](ENVIRONMENT_CONTROL.md). For simulation and hybrid-HIL practice, see [V09 simulation and hybrid-HIL guide](SIMULATION.md). For fault diagnosis, see [V09 troubleshooting guide](TROUBLESHOOTING.md).
+
 V09 adds a room-environment control boundary. Current code includes host-tested
 SHT31 and libgpiod relay adapter modules, but real SHT31 reads, relay polarity,
 PENGLIN USB switching and fan cycles are still target-gated. The direct operator

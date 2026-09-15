@@ -484,6 +484,20 @@ def run_collection(args: argparse.Namespace) -> dict[str, object]:
         "host_output_may_not_substitute_for_physical_acceptance": True,
         "allow_actuation": bool(args.allow_actuation),
         "plan_only": bool(args.plan_only),
+        "evidence_boundary": {
+            "collector_is_acceptance_oracle": False,
+            "physical_acceptance_claimed": False,
+            "simulation_blocking_code": "SIMULATION_ACTIVE_PHYSICAL_ACCEPTANCE_BLOCKED",
+            "json_success_cannot_prove_blade_motion": True,
+            "simulated_backend_cannot_close_physical_gate": True,
+            "manual_observation_required_for_fan_motion": True,
+            "manual_observation_required_for_wake_audio": True,
+        },
+        "required_uploads": [
+            "m10_7_evidence_manifest.json",
+            "m10_7_private_evidence_ledger.csv",
+            "private_evidence/",
+        ],
         "git": repo_git_state(),
         "platform": platform_identity(),
         "tools": {
@@ -530,6 +544,7 @@ def run_collection(args: argparse.Namespace) -> dict[str, object]:
         rows.append(row_for_step(payload, file_name))
         statuses.append(str(payload["status"]))
 
+    manual_gate_step_ids: list[str] = []
     for spec in gates:
         status = "NEEDS_MANUAL_REVIEW" if spec.step_id != "m10_7_fan_manual_cycle_blocked" else "BLOCKED"
         state = "BLOCKED" if status == "BLOCKED" else "NOT_STARTED"
@@ -538,7 +553,9 @@ def run_collection(args: argparse.Namespace) -> dict[str, object]:
         write_json(private / file_name, payload)
         rows.append(row_for_step(payload, file_name))
         statuses.append(str(payload["status"]))
+        manual_gate_step_ids.append(spec.step_id)
 
+    manifest["manual_gate_step_ids"] = manual_gate_step_ids
     manifest["summary_status"] = aggregate_status(statuses)
     manifest["step_count"] = len(rows)
     manifest["status_counts"] = {status: statuses.count(status) for status in sorted(set(statuses))}

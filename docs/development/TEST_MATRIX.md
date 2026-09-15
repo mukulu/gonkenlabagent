@@ -1116,3 +1116,15 @@ Checkpoint 19 closes the M10.11 host gate. It does not close M10.7 physical targ
 | M10.12-T097 | Interrupted active unit module follow-up | `PYTHONPATH=src python3 -m unittest -v tests.unit.test_m8_uninstall_manager` | PASS, 3/3 | Narrow follow-up only; not a full unit-phase PASS. |
 
 Checkpoint 20 closes the M10.12 host gate for default `GonKen`, host wake matching, progress-cue scheduling, wake diagnostics and voice-owned environment transition announcements. It does not close M10.7 real wake, real audio, or physical environment hardware acceptance.
+
+## V09 Checkpoint 21 — Documentation and evidence hardening
+
+| Gate | Command / artifact | Result | Evidence boundary |
+|---|---|---:|---|
+| M10.13-T098 | Documentation/evidence affected tests | `PYTHONPATH=src:. python3 -m unittest -v tests.unit.test_v09_documentation_hardening tests.unit.test_v09_environment_acceptance_runner` | PASS, 11/11 | Host documentation and evidence-runner metadata evidence only. No physical target evidence. |
+| M10.13-T099 | Broad affected regression slice | `PYTHONPATH=src:. python3 -m unittest -v tests.unit.test_v09_documentation_hardening tests.unit.test_v09_environment_acceptance_runner tests.unit.test_release_readiness tests.unit.test_m2_1 tests.unit.test_voice_appliance tests.unit.test_m3_6_install_summary tests.unit.test_v09_environment_cli tests.unit.test_v09_environment_voice_intents` | PASS, 79/79 | Confirms documentation updates preserve wake/config/CLI/voice/readiness contracts at host level. |
+| M10.13-T100 | Static gates with documentation validator | `./scripts/ci.sh --phase t0` | PASS | T0 now includes `scripts/validate_v09_docs.py --json`; validates local links, documented command parsing, environment config-key documentation, wake default examples and simulation/physical boundary terms. |
+| M10.13-T101 | Unit phase attempt | `./scripts/ci.sh --phase unit` | INTERRUPTED / not PASS | External execution boundary interrupted the aggregate after partial progress. Diagnostic only. |
+| M10.13-T102 | Interrupted active unit module follow-up | `PYTHONPATH=src:. python3 -m unittest -v tests.unit.test_m6_service_manager` | PASS, 8/8 | Narrow follow-up only; not a full unit-phase PASS. |
+
+Checkpoint 21 closes the M10.13 host documentation/evidence hardening gate. It adds hardware setup, environment control, simulation and troubleshooting documents, T0 documentation validation, documented-command parsing, config-key documentation checks, wake default consistency checks and acceptance-runner manifest boundary metadata. It does not close M10.7 physical target acceptance.

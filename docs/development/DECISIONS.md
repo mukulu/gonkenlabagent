@@ -1298,3 +1298,23 @@ The voice runtime may issue at most the configured bounded post-question cues wh
 **Status:** accepted in checkpoint 20.
 
 The environment service records controller transition events; it does not own audio. The voice runtime may read those events and announce selected automatic/semi-automatic/safe-off transitions. Announcement wording must preserve simulation provenance and the current hardware boundary: relay/fan-power state is not blade-motion evidence and there is no software speed control.
+
+## 2026-09-15 — Checkpoint 21 documentation/evidence hardening decisions
+
+### D-100 — Documentation command/config/link validation belongs in T0
+
+**Status:** accepted in checkpoint 21.
+
+V09 documentation is now treated as an executable control surface. `scripts/validate_v09_docs.py` runs in the T0 phase and checks that required user-facing docs exist, local markdown links resolve, documented `gonken-agent` and evidence-runner commands parse, every static `extensions.environment` key is documented, wake examples use the `GonKen` default, and simulation/physical acceptance boundary terms remain present.
+
+### D-101 — Environment acceptance manifests must state their non-oracle boundary
+
+**Status:** accepted in checkpoint 21.
+
+The M10.7 environment acceptance runner manifest now includes `evidence_boundary`, `required_uploads`, and `manual_gate_step_ids`. The runner remains an evidence collector, not an acceptance oracle. It records `physical_acceptance_claimed=false`, preserves simulation blocking codes, and makes explicit that JSON success cannot prove blade motion or wake/audio behavior.
+
+### D-102 — User-facing environment docs are split by operational responsibility
+
+**Status:** accepted in checkpoint 21.
+
+The room-environment documentation is split into `HARDWARE_SETUP.md`, `ENVIRONMENT_CONTROL.md`, `SIMULATION.md`, `TROUBLESHOOTING.md`, and `ENVIRONMENT_ACCEPTANCE_RUN.md`. This avoids overloading `OPERATIONS.md` and gives the operator separate entry points for wiring safety, daemon/policy semantics, simulation practice, fault diagnosis and private target evidence collection.
