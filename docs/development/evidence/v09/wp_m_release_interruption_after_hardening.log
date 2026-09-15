@@ -1,0 +1,9 @@
+test_every_journal_switch_and_postcheck_boundary_reconciles (tests.integration.test_release_lifecycle_process.ActivationInterruptionTests.test_every_journal_switch_and_postcheck_boundary_reconciles) ... ok
+test_failed_post_switch_smoke_rolls_back_previous (tests.integration.test_release_lifecycle_process.ActivationInterruptionTests.test_failed_post_switch_smoke_rolls_back_previous) ... ok
+test_operator_rollback_script_restarts_service_after_validated_switch (tests.integration.test_release_lifecycle_process.ActivationInterruptionTests.test_operator_rollback_script_restarts_service_after_validated_switch) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 12.071s
+
+OK
+elapsed=0:12.68 rc=0
