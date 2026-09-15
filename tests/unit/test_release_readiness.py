@@ -32,6 +32,7 @@ class ReleaseReadinessTests(unittest.TestCase):
         self.assertIn("./bootstrap.sh --local-checkpoint", report["next_action"])
         self.assertIn("docs/RASPBERRY_PI_ACCEPTANCE_RUN.md", report["next_action"])
         self.assertIn("M10.7", report["next_action"])
+        self.assertIn("INSTALLATION_COMPLETE", report["next_action"])
 
     def test_human_report_has_exact_boundary_language(self) -> None:
         result = subprocess.run(
@@ -52,7 +53,7 @@ class ReleaseReadinessTests(unittest.TestCase):
         self.assertIn("docs/RASPBERRY_PI_ACCEPTANCE_RUN.md", readme)
         for expected in (
             "./bootstrap.sh --local-checkpoint",
-            "sha256sum -c SHA256SUMS_checkpoint23.txt",
+            "sha256sum -c SHA256SUMS_checkpoint24.txt",
             "git reset --hard HEAD",
             "test -x ./bootstrap.sh",
             "gpioinfo --strict GPIO17",

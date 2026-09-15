@@ -1,0 +1,6 @@
+test_startup_snapshot_is_allow_listed_member (tests.unit.test_support_export.SupportTests.test_startup_snapshot_is_allow_listed_member) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 1.367s
+
+OK

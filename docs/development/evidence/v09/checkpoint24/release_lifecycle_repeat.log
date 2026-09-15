@@ -1,0 +1,6 @@
+test_release_only_repeat_is_idempotent (tests.integration.test_release_lifecycle_process.EndToEndReleaseTests.test_release_only_repeat_is_idempotent) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 24.112s
+
+OK

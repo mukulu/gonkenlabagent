@@ -1,0 +1,41 @@
+[RUN] module=tests.unit.test_bounded_unittest_runner timeout=60s log=build/ci-logs/unit-final/tests_unit_test_bounded_unittest_runner.log
+[PASS] module=tests.unit.test_bounded_unittest_runner seconds=7.8
+[RUN] module=tests.unit.test_diagnostics_snapshot timeout=60s log=build/ci-logs/unit-final/tests_unit_test_diagnostics_snapshot.log
+[PASS] module=tests.unit.test_diagnostics_snapshot seconds=1.0
+[RUN] module=tests.unit.test_fix5_appliance_manager timeout=60s log=build/ci-logs/unit-final/tests_unit_test_fix5_appliance_manager.log
+[PASS] module=tests.unit.test_fix5_appliance_manager seconds=0.7
+[RUN] module=tests.unit.test_grounding_observability timeout=60s log=build/ci-logs/unit-final/tests_unit_test_grounding_observability.log
+[PASS] module=tests.unit.test_grounding_observability seconds=0.9
+[RUN] module=tests.unit.test_legacy_router timeout=60s log=build/ci-logs/unit-final/tests_unit_test_legacy_router.log
+[PASS] module=tests.unit.test_legacy_router seconds=2.0
+[RUN] module=tests.unit.test_m2_1 timeout=60s log=build/ci-logs/unit-final/tests_unit_test_m2_1.log
+[PASS] module=tests.unit.test_m2_1 seconds=2.3
+[RUN] module=tests.unit.test_m2_2_config timeout=60s log=build/ci-logs/unit-final/tests_unit_test_m2_2_config.log
+[PASS] module=tests.unit.test_m2_2_config seconds=0.9
+[RUN] module=tests.unit.test_m2_3_dependencies timeout=60s log=build/ci-logs/unit-final/tests_unit_test_m2_3_dependencies.log
+[PASS] module=tests.unit.test_m2_3_dependencies seconds=2.0
+[RUN] module=tests.unit.test_m3_1_preflight timeout=60s log=build/ci-logs/unit-final/tests_unit_test_m3_1_preflight.log
+[PASS] module=tests.unit.test_m3_1_preflight seconds=1.0
+[RUN] module=tests.unit.test_m3_2_install_engine timeout=60s log=build/ci-logs/unit-final/tests_unit_test_m3_2_install_engine.log
+[PASS] module=tests.unit.test_m3_2_install_engine seconds=1.1
+[RUN] module=tests.unit.test_m3_3_release_manager timeout=60s log=build/ci-logs/unit-final/tests_unit_test_m3_3_release_manager.log
+[PASS] module=tests.unit.test_m3_3_release_manager seconds=1.4
+[RUN] module=tests.unit.test_m3_4_ollama_manager timeout=60s log=build/ci-logs/unit-final/tests_unit_test_m3_4_ollama_manager.log
+[PASS] module=tests.unit.test_m3_4_ollama_manager seconds=0.7
+[RUN] module=tests.unit.test_m3_5_speech_manager timeout=60s log=build/ci-logs/unit-final/tests_unit_test_m3_5_speech_manager.log
+[PASS] module=tests.unit.test_m3_5_speech_manager seconds=0.9
+[RUN] module=tests.unit.test_m3_6_install_summary timeout=60s log=build/ci-logs/unit-final/tests_unit_test_m3_6_install_summary.log
+[PASS] module=tests.unit.test_m3_6_install_summary seconds=0.7
+[RUN] module=tests.unit.test_m5_1_ptt_runtime timeout=60s log=build/ci-logs/unit-final/tests_unit_test_m5_1_ptt_runtime.log
+[PASS] module=tests.unit.test_m5_1_ptt_runtime seconds=0.9
+[RUN] module=tests.unit.test_m6_service_manager timeout=60s log=build/ci-logs/unit-final/tests_unit_test_m6_service_manager.log
+[PASS] module=tests.unit.test_m6_service_manager seconds=9.0
+[RUN] module=tests.unit.test_m8_uninstall_manager timeout=60s log=build/ci-logs/unit-final/tests_unit_test_m8_uninstall_manager.log
+[PASS] module=tests.unit.test_m8_uninstall_manager seconds=4.7
+[RUN] module=tests.unit.test_m8_update_manager timeout=60s log=build/ci-logs/unit-final/tests_unit_test_m8_update_manager.log
+[PASS] module=tests.unit.test_m8_update_manager seconds=0.7
+[RUN] module=tests.unit.test_qwen_runtime_contract timeout=60s log=build/ci-logs/unit-final/tests_unit_test_qwen_runtime_contract.log
+[PASS] module=tests.unit.test_qwen_runtime_contract seconds=0.7
+[RUN] module=tests.unit.test_release_readiness timeout=60s log=build/ci-logs/unit-final/tests_unit_test_release_readiness.log
+[PASS] module=tests.unit.test_release_readiness seconds=2.1
+[RUN] module=tests.unit.test_runtime_audio timeout=60s log=build/ci-logs/unit-final/tests_unit_test_runtime_audio.log

@@ -1,0 +1,12 @@
+test_default_collection_is_non_destructive_and_blocks_fan_cycle (tests.unit.test_v09_environment_acceptance_runner.EnvironmentAcceptanceRunnerTests.test_default_collection_is_non_destructive_and_blocks_fan_cycle) ... ok
+test_explicit_actuation_runs_fan_cycle_commands_but_still_claims_no_acceptance (tests.unit.test_v09_environment_acceptance_runner.EnvironmentAcceptanceRunnerTests.test_explicit_actuation_runs_fan_cycle_commands_but_still_claims_no_acceptance) ... ok
+test_physical_acceptance_runner_blocks_simulated_backend_json (tests.unit.test_v09_environment_acceptance_runner.EnvironmentAcceptanceRunnerTests.test_physical_acceptance_runner_blocks_simulated_backend_json) ... ok
+test_plan_only_writes_private_evidence_without_executing_commands (tests.unit.test_v09_environment_acceptance_runner.EnvironmentAcceptanceRunnerTests.test_plan_only_writes_private_evidence_without_executing_commands) ... ok
+test_release_payload_includes_environment_acceptance_runner (tests.unit.test_v09_environment_acceptance_runner.EnvironmentAcceptanceRunnerTests.test_release_payload_includes_environment_acceptance_runner) ... ok
+test_simulation_detector_blocks_nested_status_payloads (tests.unit.test_v09_environment_acceptance_runner.EnvironmentAcceptanceRunnerTests.test_simulation_detector_blocks_nested_status_payloads) ... ok
+test_target_runbook_references_private_environment_evidence (tests.unit.test_v09_environment_acceptance_runner.EnvironmentAcceptanceRunnerTests.test_target_runbook_references_private_environment_evidence) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 24.725s
+
+OK

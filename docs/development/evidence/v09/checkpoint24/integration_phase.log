@@ -1,0 +1,10 @@
+[T1] deterministic integration suite (bounded per module)
+[RUN] module=tests.integration.test_bootstrap_preflight_process timeout=300s log=/mnt/data/ckpt24_impl/gonkenlabagent-v09-pi-target-campaign-checkpoint-23/build/ci-logs/integration/tests_integration_test_bootstrap_preflight_process.log
+[PASS] module=tests.integration.test_bootstrap_preflight_process seconds=8.4
+[RUN] module=tests.integration.test_cli_process timeout=300s log=/mnt/data/ckpt24_impl/gonkenlabagent-v09-pi-target-campaign-checkpoint-23/build/ci-logs/integration/tests_integration_test_cli_process.log
+[PASS] module=tests.integration.test_cli_process seconds=5.0
+[RUN] module=tests.integration.test_first_install_launcher timeout=300s log=/mnt/data/ckpt24_impl/gonkenlabagent-v09-pi-target-campaign-checkpoint-23/build/ci-logs/integration/tests_integration_test_first_install_launcher.log
+[PASS] module=tests.integration.test_first_install_launcher seconds=0.8
+[RUN] module=tests.integration.test_install_engine_process timeout=300s log=/mnt/data/ckpt24_impl/gonkenlabagent-v09-pi-target-campaign-checkpoint-23/build/ci-logs/integration/tests_integration_test_install_engine_process.log
+[PASS] module=tests.integration.test_install_engine_process seconds=9.7
+[RUN] module=tests.integration.test_ollama_lifecycle_process timeout=300s log=/mnt/data/ckpt24_impl/gonkenlabagent-v09-pi-target-campaign-checkpoint-23/build/ci-logs/integration/tests_integration_test_ollama_lifecycle_process.log

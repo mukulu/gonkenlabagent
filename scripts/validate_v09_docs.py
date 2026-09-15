@@ -237,7 +237,7 @@ def check_control_plane_consistency() -> list[dict[str, object]]:
     milestones = json.loads((ROOT / "docs/development/MILESTONES.json").read_text(encoding="utf-8"))
     by_id = {row["id"]: row for row in milestones.get("milestones", [])}
     matrix = (ROOT / "docs/development/TEST_MATRIX.md").read_text(encoding="utf-8")
-    executed = ("M10.9", "M10.10", "M10.11", "M10.12", "M10.13", "M10.14")
+    executed = ("M10.9", "M10.10", "M10.11", "M10.12", "M10.13", "M10.14", "M10.15")
     for milestone_id in executed:
         row = by_id.get(milestone_id, {})
         rows.append(result(

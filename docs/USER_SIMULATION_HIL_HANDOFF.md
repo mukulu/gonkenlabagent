@@ -8,15 +8,15 @@ Use the stages below in order. Do not skip the safety prerequisites in [HARDWARE
 
 ## 1. Before target testing
 
-After installing the checkpoint, confirm the normal appliance is intact:
+After installing the exact checkpoint with `./bootstrap.sh --local-checkpoint`, do not begin room-relay testing until the installer prints governed `INSTALLATION_COMPLETE`. Confirm the active immutable interpreter can see the target bindings:
 
 ```bash
 gonken-agent status --json
 gonken-agent wake status --json
-gonken-agent env status --json
+/usr/local/lib/gonken-agent/current/.venv/bin/python -c 'import gpiod, smbus; print("hardware_bindings=ready")'
 ```
 
-The environment subsystem is disabled by default. Edit `/etc/gonken-agent/config.toml` only with administrator privileges and only for the stage you are running. Restart `gonken-environment.service` after a static backend change.
+After installation, disconnect and reconnect the non-root operator login so its new `gonken-envctl` membership is active, then run `id` and `getent group gonken-envctl`. The environment subsystem remains disabled by default; profile activation is a later supervised step.
 
 ## 2. Stage A — full simulation, no room hardware required
 
@@ -103,20 +103,18 @@ gonken-agent env health --json
 
 The environment status/health payload records `actuator_runtime_identity` with the logical BCM identity and the resolved gpiochip/offset when resolution succeeds. Preserve these outputs. If `GPIO23` is missing, ambiguous, reported as `UNRESOLVED`, or conflicts with the physical header/wiring plan, **STOP**. **Do not actuate.** Never substitute a guessed gpiochip offset.
 
-After the mapping and wiring preconditions are satisfied, use this sensor-deferred profile:
+After the mapping and wiring preconditions are satisfied, create the sensor-deferred profile using the installed non-actuating helper:
 
-```toml
-[extensions.environment]
-enabled = true
-sensor_backend = "simulated"
-relay_backend = "libgpiod"
-simulation_runtime_control_enabled = true
-relay_bcm = 23
-relay_active_high = true
-safe_state = "off"
+```bash
+sudo /usr/local/lib/gonken-agent/current/maintenance/environment_profile_manager.py sensor-deferred-relay
+sudo cat /etc/gonken-agent/config.toml
+sudo systemctl restart gonken-environment.service
+sudo systemctl status gonken-environment.service --no-pager -l
+gonken-agent env status --json
+gonken-agent env health --json
 ```
 
-Restart the environment service, verify that the reported evidence mode is `TARGET_HYBRID_SENSOR_SIMULATED`, and keep the fan supply disconnected for the unloaded relay check.
+The helper creates only the governed simulated-sensor/real-libgpiod-relay safe-OFF profile, refuses to overwrite a divergent site configuration, and never starts the service or touches hardware itself. Verify `TARGET_HYBRID_SENSOR_SIMULATED`, no `PermissionError`, and the same unique GPIO23 runtime identity before the unloaded relay check.
 
 When the unloaded relay behavior is correct and the low-voltage fan path has passed the checks in `HARDWARE_SETUP.md`, perform the supervised OFF → ON → OFF test:
 
