@@ -1560,3 +1560,11 @@ The deterministic M10.14 simulation runner exercises manual, AUTO, SEMI, stale/r
 
 - **Decision:** the delivered repository retains full Git history, `origin=https://github.com/mukulu/gonkenlabagent.git`, local `main` tracking `origin/main`, and the descriptive development branch/checkpoint tag. Credentials are not embedded and no remote push is performed automatically.
 - **Reason:** the user can inspect, switch to `main`, merge the development checkpoint and push explicitly while package production itself remains side-effect free.
+
+### D-162 — New release contracts must permit bounded migration from journal-bound legacy releases
+
+Checkpoint 29 exposed an upgrade-contract defect on the real Raspberry Pi: the newly built bridge-era candidate passed its own strict validation, but `activate_release` first reconciled the previously active pre-bridge release and retroactively required that old release to contain the new hardware-binding manifest. Re-running the same installer therefore could never converge.
+
+The release state machine now distinguishes **candidate validity** from **transition-source compatibility**. A newly built or arbitrarily selected release always remains subject to the current strict release contract. A release may use the legacy transition path only when it is already bound to trusted activation state as the current/previous post-verified release, targets the distro-binding profile, has no binding manifest, and its immutable embedded release manager demonstrably predates the binding-bridge contract. That path still verifies immutable payload/ownership/record integrity and executes bounded CLI identity/status smoke as the service user. A bridge-era release with a missing or corrupt manifest is never reclassified as legacy. Rollback to a state-bound legacy previous release remains possible so update safety is not sacrificed.
+
+This compatibility is a migration mechanism, not a waiver. The goal is to move safely away from an older valid release without applying future candidate-only policy retroactively, while keeping every new candidate fail-closed.

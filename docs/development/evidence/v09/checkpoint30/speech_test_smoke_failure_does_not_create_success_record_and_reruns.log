@@ -1,0 +1,6 @@
+test_smoke_failure_does_not_create_success_record_and_reruns (tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_smoke_failure_does_not_create_success_record_and_reruns) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 7.721s
+
+OK

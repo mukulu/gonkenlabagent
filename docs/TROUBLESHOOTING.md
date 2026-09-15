@@ -162,3 +162,13 @@ sudo -u gonken-env /usr/local/lib/gonken-agent/current/.venv/bin/python \
 ```
 
 `SENSOR_NOT_FOUND` means neither supported SHT31 address produced a valid status/read transaction. `SENSOR_ADDRESS_AMBIGUOUS` means both `0x44` and `0x45` appeared valid and configuration must not guess. CRC/transport/heater-state failures must be fixed at wiring/bus/sensor/driver level before controller or voice acceptance.
+
+## `RELEASE_BINDING_MANIFEST` during release activation
+
+The release commit named in the error matters.
+
+- If the named release is the **new candidate**, treat it as a real candidate-construction/binding-provenance failure. Do not bypass the manifest, copy modules manually, edit the immutable release, or weaken validation.
+- If upgrading from an older **pre-binding-bridge release**, checkpoint 30+ should recognize that release only when it is already bound to trusted activation state and should emit `RELEASE_LEGACY_TRANSITION_SOURCE` while migrating away from it. The new candidate remains strictly validated.
+- A bridge-era release with a missing/corrupt manifest is never considered legacy simply because the file is absent.
+
+On any failure, keep the active release/journal intact and collect the installer-owned failure bundle. Re-running an unchanged older checkpoint will not repair a deterministic contract mismatch.

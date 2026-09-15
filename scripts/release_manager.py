@@ -625,6 +625,48 @@ def _binding_manifest_valid(release: Path, profile: str) -> bool:
     return True
 
 
+def _release_embedded_manager_uses_binding_bridge(release: Path) -> bool:
+    """Return whether this immutable release was built under the bridge-era contract.
+
+    The release manager itself is part of the immutable payload and its digest is
+    validated from ``release.record`` before this helper is consulted.  Older
+    post-verified releases predate the hardware-binding manifest entirely; a new
+    manager must be able to transition away from those releases without applying
+    today's candidate-only contract retroactively.  Conversely, a bridge-era
+    release that loses or corrupts its manifest must never be reclassified as
+    legacy merely because the manifest is absent.
+    """
+    manager = release / "maintenance" / "release_manager.py"
+    try:
+        if manager.is_symlink() or not manager.is_file() or manager.stat().st_size > 2 * 1024 * 1024:
+            return True
+        text = manager.read_text(encoding="utf-8")
+    except (OSError, UnicodeError):
+        return True
+    return (
+        "gonken-hardware-binding-bridge-v1" in text
+        and "hardware-bindings.json" in text
+        and "install_target_distro_bindings" in text
+    )
+
+
+def _legacy_transition_runtime_allowed(release: Path, profile: str) -> bool:
+    """Identify a genuine pre-bridge target release for state-bound transition use.
+
+    This is intentionally narrower than general validation.  It is only useful
+    when the caller has already established that the release is referenced by a
+    trusted activation journal/current-pointer relationship.  A bridge-era
+    release with a missing/corrupt manifest remains invalid and cannot use this
+    path.
+    """
+    if not profile_uses_distro_bindings(profile):
+        return False
+    manifest = release / BINDING_MANIFEST_RELATIVE
+    if manifest.exists() or manifest.is_symlink():
+        return False
+    return not _release_embedded_manager_uses_binding_bridge(release)
+
+
 def validate_runtime_hardware_bindings(
     release: Path,
     profile: str,
@@ -636,14 +678,14 @@ def validate_runtime_hardware_bindings(
     if _venv_system_site_packages_enabled(release):
         fail(
             "RELEASE_VENV_POLICY",
-            "target release venv exposes broad system site-packages",
+            f"target release venv exposes broad system site-packages: {release.name}",
             "rebuild with the allow-listed distro binding bridge",
             74,
         )
     if not _binding_manifest_valid(release, profile):
         fail(
             "RELEASE_BINDING_MANIFEST",
-            "target release hardware-binding bridge is missing or invalid",
+            f"target release hardware-binding bridge is missing or invalid: {release.name}",
             "rebuild the target release from validated distro binding packages",
             74,
         )
@@ -688,6 +730,62 @@ def smoke_release(
         fail("RELEASE_SMOKE", "installed CLI identity/version check failed", "rebuild the candidate", 74)
     if operation:
         maybe_interrupt(operation, "after")
+    return version, status_result.stdout
+
+
+def smoke_legacy_transition_source(
+    release: Path,
+    service_user: str,
+    *,
+    profile: str,
+) -> tuple[str, str]:
+    """Perform the bounded smoke allowed for a previously post-verified legacy release.
+
+    Legacy target releases may have been created before the allow-listed binding
+    manifest existed, or under the short-lived system-site-packages contract.
+    Re-evaluating those releases with the *new* pip/binding policy can prevent a
+    safe upgrade away from them.  For a state-bound transition source we instead
+    preserve the immutable payload/ownership checks in ``validate_release`` and
+    require the installed CLI to execute as the service user and return a valid
+    identity/status payload.  This path is never used for a newly built candidate.
+    """
+    if not _legacy_transition_runtime_allowed(release, profile):
+        fail(
+            "RELEASE_BINDING_MANIFEST",
+            f"target release hardware-binding bridge is missing or invalid: {release.name}",
+            "rebuild the target release from validated distro binding packages",
+            74,
+        )
+    executable = release / ".venv" / "bin" / "gonken-agent"
+    if not executable.is_file() or not os.access(executable, os.X_OK):
+        fail(
+            "RELEASE_SMOKE",
+            f"legacy transition source lacks an executable CLI at {executable}",
+            "inspect the previously active immutable release before retrying the upgrade",
+            74,
+        )
+    version = run([str(executable), "version"], service_user=service_user).stdout.strip()
+    status_result = run([str(executable), "status", "--json"], service_user=service_user)
+    try:
+        status_payload = json.loads(status_result.stdout)
+    except json.JSONDecodeError:
+        fail(
+            "RELEASE_SMOKE",
+            "legacy transition source status is not JSON",
+            "inspect the previously active immutable release before retrying the upgrade",
+            74,
+        )
+    if status_payload.get("product") != "GonKenLab Agent" or not version:
+        fail(
+            "RELEASE_SMOKE",
+            "legacy transition source identity/version check failed",
+            "inspect the previously active immutable release before retrying the upgrade",
+            74,
+        )
+    print(
+        f"[OK] code=RELEASE_LEGACY_TRANSITION_SOURCE commit={release.name} "
+        f"profile={profile} runtime_policy=bounded_cli_smoke"
+    )
     return version, status_result.stdout
 
 
@@ -875,6 +973,7 @@ def validate_release(
     profile: str | None = None,
     service_user: str,
     postcheck_operation: str | None = None,
+    allow_legacy_transition: bool = False,
 ) -> dict[str, str]:
     if not release.is_dir() or release.is_symlink():
         fail("RELEASE_INVALID", f"release is missing or unsafe: {release}", "build a new immutable candidate", 74)
@@ -914,12 +1013,28 @@ def validate_release(
             fail("RELEASE_MUTABLE", f"release contains a writable path: {item}", "restore immutable permissions or rebuild", 74)
         if item.stat().st_uid != int(record["owner_uid"]):
             fail("RELEASE_OWNER", "release ownership differs from its manifest", "restore root ownership or rebuild", 74)
-    version, _ = smoke_release(
-        release,
-        service_user,
-        profile=record["profile"],
-        operation=postcheck_operation,
-    )
+    if allow_legacy_transition and _legacy_transition_runtime_allowed(
+        release, record["profile"]
+    ):
+        if postcheck_operation is not None:
+            fail(
+                "RELEASE_LEGACY_TRANSITION_SCOPE",
+                "legacy transition validation cannot be used for candidate post-switch validation",
+                "validate new candidates with the current strict release contract",
+                74,
+            )
+        version, _ = smoke_legacy_transition_source(
+            release,
+            service_user,
+            profile=record["profile"],
+        )
+    else:
+        version, _ = smoke_release(
+            release,
+            service_user,
+            profile=record["profile"],
+            operation=postcheck_operation,
+        )
     if version != record["package_version"]:
         fail("RELEASE_INVALID", "CLI version differs from release manifest", "rebuild the candidate", 74)
     return record
@@ -1013,7 +1128,12 @@ def rollback(release_root: Path, state_root: Path, candidate: str, previous: str
     if previous == "none":
         remove_current(release_root)
     else:
-        validate_release(release_root / "releases" / previous, commit=previous, service_user=service_user)
+        validate_release(
+            release_root / "releases" / previous,
+            commit=previous,
+            service_user=service_user,
+            allow_legacy_transition=True,
+        )
         switch_current(release_root, previous)
     write_journal(state_root, candidate, previous, "rolled_back", message)
 
@@ -1035,14 +1155,24 @@ def reconcile(release_root: Path, state_root: Path, service_user: str) -> str:
     if phase == "post_verified":
         if pointer != candidate:
             fail("ACTIVATION_AMBIGUOUS", "post-verified journal and current pointer disagree", "inspect installed state manually", 75)
-        validate_release(candidate_path, commit=candidate, service_user=service_user)
+        validate_release(
+            candidate_path,
+            commit=candidate,
+            service_user=service_user,
+            allow_legacy_transition=True,
+        )
         print(f"[OK] code=ACTIVATION_RECONCILED phase=post_verified commit={candidate}")
         return "post_verified"
     if phase == "rolled_back":
         if pointer != expected_previous:
             fail("ACTIVATION_AMBIGUOUS", "rolled-back journal and current pointer disagree", "inspect installed state manually", 75)
         if previous != "none":
-            validate_release(release_root / "releases" / previous, commit=previous, service_user=service_user)
+            validate_release(
+                release_root / "releases" / previous,
+                commit=previous,
+                service_user=service_user,
+                allow_legacy_transition=True,
+            )
         print(f"[OK] code=ACTIVATION_RECONCILED phase=rolled_back commit={previous}")
         return "rolled_back"
 
@@ -1075,7 +1205,14 @@ def reconcile(release_root: Path, state_root: Path, service_user: str) -> str:
 
 def activate(release_root: Path, state_root: Path, commit: str, service_user: str) -> None:
     reconcile(release_root, state_root, service_user)
-    validate_release(release_root / "releases" / commit, commit=commit, service_user=service_user)
+    # Normal activation always validates the requested candidate against the
+    # current strict contract. Legacy compatibility is confined to releases
+    # already bound to trusted activation state during reconcile/rollback.
+    validate_release(
+        release_root / "releases" / commit,
+        commit=commit,
+        service_user=service_user,
+    )
     previous = current_commit(release_root) or "none"
     if previous == commit:
         journal = read_journal(state_root)
@@ -1091,6 +1228,7 @@ def activate(release_root: Path, state_root: Path, commit: str, service_user: st
             commit=commit,
             service_user=service_user,
             postcheck_operation="post_switch_validation",
+            allow_legacy_transition=False,
         )
     except ReleaseError:
         rollback(release_root, state_root, commit, previous, service_user, "post_switch_validation_failed")
@@ -1120,7 +1258,12 @@ def status(release_root: Path, state_root: Path, expected: str | None, service_u
         fail("ACTIVATION_INCOMPLETE", "release activation is not post-verified", "run reconciliation and inspect failures", 1)
     if expected and pointer != expected:
         fail("ACTIVATION_WRONG_RELEASE", "active release differs from the requested commit", "activate the verified candidate", 1)
-    validate_release(release_root / "releases" / pointer, commit=pointer, service_user=service_user)
+    validate_release(
+        release_root / "releases" / pointer,
+        commit=pointer,
+        service_user=service_user,
+        allow_legacy_transition=True,
+    )
     print(f"[OK] code=ACTIVATION_HEALTHY commit={pointer}")
 
 
@@ -1133,7 +1276,29 @@ def rollback_previous(release_root: Path, state_root: Path, service_user: str) -
     previous = journal["previous_commit"]
     if previous == "none":
         fail("ROLLBACK_UNAVAILABLE", "no previous validated release is recorded", "install at least two validated releases before rollback", 1)
-    activate(release_root, state_root, previous, service_user)
+    # The previous release is state-bound evidence: it was the active,
+    # post-verified release immediately before the current candidate.  Permit a
+    # bounded compatibility rollback when that release predates the bridge
+    # manifest, while keeping normal candidate activation strict.
+    current = current_commit(release_root)
+    if current != pointer:
+        fail("ROLLBACK_STATE", "active release changed while preparing rollback", "retry after inspecting activation state", 75)
+    validate_release(
+        release_root / "releases" / previous,
+        commit=previous,
+        service_user=service_user,
+        allow_legacy_transition=True,
+    )
+    write_journal(state_root, previous, pointer, "prepared", "operator_rollback_candidate_validated")
+    switch_current(release_root, previous)
+    write_journal(state_root, previous, pointer, "switched", "operator_rollback_pointer_replaced")
+    validate_release(
+        release_root / "releases" / previous,
+        commit=previous,
+        service_user=service_user,
+        allow_legacy_transition=True,
+    )
+    write_journal(state_root, previous, pointer, "post_verified", "operator_rollback_candidate_validated_after_switch")
     print(f"[OK] code=ROLLBACK_COMPLETE commit={previous}")
 
 

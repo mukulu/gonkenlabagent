@@ -1,0 +1,6 @@
+test_low_space_never_creates_or_switches_release (tests.integration.test_release_lifecycle_process.EndToEndReleaseTests.test_low_space_never_creates_or_switches_release) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 5.594s
+
+OK

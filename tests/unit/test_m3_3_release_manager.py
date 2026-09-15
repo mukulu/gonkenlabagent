@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import contextlib
 import io
 import os
 import stat
@@ -298,6 +299,14 @@ class IntegrityAndPrivilegeTests(unittest.TestCase):
             self.assertEqual(journal["phase"], "post_verified")
             self.assertEqual(journal["candidate_commit"], previous)
             self.assertEqual(journal["previous_commit"], active)
+            # Status is also a state-bound operation and must remain usable after
+            # a governed rollback to a genuine pre-bridge release.
+            release_manager.status(
+                release_root,
+                state_root,
+                previous,
+                current_user(),
+            )
 
     def test_explicit_rollback_fails_without_previous_release(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
@@ -484,6 +493,116 @@ class TargetRuntimeBindingTests(unittest.TestCase):
         self.assertNotIn('usermod -a -G i2c "$operator"', installer)
         self.assertIn('code=ENV_OPERATOR_SESSION_REFRESH', installer)
         self.assertIn('"target_runtime_bindings" "1"', installer)
+
+    def test_upgrade_activation_accepts_only_state_bound_pre_bridge_current_release(self) -> None:
+        """Reproduce the checkpoint-29 Pi failure and prove the migration fix."""
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            release_root = root / "release"
+            state_root = root / "state"
+            state_root.mkdir()
+            previous = "8" * 40
+            candidate = "9" * 40
+            create_fake_release(
+                release_root,
+                previous,
+                profile="core-pi-trixie-py313",
+                binding_bridge=False,
+            )
+            create_fake_release(
+                release_root,
+                candidate,
+                profile="core-pi-trixie-py313",
+                binding_bridge=True,
+            )
+            point_current(release_root, previous)
+            release_manager.write_journal(
+                state_root,
+                previous,
+                "none",
+                "post_verified",
+                "pre-bridge-active-fixture",
+            )
+
+            output = io.StringIO()
+            with contextlib.redirect_stdout(output):
+                release_manager.activate(
+                    release_root,
+                    state_root,
+                    candidate,
+                    current_user(),
+                )
+
+            self.assertEqual(release_manager.current_commit(release_root), candidate)
+            journal = release_manager.read_journal(state_root)
+            self.assertIsNotNone(journal)
+            self.assertEqual(journal["phase"], "post_verified")
+            self.assertEqual(journal["candidate_commit"], candidate)
+            self.assertEqual(journal["previous_commit"], previous)
+            self.assertIn("code=RELEASE_LEGACY_TRANSITION_SOURCE", output.getvalue())
+
+    def test_normal_activation_still_rejects_unjournaled_pre_bridge_target_candidate(self) -> None:
+        """Compatibility must not become a bypass for arbitrary legacy candidates."""
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            release_root = root / "release"
+            state_root = root / "state"
+            state_root.mkdir()
+            candidate = "7" * 40
+            create_fake_release(
+                release_root,
+                candidate,
+                profile="core-pi-trixie-py313",
+                binding_bridge=False,
+            )
+            with self.assertRaises(release_manager.ReleaseError) as raised:
+                release_manager.activate(
+                    release_root,
+                    state_root,
+                    candidate,
+                    current_user(),
+                )
+            self.assertEqual(raised.exception.code, "RELEASE_BINDING_MANIFEST")
+            self.assertIsNone(release_manager.current_commit(release_root))
+
+    def test_operator_rollback_can_return_to_state_bound_pre_bridge_previous_release(self) -> None:
+        """The same migration boundary must preserve governed rollback semantics."""
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            release_root = root / "release"
+            state_root = root / "state"
+            state_root.mkdir()
+            previous = "6" * 40
+            active = "5" * 40
+            create_fake_release(
+                release_root,
+                previous,
+                profile="core-pi-trixie-py313",
+                binding_bridge=False,
+            )
+            create_fake_release(
+                release_root,
+                active,
+                profile="core-pi-trixie-py313",
+                binding_bridge=True,
+            )
+            point_current(release_root, active)
+            release_manager.write_journal(
+                state_root,
+                active,
+                previous,
+                "post_verified",
+                "bridge-active-with-legacy-previous",
+            )
+
+            release_manager.rollback_previous(release_root, state_root, current_user())
+
+            self.assertEqual(release_manager.current_commit(release_root), previous)
+            journal = release_manager.read_journal(state_root)
+            self.assertIsNotNone(journal)
+            self.assertEqual(journal["phase"], "post_verified")
+            self.assertEqual(journal["candidate_commit"], previous)
+            self.assertEqual(journal["previous_commit"], active)
 
 
 if __name__ == "__main__":
