@@ -3,6 +3,8 @@ from __future__ import annotations
 
 import json
 import os
+import grp
+import pwd
 import platform
 import re
 import shutil
@@ -25,7 +27,7 @@ PROFILE_RE = re.compile(r"^[a-z0-9][a-z0-9_.-]{0,63}$")
 RELEASE_ROOT = Path("/usr/local/lib/gonken-agent")
 INSTALL_EVENTS_DIR = Path("/var/lib/gonken-agent/install/logs/events")
 SERVICE_UNITS = ("gonken-agent.service", "gonken-environment.service")
-BINDING_PACKAGES = ("python3-libgpiod", "python3-smbus")
+BINDING_PACKAGES = ("python3-libgpiod",)
 BINDING_MANIFEST = Path(sys.prefix).parent / "share/gonken-agent/hardware-bindings.json"
 
 
@@ -169,6 +171,29 @@ def _binding_bridge() -> dict[str, object]:
     }
 
 
+def _i2c_platform_health() -> dict[str, object]:
+    device = Path("/dev/i2c-1")
+    device_exists = device.exists() and not device.is_symlink()
+    service_user_exists = False
+    service_user_i2c_group = False
+    try:
+        account = pwd.getpwnam("gonken-env")
+        service_user_exists = True
+        memberships = {grp.getgrgid(account.pw_gid).gr_name}
+        memberships.update(entry.gr_name for entry in grp.getgrall() if "gonken-env" in entry.gr_mem)
+        service_user_i2c_group = "i2c" in memberships
+    except (KeyError, OSError):
+        pass
+    ready = device_exists and service_user_exists and service_user_i2c_group
+    return {
+        "status": "READY" if ready else "NOT_READY",
+        "device": "/dev/i2c-1",
+        "device_exists": device_exists,
+        "service_user_exists": service_user_exists,
+        "service_user_i2c_group": service_user_i2c_group,
+    }
+
+
 def _runtime_binding_health() -> dict[str, object]:
     gpiod = _module_probe(
         "import gpiod; from gpiod.line import Bias,Direction,Value; "
@@ -179,12 +204,13 @@ def _runtime_binding_health() -> dict[str, object]:
         "assert callable(getattr(gpiod.Chip,'get_line_info',None)); "
         "assert Bias is not None and Direction is not None and Value is not None"
     )
-    smbus = _module_probe("import smbus; assert callable(getattr(smbus,'SMBus',None))")
     return {
         "release": _safe_release_identity(),
         "venv": _venv_policy(),
         "binding_bridge": _binding_bridge(),
-        "bindings": {"gpiod": gpiod, "smbus": smbus},
+        "bindings": {"gpiod": gpiod},
+        "sensor_transport": {"status": "READY", "type": "linux-i2c-dev-stdlib", "python_smbus_required": False},
+        "i2c_platform": _i2c_platform_health(),
         "distro_packages": _package_versions(),
     }
 

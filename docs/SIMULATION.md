@@ -75,7 +75,8 @@ The daemon and evidence runner use explicit provenance terms:
 | `HOST_SIMULATION` | Sensor and actuator are simulated | Closes no physical M10.7 gate. |
 | `TARGET_HYBRID_SENSOR_SIMULATED` | Sensor side is simulated; actuator side may be physical | Cannot close SHT31 physical acceptance. |
 | `TARGET_HYBRID_ACTUATOR_SIMULATED` | Actuator side is simulated; sensor side may be physical | Cannot close relay/PENGLIN/fan acceptance. |
-| `TARGET_PHYSICAL` | Intended full physical mode | Still requires target evidence and human observation. |
+| `TARGET_REAL_BACKENDS_UNVERIFIED` | Real SHT31 and libgpiod backends are configured/running, but supervised physical acceptance has not been established | Cannot itself close any physical gate; configuration is not evidence. |
+| `TARGET_PHYSICAL` | Acceptance-record token reserved for supervised full physical evidence | May be used only by governed acceptance evidence after target observation; the daemon never emits this token from backend names alone. |
 
 The physical acceptance runner blocks simulated or hybrid JSON from closing a physical gate with:
 

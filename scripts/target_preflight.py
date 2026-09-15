@@ -25,16 +25,12 @@ from typing import Iterable
 FORMAT = "gonken-target-preflight-v1"
 REQUIRED_PACKAGES = (
     "alsa-utils", "build-essential", "cmake", "i2c-tools", "ca-certificates",
-    "git", "python3-libgpiod", "python3-pip", "python3-setuptools",
+    "git", "python3-libgpiod", "python3-pip", "python3-setuptools", "raspi-config",
     "python3-venv", "tar", "util-linux", "zstd",
 )
-# python3-smbus remains an installation prerequisite until the SHT31 transport
-# tranche decides whether the runtime can eliminate it.  Its presence is
-# therefore observed here, but only gpiod is a core voice/runtime requirement.
-TRANSITIONAL_SENSOR_PACKAGE = "python3-smbus"
 REQUIRED_COMMANDS = (
     "aplay", "arecord", "cmake", "c++", "dpkg-query", "getent", "git",
-    "groupadd", "i2cdetect", "python3", "runuser", "systemd-tmpfiles", "tar",
+    "groupadd", "i2cdetect", "raspi-config", "python3", "runuser", "systemd-tmpfiles", "tar",
     "useradd", "usermod", "zstd",
 )
 
@@ -116,20 +112,10 @@ def prerequisite_checks() -> list[Check]:
             f"package:{package}", True, ok, detail,
             f"install or repair Debian package {package}",
         ))
-    ok, detail = _package_version(TRANSITIONAL_SENSOR_PACKAGE)
-    checks.append(Check(
-        f"package:{TRANSITIONAL_SENSOR_PACKAGE}", False, ok, detail,
-        "real-SHT31 readiness may install/replace this binding in M10.21",
-    ))
     ok, detail = _module_api("gpiod", ("Chip", "request_lines", "LineSettings"))
     checks.append(Check(
         "system-python:gpiod-api", True, ok, detail,
         "repair python3-libgpiod before building the immutable release",
-    ))
-    ok, detail = _module_api("smbus", ("SMBus",))
-    checks.append(Check(
-        "system-python:smbus-api", False, ok, detail,
-        "real-SHT31 readiness will validate the final transport contract separately",
     ))
     gpiochips = sorted(Path("/dev").glob("gpiochip*"))
     checks.append(Check(

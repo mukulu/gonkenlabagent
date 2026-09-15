@@ -71,6 +71,31 @@ class EnvironmentProfileManagerTests(unittest.TestCase):
             self.assertEqual(spec["i2c_address"], 0x44)
             self.assertEqual(spec["sensor_repeatability"], "high")
 
+    def test_real_sensor_profiles_support_only_governed_44_or_45_addresses(self) -> None:
+        for address in (0x44, 0x45):
+            spec = profile_manager.profile_spec("full-real", sensor_address=address)
+            self.assertEqual(spec["i2c_address"], address)
+        with self.assertRaises(profile_manager.ProfileError) as ctx:
+            profile_manager.profile_spec("full-real", sensor_address=0x46)
+        self.assertEqual(ctx.exception.code, "ENV_PROFILE_SENSOR_ADDRESS")
+
+    def test_managed_real_sensor_profile_can_transition_between_44_and_45(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            site = Path(temporary) / "config.toml"
+            first = profile_manager.ensure_profile(site, name="full-real", group="ignored", sensor_address=0x44)
+            second = profile_manager.ensure_profile(site, name="full-real", group="ignored", sensor_address=0x45)
+            self.assertEqual(first, "CREATED")
+            self.assertEqual(second, "TRANSITIONED_FROM_FULL_REAL")
+            self.assertTrue(profile_manager.exact_profile(site, "full-real", sensor_address=0x45))
+            self.assertEqual(profile_manager.read_environment(site)["i2c_address"], 0x45)
+
+    def test_simulated_sensor_profile_rejects_nondefault_sensor_address_flag(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            site = Path(temporary) / "config.toml"
+            with self.assertRaises(profile_manager.ProfileError) as ctx:
+                profile_manager.ensure_profile(site, name="full-simulation", group="ignored", sensor_address=0x45)
+        self.assertEqual(ctx.exception.code, "ENV_PROFILE_SENSOR_ADDRESS")
+
     def test_backward_compatible_sensor_deferred_wrapper(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             site = Path(temporary) / "config.toml"

@@ -17,7 +17,7 @@ SPEC.loader.exec_module(preflight)
 
 
 class TargetPreflightTests(unittest.TestCase):
-    def test_optional_i2c_or_smbus_gap_does_not_fail_generic_prerequisite_report(self) -> None:
+    def test_optional_i2c_gap_does_not_fail_generic_prerequisite_report(self) -> None:
         required = [preflight.Check("required", True, True, "ok")]
         optional = [preflight.Check("device:i2c-1", False, False, "absent")]
         with patch.object(preflight, "prerequisite_checks", return_value=required + optional):

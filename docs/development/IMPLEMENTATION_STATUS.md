@@ -6,7 +6,7 @@ Historical implementation detail remains in Git, `TEST_MATRIX.md` and `DECISIONS
 M0/M1 audit and architecture review are complete; the table covers every core implementation item.
 
 <!-- MILESTONES -->
-Checkpoint scope: **V09 checkpoint 25 comprehensive-closure blueprint reconstructed; implementation proceeds through M10.17-M10.23 while M10.24 remains target-only.**
+Checkpoint scope: **V09 checkpoint 28 host closure through M10.22; implementation continues through M10.23 while M10.24 remains target-only.**
 
 | Item | Software | Target acceptance | Evidence / remaining work |
 |---|---|---|---|
@@ -59,9 +59,9 @@ Checkpoint scope: **V09 checkpoint 25 comprehensive-closure blueprint reconstruc
 | M10.17 — Target Python dependency boundary redesign | host-verified | not-run | scripts/release_manager.py; scripts/install.sh; src/gonken_agent/support.py; requirements/README.md; tests/unit/test_m3_3_release_manager.py; tests/unit/test_support_export.py; docs/development/evidence/v09/checkpoint26/m10_17_release_lifecycle_interruption.log Allow-listed distro binding bridge and isolated target venv are host-verified, including dirty-system-metadata regression. Target build/import remains target-run evidence. Continue with M10.18 installer convergence. |
 | M10.18 — Installer convergence DAG, preflight and failure-evidence hardening | host-verified | not-run | scripts/target_preflight.py; scripts/installer_failure_bundle.py; scripts/install.sh; tests/unit/test_v09_target_preflight.py; tests/unit/test_v09_installer_failure_bundle.py; tests/integration/test_install_engine_process.py; docs/development/evidence/v09/checkpoint27/m10_18_19_focused_tests.log Target prerequisite convergence and installer-owned early-failure bundle are host-verified. Real target package/device truth remains target-run evidence. |
 | M10.19 — Accounts, groups, configuration and environment-profile convergence | host-verified | not-run | scripts/environment_profile_manager.py; scripts/target_preflight.py; scripts/install.sh; tests/unit/test_v09_environment_profile_manager.py; tests/unit/test_v09_target_preflight.py; docs/development/evidence/v09/checkpoint27/m10_18_19_focused_tests.log Four governed non-actuating backend profiles and identity/socket-group convergence are host-verified. Device permissions and fresh-login effect remain target-run evidence. |
-| M10.20 — Systemd runtime, service-context and audio closure | pending | not-run |  Close service-context and audio/PipeWire/BlueZ readiness on host/target-shadow; physical audio remains target-gated. |
-| M10.21 — SHT31/I2C and environment simulation-hybrid-full-real readiness | pending | not-run |  Correct/prove SHT31 wire semantics, I2C convergence, diagnostics, profile parity and controller cross-component behavior; physical sensor evidence remains target-gated. |
-| M10.22 — Voice/environment end-to-end transaction closure | pending | not-run |  Verify CLI/voice environment transactions across simulation/hybrid failure cases; real voice/hardware remains target-gated. |
+| M10.20 — Systemd runtime, service-context and audio closure | host-verified | not-run | scripts/runtime_context_preflight.py; scripts/install.sh; scripts/release_manager.py; tests/unit/test_v09_runtime_context_preflight.py; tests/unit/test_m6_service_manager.py; tests/unit/test_x4_bluetooth_manager.py; docs/development/evidence/v09/checkpoint28/m10_20_runtime_service_audio.log Service/runtime-context and dedicated PipeWire/WirePlumber structural readiness are host-verified. Physical microphone/speaker/BlueZ behavior, reboot/no-login convergence and latency remain target-run evidence. |
+| M10.21 — SHT31/I2C and environment simulation-hybrid-full-real readiness | host-verified | not-run | scripts/i2c_manager.py; scripts/sht31_diagnostic.py; src/gonken_agent/environment/sensors/sht31.py; scripts/environment_profile_manager.py; src/gonken_agent/environment/simulation.py; tests/unit/test_v09_i2c_manager.py; tests/unit/test_v09_sht31_diagnostic.py; tests/unit/test_v09_environment_hardware_adapters.py; docs/development/evidence/v09/checkpoint28/m10_21_inprogress_narrow.log; docs/development/evidence/v09/checkpoint28/m10_21_evidence_mode_fix.log Wire-correct SHT31 transaction, I2C convergence helper, heater/status safeguards, four-profile parity and false-green evidence-mode boundary are host-verified. Physical breakout inspection, /dev/i2c-1 target access, 0x44/0x45 detection, repeated real reads and full-real control remain target-run evidence. |
+| M10.22 — Voice/environment end-to-end transaction closure | host-verified | not-run | src/gonken_agent/environment/intents.py; src/gonken_agent/voice_runtime.py; tests/unit/test_v09_environment_voice_intents.py; tests/integration/test_v09_environment_voice_transaction.py; docs/development/evidence/v09/checkpoint28/m10_22_voice_transaction.log Deterministic voice-to-daemon Unix-socket transactions and truthful failure/simulation wording are host-verified. Real wake/STT/TTS, physical relay/fan response and physical sensor query remain target-run evidence. |
 | M10.23 — Clean/dirty lifecycle, support, documentation, package and Git closure | pending | not-run |  Complete lifecycle/adversarial/support/documentation/package/Git host gates and prepare the next exact checkpoint. |
 | M10.24 — Final Raspberry Pi environment and release acceptance | pending | not-run |  Run exact-package physical target acceptance after M10.17-M10.23 host gates and installer completion; never infer PASS from host evidence. |
 <!-- /MILESTONES -->
@@ -519,3 +519,31 @@ The voice runtime now has a deterministic processing cue plan, a governed Piper 
 Evidence: affected wake/transition tests passed **107/107**; T0 static gates passed; physical-boundary regression tests passed **36/36**; the active module from the interrupted unit-phase attempt passed **3/3** when rerun narrowly. A full unit-phase PASS is not claimed. No real microphone/STT/audio wake behavior, real progress-cue timing or physical environment hardware behavior is claimed.
 
 Remaining dependency-ready work moves to M10.13 documentation/evidence hardening and M10.14 user simulation/sensor-deferred HIL release-candidate work. M10.7 physical Raspberry Pi acceptance remains not-run.
+
+
+## V09 Checkpoint 28 — runtime context, sensor transport and voice transaction closure — 2026-09-16
+
+**Base:** V09 Checkpoint 27 `6d0bc9a`.
+
+### Completed
+
+- added a non-actuating runtime-context preflight for the generated systemd environment and dedicated PipeWire/WirePlumber user-session prerequisites;
+- added governed Raspberry Pi I2C enable/status/service-user-openability handling without probing a sensor address during installer preflight;
+- replaced register-oriented SMBus SHT31 reading with the sensor's raw command/write then six-byte read transaction over Linux I2C, while retaining CRC/conversion validation;
+- added SHT31 status, heater-off enforcement, soft reset and clear-status support plus an address-discovery/repeated-read diagnostic whose default campaign is 100 reads;
+- preserved four simulation/hybrid/full-real static profiles with explicit 0x44/0x45 configuration;
+- removed a physical-evidence false green: real backend names now report `TARGET_REAL_BACKENDS_UNVERIFIED` rather than `TARGET_PHYSICAL`;
+- added an end-to-end deterministic voice transaction test through the actual AF_UNIX daemon protocol, including unavailable-daemon refusal.
+
+### Verified evidence
+
+- M10.20 focused runtime/service/audio slice: **52/52 PASS** (`checkpoint28/m10_20_runtime_service_audio.log`).
+- M10.21 focused sensor/release/profile slice: **77/77 PASS** (`checkpoint28/m10_21_inprogress_narrow.log`).
+- evidence-mode/documentation boundary slice: **19/19 PASS** (`checkpoint28/m10_21_evidence_mode_fix.log`).
+- voice-to-daemon transaction integration: **3/3 PASS** (`checkpoint28/m10_22_voice_transaction.log`).
+
+These results are host/target-shadow evidence only. They do not prove the physical SHT31, physical audio path, real GPIO relay response through GonKen, or wake-word operation.
+
+### Remaining
+
+M10.23 is now the next dependency-ready host tranche: lifecycle/adversarial/support/documentation/package/Git closure. M10.24 remains the exact-package Raspberry Pi campaign and is the only gate allowed to close remaining physical evidence.

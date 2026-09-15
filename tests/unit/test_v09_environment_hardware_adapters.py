@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import unittest
 from types import SimpleNamespace
+from unittest import mock
 
 from gonken_agent.environment import (
     EnvironmentPolicy,
@@ -14,6 +15,7 @@ from gonken_agent.environment import (
 )
 from gonken_agent.environment.actuators import ActuatorAdapterError, GpiodRelayFanActuator
 from gonken_agent.environment.sensors import SHT31Sensor, SensorAdapterError, crc8, decode_sht31_frame
+from gonken_agent.environment.sensors.sht31 import LinuxI2CDevTransport, I2C_SLAVE
 
 
 def _frame(raw_temperature: int, raw_humidity: int) -> list[int]:
@@ -22,24 +24,24 @@ def _frame(raw_temperature: int, raw_humidity: int) -> list[int]:
     return [temp[0], temp[1], crc8(temp), humidity[0], humidity[1], crc8(humidity)]
 
 
-class FakeBus:
-    def __init__(self, frame=None, *, read_error: OSError | None = None) -> None:
-        self.frame = _frame(0x6666, 0x8000) if frame is None else list(frame)
+class FakeTransport:
+    def __init__(self, frame=None, *, read_error: Exception | None = None) -> None:
+        self.frame = bytes(_frame(0x6666, 0x8000) if frame is None else frame)
         self.read_error = read_error
-        self.writes = []
-        self.reads = []
+        self.writes: list[bytes] = []
+        self.reads: list[int] = []
         self.closed = False
 
-    def write_i2c_block_data(self, address, command_msb, payload):
-        self.writes.append((address, command_msb, list(payload)))
+    def write(self, payload: bytes) -> None:
+        self.writes.append(bytes(payload))
 
-    def read_i2c_block_data(self, address, register, length):
-        self.reads.append((address, register, length))
+    def read(self, length: int) -> bytes:
+        self.reads.append(length)
         if self.read_error is not None:
             raise self.read_error
         return self.frame[:length]
 
-    def close(self):
+    def close(self) -> None:
         self.closed = True
 
 
@@ -129,24 +131,93 @@ class SHT31AdapterTests(unittest.TestCase):
             decode_sht31_frame(frame)
         self.assertEqual(ctx.exception.code, "SENSOR_CRC_FAILED")
 
-    def test_sensor_uses_high_repeatability_command_and_injected_bus(self) -> None:
-        bus = FakeBus(_frame(0x6666, 0x8000))
+    def test_status_read_and_heater_disable_use_exact_sht31_commands(self) -> None:
+        status_word = bytes([0x20, 0x00])
+        status_crc = crc8(status_word)
+        transport = FakeTransport(status_word + bytes([status_crc]))
+        sensor = SHT31Sensor(transport=transport, sleep_fn=lambda _seconds: None)
+        self.assertTrue(sensor.heater_enabled())
+        sensor.disable_heater()
+        self.assertEqual(transport.writes[0], b"\xf3\x2d")
+        self.assertEqual(transport.writes[1], b"\x30\x66")
+
+    def test_soft_reset_and_clear_status_commands_are_exact(self) -> None:
+        transport = FakeTransport()
+        sensor = SHT31Sensor(transport=transport, sleep_fn=lambda _seconds: None)
+        sensor.soft_reset(); sensor.clear_status()
+        self.assertEqual(transport.writes, [b"\x30\xa2", b"\x30\x41"])
+
+    def test_status_crc_failure_is_fail_closed(self) -> None:
+        transport = FakeTransport(b"\x00\x00\xff")
+        sensor = SHT31Sensor(transport=transport, sleep_fn=lambda _seconds: None)
+        with self.assertRaisesRegex(SensorAdapterError, "status CRC"):
+            sensor.read_status()
+
+    def test_sensor_uses_exact_two_byte_command_then_raw_six_byte_read(self) -> None:
+        transport = FakeTransport(_frame(0x6666, 0x8000))
         delays = []
-        sensor = SHT31Sensor(bus=bus, address=0x44, repeatability="high", sleep_fn=delays.append)
+        sensor = SHT31Sensor(transport=transport, address=0x44, repeatability="high", sleep_fn=delays.append)
         reading = sensor.read(now_monotonic=12.5)
         self.assertTrue(reading.is_valid())
         self.assertEqual(reading.sensor_address, 0x44)
         self.assertEqual(reading.source_backend, "sht31")
-        self.assertEqual(bus.writes, [(0x44, 0x24, [0x00])])
-        self.assertEqual(bus.reads, [(0x44, 0x00, 6)])
+        self.assertEqual(transport.writes, [bytes([0x24, 0x00])])
+        self.assertEqual(transport.reads, [6])
         self.assertGreaterEqual(delays[0], 0.015)
 
-    def test_sensor_returns_truthful_unavailable_reading_on_bus_error(self) -> None:
-        sensor = SHT31Sensor(bus=FakeBus(read_error=OSError("missing")), address=0x45, sleep_fn=lambda _delay: None)
+    def test_sensor_transport_error_is_truthful_and_never_invents_values(self) -> None:
+        sensor = SHT31Sensor(transport=FakeTransport(read_error=SensorAdapterError("SENSOR_TRANSPORT_ERROR", "missing")), address=0x45, sleep_fn=lambda _delay: None)
         reading = sensor.read(now_monotonic=1.0)
         self.assertFalse(reading.is_valid())
-        self.assertEqual(reading.error_code, "SENSOR_UNAVAILABLE")
+        self.assertEqual(reading.error_code, "SENSOR_TRANSPORT_ERROR")
         self.assertEqual(reading.sensor_address, 0x45)
+        self.assertIsNone(reading.temperature_c)
+        self.assertIsNone(reading.relative_humidity_pct)
+
+    def test_linux_transport_selects_slave_and_writes_reads_exact_bytes(self) -> None:
+        transport = LinuxI2CDevTransport(bus_number=1, address=0x44)
+        with mock.patch("gonken_agent.environment.sensors.sht31.os.open", return_value=12) as opened, \
+             mock.patch("gonken_agent.environment.sensors.sht31.fcntl.ioctl") as ioctl, \
+             mock.patch("gonken_agent.environment.sensors.sht31.os.write", return_value=2) as written, \
+             mock.patch("gonken_agent.environment.sensors.sht31.os.read", return_value=b"abcdef") as read, \
+             mock.patch("gonken_agent.environment.sensors.sht31.os.close") as closed:
+            transport.write(bytes([0x24, 0x00]))
+            payload = transport.read(6)
+            transport.close()
+        opened.assert_called_once()
+        ioctl.assert_called_once_with(12, I2C_SLAVE, 0x44)
+        written.assert_called_once_with(12, bytes([0x24, 0x00]))
+        read.assert_called_once_with(12, 6)
+        closed.assert_called_once_with(12)
+        self.assertEqual(payload, b"abcdef")
+
+    def test_owned_transport_is_recreated_after_transport_failure_for_recovery(self) -> None:
+        first = FakeTransport(read_error=SensorAdapterError("SENSOR_TRANSPORT_ERROR", "unplugged"))
+        second = FakeTransport(_frame(0x6666, 0x8000))
+        transports = iter((first, second))
+        sensor = SHT31Sensor(transport_factory=lambda **_: next(transports), address=0x44, sleep_fn=lambda _delay: None)
+        failed = sensor.read(now_monotonic=1.0)
+        recovered = sensor.read(now_monotonic=2.0)
+        self.assertEqual(failed.error_code, "SENSOR_TRANSPORT_ERROR")
+        self.assertTrue(first.closed)
+        self.assertTrue(recovered.is_valid())
+        self.assertEqual(second.writes, [bytes([0x24, 0x00])])
+
+    def test_sensor_rejects_address_outside_sht31_44_45_contract(self) -> None:
+        with self.assertRaises(SensorAdapterError) as ctx:
+            SHT31Sensor(address=0x46)
+        self.assertEqual(ctx.exception.code, "SENSOR_CONFIG_INVALID")
+
+    def test_linux_transport_short_read_fails_closed(self) -> None:
+        transport = LinuxI2CDevTransport(bus_number=1, address=0x44)
+        with mock.patch("gonken_agent.environment.sensors.sht31.os.open", return_value=12), \
+             mock.patch("gonken_agent.environment.sensors.sht31.fcntl.ioctl"), \
+             mock.patch("gonken_agent.environment.sensors.sht31.os.read", return_value=b"abc"), \
+             mock.patch("gonken_agent.environment.sensors.sht31.os.close"):
+            with self.assertRaises(SensorAdapterError) as ctx:
+                transport.read(6)
+            transport.close()
+        self.assertEqual(ctx.exception.code, "SENSOR_FRAME_INVALID")
 
 
 class GpiodRelayAdapterTests(unittest.TestCase):

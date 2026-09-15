@@ -49,7 +49,9 @@ class SupportTests(unittest.TestCase):
         self.assertIn('release', payload)
         self.assertIn('venv', payload)
         self.assertIn('bindings', payload)
-        self.assertEqual(set(payload['bindings']), {'gpiod','smbus'})
+        self.assertEqual(set(payload['bindings']), {'gpiod'})
+        self.assertEqual(payload['sensor_transport']['type'], 'linux-i2c-dev-stdlib')
+        self.assertFalse(payload['sensor_transport']['python_smbus_required'])
         self.assertNotIn('stderr', json.dumps(payload))
         self.assertNotIn('stdout', json.dumps(payload))
 

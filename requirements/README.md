@@ -7,11 +7,12 @@ generated views; do not edit them directly.
 
 The maintained Python package profile has no third-party **pip/wheel** core or
 test dependency. Raspberry Pi hardware bindings are a separate, explicit
-target-OS contract: the installer provisions Debian `python3-libgpiod` and
-`python3-smbus`, while the immutable application venv remains isolated from
-general system site-packages. During target release construction, the release
-manager copies only the allow-listed import payload owned by those Debian
-packages into the candidate venv and records package/file provenance in
+target-OS contract: the installer provisions Debian `python3-libgpiod`, while
+the immutable application venv remains isolated from general system site-packages.
+The SHT31 adapter uses the Linux `/dev/i2c-N` byte-stream ABI through the Python
+standard library and therefore does not require a Python SMBus binding. During
+target release construction, the release manager copies only the allow-listed
+`gpiod` import payload into the candidate venv and records package/file provenance in
 `share/gonken-agent/hardware-bindings.json`. Distribution metadata and unrelated
 system Python packages are deliberately excluded. The release validator checks
 the exact hardware API surface with the immutable interpreter before target
@@ -21,7 +22,7 @@ installation can proceed.
 
 | Profile | Purpose | State |
 |---|---|---|
-| `core-pi-trixie-py313` | Headless production target | Installable; zero pip/wheel dependencies; isolated venv consumes only allow-listed import payload copied from validated Debian `python3-libgpiod` + `python3-smbus` packages |
+| `core-pi-trixie-py313` | Headless production target | Installable; zero pip/wheel dependencies; isolated venv consumes only the allow-listed import payload copied from validated Debian `python3-libgpiod`; SHT31 uses stdlib + Linux i2c-dev |
 | `dev-py312` | Current x86 host unit/static checks | Installable; zero third-party dependencies |
 | `ui-pi-trixie-py313` | Optional Raspberry Pi UI evaluation | Installable separately; `pygame` exact/hash-locked |
 | `ui-dev-py312` | Optional x86 UI import evaluation | Installable separately; `pygame` exact/hash-locked |
