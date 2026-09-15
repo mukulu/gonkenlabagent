@@ -4,9 +4,9 @@
 
 **Task:** continue from checkpoint 22 through all dependency-ready blueprint work, repair false-green host gaps, fully verify the resulting host/software state, and prepare an exact-package Raspberry Pi target campaign without claiming physical acceptance.
 
-**Input commit:** `e588f958e091ba866a05e68d14456ff63ad55173`  
-**Runtime/source tranche commit:** `f99ea99107d4b65a6e76bd46fd2c1940bec59958`  
-**Final checkpoint commit:** recorded by package-close verification after this report is committed.  
+**Input commit:** `e588f958e091ba866a05e68d14456ff63ad55173`
+**Runtime/source tranche commit:** `f99ea99107d4b65a6e76bd46fd2c1940bec59958`
+**Final checkpoint commit:** recorded by package-close verification after this report is committed.
 **Risk:** high for cyber-physical false-green, wake/privacy behavior, GPIO identity, installer provenance and release-evidence integrity.
 
 Acceptance for this checkpoint requires:
