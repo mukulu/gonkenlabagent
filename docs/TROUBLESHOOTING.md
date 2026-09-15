@@ -83,7 +83,33 @@ then a simulated backend appeared in JSON returned by a physical-evidence comman
 
 ## 7. “Wake phrase is unreliable”
 
-The packaged default wake phrase is `GonKen`, and `Hey GonKen` is retained as a backward-compatible alias. Host matcher tests are not real microphone evidence. For target evaluation, use the Raspberry Pi acceptance runbook, record false accepts/rejects and wake-to-acknowledgement latency, and preserve logs without retaining raw transcripts by default.
+The packaged default wake phrase is `GonKen`, and `Hey GonKen` is retained as a backward-compatible alias. `gonken-agent wake status --json` should report `capture.mode=pipelined` and `capture_continues_during_transcription=true`. The production standby path uses a bounded newest-wins queue so synchronous Whisper work no longer intentionally stops microphone capture of the next wake window.
+
+Check:
+
+```bash
+gonken-agent wake status --json
+sudo journalctl -u gonken-agent.service -b --no-pager -n 160
+gpiodetect
+gpioinfo --strict GPIO22
+```
+
+If the journal reports dropped wake windows, record the count and recognition latency; do not increase the queue without measuring CPU/RAM/thermal effects. If the service reports a wake-monitoring GPIO error, correct permissions/mapping rather than bypassing the privacy indicator. Host matcher/pipeline tests are not real microphone evidence. For target evaluation, use the Raspberry Pi acceptance runbook, record intended detections, misses, benign false wakes, wake-to-`Yes?` latency, accent/distance/noise conditions, and preserve logs without retaining raw transcripts by default.
+
+## 7A. “Push-to-talk does not record or the recording LED is wrong”
+
+PTT mode requires a unique libgpiod line named for the configured button and recording LED (GPIO17/GPIO27 by default). The button is active-low with an internal pull-up. Do not work around a mapping failure by hard-coding a guessed gpiochip offset.
+
+Check:
+
+```bash
+gpiodetect
+gpioinfo --strict GPIO17
+gpioinfo --strict GPIO27
+sudo journalctl -u gonken-agent.service -b --no-pager -n 160
+```
+
+Expected physical semantics: the recording LED is OFF at boot/idle, ON only while the button is held and microphone capture is active, then OFF before transcription/inference/TTS. A press longer than the 30-second bound is discarded. If the LED remains on after service stop/crash or the button reads inverted, stop target acceptance and return the mapping/wiring evidence; do not reinterpret the LED as a “thinking” indicator.
 
 ## 8. “Progress cue or transition announcement overlaps speech”
 

@@ -1,0 +1,77 @@
+{
+  "created_utc": "2026-09-15T13:11:31Z",
+  "granularity": "case",
+  "label": "integration-release-lifecycle",
+  "module_count": 8,
+  "modules": [
+    {
+      "duration_seconds": 10.99,
+      "log_file": "/mnt/data/gonken_ckpt22_continue/gonkenlabagent-v09-user-sim-hil-release-candidate-checkpoint-22/build/ci-logs/integration-release-lifecycle/tests_integration_test_release_lifecycle_process_ActivationInterruptionTests_test_every_journal_switch_and_postcheck_boundary_reconciles.log",
+      "module": "tests.integration.test_release_lifecycle_process.ActivationInterruptionTests.test_every_journal_switch_and_postcheck_boundary_reconciles",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 1.261,
+      "log_file": "/mnt/data/gonken_ckpt22_continue/gonkenlabagent-v09-user-sim-hil-release-candidate-checkpoint-22/build/ci-logs/integration-release-lifecycle/tests_integration_test_release_lifecycle_process_ActivationInterruptionTests_test_failed_post_switch_smoke_rolls_back_previous.log",
+      "module": "tests.integration.test_release_lifecycle_process.ActivationInterruptionTests.test_failed_post_switch_smoke_rolls_back_previous",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 1.947,
+      "log_file": "/mnt/data/gonken_ckpt22_continue/gonkenlabagent-v09-user-sim-hil-release-candidate-checkpoint-22/build/ci-logs/integration-release-lifecycle/tests_integration_test_release_lifecycle_process_ActivationInterruptionTests_test_operator_rollback_script_restarts_service_after_validated_switch.log",
+      "module": "tests.integration.test_release_lifecycle_process.ActivationInterruptionTests.test_operator_rollback_script_restarts_service_after_validated_switch",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 23.295,
+      "log_file": "/mnt/data/gonken_ckpt22_continue/gonkenlabagent-v09-user-sim-hil-release-candidate-checkpoint-22/build/ci-logs/integration-release-lifecycle/tests_integration_test_release_lifecycle_process_EndToEndReleaseTests_test_default_install_after_release_boundary_stops_before_target_only_steps.log",
+      "module": "tests.integration.test_release_lifecycle_process.EndToEndReleaseTests.test_default_install_after_release_boundary_stops_before_target_only_steps",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 6.366,
+      "log_file": "/mnt/data/gonken_ckpt22_continue/gonkenlabagent-v09-user-sim-hil-release-candidate-checkpoint-22/build/ci-logs/integration-release-lifecycle/tests_integration_test_release_lifecycle_process_EndToEndReleaseTests_test_low_space_never_creates_or_switches_release.log",
+      "module": "tests.integration.test_release_lifecycle_process.EndToEndReleaseTests.test_low_space_never_creates_or_switches_release",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 15.836,
+      "log_file": "/mnt/data/gonken_ckpt22_continue/gonkenlabagent-v09-user-sim-hil-release-candidate-checkpoint-22/build/ci-logs/integration-release-lifecycle/tests_integration_test_release_lifecycle_process_EndToEndReleaseTests_test_release_only_builds_activates_and_freezes_release.log",
+      "module": "tests.integration.test_release_lifecycle_process.EndToEndReleaseTests.test_release_only_builds_activates_and_freezes_release",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 22.809,
+      "log_file": "/mnt/data/gonken_ckpt22_continue/gonkenlabagent-v09-user-sim-hil-release-candidate-checkpoint-22/build/ci-logs/integration-release-lifecycle/tests_integration_test_release_lifecycle_process_EndToEndReleaseTests_test_release_only_repeat_is_idempotent.log",
+      "module": "tests.integration.test_release_lifecycle_process.EndToEndReleaseTests.test_release_only_repeat_is_idempotent",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 3.457,
+      "log_file": "/mnt/data/gonken_ckpt22_continue/gonkenlabagent-v09-user-sim-hil-release-candidate-checkpoint-22/build/ci-logs/integration-release-lifecycle/tests_integration_test_release_lifecycle_process_FinalizationInterruptionTests_test_candidate_finalize_boundaries_leave_recoverable_old_or_new_state.log",
+      "module": "tests.integration.test_release_lifecycle_process.FinalizationInterruptionTests.test_candidate_finalize_boundaries_leave_recoverable_old_or_new_state",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    }
+  ],
+  "result": "PASS",
+  "schema": "gonken-bounded-unittest-v1",
+  "status_counts": {
+    "PASS": 8
+  }
+}

@@ -105,6 +105,7 @@ class BootstrapProcessTests(unittest.TestCase):
         content = manifest.read_text(encoding="utf-8")
         self.assertIn(f"resolved_commit={expected_commit}", content)
         self.assertIn("platform_mode=development", content)
+        self.assertIn("source_mode=remote", content)
         self.assertIn("rpi_image_reference=not-applicable", content)
         self.assertIn("bluetooth_audio=disabled", content)
         self.assertIn("bluetooth_device=", content)

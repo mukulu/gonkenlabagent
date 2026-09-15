@@ -1,0 +1,16 @@
+[RUN] module=tests.unit.test_m8_update_manager timeout=180s log=/mnt/data/gonken_ckpt23_baseline/unit-remainder-logs/tests_unit_test_m8_update_manager.log
+[PASS] module=tests.unit.test_m8_update_manager seconds=0.7
+[RUN] module=tests.unit.test_qwen_runtime_contract timeout=180s log=/mnt/data/gonken_ckpt23_baseline/unit-remainder-logs/tests_unit_test_qwen_runtime_contract.log
+[PASS] module=tests.unit.test_qwen_runtime_contract seconds=0.6
+[RUN] module=tests.unit.test_release_readiness timeout=180s log=/mnt/data/gonken_ckpt23_baseline/unit-remainder-logs/tests_unit_test_release_readiness.log
+[PASS] module=tests.unit.test_release_readiness seconds=2.0
+[RUN] module=tests.unit.test_runtime_audio timeout=180s log=/mnt/data/gonken_ckpt23_baseline/unit-remainder-logs/tests_unit_test_runtime_audio.log
+[PASS] module=tests.unit.test_runtime_audio seconds=2.5
+[RUN] module=tests.unit.test_support_export timeout=180s log=/mnt/data/gonken_ckpt23_baseline/unit-remainder-logs/tests_unit_test_support_export.log
+[PASS] module=tests.unit.test_support_export seconds=0.8
+[RUN] module=tests.unit.test_test_architecture timeout=180s log=/mnt/data/gonken_ckpt23_baseline/unit-remainder-logs/tests_unit_test_test_architecture.log
+[PASS] module=tests.unit.test_test_architecture seconds=2.6
+[RUN] module=tests.unit.test_v09_documentation_hardening timeout=180s log=/mnt/data/gonken_ckpt23_baseline/unit-remainder-logs/tests_unit_test_v09_documentation_hardening.log
+[PASS] module=tests.unit.test_v09_documentation_hardening seconds=1.4
+[RUN] module=tests.unit.test_v09_environment_acceptance_runner timeout=180s log=/mnt/data/gonken_ckpt23_baseline/unit-remainder-logs/tests_unit_test_v09_environment_acceptance_runner.log
+[WAIT] module=tests.unit.test_v09_environment_acceptance_runner elapsed=15.1s tail=test_default_collection_is_non_destructive_and_blocks_fan_cycle (tests.unit.test_v09_environment_acceptance_runner.EnvironmentAcceptanceRunnerTests.test_default_collection_is_non_destructive_and_blocks_fan_cycle) ... ok

@@ -21,6 +21,9 @@ source "$COMMON_LIBRARY"
 
 SOURCE_URL="https://github.com/mukulu/gonkenlabagent.git"
 SOURCE_REF="main"
+SOURCE_MODE="remote"
+SOURCE_URL_EXPLICIT=0
+SOURCE_REF_EXPLICIT=0
 PREFLIGHT_ONLY=0
 PLATFORM_MODE="target"
 STAGING_PARENT="/var/tmp"
@@ -42,6 +45,9 @@ Options:
   --preflight-only          Return success after writing the source manifest.
   --development-host       Validate the documented Linux development-host
                            contract instead of Raspberry Pi production target.
+  --local-checkpoint       Bind installation to this clean packaged Git checkout
+                           instead of resolving a remote ref. Intended for the
+                           supervised downloadable-checkpoint Raspberry Pi run.
   --source-url URL         HTTPS Git source (default: official repository; file://
                            allowed only for --development-host validation).
   --ref REF                Advertised remote branch or tag (default: main).
@@ -66,6 +72,10 @@ while (($#)); do
       PLATFORM_MODE="development"
       shift
       ;;
+    --local-checkpoint)
+      SOURCE_MODE="local-checkpoint"
+      shift
+      ;;
     --bluetooth-audio)
       BLUETOOTH_AUDIO="requested"
       shift
@@ -79,8 +89,8 @@ while (($#)); do
       }
       value="$2"
       case "$option" in
-        --source-url) SOURCE_URL="$value" ;;
-        --ref) SOURCE_REF="$value" ;;
+        --source-url) SOURCE_URL="$value"; SOURCE_URL_EXPLICIT=1 ;;
+        --ref) SOURCE_REF="$value"; SOURCE_REF_EXPLICIT=1 ;;
         --existing-checkout)
           EXISTING_CHECKOUT="$value"
           EXISTING_CHECKOUT_EXPLICIT=1
@@ -104,6 +114,21 @@ while (($#)); do
       ;;
   esac
 done
+
+if [[ "$SOURCE_MODE" == "local-checkpoint" ]]; then
+  if ((SOURCE_URL_EXPLICIT == 1 || SOURCE_REF_EXPLICIT == 1 || EXISTING_CHECKOUT_EXPLICIT == 1)); then
+    gonken_error "PREFLIGHT_SOURCE" "--local-checkpoint cannot be combined with --source-url, --ref, or --existing-checkout" "run it from the exact extracted checkpoint directory" || true
+    exit 64
+  fi
+  [[ -d "$SCRIPT_DIR/.git" ]] || {
+    gonken_error "PREFLIGHT_CHECKOUT" "--local-checkpoint requires the complete packaged Git checkout" "extract the checkpoint ZIP including .git and rerun from its root" || true
+    exit 66
+  }
+  EXISTING_CHECKOUT="$SCRIPT_DIR"
+  EXISTING_CHECKOUT_EXPLICIT=1
+  SOURCE_URL="file://$SCRIPT_DIR"
+  SOURCE_REF="$(git -c "safe.directory=$SCRIPT_DIR" -C "$SCRIPT_DIR" rev-parse 'HEAD^{commit}' 2>/dev/null || true)"
+fi
 
 if ((EXISTING_CHECKOUT_EXPLICIT == 0)) && [[ -d "$SCRIPT_DIR/.git" ]]; then
   EXISTING_CHECKOUT="$SCRIPT_DIR"
@@ -130,7 +155,7 @@ if [[ "$PLATFORM_MODE" == "target" ]]; then
   required_commands+=(apt-get systemctl tr)
 fi
 gonken_require_commands "${required_commands[@]}" || exit 69
-gonken_validate_source_request "$SOURCE_URL" "$SOURCE_REF" "$PLATFORM_MODE" || exit 78
+gonken_validate_source_request "$SOURCE_URL" "$SOURCE_REF" "$PLATFORM_MODE" "$SOURCE_MODE" || exit 78
 gonken_validate_staging_parent "$STAGING_PARENT" || exit 78
 
 kernel_name="$(uname -s)" || {
@@ -204,12 +229,17 @@ gonken_validate_resources \
 # Sudo validation intentionally happens once, after quick local platform and
 # resource rejection but before checkout inspection or remote source access.
 gonken_establish_privilege || exit 77
-gonken_validate_existing_checkout "$EXISTING_CHECKOUT" "$SOURCE_URL" || exit 78
-gonken_resolve_remote_ref "$SOURCE_URL" "$SOURCE_REF" || exit 69
+gonken_validate_existing_checkout "$EXISTING_CHECKOUT" "$SOURCE_URL" "$SOURCE_MODE" || exit 78
+if [[ "$SOURCE_MODE" == "local-checkpoint" ]]; then
+  gonken_resolve_local_checkpoint "$EXISTING_CHECKOUT" "$SOURCE_REF" || exit 69
+else
+  gonken_resolve_remote_ref "$SOURCE_URL" "$SOURCE_REF" || exit 69
+fi
 
 gonken_create_staging "$STAGING_PARENT" \
   'format=gonken-bootstrap-source-v1' \
   "source_url=$SOURCE_URL" \
+  "source_mode=$SOURCE_MODE" \
   "requested_ref=$SOURCE_REF" \
   "resolved_commit=$GONKEN_RESOLVED_COMMIT" \
   "platform_mode=$PLATFORM_MODE" \
@@ -236,8 +266,8 @@ gonken_create_staging "$STAGING_PARENT" \
   "bluetooth_device=$BLUETOOTH_DEVICE" || exit 73
 
 printf '[OK] code=PREFLIGHT_COMPLETE staging=%s\n' "$GONKEN_STAGING_DIR"
-printf '[OK] source_commit=%s privilege_mode=%s platform_mode=%s\n' \
-  "$GONKEN_RESOLVED_COMMIT" "$GONKEN_PRIVILEGE_MODE" "$PLATFORM_MODE"
+printf '[OK] source_commit=%s source_mode=%s privilege_mode=%s platform_mode=%s\n' \
+  "$GONKEN_RESOLVED_COMMIT" "$SOURCE_MODE" "$GONKEN_PRIVILEGE_MODE" "$PLATFORM_MODE"
 
 if ((PREFLIGHT_ONLY == 1)); then
   exit 0

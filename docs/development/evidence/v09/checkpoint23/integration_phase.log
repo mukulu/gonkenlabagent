@@ -1,0 +1,29 @@
+[T1] deterministic integration suite (bounded per module)
+[RUN] module=tests.integration.test_bootstrap_preflight_process timeout=300s log=/mnt/data/gonken_ckpt22_continue/gonkenlabagent-v09-user-sim-hil-release-candidate-checkpoint-22/build/ci-logs/integration/tests_integration_test_bootstrap_preflight_process.log
+[PASS] module=tests.integration.test_bootstrap_preflight_process seconds=9.5
+[RUN] module=tests.integration.test_cli_process timeout=300s log=/mnt/data/gonken_ckpt22_continue/gonkenlabagent-v09-user-sim-hil-release-candidate-checkpoint-22/build/ci-logs/integration/tests_integration_test_cli_process.log
+[PASS] module=tests.integration.test_cli_process seconds=5.3
+[RUN] module=tests.integration.test_first_install_launcher timeout=300s log=/mnt/data/gonken_ckpt22_continue/gonkenlabagent-v09-user-sim-hil-release-candidate-checkpoint-22/build/ci-logs/integration/tests_integration_test_first_install_launcher.log
+[PASS] module=tests.integration.test_first_install_launcher seconds=0.8
+[RUN] module=tests.integration.test_install_engine_process timeout=300s log=/mnt/data/gonken_ckpt22_continue/gonkenlabagent-v09-user-sim-hil-release-candidate-checkpoint-22/build/ci-logs/integration/tests_integration_test_install_engine_process.log
+[PASS] module=tests.integration.test_install_engine_process seconds=10.6
+[RUN] module=tests.integration.test_ollama_lifecycle_process timeout=300s log=/mnt/data/gonken_ckpt22_continue/gonkenlabagent-v09-user-sim-hil-release-candidate-checkpoint-22/build/ci-logs/integration/tests_integration_test_ollama_lifecycle_process.log
+[WAIT] module=tests.integration.test_ollama_lifecycle_process elapsed=15.0s tail=test_checksum_failure_never_creates_release (tests.integration.test_ollama_lifecycle_process.OllamaLifecycleProcessTests.test_checksum_failure_never_creates_release) ... ok | test_recorded_full_digest_drift_is_refused (tests.integration.test_ollama_lifecycle_process.OllamaLifecycleProcessTests.test_recorded_full_digest_drift_is_refused) ... ok
+[PASS] module=tests.integration.test_ollama_lifecycle_process seconds=29.6
+[RUN] module=tests.integration.test_speech_lifecycle_process timeout=300s log=/mnt/data/gonken_ckpt22_continue/gonkenlabagent-v09-user-sim-hil-release-candidate-checkpoint-22/build/ci-logs/integration/tests_integration_test_speech_lifecycle_process.log
+[WAIT] module=tests.integration.test_speech_lifecycle_process elapsed=15.1s tail=no output yet
+[WAIT] module=tests.integration.test_speech_lifecycle_process elapsed=30.1s tail=test_full_lifecycle_repeat_status_and_private_record (tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_full_lifecycle_repeat_status_and_private_record) ... ok
+[WAIT] module=tests.integration.test_speech_lifecycle_process elapsed=45.2s tail=test_full_lifecycle_repeat_status_and_private_record (tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_full_lifecycle_repeat_status_and_private_record) ... ok | test_interrupted_boundaries_converge_on_rerun (tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_interrupted_boundaries_converge_on_rerun) ... ok
+[WAIT] module=tests.integration.test_speech_lifecycle_process elapsed=60.2s tail=test_interrupted_boundaries_converge_on_rerun (tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_interrupted_boundaries_converge_on_rerun) ... ok | test_smoke_failure_does_not_create_success_record_and_reruns (tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_smoke_failure_does_not_create_success_record_and_reruns) ... ok
+[PASS] module=tests.integration.test_speech_lifecycle_process seconds=70.4
+[RUN] module=tests.integration.test_support_collection_process timeout=300s log=/mnt/data/gonken_ckpt22_continue/gonkenlabagent-v09-user-sim-hil-release-candidate-checkpoint-22/build/ci-logs/integration/tests_integration_test_support_collection_process.log
+[PASS] module=tests.integration.test_support_collection_process seconds=0.7
+[RUN] module=tests.integration.test_text_runtime_process timeout=300s log=/mnt/data/gonken_ckpt22_continue/gonkenlabagent-v09-user-sim-hil-release-candidate-checkpoint-22/build/ci-logs/integration/tests_integration_test_text_runtime_process.log
+[PASS] module=tests.integration.test_text_runtime_process seconds=8.3
+[RUN] module=tests.integration.test_uninstall_lifecycle_process timeout=300s log=/mnt/data/gonken_ckpt22_continue/gonkenlabagent-v09-user-sim-hil-release-candidate-checkpoint-22/build/ci-logs/integration/tests_integration_test_uninstall_lifecycle_process.log
+[PASS] module=tests.integration.test_uninstall_lifecycle_process seconds=2.0
+[RUN] module=tests.integration.test_v09_user_test_release_candidate timeout=300s log=/mnt/data/gonken_ckpt22_continue/gonkenlabagent-v09-user-sim-hil-release-candidate-checkpoint-22/build/ci-logs/integration/tests_integration_test_v09_user_test_release_candidate.log
+[WAIT] module=tests.integration.test_v09_user_test_release_candidate elapsed=15.0s tail=no output yet
+[PASS] module=tests.integration.test_v09_user_test_release_candidate seconds=19.9
+[SUMMARY] label=integration result=PASS modules=10 manifest=/mnt/data/gonken_ckpt22_continue/gonkenlabagent-v09-user-sim-hil-release-candidate-checkpoint-22/build/ci-logs/integration_manifest.json
+Selected T0/T1 checks passed: integration

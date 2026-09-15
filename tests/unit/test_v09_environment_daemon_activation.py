@@ -63,6 +63,16 @@ class FakeActuator:
     def capabilities(self) -> FanCapability:
         return FanCapability(power_control=True, software_speed_control=False, fan_motion_observed=False)
 
+    def resolved_identity(self):
+        return {
+            "logical_bcm": 23,
+            "line_name": "GPIO23",
+            "chip_path": "/dev/gpiochip4",
+            "line_offset": 7,
+            "active_high": True,
+            "physical_acceptance_claimed": False,
+        }
+
 
 class ManualClock:
     def __init__(self, value: float = 0.0) -> None:
@@ -114,6 +124,11 @@ class EnvironmentDaemonActivationTests(unittest.TestCase):
             status = core.handle(__import__("gonken_agent.environment.protocol", fromlist=["make_request"]).make_request("status.get"))
             self.assertFalse(status["physical_evidence"])
             self.assertFalse(status["capabilities"]["software_speed_control"])
+            self.assertEqual(status["actuator_runtime_identity"]["status"], "RESOLVED")
+            self.assertEqual(status["actuator_runtime_identity"]["logical_bcm"], 23)
+            self.assertEqual(status["actuator_runtime_identity"]["chip_path"], "/dev/gpiochip4")
+            self.assertEqual(status["actuator_runtime_identity"]["line_offset"], 7)
+            self.assertFalse(status["actuator_runtime_identity"]["physical_acceptance_claimed"])
             for moment in (11.0, 12.0, 13.0):
                 clock.set(moment)
                 result = core.handle(__import__("gonken_agent.environment.protocol", fromlist=["make_request"]).make_request("sensor.read"))

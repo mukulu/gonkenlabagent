@@ -34,6 +34,7 @@ class FirstInstallLauncherTests(unittest.TestCase):
         self.assertIn('SOURCE_URL="https://github.com/mukulu/gonkenlabagent.git"', text)
         self.assertIn('SOURCE_REF="main"', text)
         self.assertIn("Usage: ./bootstrap.sh [OPTIONS]", text)
+        self.assertIn("--local-checkpoint", text)
 
     def test_readme_primary_install_is_one_command_and_manual_bootstrap_is_short(self) -> None:
         text = README.read_text(encoding="utf-8")

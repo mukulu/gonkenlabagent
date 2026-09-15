@@ -72,16 +72,37 @@ class FakeRequest:
         self.released = True
 
 
+class FakeChip:
+    def __init__(self, lines):
+        self.lines = list(lines)
+        self.closed = False
+
+    def get_info(self):
+        return SimpleNamespace(num_lines=len(self.lines))
+
+    def get_line_info(self, offset):
+        return SimpleNamespace(name=self.lines[offset])
+
+    def close(self):
+        self.closed = True
+
+
 class FakeGpiod:
     Direction = Direction
     Value = Value
     LineSettings = FakeLineSettings
 
-    def __init__(self, *, fail_request: bool = False, fail_set: bool = False) -> None:
+    def __init__(self, *, fail_request: bool = False, fail_set: bool = False, chips=None) -> None:
         self.fail_request = fail_request
         self.fail_set = fail_set
+        self.chips = dict(chips or {})
         self.requests = []
         self.last_request = None
+
+    def Chip(self, chip_path):
+        if chip_path not in self.chips:
+            raise OSError("missing")
+        return FakeChip(self.chips[chip_path])
 
     def request_lines(self, chip_path, *, consumer, config):
         if self.fail_request:
@@ -164,6 +185,45 @@ class GpiodRelayAdapterTests(unittest.TestCase):
         self.assertTrue(request.released)
         settings = module.requests[0][2][23]
         self.assertTrue(settings.kwargs["active_low"])
+
+    def test_relay_discovers_logical_bcm_by_line_name_without_chip0_offset_assumption(self) -> None:
+        lines = [None] * 40
+        lines[7] = "GPIO23"
+        module = FakeGpiod(chips={"/dev/gpiochip4": lines})
+        relay = GpiodRelayFanActuator(
+            logical_bcm=23,
+            active_high=True,
+            gpiod_module=module,
+            chip_paths=["/dev/gpiochip4"],
+        )
+        relay.open()
+        self.assertEqual(module.requests[0][0], "/dev/gpiochip4")
+        self.assertIn(7, module.requests[0][2])
+        identity = relay.resolved_identity()
+        self.assertEqual(identity["logical_bcm"], 23)
+        self.assertEqual(identity["line_name"], "GPIO23")
+        self.assertEqual(identity["line_offset"], 7)
+        self.assertFalse(identity["physical_acceptance_claimed"])
+
+    def test_relay_discovery_fails_closed_for_missing_or_ambiguous_line_name(self) -> None:
+        with self.subTest("missing"):
+            relay = GpiodRelayFanActuator(
+                logical_bcm=23, active_high=True,
+                gpiod_module=FakeGpiod(chips={"/dev/gpiochip4": ["GPIO22"]}),
+                chip_paths=["/dev/gpiochip4"],
+            )
+            with self.assertRaises(ActuatorAdapterError) as ctx:
+                relay.open()
+            self.assertEqual(ctx.exception.code, "ACTUATOR_GPIO_LINE_NOT_FOUND")
+        with self.subTest("ambiguous"):
+            relay = GpiodRelayFanActuator(
+                logical_bcm=23, active_high=True,
+                gpiod_module=FakeGpiod(chips={"/dev/gpiochip0": ["GPIO23"], "/dev/gpiochip4": ["GPIO23"]}),
+                chip_paths=["/dev/gpiochip0", "/dev/gpiochip4"],
+            )
+            with self.assertRaises(ActuatorAdapterError) as ctx:
+                relay.open()
+            self.assertEqual(ctx.exception.code, "ACTUATOR_GPIO_LINE_AMBIGUOUS")
 
     def test_relay_write_failure_is_reported_as_actuator_unavailable(self) -> None:
         relay = GpiodRelayFanActuator(line_offset=23, active_high=True, gpiod_module=FakeGpiod(fail_set=True))

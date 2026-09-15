@@ -1,0 +1,29 @@
+[RUN] module=tests.unit.test_v09_environment_cli timeout=180s log=/mnt/data/gonken_ckpt23_baseline/unit-remainder2-logs/tests_unit_test_v09_environment_cli.log
+[PASS] module=tests.unit.test_v09_environment_cli seconds=0.9
+[RUN] module=tests.unit.test_v09_environment_config timeout=180s log=/mnt/data/gonken_ckpt23_baseline/unit-remainder2-logs/tests_unit_test_v09_environment_config.log
+[PASS] module=tests.unit.test_v09_environment_config seconds=0.7
+[RUN] module=tests.unit.test_v09_environment_controller timeout=180s log=/mnt/data/gonken_ckpt23_baseline/unit-remainder2-logs/tests_unit_test_v09_environment_controller.log
+[PASS] module=tests.unit.test_v09_environment_controller seconds=0.7
+[RUN] module=tests.unit.test_v09_environment_daemon_activation timeout=180s log=/mnt/data/gonken_ckpt23_baseline/unit-remainder2-logs/tests_unit_test_v09_environment_daemon_activation.log
+[PASS] module=tests.unit.test_v09_environment_daemon_activation seconds=1.2
+[RUN] module=tests.unit.test_v09_environment_hardware_adapters timeout=180s log=/mnt/data/gonken_ckpt23_baseline/unit-remainder2-logs/tests_unit_test_v09_environment_hardware_adapters.log
+[PASS] module=tests.unit.test_v09_environment_hardware_adapters seconds=0.7
+[RUN] module=tests.unit.test_v09_environment_ipc timeout=180s log=/mnt/data/gonken_ckpt23_baseline/unit-remainder2-logs/tests_unit_test_v09_environment_ipc.log
+[PASS] module=tests.unit.test_v09_environment_ipc seconds=2.2
+[RUN] module=tests.unit.test_v09_environment_policy timeout=180s log=/mnt/data/gonken_ckpt23_baseline/unit-remainder2-logs/tests_unit_test_v09_environment_policy.log
+[PASS] module=tests.unit.test_v09_environment_policy seconds=0.6
+[RUN] module=tests.unit.test_v09_environment_polling_loop timeout=180s log=/mnt/data/gonken_ckpt23_baseline/unit-remainder2-logs/tests_unit_test_v09_environment_polling_loop.log
+[PASS] module=tests.unit.test_v09_environment_polling_loop seconds=0.7
+[RUN] module=tests.unit.test_v09_environment_service_manager timeout=180s log=/mnt/data/gonken_ckpt23_baseline/unit-remainder2-logs/tests_unit_test_v09_environment_service_manager.log
+[PASS] module=tests.unit.test_v09_environment_service_manager seconds=3.9
+[RUN] module=tests.unit.test_v09_environment_simulation timeout=180s log=/mnt/data/gonken_ckpt23_baseline/unit-remainder2-logs/tests_unit_test_v09_environment_simulation.log
+[PASS] module=tests.unit.test_v09_environment_simulation seconds=1.8
+[RUN] module=tests.unit.test_v09_environment_voice_intents timeout=180s log=/mnt/data/gonken_ckpt23_baseline/unit-remainder2-logs/tests_unit_test_v09_environment_voice_intents.log
+[PASS] module=tests.unit.test_v09_environment_voice_intents seconds=0.6
+[RUN] module=tests.unit.test_v09_user_test_readiness timeout=180s log=/mnt/data/gonken_ckpt23_baseline/unit-remainder2-logs/tests_unit_test_v09_user_test_readiness.log
+[PASS] module=tests.unit.test_v09_user_test_readiness seconds=0.6
+[RUN] module=tests.unit.test_voice_appliance timeout=180s log=/mnt/data/gonken_ckpt23_baseline/unit-remainder2-logs/tests_unit_test_voice_appliance.log
+[PASS] module=tests.unit.test_voice_appliance seconds=0.7
+[RUN] module=tests.unit.test_x4_bluetooth_manager timeout=180s log=/mnt/data/gonken_ckpt23_baseline/unit-remainder2-logs/tests_unit_test_x4_bluetooth_manager.log
+[PASS] module=tests.unit.test_x4_bluetooth_manager seconds=0.8
+[SUMMARY] label=unit-remainder2 result=PASS modules=14 manifest=/mnt/data/gonken_ckpt23_baseline/unit_remainder2_manifest.json

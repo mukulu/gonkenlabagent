@@ -267,6 +267,46 @@ class SourceAndCheckoutTests(unittest.TestCase):
                 result = run_common(body)
                 self.assertNotEqual(result.returncode, 0)
 
+    def test_target_local_checkpoint_requires_explicit_mode_and_full_commit(self) -> None:
+        commit = "a" * 40
+        accepted = run_common(
+            f"gonken_validate_source_request 'file:///tmp/repo' {commit} target local-checkpoint"
+        )
+        self.assertEqual(accepted.returncode, 0, accepted.stderr)
+        for body in (
+            "gonken_validate_source_request 'file:///tmp/repo' main target local-checkpoint",
+            f"gonken_validate_source_request 'https://example.com/repo.git' {commit} target local-checkpoint",
+        ):
+            with self.subTest(body=body):
+                rejected = run_common(body)
+                self.assertNotEqual(rejected.returncode, 0)
+                self.assertIn("code=PREFLIGHT_SOURCE", rejected.stderr)
+
+    def test_local_checkpoint_checkout_and_resolver_bind_exact_clean_head(self) -> None:
+        repository = self.make_repository(origin="https://example.invalid/other.git")
+        commit = git("rev-parse", "HEAD", cwd=repository).stdout.strip()
+        accepted = run_common(
+            "gonken_validate_existing_checkout "
+            f"{shlex.quote(str(repository))} {shlex.quote(repository.as_uri())} local-checkpoint\n"
+            f"gonken_resolve_local_checkpoint {shlex.quote(str(repository))} {commit}\n"
+            "printf '%s\n' \"$GONKEN_RESOLVED_COMMIT\""
+        )
+        self.assertEqual(accepted.returncode, 0, accepted.stderr)
+        self.assertEqual(accepted.stdout.strip(), commit)
+
+        wrong = run_common(
+            f"gonken_resolve_local_checkpoint {shlex.quote(str(repository))} {'b' * 40}"
+        )
+        self.assertNotEqual(wrong.returncode, 0)
+        self.assertIn("code=PREFLIGHT_REF", wrong.stderr)
+
+        bad_source = run_common(
+            "gonken_validate_existing_checkout "
+            f"{shlex.quote(str(repository))} file:///tmp/not-this-checkout local-checkpoint"
+        )
+        self.assertNotEqual(bad_source.returncode, 0)
+        self.assertIn("code=PREFLIGHT_CHECKOUT_ORIGIN", bad_source.stderr)
+
     def test_network_or_missing_ref_failure_is_structured(self) -> None:
         stubs = self.root / "stubs"
         stubs.mkdir()

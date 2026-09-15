@@ -1,0 +1,38 @@
+test_core_package_has_no_optional_dependency_imports (tests.unit.test_m2_1.BoundaryTests.test_core_package_has_no_optional_dependency_imports) ... ok
+test_extension_namespace_has_no_eager_implementation_imports (tests.unit.test_m2_1.BoundaryTests.test_extension_namespace_has_no_eager_implementation_imports) ... ok
+test_product_name_literal_is_centralized_in_package (tests.unit.test_m2_1.BoundaryTests.test_product_name_literal_is_centralized_in_package) ... ok
+test_checkout_compatibility_launcher_uses_package_cli (tests.unit.test_m2_1.CliTests.test_checkout_compatibility_launcher_uses_package_cli) ... ok
+test_json_status_is_honest_and_machine_readable (tests.unit.test_m2_1.CliTests.test_json_status_is_honest_and_machine_readable) ... ok
+test_legacy_run_crosses_explicit_adapter (tests.unit.test_m2_1.CliTests.test_legacy_run_crosses_explicit_adapter) ... ok
+test_packaged_run_enters_voice_appliance_runtime (tests.unit.test_m2_1.CliTests.test_packaged_run_enters_voice_appliance_runtime) ... ok
+test_version_command (tests.unit.test_m2_1.CliTests.test_version_command) ... ok
+test_wake_status_reports_gonken_default_without_physical_acceptance_claim (tests.unit.test_m2_1.CliTests.test_wake_status_reports_gonken_default_without_physical_acceptance_claim) ... ok
+test_inherited_identity_is_absent_from_active_surfaces (tests.unit.test_m2_1.IdentityTests.test_inherited_identity_is_absent_from_active_surfaces) ... ok
+test_identity_is_immutable_and_authoritative (tests.unit.test_m2_1.PackageTests.test_identity_is_immutable_and_authoritative) ... ok
+test_package_version_matches_project_metadata (tests.unit.test_m2_1.PackageTests.test_package_version_matches_project_metadata) ... ok
+test_public_import_is_dependency_light (tests.unit.test_m2_1.PackageTests.test_public_import_is_dependency_light) ... ok
+test_every_legacy_requirement_is_inventory_tracked (tests.unit.test_m2_1.ProvenanceTests.test_every_legacy_requirement_is_inventory_tracked) ... ok
+test_every_tracked_media_asset_has_verified_inventory_hash (tests.unit.test_m2_1.ProvenanceTests.test_every_tracked_media_asset_has_verified_inventory_hash) ... ok
+test_inventory_and_metadata_block_redistribution_claims (tests.unit.test_m2_1.ProvenanceTests.test_inventory_and_metadata_block_redistribution_claims) ... ok
+test_no_redistribution_policy_is_consistent_across_surfaces (tests.unit.test_m2_1.ProvenanceTests.test_no_redistribution_policy_is_consistent_across_surfaces) ... ok
+test_current_pointer_must_match_commit (tests.unit.test_m3_6_install_summary.InstallSummaryTests.test_current_pointer_must_match_commit) ... ok
+test_records_are_closed_schema_private_and_policy_checked (tests.unit.test_m3_6_install_summary.InstallSummaryTests.test_records_are_closed_schema_private_and_policy_checked) ... ok
+test_summary_reports_degraded_not_ready_with_exact_next_action (tests.unit.test_m3_6_install_summary.InstallSummaryTests.test_summary_reports_degraded_not_ready_with_exact_next_action) ... ok
+test_summary_reports_ready_when_voice_runtime_ready_file_exists (tests.unit.test_m3_6_install_summary.InstallSummaryTests.test_summary_reports_ready_when_voice_runtime_ready_file_exists) ... ok
+test_summary_reports_service_degraded_when_unit_differs (tests.unit.test_m3_6_install_summary.InstallSummaryTests.test_summary_reports_service_degraded_when_unit_differs) ... ok
+test_activate_restarts_enabled_service_then_waits_for_ready (tests.unit.test_fix5_appliance_manager.ApplianceManagerTests.test_activate_restarts_enabled_service_then_waits_for_ready) ... [RUNNING] code=APPLIANCE_START service=gonken-agent.service
+[READY] code=APPLIANCE_READY service=gonken-agent.service wake_phrase=Hey_Gonken reboot_required=false
+ok
+test_fix7_installer_revalidates_service_and_physical_readiness_contract (tests.unit.test_fix5_appliance_manager.ApplianceManagerTests.test_fix7_installer_revalidates_service_and_physical_readiness_contract) ... ok
+test_ready_record_requires_content_free_runtime_contract (tests.unit.test_fix5_appliance_manager.ApplianceManagerTests.test_ready_record_requires_content_free_runtime_contract) ... ok
+test_status_requires_enabled_active_and_runtime_ready_independently (tests.unit.test_fix5_appliance_manager.ApplianceManagerTests.test_status_requires_enabled_active_and_runtime_ready_independently) ... ok
+test_effective_config_process_can_explicitly_show_installer_paths (tests.integration.test_cli_process.CliProcessTests.test_effective_config_process_can_explicitly_show_installer_paths) ... ok
+test_effective_config_process_is_local_and_redacted (tests.integration.test_cli_process.CliProcessTests.test_effective_config_process_is_local_and_redacted) ... ok
+test_run_process_fails_categorically_when_target_voice_dependencies_are_absent (tests.integration.test_cli_process.CliProcessTests.test_run_process_fails_categorically_when_target_voice_dependencies_are_absent) ... ok
+test_service_process_once_is_content_free_and_degraded (tests.integration.test_cli_process.CliProcessTests.test_service_process_once_is_content_free_and_degraded) ... ok
+test_version_and_status_process_contracts (tests.integration.test_cli_process.CliProcessTests.test_version_and_status_process_contracts) ... ok
+
+----------------------------------------------------------------------
+Ran 31 tests in 5.486s
+
+OK

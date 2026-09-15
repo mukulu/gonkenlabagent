@@ -278,6 +278,7 @@ class PTTAdapter:
     def start_capture(self): self.calls.append(('start',))
     def stop_capture(self): self.calls.append(('stop',))
     def submit(self): self.calls.append(('submit',))
+    def discard_capture(self): self.calls.append(('discard',))
     def close(self): self.calls.append(('close',))
 
 
@@ -291,6 +292,7 @@ class PTTTests(unittest.TestCase):
         a=PTTAdapter(); p=PushToTalk(a, max_hold=1)
         for value,t in [(True,0),(True,.04),(True,2),(True,3)]: p.update(value,t)
         self.assertNotIn(('submit',), a.calls)
+        self.assertEqual(a.calls.count(('discard',)), 1)
         self.assertEqual(a.calls.count(('start',)),1)
         for value,t in [(False,4),(False,4.1),(True,5),(True,5.1)]: p.update(value,t)
         self.assertEqual(a.calls.count(('start',)),2)
