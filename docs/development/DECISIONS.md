@@ -1083,3 +1083,11 @@ transport checks are repeated.
 - **Decision:** Add `scripts/environment_acceptance_runner.py` to collect private M10.7 environment evidence files and include it in the release maintenance payload. The runner is non-destructive by default, requires `--allow-actuation` before issuing fan ON/OFF commands, and records `physical_acceptance_claimed=false` in every manifest and step file.
 - **Reason:** M10.7 needs repeatable target evidence files, but command output alone can create false-green acceptance if it is treated as proof of SHT31 placement, relay polarity, fan blade motion or wake/audio success.
 - **Consequence:** The runner can prepare a structured private evidence ledger for review. M10.7 still requires supervised physical observations, reboot/no-login evidence, wiring inspection and voice/wake evidence before any physical PASS claim.
+
+## D-106 — Make interruption-recovery fixtures bounded by default
+
+- **Status:** Accepted
+- **Date:** 2026-09-15
+- **Decision:** Test-only interruption hooks in the Ollama and release managers now default to abrupt self-exit with shell-visible signal-style exit codes, rather than killing the parent shell. Parent termination remains available only through explicit opt-in test variables. The Ollama integration fixture lazy-starts its fake HTTP server, closes fixtures per subtest, and runs a representative bounded default interruption matrix while retaining exhaustive coverage behind `GONKEN_EXHAUSTIVE_OLLAMA_BOUNDARIES=1`.
+- **Reason:** Killing the parent shell during subprocess-based integration tests can orphan Python children or stall fake HTTP teardown, causing broad CI to look hung after the intended interruption. That creates a false-red/unknown quality state unrelated to V09 environment behavior.
+- **Consequence:** The default Ollama lifecycle interruption test now completes and still verifies resumability at download, extract, finalize, service-readiness, model-smoke and model-pull boundaries. Full exhaustive coverage remains available for dedicated runs. Physical Raspberry Pi acceptance remains unchanged and unclaimed.

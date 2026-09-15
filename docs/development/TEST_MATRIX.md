@@ -994,3 +994,16 @@ M10.6 remains **host-partial**, not a final release gate. The daemon can now pol
 | M10.6-T034 | Static gates in `docs/development/evidence/v09/wp_l_static_gates.log` | PASS | Milestone drift, release-readiness, Bash syntax, Python compileall, JSON/TOML parsing and `git diff --check` passed after M10.6 target-readiness closure. |
 
 M10.6 is now **host-verified**. The repository is ready for target acceptance collection, but M10.7 remains required for real Pi I2C, SHT31, libgpiod, relay, PENGLIN, ELUTENG fan, target systemd, reboot/no-login and wake/voice evidence. The private evidence runner may generate command evidence, not acceptance by itself.
+
+## V09 CI interruption-harness hardening evidence — 2026-09-15
+
+| ID | Command / artifact | Result | Evidence boundary |
+|---|---|---|---|
+| M10.6-T055 | `PYTHONPATH=src:. python3 -m unittest -v tests.integration.test_ollama_lifecycle_process` | PASS, 5/5 | Host integration fixture only. Confirms the previously hanging Ollama lifecycle interruption/recovery test now completes in the default bounded representative mode. |
+| M10.6-T056 | `PYTHONPATH=src:. python3 -m unittest -v tests.integration.test_release_lifecycle_process.ActivationInterruptionTests` | PASS, 3/3 | Host release interruption slice. Verifies release-manager test-only self-interruption still recovers activation and rollback boundaries. |
+| M10.6-T057 | `PYTHONPATH=src:. python3 -m unittest -v tests.unit.test_m3_4_ollama_manager tests.unit.test_m3_3_release_manager` | PASS, 23/23 | Manager unit non-regression for Ollama and release code touched by this tranche. |
+| M10.6-T058 | Static gates in `docs/development/evidence/v09/wp_m_static_gates.log` | PASS | Dependency lock rendering, milestone check, release-readiness allow-dirty, Bash syntax, Python compileall, TOML/JSON parsing and `git diff --check` passed. |
+| M10.6-T059 | Full aggregate unit attempt in `docs/development/evidence/v09/wp_m_full_unit_attempt.log` | INTERRUPTED / NEEDS_MANUAL_REVIEW | The run advanced deep into the suite and exceeded the container window. This is not claimed PASS. Targeted affected checks above remain the checkpoint evidence. |
+| M10.6-T060 | Full release lifecycle attempt in `docs/development/evidence/v09/wp_m_release_lifecycle_attempt.log` | INTERRUPTED / NEEDS_MANUAL_REVIEW | The release interruption slice passed separately; the heavier aggregate release lifecycle still needs decomposition or a longer dedicated run. |
+
+Checkpoint 12 is host-quality hardening, not environment-feature expansion. It removes the known Ollama lifecycle fixture stall from the default integration path but does not close full aggregate CI or any physical Raspberry Pi evidence gate. M10.7 remains not-run.

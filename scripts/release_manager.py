@@ -180,8 +180,18 @@ def maybe_interrupt(operation: str, point: str) -> None:
     chosen = signal.SIGTERM if mode == "term" else signal.SIGKILL if mode == "kill" else None
     if chosen is None:
         fail("RELEASE_TEST_CONTROL", "unknown release interruption mode", "use term or kill", 64)
-    os.kill(os.getppid(), chosen)
-    os.kill(os.getpid(), chosen)
+    # The interruption hook is test-only.  Do not kill the parent shell by
+    # default: doing so can orphan this Python process with inherited pipes in
+    # subprocess-based integration tests, which makes broad CI appear hung after
+    # the intended interruption.  The default exits abruptly with the same
+    # shell-visible signal-style code while preserving deterministic cleanup of
+    # the subprocess boundary.  Parent termination remains opt-in for narrow
+    # manual experiments that need to simulate wrapper loss.
+    if os.environ.get("GONKEN_RELEASE_TEST_INTERRUPT_PARENT") == "1":
+        os.kill(os.getppid(), chosen)
+        os.kill(os.getpid(), chosen)
+    os._exit(128 + chosen.value)
+
 
 
 def durable_record(path: Path, fields: dict[str, str], operation: str) -> None:
