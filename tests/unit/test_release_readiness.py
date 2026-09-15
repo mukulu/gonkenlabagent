@@ -53,6 +53,8 @@ class ReleaseReadinessTests(unittest.TestCase):
         for expected in (
             "./bootstrap.sh --local-checkpoint",
             "sha256sum -c SHA256SUMS_checkpoint23.txt",
+            "git reset --hard HEAD",
+            "test -x ./bootstrap.sh",
             "gpioinfo --strict GPIO17",
             "gpioinfo --strict GPIO22",
             "gpioinfo --strict GPIO23",
