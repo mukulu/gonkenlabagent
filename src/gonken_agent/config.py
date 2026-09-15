@@ -155,6 +155,8 @@ class EnvironmentConfig:
     maximum_hysteresis_c: float
     minimum_dwell_seconds: int
     maximum_dwell_seconds: int
+    simulation_runtime_control_enabled: bool
+    simulation_event_history_limit: int
 
 
 @dataclass(frozen=True, slots=True)
@@ -220,6 +222,8 @@ ENVIRONMENT_STATIC_DEFAULTS: dict[str, Any] = {
     "maximum_hysteresis_c": 15.0,
     "minimum_dwell_seconds": 5,
     "maximum_dwell_seconds": 3600,
+    "simulation_runtime_control_enabled": False,
+    "simulation_event_history_limit": 128,
 }
 PATH_FIELDS = {f"paths.{field.name}" for field in fields(PathsConfig)} | {
     "extensions.wake_word.model",
@@ -646,8 +650,8 @@ def _validate_values(config: Config) -> None:
 
 def _validate_environment_config(config: Config) -> None:
     env = config.extensions.environment
-    if env.sensor_backend != "sht31":
-        raise ConfigError("extensions.environment.sensor_backend supports only sht31")
+    if env.sensor_backend not in {"sht31", "simulated"}:
+        raise ConfigError("extensions.environment.sensor_backend supports only sht31 or simulated")
     if not 0 <= env.i2c_bus <= 255:
         raise ConfigError("extensions.environment.i2c_bus must be between 0 and 255")
     if env.i2c_address not in {0x44, 0x45}:
@@ -660,8 +664,8 @@ def _validate_environment_config(config: Config) -> None:
         raise ConfigError("extensions.environment.stale_after_seconds must be between poll interval and 3600")
     if not 1 <= env.valid_samples_to_recover <= 10:
         raise ConfigError("extensions.environment.valid_samples_to_recover must be between 1 and 10")
-    if env.relay_backend != "libgpiod":
-        raise ConfigError("extensions.environment.relay_backend supports only libgpiod")
+    if env.relay_backend not in {"libgpiod", "simulated"}:
+        raise ConfigError("extensions.environment.relay_backend supports only libgpiod or simulated")
     _validate_gpio(env.relay_bcm, "extensions.environment.relay_bcm")
     reserved = {
         config.interaction.push_to_talk_gpio,
@@ -684,6 +688,8 @@ def _validate_environment_config(config: Config) -> None:
         raise ConfigError("environment maximum_hysteresis_c must fit within temperature policy bounds")
     if not 0 <= env.minimum_dwell_seconds <= env.maximum_dwell_seconds <= 86400:
         raise ConfigError("environment dwell bounds must satisfy 0 <= minimum <= maximum <= 86400")
+    if not 1 <= env.simulation_event_history_limit <= 1000:
+        raise ConfigError("extensions.environment.simulation_event_history_limit must be between 1 and 1000")
 
 
 def _validate_loopback_url(value: str, dotted: str) -> None:

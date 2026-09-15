@@ -464,7 +464,9 @@ def _run_environment_daemon(args: argparse.Namespace) -> int:
                 "hardware_toggled": False,
                 "daemon": core.daemon_metadata(),
             }
-            core.shutdown_safe_off()
+            # ``--check`` is a construction/configuration check only.  The
+            # V09 simulation/HIL plan explicitly forbids opening/requesting a
+            # GPIO line or writing relay safe-off merely to validate config.
             if getattr(args, "as_json", False):
                 print(json.dumps(payload, sort_keys=True))
             else:

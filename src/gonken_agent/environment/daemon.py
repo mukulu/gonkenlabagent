@@ -13,13 +13,14 @@ from pathlib import Path
 from time import monotonic
 from typing import Any, Callable
 
-from .actuators import GpiodRelayFanActuator
+from .actuators import GpiodRelayFanActuator, SimulatedFanActuator
 from .controller import EnvironmentController
 from .domain import PolicyBounds
 from .policy import EnvironmentPolicy, PolicyError, PolicyStore
-from .sensors import SHT31Sensor
+from .sensors import SHT31Sensor, SimulatedEnvironmentSensor
 from .server import EnvironmentUnixServer
 from .service import EnvironmentPollingLoop, EnvironmentServiceCore, ServiceIdentity
+from .simulation import SimulationState, classify_evidence_mode
 
 
 class EnvironmentDaemonError(RuntimeError):
@@ -33,6 +34,39 @@ class EnvironmentDaemonError(RuntimeError):
 SensorFactory = Callable[[Any], Any]
 ActuatorFactory = Callable[[Any], Any]
 PolicyStoreFactory = Callable[..., PolicyStore]
+
+
+def build_simulation_state_from_config(env_config: Any, *, now: Callable[[], float] = monotonic) -> SimulationState | None:
+    sensor_backend = str(getattr(env_config, "sensor_backend", "")).strip().lower()
+    actuator_backend = str(getattr(env_config, "relay_backend", "")).strip().lower()
+    if sensor_backend != "simulated" and actuator_backend != "simulated":
+        return None
+    return SimulationState(
+        event_history_limit=int(getattr(env_config, "simulation_event_history_limit", 128)),
+        now=now,
+    )
+
+
+def build_sensor_adapter(env_config: Any, *, simulation_state: SimulationState | None = None) -> Any:
+    backend = str(getattr(env_config, "sensor_backend", "")).strip().lower()
+    if backend == "sht31":
+        return SHT31Sensor.from_config(env_config)
+    if backend == "simulated":
+        if simulation_state is None:
+            raise EnvironmentDaemonError("SIMULATION_DISABLED", "simulated sensor requires daemon simulation state")
+        return SimulatedEnvironmentSensor(simulation_state)
+    raise EnvironmentDaemonError("ENV_CONFIG_INVALID", f"unsupported sensor_backend: {backend}")
+
+
+def build_actuator_adapter(env_config: Any, *, simulation_state: SimulationState | None = None) -> Any:
+    backend = str(getattr(env_config, "relay_backend", "")).strip().lower()
+    if backend == "libgpiod":
+        return GpiodRelayFanActuator.from_config(env_config)
+    if backend == "simulated":
+        if simulation_state is None:
+            raise EnvironmentDaemonError("SIMULATION_DISABLED", "simulated actuator requires daemon simulation state")
+        return SimulatedFanActuator(simulation_state)
+    raise EnvironmentDaemonError("ENV_CONFIG_INVALID", f"unsupported relay_backend: {backend}")
 
 
 def policy_bounds_from_config(env_config: Any) -> PolicyBounds:
@@ -73,6 +107,7 @@ def build_environment_service_core(
         raise EnvironmentDaemonError("ENVIRONMENT_DISABLED", "environment subsystem is disabled")
     _validate_static_backend_contract(env_config)
     bounds = policy_bounds_from_config(env_config)
+    simulation_state = build_simulation_state_from_config(env_config, now=now)
     store_factory = PolicyStore if policy_store_factory is None else policy_store_factory
     store = store_factory(Path(str(env_config.policy_path)), bounds=bounds)
     try:
@@ -82,8 +117,8 @@ def build_environment_service_core(
     if not isinstance(policy, EnvironmentPolicy):
         raise EnvironmentDaemonError("POLICY_INVALID", "policy store returned an invalid policy object")
 
-    sensor_maker = SHT31Sensor.from_config if sensor_factory is None else sensor_factory
-    actuator_maker = GpiodRelayFanActuator.from_config if actuator_factory is None else actuator_factory
+    sensor_maker = (lambda cfg: build_sensor_adapter(cfg, simulation_state=simulation_state)) if sensor_factory is None else sensor_factory
+    actuator_maker = (lambda cfg: build_actuator_adapter(cfg, simulation_state=simulation_state)) if actuator_factory is None else actuator_factory
     try:
         sensor = sensor_maker(env_config)
         actuator = actuator_maker(env_config)
@@ -98,9 +133,16 @@ def build_environment_service_core(
         stale_after_seconds=float(env_config.stale_after_seconds),
         valid_samples_to_recover=int(env_config.valid_samples_to_recover),
     )
+    sensor_backend = str(env_config.sensor_backend).strip().lower()
+    actuator_backend = str(env_config.relay_backend).strip().lower()
     identity = ServiceIdentity(
-        hardware_backend=f"{env_config.sensor_backend}+{env_config.relay_backend}",
+        hardware_backend=f"{sensor_backend}+{actuator_backend}",
         physical_evidence=False,
+        sensor_backend=sensor_backend,
+        actuator_backend=actuator_backend,
+        sensor_is_simulated=sensor_backend == "simulated",
+        actuator_is_simulated=actuator_backend == "simulated",
+        evidence_mode=classify_evidence_mode(sensor_backend=sensor_backend, actuator_backend=actuator_backend),
     )
     return EnvironmentServiceCore(
         controller=controller,
@@ -110,6 +152,8 @@ def build_environment_service_core(
         fan_actuator=actuator,
         now=now,
         identity=identity,
+        simulation_state=simulation_state,
+        simulation_runtime_control_enabled=bool(getattr(env_config, "simulation_runtime_control_enabled", False)),
     )
 
 
@@ -185,10 +229,10 @@ class EnvironmentDaemon:
 
 
 def _validate_static_backend_contract(env_config: Any) -> None:
-    if str(getattr(env_config, "sensor_backend", "")).strip().lower() != "sht31":
-        raise EnvironmentDaemonError("ENV_CONFIG_INVALID", "sensor_backend must be sht31")
-    if str(getattr(env_config, "relay_backend", "")).strip().lower() != "libgpiod":
-        raise EnvironmentDaemonError("ENV_CONFIG_INVALID", "relay_backend must be libgpiod")
+    if str(getattr(env_config, "sensor_backend", "")).strip().lower() not in {"sht31", "simulated"}:
+        raise EnvironmentDaemonError("ENV_CONFIG_INVALID", "sensor_backend must be sht31 or simulated")
+    if str(getattr(env_config, "relay_backend", "")).strip().lower() not in {"libgpiod", "simulated"}:
+        raise EnvironmentDaemonError("ENV_CONFIG_INVALID", "relay_backend must be libgpiod or simulated")
     if str(getattr(env_config, "safe_state", "")).strip().lower() != "off":
         raise EnvironmentDaemonError("ENV_CONFIG_INVALID", "safe_state must be off")
     socket_path = Path(str(getattr(env_config, "socket_path", "")))

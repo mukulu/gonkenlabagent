@@ -1068,3 +1068,15 @@ Checkpoint 15 adds resumable CI phase selection only.  It does not alter product
 | M10.12-P003 | Progress cues and audio arbitration | Fake-clock tests for no cue, first cue, long-wait cue, cancellation, no overlap | PLANNED / NOT_RUN | Host voice runtime evidence only. |
 | M10.13-P001 | Documentation checks | Verify documented commands parse, links exist, config keys match schema and physical docs reject simulation PASS | PLANNED / NOT_RUN | Documentation quality evidence only. |
 | M10.14-P001 | User-test release candidate | End-to-end user simulation and sensor-deferred HIL package readiness gate | PLANNED / NOT_RUN | Does not close full SHT31 physical M10.7 acceptance. |
+
+## V09 Checkpoint 17 — Simulation foundations evidence
+
+| ID | Scope | Command / artifact | Result | Evidence boundary |
+|---|---|---|---|---|
+| M10.9-T079 | Simulation foundation unit tests | `PYTHONPATH=src python3 -m unittest -v tests.unit.test_v09_environment_simulation` | PASS, 13/13 | Host simulation only. Confirms simulated sensor/actuator, protocol operations, fault behavior and backend factory selection; does not prove real SHT31, relay or fan behavior. |
+| M10.9-T080 | Affected environment/config/IPC/daemon/CLI slice | `PYTHONPATH=src python3 -m unittest -v tests.unit.test_v09_environment_config tests.unit.test_v09_environment_simulation tests.unit.test_v09_environment_ipc tests.unit.test_v09_environment_daemon_activation tests.unit.test_v09_environment_hardware_adapters tests.unit.test_v09_environment_polling_loop tests.unit.test_v09_environment_cli` | PASS, 57/57 | Confirms checkpoint-17 changes preserve existing environment host contracts. No physical target evidence. |
+| M10.9-T081 | Static gates | `./scripts/ci.sh --phase t0` | PASS | Dependency lock, source/config syntax and project static gates only. |
+| M10.9-T082 | Unit phase attempt | `./scripts/ci.sh --phase unit` | INTERRUPTED / not PASS | External execution boundary interrupted the phase during an existing unit module. Diagnostic evidence only; no failure is attributed to simulation code and no full-unit PASS is claimed. |
+| M10.9-T083 | Interrupted module follow-up | `PYTHONPATH=src python3 -m unittest -v tests.unit.test_m6_service_manager` | PASS, 8/8 | Narrow rerun of the module active when the unit phase was interrupted. Does not substitute for a full unit-phase PASS. |
+
+Checkpoint 17 verifies simulation foundations and the non-actuating `env serve --check` correction at host level.  It does not implement operator `env simulate` commands, passive watch, simulation-aware voice wording, or physical M10.7 HIL acceptance.

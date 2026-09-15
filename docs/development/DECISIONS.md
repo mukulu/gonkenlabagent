@@ -1203,3 +1203,51 @@ transport checks are repeated.
 - **Decision:** Historical M10.7 remains the real Raspberry Pi HIL/release acceptance gate. M10.8-M10.14 define the simulation/HIL/wake/documentation implementation sequence leading to a user simulation and sensor-deferred HIL release candidate.
 - **Reason:** This preserves checkpoint 1-15 history while giving future sessions an ordered continuation plan.
 - **Consequence:** Simulation and hybrid evidence can support user testing and partial target diagnosis, but only full physical evidence can close M10.7.
+
+## D-121 — Implement simulation as service-owned runtime state, not policy state
+
+- **Status:** Accepted
+- **Date:** 2026-09-15
+- **Decision:** Checkpoint 17 implements simulated sensor values, simulated sensor faults, simulated actuator behavior and simulation event history as daemon-owned runtime state. It is not stored in the mutable environment policy file.
+- **Reason:** Operating policy and simulation state have different authority and persistence semantics. Policy affects real and simulated control; simulation state is a test/operator harness for selected backend modes.
+- **Consequence:** Simulation mutation is exposed only through bounded protocol operations and can be reset independently of fan policy.
+
+## D-122 — Keep simulation runtime mutation explicitly opt-in
+
+- **Status:** Accepted
+- **Date:** 2026-09-15
+- **Decision:** The configuration key `simulation_runtime_control_enabled` governs whether simulation mutation operations are accepted. Merely selecting a simulated backend does not silently authorize external mutation unless this runtime-control flag is enabled.
+- **Reason:** The daemon must distinguish a configured backend from an operator/test surface that can change readings or inject faults.
+- **Consequence:** CLI/operator simulation commands in later checkpoints must surface `SIMULATION_DISABLED` clearly rather than assuming mutation is always available.
+
+## D-123 — Report simulation provenance on ordinary environment results
+
+- **Status:** Accepted
+- **Date:** 2026-09-15
+- **Decision:** Environment status, health, sensor reads, poll results and simulation operations now carry provenance fields including sensor backend, actuator backend, simulated-axis flags, evidence mode and `physical_evidence=false` where appropriate.
+- **Reason:** Simulation and hybrid HIL are useful only if every result remains traceable and cannot be mistaken for physical acceptance.
+- **Consequence:** Later diagnostics, support bundles, dashboard and voice responses must preserve the same provenance rather than collapsing it into a generic READY state.
+
+## D-124 — Add passive snapshot and event protocol before changing watch semantics
+
+- **Status:** Accepted
+- **Date:** 2026-09-15
+- **Decision:** Checkpoint 17 adds `state.snapshot.get` and `events.get` protocol operations before changing the user-facing watch implementation.
+- **Reason:** `env watch` must eventually become a passive observer. The daemon needs a read-only snapshot surface before CLI watch can be safely moved away from active `sensor.read` calls.
+- **Consequence:** Checkpoint 18 should update CLI watch and tests to prove no extra sensor sample, recovery count or actuator reconciliation occurs merely because an operator is watching.
+
+## D-125 — Treat `env serve --check` as non-actuating construction validation
+
+- **Status:** Accepted
+- **Date:** 2026-09-15
+- **Decision:** `gonken-agent env serve --check` now constructs and validates the daemon path but does not call the daemon shutdown safe-off path.
+- **Reason:** A check command must not open/request a relay line or write OFF merely to validate static configuration.
+- **Consequence:** Real daemon lifecycle still performs safe-off on shutdown once resources have actually been acquired; the check path is deliberately narrower.
+
+## D-126 — Defer user-facing simulation CLI to checkpoint 18
+
+- **Status:** Accepted
+- **Date:** 2026-09-15
+- **Decision:** Checkpoint 17 exposes simulation operations in protocol/client/core tests but does not yet add the `gonken-agent env simulate ...` command family.
+- **Reason:** The lower-level service contract must be verified before adding operator ergonomics, documentation and support-bundle commitments.
+- **Consequence:** Checkpoint 18 should add the CLI layer, passive watch and diagnostics/support simulation visibility using the checkpoint-17 protocol surface.

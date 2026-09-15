@@ -41,6 +41,15 @@ OPERATIONS = frozenset(
         "policy.get",
         "policy.update",
         "probe.run",
+        "state.snapshot.get",
+        "events.get",
+        "simulation.status.get",
+        "simulation.reset",
+        "simulation.sensor.set",
+        "simulation.sensor.fault",
+        "simulation.sensor.reset",
+        "simulation.actuator.behavior.set",
+        "simulation.actuator.reset",
     }
 )
 
@@ -59,6 +68,11 @@ ERROR_CODES = frozenset(
         "BUSY",
         "TIMEOUT",
         "INTERNAL_ERROR",
+        "SIMULATION_DISABLED",
+        "SIMULATION_SENSOR_NOT_ACTIVE",
+        "SIMULATION_ACTUATOR_NOT_ACTIVE",
+        "SIMULATION_INPUT_INVALID",
+        "SIMULATION_FAULT_INVALID",
     }
 )
 
