@@ -584,3 +584,13 @@ Checkpoint 31 changes the required operator interpretation:
 - Appliance readiness belongs to the exact immutable release. A stale `ready.json` from the previous release must not satisfy the current release.
 
 The target gate remains `INSTALLATION_COMPLETE`. Only after that token is observed should the operator reconnect SSH for refreshed `gonken-envctl` membership and proceed to simulation, GonKen CLI fan OFF/ON/OFF, real SHT31 discovery/read campaign, full-real controller and voice/wake acceptance.
+
+## Checkpoint 33 convergence note — same-commit rerun, optional Bluetooth and Pi5 GPIO identity
+
+Checkpoint 33 supersedes checkpoint-32 target retry instructions for the next campaign. Normal installation/runtime health is scoped to the requested/current release; historical releases are not executed or revalidated except during an explicit operator rollback.
+
+A requested Bluetooth headset is a preference, not a mandatory core dependency. If the headset is busy/offline but the `gonken-agent` service user can prove exactly one direct capture route and one direct non-HDMI playback route, installation may continue and should report `BLUETOOTH_OPTIONAL_UNAVAILABLE` plus `AUDIO_DIRECT_FALLBACK_READY`. Do not treat that warning as failure. If no deterministic fallback exists, or several plausible devices exist, stop and return the bounded audio error rather than selecting a device manually.
+
+A repeated install of the same commit must not stop merely because Python generated cache files after activation. Checkpoint 33 suppresses such writes and can remove only recognized Python cache artifacts before revalidating the current release. `RELEASE_ACTIVE_INVALID` remains a real stop for authoritative payload drift and must not be bypassed manually.
+
+On Raspberry Pi 5, GPIO17/GPIO22/GPIO23/GPIO27 line-name duplicates across unrelated gpiochips may be disambiguated only by a unique chip labelled `pinctrl-rp1`; do not hard-code a gpiochip number. A genuinely ambiguous or absent header mapping remains a STOP condition.

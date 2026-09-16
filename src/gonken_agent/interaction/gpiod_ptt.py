@@ -30,6 +30,29 @@ class GpioLineIdentity:
     chip_path: str
     line_offset: int
     line_name: str
+    chip_label: str = ""
+
+
+def _select_pi5_header_match(
+    matches: list[GpioLineIdentity],
+    *,
+    ambiguous_code: str,
+    expected: str,
+) -> GpioLineIdentity:
+    """Select a unique Raspberry Pi 5 RP1 header line without assuming gpiochip0.
+
+    Raspberry Pi 5 exposes the 40-pin header through the RP1 pin controller.
+    Some kernels/device stacks can expose another gpiochip with the same
+    ``GPIO<n>`` line name.  A unique ``pinctrl-rp1`` match is authoritative for
+    this project's Pi-5-only target.  If chip metadata cannot disambiguate the
+    mapping we still fail closed rather than selecting by device number.
+    """
+    if len(matches) == 1:
+        return matches[0]
+    rp1 = [item for item in matches if "pinctrl-rp1" in item.chip_label.casefold()]
+    if len(rp1) == 1:
+        return rp1[0]
+    raise PttHardwareError(ambiguous_code, expected)
 
 
 class GpiodPushToTalkHardware:
@@ -116,6 +139,7 @@ class GpiodPushToTalkHardware:
             try:
                 info = chip.get_info()
                 count = int(getattr(info, "num_lines"))
+                chip_label = str(getattr(info, "label", "") or "")
                 if count < 1 or count > 4096:
                     continue
                 for offset in range(count):
@@ -124,14 +148,14 @@ class GpiodPushToTalkHardware:
                     except Exception:
                         continue
                     if getattr(line_info, "name", None) == expected:
-                        matches.append(GpioLineIdentity(logical_bcm, chip_path, offset, expected))
+                        matches.append(GpioLineIdentity(logical_bcm, chip_path, offset, expected, chip_label))
             finally:
                 self._close_chip(chip)
         if not matches:
             raise PttHardwareError("PTT_GPIO_LINE_NOT_FOUND", expected)
-        if len(matches) != 1:
-            raise PttHardwareError("PTT_GPIO_LINE_AMBIGUOUS", expected)
-        return matches[0]
+        return _select_pi5_header_match(
+            matches, ambiguous_code="PTT_GPIO_LINE_AMBIGUOUS", expected=expected
+        )
 
     def open(self) -> None:
         if self._request is not None:
@@ -291,6 +315,7 @@ class GpiodWakeMonitoringLed:
             try:
                 info = chip.get_info()
                 count = int(getattr(info, "num_lines"))
+                chip_label = str(getattr(info, "label", "") or "")
                 if not 1 <= count <= 4096:
                     continue
                 for offset in range(count):
@@ -299,14 +324,14 @@ class GpiodWakeMonitoringLed:
                     except Exception:
                         continue
                     if getattr(line_info, "name", None) == expected:
-                        matches.append(GpioLineIdentity(self.logical_bcm, chip_path, offset, expected))
+                        matches.append(GpioLineIdentity(self.logical_bcm, chip_path, offset, expected, chip_label))
             finally:
                 GpiodPushToTalkHardware._close_chip(chip)
         if not matches:
             raise PttHardwareError("WAKE_LED_GPIO_LINE_NOT_FOUND", expected)
-        if len(matches) != 1:
-            raise PttHardwareError("WAKE_LED_GPIO_LINE_AMBIGUOUS", expected)
-        return matches[0]
+        return _select_pi5_header_match(
+            matches, ambiguous_code="WAKE_LED_GPIO_LINE_AMBIGUOUS", expected=expected
+        )
 
     def open(self) -> None:
         if self._request is not None:

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path
@@ -249,6 +250,76 @@ card 4: MicB [USB Mic B], device 0: USB Audio [USB Audio]
                 120,
             )
         write_record.assert_called_once()
+
+    @mock.patch.object(bluetooth_manager, "write_device_record")
+    def test_pairing_busy_bluetooth_continues_with_deterministic_direct_audio(self, write_record) -> None:
+        info = {
+            "paired": True, "trusted": True, "connected": False,
+            "output_capable": True, "headset_capable": True, "name": "AIRHUG 01",
+        }
+        with mock.patch.object(bluetooth_manager, "stack_status"), \
+             mock.patch.object(bluetooth_manager, "resolve_candidate", return_value=("41:42:06:42:05:80", "AIRHUG 01", info)), \
+             mock.patch.object(bluetooth_manager, "bluetooth_info", return_value=(info, "")), \
+             mock.patch.object(bluetooth_manager, "direct_audio_fallback", return_value=("plughw:CARD=A01,DEV=0", "plughw:CARD=A01,DEV=0")), \
+             mock.patch.object(bluetooth_manager, "run", return_value=subprocess.CompletedProcess([], 0, "", "")):
+            bluetooth_manager.pair(
+                "41:42:06:42:05:80", "gonken-agent", Path("/tmp/device.record"), 15
+            )
+        write_record.assert_called_once()
+
+    def test_pairing_busy_bluetooth_without_direct_audio_still_fails(self) -> None:
+        info = {
+            "paired": True, "trusted": True, "connected": False,
+            "output_capable": True, "headset_capable": True, "name": "AIRHUG 01",
+        }
+        with mock.patch.object(bluetooth_manager, "stack_status"), \
+             mock.patch.object(bluetooth_manager, "resolve_candidate", return_value=("41:42:06:42:05:80", "AIRHUG 01", info)), \
+             mock.patch.object(bluetooth_manager, "bluetooth_info", return_value=(info, "")), \
+             mock.patch.object(bluetooth_manager, "direct_audio_fallback", return_value=None), \
+             mock.patch.object(bluetooth_manager, "run", return_value=subprocess.CompletedProcess([], 0, "", "")):
+            with self.assertRaises(bluetooth_manager.BluetoothError) as raised:
+                bluetooth_manager.pair(
+                    "41:42:06:42:05:80", "gonken-agent", Path("/tmp/device.record"), 15
+                )
+        self.assertEqual(raised.exception.code, "BLUETOOTH_CONNECT")
+
+    def test_disconnected_preferred_bluetooth_status_accepts_direct_audio_fallback(self) -> None:
+        values = {
+            "format": "gonken-bluetooth-audio-v1",
+            "address": "41:42:06:42:05:80",
+            "name": "AIRHUG 01",
+            "audio_user": "gonken-agent",
+            "paired_epoch": "1",
+            "output_capable": "yes",
+            "headset_capable": "yes",
+        }
+        info = {
+            "paired": True, "trusted": True, "connected": False,
+            "output_capable": True, "headset_capable": True, "name": "AIRHUG 01",
+        }
+        with mock.patch.object(bluetooth_manager, "read_device_record", return_value=values), \
+             mock.patch.object(bluetooth_manager, "bluetooth_info", return_value=(info, "")), \
+             mock.patch.object(bluetooth_manager, "direct_audio_fallback", return_value=("plughw:CARD=A01,DEV=0", "plughw:CARD=A01,DEV=0")), \
+             mock.patch.object(bluetooth_manager, "direct_capture_fallback", return_value="plughw:CARD=A01,DEV=0"):
+            bluetooth_manager.device_status(
+                Path("/tmp/device.record"),
+                "gonken-agent",
+                require_connected=True,
+                allow_direct_fallback=True,
+            )
+
+    def test_direct_playback_fallback_prefers_one_usb_card_and_ignores_hdmi(self) -> None:
+        output = """**** List of PLAYBACK Hardware Devices ****
+card 0: A01 [AIRHUG 01], device 0: USB Audio [USB Audio]
+card 1: vc4hdmi0 [vc4-hdmi-0], device 0: MAI PCM [MAI PCM]
+"""
+        with mock.patch.object(
+            bluetooth_manager,
+            "run_as_user",
+            return_value=subprocess.CompletedProcess([], 0, output, ""),
+        ):
+            selected = bluetooth_manager.direct_playback_fallback("gonken-agent")
+        self.assertEqual(selected, "plughw:CARD=A01,DEV=0")
 
     @mock.patch.object(bluetooth_manager, "write_device_record")
     def test_pairing_fails_early_when_headset_has_no_capture_route(self, write_record) -> None:

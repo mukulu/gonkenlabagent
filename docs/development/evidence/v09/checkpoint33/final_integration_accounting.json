@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "modules": 12,
+  "tests_pass": 67,
+  "tests_fail": 0,
+  "status": "PASS",
+  "accounting": {
+    "non_lifecycle": 39,
+    "ollama": 5,
+    "speech": 12,
+    "release": 11
+  },
+  "notes": [
+    "integration_fast aggregate externally timed out only after 38 tests had passed; the single unaccounted V09 release-candidate case passed separately.",
+    "release_group1 aggregate externally timed out after its first two cases passed; the two unaccounted end-to-end cases passed separately.",
+    "speech lifecycle was executed in bounded groups/cases."
+  ]
+}

@@ -32,6 +32,8 @@ MAC_RE = re.compile(r"^[0-9A-F]{2}(?::[0-9A-F]{2}){5}$")
 SAFE_NAME_RE = re.compile(r"^[^\x00-\x1f\x7f]{1,120}$")
 ANSI_RE = re.compile(r"\x1b\[[0-9;]*m")
 KNOWN_PREVIOUS_AUTOCONNECT_SHA256 = {
+    # Checkpoint-32 autoconnect unit before explicit bytecode suppression.
+    "6e2e426fac110bab9476ceefbe5947feae829773d5e325c75d23ddea2eeb73ce",
     "60f406dd6acd24c3213a430aa0c6b196f4e764de6d603b430229ab17055f492b",
 }
 AUTOCONNECT_UNIT = Path("/etc/systemd/system/gonken-bluetooth-autoconnect.service")
@@ -573,6 +575,50 @@ def direct_capture_fallback(audio_user: str) -> str | None:
     return None
 
 
+def direct_playback_fallback(audio_user: str) -> str | None:
+    """Return one deterministic direct playback route without playing audio."""
+    result = run_as_user(audio_user, ["aplay", "-l"], timeout=8, check=False)
+    rows = _parse_capture_cards(result.stdout + result.stderr)
+    usb = [row for row in rows if "usb" in row[1].casefold()]
+    selected = _one_capture_card(usb)
+    if selected:
+        return selected
+    usb_cards = {row[0].split(",", 1)[0] for row in usb}
+    if len(usb_cards) > 1:
+        fail(
+            "AUDIO_OUTPUT_AMBIGUOUS",
+            "multiple direct USB playback cards are available",
+            "disconnect extra speakers or set one explicit audio output selector before rerunning",
+            65,
+        )
+    non_hdmi = [
+        row
+        for row in rows
+        if not any(token in row[1].casefold() for token in ("hdmi", "displayport", "vc4"))
+    ]
+    selected = _one_capture_card(non_hdmi)
+    if selected:
+        return selected
+    non_hdmi_cards = {row[0].split(",", 1)[0] for row in non_hdmi}
+    if len(non_hdmi_cards) > 1:
+        fail(
+            "AUDIO_OUTPUT_AMBIGUOUS",
+            "multiple direct playback cards are available",
+            "disconnect extra playback devices or set one explicit audio output selector before rerunning",
+            65,
+        )
+    return None
+
+
+def direct_audio_fallback(audio_user: str) -> tuple[str, str] | None:
+    """Return deterministic direct capture+playback routes for USB/wired fallback."""
+    capture = direct_capture_fallback(audio_user)
+    playback = direct_playback_fallback(audio_user)
+    if capture is None or playback is None:
+        return None
+    return capture, playback
+
+
 def _headset_profile(audio_user: str, address: str) -> tuple[str, str] | None:
     """Return one available Bluetooth profile that exposes a capture source."""
     token = address.replace(":", "_").casefold()
@@ -711,35 +757,59 @@ def pair(selector: str, audio_user: str, record: Path, timeout: int) -> None:
         time.sleep(0.5)
     if not (info["paired"] and info["trusted"]):
         fail("BLUETOOTH_PAIR", "device did not reach paired+trusted state", "return the device to pairing mode and rerun", 75)
+
+    # Bluetooth is a preferred optional route, never a dependency of the wired
+    # USB core.  A headset can legitimately be busy with another host.  In that
+    # case installation may continue only after proving one deterministic direct
+    # capture route and one deterministic direct playback route for gonken-agent.
     if not info["connected"]:
-        fail("BLUETOOTH_CONNECT", "paired device did not connect", "keep the device powered on and rerun pairing", 75)
-    sinks, sources = route_defaults(audio_user, address, require_input=bool(info["headset_capable"]))
-    if not sinks and info["output_capable"]:
-        fail(
-            "BLUETOOTH_AUDIO_ROUTE",
-            "device connected but no PipeWire Bluetooth output node appeared",
-            f"inspect WirePlumber for user {audio_user} and Bluetooth profiles",
-            69,
-        )
-    # Do not defer a missing microphone until the 180-second appliance gate.
-    # If the headset does not expose HFP/HSP capture, prove now that the exact
-    # service user can at least enumerate one deterministic direct ALSA capture
-    # fallback.  Final appliance readiness still performs the real recording.
-    fallback = None
-    if info["headset_capable"] and not sources:
-        fallback = direct_capture_fallback(audio_user)
+        fallback = direct_audio_fallback(audio_user)
         if fallback is None:
             fail(
+                "BLUETOOTH_CONNECT",
+                "paired device did not connect and no deterministic direct audio fallback is available",
+                "free/power the Bluetooth device or connect one unambiguous USB microphone and playback device, then rerun",
+                75,
+            )
+        write_device_record(record, address=address, name=name, audio_user=audio_user, info=info)
+        print(
+            f"[WARN] code=BLUETOOTH_OPTIONAL_UNAVAILABLE address={address} "
+            f"fallback_input={fallback[0]} fallback_output={fallback[1]} remediation=autoconnect_will_retry_later",
+            flush=True,
+        )
+        print(
+            f"[OK] code=AUDIO_DIRECT_FALLBACK_READY input={fallback[0]} output={fallback[1]}",
+            flush=True,
+        )
+        return
+
+    sinks, sources = route_defaults(audio_user, address, require_input=True)
+    fallback_capture = None
+    fallback_duplex = None
+    if not sinks:
+        fallback_duplex = direct_audio_fallback(audio_user)
+        if fallback_duplex is None:
+            fail(
+                "BLUETOOTH_AUDIO_ROUTE",
+                "device connected but no PipeWire Bluetooth output node and no direct audio fallback appeared",
+                f"inspect WirePlumber for user {audio_user} or connect one deterministic USB audio device",
+                69,
+            )
+    if not sources:
+        fallback_capture = direct_capture_fallback(audio_user)
+        if fallback_capture is None:
+            fail(
                 "BLUETOOTH_INPUT_UNAVAILABLE",
-                "headset is connected for playback but no Bluetooth or direct capture input is available",
-                "keep the headset powered and expose an HFP/HSP microphone profile, or connect exactly one USB microphone, then rerun",
+                "Bluetooth playback is available but no Bluetooth or direct capture input is available",
+                "expose an HFP/HSP microphone profile or connect exactly one USB microphone, then rerun",
                 69,
             )
     write_device_record(record, address=address, name=name, audio_user=audio_user, info=info)
-    source_state = "bluetooth_ready" if sources else f"direct_ready:{fallback}" if fallback else "not_required"
+    output_state = "bluetooth_ready" if sinks else f"direct_ready:{fallback_duplex[1]}"
+    source_state = "bluetooth_ready" if sources else f"direct_ready:{fallback_capture}"
     print(
         f"[OK] code=BLUETOOTH_AUDIO_PAIRED address={address} name={safe_record_name(name)} "
-        f"output={'ready' if sinks else 'not_advertised'} microphone={source_state}",
+        f"output={output_state} microphone={source_state}",
         flush=True,
     )
 
@@ -777,38 +847,53 @@ def connect_record(record: Path, audio_user: str, *, strict: bool) -> bool:
     return True
 
 
-def device_status(record: Path, audio_user: str, *, require_connected: bool) -> None:
+def device_status(
+    record: Path,
+    audio_user: str,
+    *,
+    require_connected: bool,
+    allow_direct_fallback: bool = False,
+) -> None:
     values = read_device_record(record)
     if values["audio_user"] != audio_user:
         fail("BLUETOOTH_RECORD", "recorded audio user differs from configured audio user", "rerun Bluetooth pairing", 65)
     info, _raw = bluetooth_info(values["address"])
     if not info["paired"] or not info["trusted"]:
         fail("BLUETOOTH_PAIR", "recorded device is no longer paired/trusted", "rerun Bluetooth pairing", 1)
+    direct_fallback = None
     if require_connected and not info["connected"]:
-        fail("BLUETOOTH_CONNECT", "recorded device is not connected", "power on the device or let autoconnect retry", 1)
-    sinks, sources = pipewire_nodes(audio_user, values["address"])
+        if allow_direct_fallback:
+            direct_fallback = direct_audio_fallback(audio_user)
+        if direct_fallback is None:
+            fail("BLUETOOTH_CONNECT", "recorded device is not connected", "power on the device or let autoconnect retry", 1)
+    sinks, sources = pipewire_nodes(audio_user, values["address"]) if info["connected"] else ([], [])
     if require_connected and values.get("output_capable") == "yes" and not sinks:
-        fail(
-            "BLUETOOTH_AUDIO_ROUTE",
-            "recorded Bluetooth device is connected but has no PipeWire output node",
-            "reconnect the device and rerun Bluetooth routing",
-            1,
-        )
+        if allow_direct_fallback and direct_fallback is None:
+            direct_fallback = direct_audio_fallback(audio_user)
+        if direct_fallback is None:
+            fail(
+                "BLUETOOTH_AUDIO_ROUTE",
+                "recorded Bluetooth device has no usable output route",
+                "reconnect Bluetooth or expose one deterministic direct capture+playback fallback",
+                1,
+            )
     # The pairing postcondition must not claim a usable headset deployment when
     # no input route can even be enumerated.  This remains non-actuating: the
     # later appliance-readiness gate is still the authority for real capture.
-    if require_connected and values.get("headset_capable") == "yes" and not sources:
-        fallback = direct_capture_fallback(audio_user)
-        if fallback is None:
+    if require_connected and not sources:
+        fallback_capture = direct_capture_fallback(audio_user)
+        if fallback_capture is None:
             fail(
                 "BLUETOOTH_INPUT_UNAVAILABLE",
-                "recorded headset has playback but no Bluetooth or direct capture input route",
-                "expose the headset HFP/HSP microphone or connect exactly one USB microphone, then rerun",
+                "recorded Bluetooth preference has no Bluetooth or direct capture input route",
+                "expose the headset microphone or connect exactly one USB microphone, then rerun",
                 1,
             )
-    state = "connected" if info["connected"] else "paired_offline"
+    state = "connected" if info["connected"] else "paired_offline_direct_fallback"
+    fallback_state = "yes" if direct_fallback is not None else "no"
     print(
-        f"[OK] code=BLUETOOTH_AUDIO_STATUS state={state} output_nodes={len(sinks)} input_nodes={len(sources)}"
+        f"[OK] code=BLUETOOTH_AUDIO_STATUS state={state} output_nodes={len(sinks)} "
+        f"input_nodes={len(sources)} direct_fallback={fallback_state}"
     )
 
 
@@ -816,7 +901,12 @@ def _autoconnect_payload(unit_template: Path) -> str:
     if not unit_template.is_file() or unit_template.is_symlink():
         fail("BLUETOOTH_SERVICE", "autoconnect unit template is missing or unsafe", "restore the immutable release", 65)
     payload = unit_template.read_text(encoding="utf-8")
-    if "\r" in payload or "bluetooth_manager.py watch" not in payload:
+    required = (
+        "bluetooth_manager.py watch",
+        "Environment=PYTHONDONTWRITEBYTECODE=1",
+        "Environment=PYTHONNOUSERSITE=1",
+    )
+    if "\r" in payload or any(value not in payload for value in required):
         fail("BLUETOOTH_SERVICE", "autoconnect unit template is malformed", "restore the immutable release", 65)
     return payload
 
@@ -911,6 +1001,7 @@ def parser() -> argparse.ArgumentParser:
     status_cmd.add_argument("--audio-user", default="gonken-agent")
     status_cmd.add_argument("--record", default="/etc/gonken-agent/bluetooth-device.record")
     status_cmd.add_argument("--require-connected", action="store_true")
+    status_cmd.add_argument("--allow-direct-fallback", action="store_true")
 
     connect_cmd = commands.add_parser("connect")
     connect_cmd.add_argument("--audio-user", default="gonken-agent")
@@ -945,7 +1036,12 @@ def main(argv: list[str] | None = None) -> int:
         elif args.command == "pair":
             pair(args.selector, args.audio_user, Path(args.record), args.timeout)
         elif args.command == "status":
-            device_status(Path(args.record), args.audio_user, require_connected=args.require_connected)
+            device_status(
+                Path(args.record),
+                args.audio_user,
+                require_connected=args.require_connected,
+                allow_direct_fallback=args.allow_direct_fallback,
+            )
         elif args.command == "connect":
             if connect_record(Path(args.record), args.audio_user, strict=True):
                 print("[OK] code=BLUETOOTH_CONNECTED")

@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "release_lifecycle_cases": 11,
+  "pass": 11,
+  "fail": 0,
+  "status": "PASS",
+  "logs": [
+    "release_group1.log",
+    "release_default_boundary.log",
+    "release_low_space.log",
+    "release_target_bridge.log",
+    "release_activation.log",
+    "release_finalization.log"
+  ]
+}

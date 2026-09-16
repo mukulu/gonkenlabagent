@@ -17,6 +17,8 @@ SERVICE_NAME = "gonken-agent.service"
 TMPFILES_NAME = "gonken-agent.conf"
 RUNTIME_ENV_NAME = "runtime-environment"
 KNOWN_PREVIOUS_UNIT_SHA256 = {
+    # Checkpoint-32 unit before explicit Python bytecode suppression.
+    "6c26949db3e43805a54fd7cbfc731175740cd32b253c634700242b65429ec17c",
     "9e4ed270fb4af9128d324640d06b80d6fcdb2076b2c67af319ac6b41498983a6",
     # FIX3-FIX6 unit. It used system-manager %U, which expands to UID 0 and
     # therefore pointed the User=gonken-agent process at /run/user/0.
@@ -39,6 +41,8 @@ REQUIRED_LINES = (
     "User=gonken-agent",
     "Group=gonken-agent",
     "EnvironmentFile=-/etc/gonken-agent/environment",
+    "Environment=PYTHONDONTWRITEBYTECODE=1",
+    "Environment=PYTHONNOUSERSITE=1",
     "EnvironmentFile=-/etc/gonken-agent/runtime-environment",
     "ExecStartPre=+/usr/local/lib/gonken-agent/current/maintenance/reconcile-release.sh",
     "ExecStart=/usr/local/lib/gonken-agent/current/.venv/bin/gonken-agent service",

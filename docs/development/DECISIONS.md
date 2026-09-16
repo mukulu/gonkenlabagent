@@ -1617,3 +1617,27 @@ This compatibility is a migration mechanism, not a waiver. The goal is to move s
 - **Decision:** The previous eight-boundary speech interruption test is decomposed into independent unittest cases and `scripts/ci.sh` exposes `speech-lifecycle` as a per-case bounded phase; ordinary integration excludes both release and speech lifecycle modules.
 - **Reason:** Module-level execution could exceed an external session boundary even when each individual scenario was healthy, producing repeated apparent hangs.
 - **Consequence:** Each speech lifecycle scenario has its own timeout/log/result and checkpoint work can resume from the smallest unaccounted case.
+
+### D-171 — Runtime-derived Python caches are not authoritative immutable payload
+
+- **Decision:** Keep strict release-integrity enforcement for authoritative tracked/runtime files, but classify only Python runtime cache paths (`__pycache__`, `.pyc`, `.pyo`) as derived transients. Suppress their creation in installer/systemd runtime contexts and permit a same-commit active release to purge/revalidate only when manifest differences are exclusively those transient paths.
+- **Reason:** Checkpoint 32 reached Bluetooth on the first target run, then the same current release became `RELEASE_ACTIVE_INVALID` on both curl and local reruns because privileged post-seal Python execution could create bytecode below the sealed tree.
+- **Consequence:** The integrity guard remains productive: real source/config/executable/manifest tampering still fails closed. Benign interpreter cache generation cannot permanently dead-end a valid current release.
+
+### D-172 — Requested Bluetooth is a preference, not a core runtime dependency
+
+- **Decision:** When `--bluetooth-audio` is requested, use the selected Bluetooth device when it is available, but do not fail installation solely because it is busy/offline if the exact service user can prove one deterministic direct capture and one deterministic direct non-HDMI playback device.
+- **Reason:** The checkpoint-32 target support bundle exposed usable AIRHUG USB capture and playback while the same headset address was unavailable over Bluetooth because it was connected elsewhere.
+- **Consequence:** Bluetooth remains supported and autoconnect may retry later. No-fallback and ambiguous-fallback states remain explicit failures; no audio device is guessed.
+
+### D-173 — Raspberry Pi 5 header GPIO identity is RP1-controller scoped
+
+- **Decision:** Production GPIO discovery continues to use kernel line names rather than BCM-as-offset assumptions. On the Pi-5-only production target, duplicate `GPIO<n>` matches are resolved only when exactly one candidate is on chip metadata labelled `pinctrl-rp1`; gpiochip numeric identity is never hard-coded.
+- **Reason:** Real support evidence recorded repeated `WAKE_LED_GPIO_LINE_AMBIGUOUS` even though the target GPIO inventory showed the header lines on the RP1 controller.
+- **Consequence:** GPIO17/22/23/27 can coexist with unrelated gpiochips carrying duplicate names while truly ambiguous mappings still fail closed.
+
+### D-174 — Managed systemd template evolution is explicitly predecessor-aware
+
+- **Decision:** Each checkpoint that changes a managed systemd template records the exact hash of the immediately supported managed predecessor. Unknown unit content remains a conflict.
+- **Reason:** Adding runtime bytecode-suppression environment variables is itself a legitimate package upgrade and must not trigger the exact-conflict protection designed for administrator modifications.
+- **Consequence:** Checkpoint 32 → checkpoint 33 service upgrades converge automatically without weakening ownership/conflict safeguards.

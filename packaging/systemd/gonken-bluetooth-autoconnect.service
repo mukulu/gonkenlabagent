@@ -7,6 +7,8 @@ ConditionPathExists=/etc/gonken-agent/bluetooth-device.record
 ConditionPathIsDirectory=/usr/local/lib/gonken-agent/current
 
 [Service]
+Environment=PYTHONDONTWRITEBYTECODE=1
+Environment=PYTHONNOUSERSITE=1
 Type=simple
 ExecStart=/usr/local/lib/gonken-agent/current/maintenance/bluetooth_manager.py watch --record /etc/gonken-agent/bluetooth-device.record --audio-user gonken-agent
 Restart=always

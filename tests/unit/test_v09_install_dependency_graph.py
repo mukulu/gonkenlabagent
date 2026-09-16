@@ -95,6 +95,39 @@ class TargetInstallDependencyGraphTests(unittest.TestCase):
         self.assertIn("validate_release_static(", activate)
         self.assertNotIn("validate_release(", activate)
 
+    def test_post_seal_installer_and_services_disable_python_bytecode_writes(self) -> None:
+        self.assertIn("export PYTHONDONTWRITEBYTECODE=1", self.text)
+        self.assertIn("export PYTHONNOUSERSITE=1", self.text)
+        for relative in (
+            "packaging/systemd/gonken-agent.service",
+            "packaging/systemd/gonken-environment.service",
+            "packaging/systemd/gonken-bluetooth-autoconnect.service",
+        ):
+            unit = (ROOT / relative).read_text(encoding="utf-8")
+            self.assertIn("Environment=PYTHONDONTWRITEBYTECODE=1", unit)
+            self.assertIn("Environment=PYTHONNOUSERSITE=1", unit)
+
+    def test_checkpoint32_managed_service_templates_are_accepted_as_upgrade_predecessors(self) -> None:
+        expected = {
+            "scripts/service_manager.py": "6c26949db3e43805a54fd7cbfc731175740cd32b253c634700242b65429ec17c",
+            "scripts/environment_service_manager.py": "67123397d52a5895a9f60ce98205d8830d7a566b20e4ab183003f6dbabcd225b",
+            "scripts/bluetooth_manager.py": "6e2e426fac110bab9476ceefbe5947feae829773d5e325c75d23ddea2eeb73ce",
+        }
+        for relative, digest in expected.items():
+            text = (ROOT / relative).read_text(encoding="utf-8")
+            self.assertIn(digest, text, relative)
+
+    def test_bluetooth_preference_allows_direct_audio_fallback(self) -> None:
+        pairing = self.text[
+            self.text.index("gonken_bluetooth_pair_postcondition()"):
+            self.text.index("gonken_bluetooth_pair_action()")
+        ]
+        self.assertIn("--allow-direct-fallback", pairing)
+        manager = (ROOT / "scripts" / "bluetooth_manager.py").read_text(encoding="utf-8")
+        self.assertIn("BLUETOOTH_OPTIONAL_UNAVAILABLE", manager)
+        self.assertIn("AUDIO_DIRECT_FALLBACK_READY", manager)
+        self.assertIn("direct_playback_fallback", manager)
+
     def test_appliance_readiness_record_is_bound_to_release_commit(self) -> None:
         runtime = (ROOT / "src" / "gonken_agent" / "voice_runtime.py").read_text(encoding="utf-8")
         appliance = (ROOT / "scripts" / "appliance_manager.py").read_text(encoding="utf-8")

@@ -1,0 +1,8 @@
+test_every_journal_switch_and_postcheck_boundary_reconciles (tests.integration.test_release_lifecycle_process.ActivationInterruptionTests.test_every_journal_switch_and_postcheck_boundary_reconciles) ... ok
+test_tampered_candidate_is_rejected_before_switching_current (tests.integration.test_release_lifecycle_process.ActivationInterruptionTests.test_tampered_candidate_is_rejected_before_switching_current) ... ok
+test_operator_rollback_script_restarts_service_after_validated_switch (tests.integration.test_release_lifecycle_process.ActivationInterruptionTests.test_operator_rollback_script_restarts_service_after_validated_switch) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 9.314s
+
+OK

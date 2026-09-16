@@ -1,0 +1,14 @@
+{
+  "schema": 1,
+  "modules": 46,
+  "tests_pass": 476,
+  "tests_fail": 0,
+  "status": "PASS",
+  "logs": [
+    "unit_chunk1.log",
+    "unit_chunk2.log",
+    "unit_chunk3.log",
+    "unit_chunk4.log"
+  ],
+  "note": "474-test four-chunk pass plus one subsequently added managed-predecessor regression and one >256-cache authoritative-tamper regression; both PASS. Production changes after the four-chunk pass were release-manager exhaustive-difference safety only and were rerun through the complete release-manager unit module plus release repeat integration."
+}

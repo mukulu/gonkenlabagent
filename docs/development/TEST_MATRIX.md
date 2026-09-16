@@ -1300,3 +1300,22 @@ Checkpoint 24 closes the host-side root cause and adds regression protection, bu
 | CP32-T167 | Speech lifecycle anti-hang decomposition | `scripts/ci.sh --phase speech-lifecycle`; eight independent interruption cases; `speech_interrupt_1.log`; `speech_interrupt_2.log` | PASS by case accounting | Aggregate phase attempt interrupted by external wrapper; every case is independently bounded and accounted. |
 | CP32-T168 | Checkpoint-32 control plane | milestone/status/docs/readiness/T0 artifacts | PASS | M10.27 host-verified; M10.24 remains target not-run. |
 | CP32-T169 | Exact checkpoint-32 Raspberry Pi install | exact delivered checkpoint 32; `./bootstrap.sh --local-checkpoint` | NOT RUN / BLOCKED TARGET GATE | Must reach `INSTALLATION_COMPLETE` without modifying immutable releases; then continue GonKen CLI fan, SHT31 and voice/wake acceptance. |
+
+## V09 checkpoint 33 — M10.28 same-commit/runtime/audio/GPIO convergence
+
+| Gate | Expected | Evidence |
+|---|---|---|
+| Active same-commit derived-cache rerun | Only recognized `__pycache__`/`.pyc`/`.pyo` drift may be removed; static release integrity then passes | `tests/unit/test_m3_3_release_manager.py`; checkpoint33 focused/unit logs |
+| Active authoritative tamper | Source/executable/config/manifest drift remains `RELEASE_ACTIVE_INVALID`; no auto-repair | `tests/unit/test_m3_3_release_manager.py` |
+| Post-seal Python writes | Installer and all managed Python systemd entry points set bytecode/no-user-site guards | `tests/unit/test_v09_install_dependency_graph.py`; systemd templates |
+| Checkpoint-32 service upgrade | Application/environment/Bluetooth units with exact checkpoint-32 hashes upgrade to checkpoint-33 templates; unknown drift refuses | `tests/unit/test_v09_install_dependency_graph.py`; service manager tests |
+| Preferred Bluetooth busy + deterministic USB duplex | Installation pairing gate succeeds with `BLUETOOTH_OPTIONAL_UNAVAILABLE` and `AUDIO_DIRECT_FALLBACK_READY`; autoconnect remains retryable | `tests/unit/test_x4_bluetooth_manager.py` |
+| Preferred Bluetooth busy without usable fallback | Pairing fails explicitly; no silent audio readiness claim | `tests/unit/test_x4_bluetooth_manager.py` |
+| Ambiguous direct audio | Multiple plausible capture/playback devices fail closed; no guessing | `tests/unit/test_x4_bluetooth_manager.py` |
+| Pi5 duplicate GPIO names | Unique `pinctrl-rp1` GPIO17/22/23/27 match wins without hard-coded gpiochip number | `tests/unit/test_m5_1_ptt_runtime.py`; `tests/unit/test_v09_environment_hardware_adapters.py` |
+| Pi5 mapping still genuinely ambiguous | PTT/wake/relay adapter refuses acquisition | same GPIO adapter suites |
+| curl launcher versus local bootstrap | Launcher forwards source/Bluetooth options into governed bootstrap; same resolved commit uses same installer/release manager | `tests/integration/test_first_install_launcher.py`; `tests/integration/test_bootstrap_preflight_process.py`; release repeat lifecycle |
+| Full unit surface | 46 modules / 476 tests PASS | `docs/development/evidence/v09/checkpoint33/final_unit_accounting.json` |
+| Full deterministic integration surface | 12 modules / 67 tests PASS; interrupted aggregate wrappers are not counted as PASS | `docs/development/evidence/v09/checkpoint33/final_integration_accounting.json` |
+| Release lifecycle | 11/11 PASS including build/seal/repeat/current-only/tamper/rollback/finalization | `docs/development/evidence/v09/checkpoint33/final_release_lifecycle_accounting.json` |
+| Raspberry Pi acceptance | Must reach `INSTALLATION_COMPLETE`, then real CLI fan, SHT31, full-real controller and voice/wake/fault/reboot/update/rollback evidence | M10.24 — TARGET NOT RUN for checkpoint 33 |

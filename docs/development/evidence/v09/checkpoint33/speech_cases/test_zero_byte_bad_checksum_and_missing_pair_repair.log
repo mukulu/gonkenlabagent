@@ -1,0 +1,6 @@
+test_zero_byte_bad_checksum_and_missing_pair_repair (tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_zero_byte_bad_checksum_and_missing_pair_repair) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 10.086s
+
+OK

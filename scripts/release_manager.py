@@ -373,6 +373,57 @@ def _payload_items(path: Path) -> list[Path]:
     return sorted(path.rglob("*"), key=lambda entry: entry.relative_to(path).as_posix())
 
 
+def _is_python_runtime_transient(path: Path, release: Path) -> bool:
+    """Return whether ``path`` is a non-authoritative Python cache artifact.
+
+    A sealed release may be executed by privileged installer/runtime helpers.  A
+    Python interpreter can create ``__pycache__`` directories and ``.pyc/.pyo``
+    files even when the release is otherwise read-only because root can bypass
+    ordinary DAC write checks.  These artifacts are derived from authoritative
+    source and are never part of the release contract.
+
+    Keep the allow-list deliberately narrow: source, configuration, manifests,
+    wheels, native bindings and every other file remain integrity-protected.
+    """
+    try:
+        relative = path.relative_to(release)
+    except ValueError:
+        return False
+    if any(part == "__pycache__" for part in relative.parts):
+        return True
+    return path.is_file() and path.suffix in {".pyc", ".pyo"}
+
+
+def _runtime_transient_differences_only(release: Path) -> bool:
+    # Repair decisions must inspect the complete difference set.  A bounded
+    # diagnostic view is appropriate for error messages, but truncation here
+    # could hide an authoritative change behind many cache artifacts.
+    differences = payload_manifest_differences(release, limit=None)
+    if not differences:
+        return False
+    for difference in differences:
+        prefix, sep, raw = difference.partition(":")
+        if not sep or prefix != "unexpected":
+            return False
+        if not _is_python_runtime_transient(release / raw, release):
+            return False
+    return True
+
+
+def repair_active_runtime_transients(release: Path) -> bool:
+    """Remove only benign interpreter caches from an otherwise sealed release.
+
+    This recovery is intentionally narrower than rebuilding or rewriting the
+    active release.  It is allowed only when the payload manifest proves every
+    difference is an unexpected Python cache artifact.
+    """
+    if not _runtime_transient_differences_only(release):
+        return False
+    purge_release_transients(release)
+    freeze_tree(release)
+    return True
+
+
 def _payload_entry(path: Path, item: Path) -> tuple[str, str, str]:
     relative = item.relative_to(path).as_posix()
     if item.is_symlink():
@@ -447,7 +498,7 @@ def write_payload_manifest(path: Path) -> None:
     )
 
 
-def payload_manifest_differences(path: Path, limit: int = 8) -> list[str]:
+def payload_manifest_differences(path: Path, limit: int | None = 8) -> list[str]:
     manifest = path / PAYLOAD_MANIFEST_RELATIVE
     try:
         payload = json.loads(manifest.read_text(encoding="utf-8"))
@@ -477,7 +528,7 @@ def payload_manifest_differences(path: Path, limit: int = 8) -> list[str]:
             differences.append(f"missing:{name}")
         elif expected[name] != actual[name]:
             differences.append(f"changed:{name}")
-        if len(differences) >= limit:
+        if limit is not None and len(differences) >= limit:
             break
     return differences
 
@@ -907,10 +958,17 @@ def build_release(
                 return final
             current = current_commit(release_root)
             if current == commit:
+                if error.code == "RELEASE_INVALID" and repair_active_runtime_transients(final):
+                    validate_release_static(final, commit=commit, profile=profile)
+                    print(
+                        f"[OK] code=RELEASE_ACTIVE_TRANSIENTS_REPAIRED commit={commit} "
+                        "policy=python_cache_only"
+                    )
+                    return final
                 fail(
                     "RELEASE_ACTIVE_INVALID",
                     f"active release for the requested commit is invalid: {error.code}",
-                    "install a newer checkpoint; never delete or rewrite the active release in place",
+                    "install a newer checkpoint; authoritative active-release changes are never repaired in place",
                     74,
                 )
             if final.is_symlink() or not final.is_dir():

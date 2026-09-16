@@ -180,6 +180,130 @@ class IntegrityAndPrivilegeTests(unittest.TestCase):
             self.assertFalse(cache.exists())
             self.assertFalse((release / "standalone.pyc").exists())
 
+    def test_active_same_commit_repairs_only_post_seal_python_cache_artifacts(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            release_root = Path(temporary) / "release-root"
+            commit = "c" * 40
+            release = create_fake_release(release_root, commit)
+            # Upgrade the fixture to the production payload-manifest contract.
+            for item in [release, *release.rglob("*")]:
+                if not item.is_symlink():
+                    item.chmod(stat.S_IMODE(item.stat().st_mode) | 0o200)
+            (release / "share" / "gonken-agent").mkdir(parents=True, exist_ok=True)
+            release_manager.write_payload_manifest(release)
+            record = release_manager.read_record(
+                release / "release.record",
+                release_manager.RELEASE_FIELDS,
+                "gonken-release-v1",
+            )
+            record["payload_sha256"] = release_manager.payload_sha256(release)
+            release_manager.durable_record(release / "release.record", record, "test_release")
+            release_manager.freeze_tree(release)
+            point_current(release_root, commit)
+
+            cache = release / "maintenance" / "__pycache__"
+            # Simulate a privileged interpreter creating cache content after
+            # sealing without requiring the unit test itself to run as root.
+            (release / "maintenance").chmod(0o755)
+            cache.mkdir()
+            (cache / "runtime.cpython-313.pyc").write_bytes(b"derived-cache")
+            release_manager.freeze_tree(release)
+
+            recovered = release_manager.build_release(
+                "file:///unused",
+                commit,
+                commit,
+                release_root,
+                "dev-py312",
+                current_user(),
+            )
+            self.assertEqual(recovered, release)
+            self.assertFalse(cache.exists())
+            release_manager.validate_release_static(release, commit=commit, profile="dev-py312")
+
+    def test_active_same_commit_never_repairs_authoritative_tampering(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            release_root = Path(temporary) / "release-root"
+            commit = "d" * 40
+            release = create_fake_release(release_root, commit)
+            for item in [release, *release.rglob("*")]:
+                if not item.is_symlink():
+                    item.chmod(stat.S_IMODE(item.stat().st_mode) | 0o200)
+            (release / "share" / "gonken-agent").mkdir(parents=True, exist_ok=True)
+            release_manager.write_payload_manifest(release)
+            record = release_manager.read_record(
+                release / "release.record",
+                release_manager.RELEASE_FIELDS,
+                "gonken-release-v1",
+            )
+            record["payload_sha256"] = release_manager.payload_sha256(release)
+            release_manager.durable_record(release / "release.record", record, "test_release")
+            release_manager.freeze_tree(release)
+            point_current(release_root, commit)
+
+            cli = release / ".venv" / "bin" / "gonken-agent"
+            (release / ".venv" / "bin").chmod(0o755)
+            cli.chmod(0o755)
+            cli.write_text("#!/bin/sh\nexit 99\n", encoding="utf-8")
+            cache = release / "maintenance" / "__pycache__"
+            (release / "maintenance").chmod(0o755)
+            cache.mkdir()
+            (cache / "helper.cpython-313.pyc").write_bytes(b"derived-cache")
+            release_manager.freeze_tree(release)
+
+            with self.assertRaises(release_manager.ReleaseError) as raised:
+                release_manager.build_release(
+                    "file:///unused",
+                    commit,
+                    commit,
+                    release_root,
+                    "dev-py312",
+                    current_user(),
+                )
+            self.assertEqual(raised.exception.code, "RELEASE_ACTIVE_INVALID")
+            self.assertTrue(cache.exists(), "mixed authoritative tampering must not be auto-repaired")
+
+    def test_many_runtime_caches_cannot_hide_authoritative_tampering(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            release_root = Path(temporary) / "release-root"
+            commit = "e" * 40
+            release = create_fake_release(release_root, commit)
+            for item in [release, *release.rglob("*")]:
+                if not item.is_symlink():
+                    item.chmod(stat.S_IMODE(item.stat().st_mode) | 0o200)
+            (release / "share" / "gonken-agent").mkdir(parents=True, exist_ok=True)
+            release_manager.write_payload_manifest(release)
+            record = release_manager.read_record(
+                release / "release.record",
+                release_manager.RELEASE_FIELDS,
+                "gonken-release-v1",
+            )
+            record["payload_sha256"] = release_manager.payload_sha256(release)
+            release_manager.durable_record(release / "release.record", record, "test_release")
+            release_manager.freeze_tree(release)
+            point_current(release_root, commit)
+
+            # More cache differences than the ordinary diagnostic display limit
+            # must never hide one authoritative executable change.
+            maintenance = release / "maintenance"
+            maintenance.chmod(0o755)
+            for index in range(300):
+                cache = maintenance / f"pkg{index:03d}" / "__pycache__"
+                cache.mkdir(parents=True)
+                (cache / "module.cpython-313.pyc").write_bytes(b"cache")
+            cli = release / ".venv" / "bin" / "gonken-agent"
+            (release / ".venv" / "bin").chmod(0o755)
+            cli.chmod(0o755)
+            cli.write_text("#!/bin/sh\nexit 42\n", encoding="utf-8")
+            release_manager.freeze_tree(release)
+
+            with self.assertRaises(release_manager.ReleaseError) as raised:
+                release_manager.build_release(
+                    "file:///unused", commit, commit, release_root, "dev-py312", current_user()
+                )
+            self.assertEqual(raised.exception.code, "RELEASE_ACTIVE_INVALID")
+            self.assertTrue((maintenance / "pkg299" / "__pycache__").exists())
+
     def test_post_verified_journal_cannot_override_pointer_disagreement(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

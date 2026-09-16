@@ -32,12 +32,13 @@ class FakeLineSettings:
 
 
 class FakeChip:
-    def __init__(self, lines):
+    def __init__(self, lines, *, label=""):
         self.lines = list(lines)
+        self.label = label
         self.closed = False
 
     def get_info(self):
-        return SimpleNamespace(num_lines=len(self.lines))
+        return SimpleNamespace(num_lines=len(self.lines), label=self.label)
 
     def get_line_info(self, offset):
         return SimpleNamespace(name=self.lines[offset])
@@ -69,15 +70,16 @@ class FakeGpiod:
     Value = Value
     LineSettings = FakeLineSettings
 
-    def __init__(self, chips):
+    def __init__(self, chips, *, labels=None):
         self.chips = {path: list(lines) for path, lines in chips.items()}
+        self.labels = dict(labels or {})
         self.requests = []
         self.last_request = None
 
     def Chip(self, path):
         if path not in self.chips:
             raise OSError("missing")
-        return FakeChip(self.chips[path])
+        return FakeChip(self.chips[path], label=self.labels.get(path, ""))
 
     def request_lines(self, chip_path, *, consumer, config):
         request = FakeRequest()
@@ -139,6 +141,40 @@ class GpiodPttHardwareTests(unittest.TestCase):
         led.close()
         self.assertEqual(gpiod.last_request.set_calls[-1], (7, Value.INACTIVE))
         self.assertTrue(gpiod.last_request.released)
+
+
+    def test_pi5_rp1_label_disambiguates_duplicate_header_gpio_names(self):
+        rp1 = [None] * 32
+        rp1[17] = "GPIO17"
+        rp1[22] = "GPIO22"
+        rp1[27] = "GPIO27"
+        duplicate = [None] * 24
+        duplicate[5] = "GPIO17"
+        duplicate[7] = "GPIO22"
+        duplicate[9] = "GPIO27"
+        module = FakeGpiod(
+            {"/dev/gpiochip0": rp1, "/dev/gpiochip4": duplicate},
+            labels={"/dev/gpiochip0": "pinctrl-rp1", "/dev/gpiochip4": "other-controller"},
+        )
+
+        hardware = GpiodPushToTalkHardware(
+            button_bcm=17,
+            led_bcm=27,
+            gpiod_module=module,
+            chip_paths=["/dev/gpiochip0", "/dev/gpiochip4"],
+        )
+        hardware.open()
+        self.assertEqual(hardware.button_identity.chip_path, "/dev/gpiochip0")
+        self.assertEqual(hardware.led_identity.chip_path, "/dev/gpiochip0")
+
+        wake = GpiodWakeMonitoringLed(
+            logical_bcm=22,
+            gpiod_module=module,
+            chip_paths=["/dev/gpiochip0", "/dev/gpiochip4"],
+        )
+        wake.open()
+        self.assertEqual(wake.identity.chip_path, "/dev/gpiochip0")
+        self.assertEqual(wake.identity.line_offset, 22)
 
     def test_refuses_missing_ambiguous_or_cross_chip_mappings(self):
         with self.subTest("missing"):

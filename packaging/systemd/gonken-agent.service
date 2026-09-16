@@ -13,6 +13,8 @@ User=gonken-agent
 Group=gonken-agent
 WorkingDirectory=/usr/local/lib/gonken-agent/current
 EnvironmentFile=-/etc/gonken-agent/environment
+Environment=PYTHONDONTWRITEBYTECODE=1
+Environment=PYTHONNOUSERSITE=1
 EnvironmentFile=-/etc/gonken-agent/runtime-environment
 # Release reconciliation owns root-only activation state. The '+' prefix keeps
 # this bounded immutable helper privileged while the long-running service stays

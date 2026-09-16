@@ -12,6 +12,8 @@ User=gonken-env
 Group=gonken-env
 WorkingDirectory=/usr/local/lib/gonken-agent/current
 EnvironmentFile=-/etc/gonken-agent/environment
+Environment=PYTHONDONTWRITEBYTECODE=1
+Environment=PYTHONNOUSERSITE=1
 ExecStart=/usr/local/lib/gonken-agent/current/.venv/bin/gonken-agent env serve
 Restart=on-failure
 RestartSec=3

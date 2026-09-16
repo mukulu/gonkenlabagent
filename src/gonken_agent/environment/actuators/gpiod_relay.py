@@ -27,6 +27,7 @@ class RelayLineIdentity:
     consumer: str
     logical_bcm: int | None = None
     line_name: str | None = None
+    chip_label: str = ""
 
 
 class GpiodRelayFanActuator:
@@ -115,6 +116,7 @@ class GpiodRelayFanActuator:
             try:
                 info = chip.get_info()
                 count = int(getattr(info, "num_lines"))
+                chip_label = str(getattr(info, "label", "") or "")
                 if not 1 <= count <= 4096:
                     continue
                 for offset in range(count):
@@ -131,6 +133,7 @@ class GpiodRelayFanActuator:
                                 self._consumer,
                                 self.logical_bcm,
                                 expected,
+                                chip_label,
                             )
                         )
             finally:
@@ -138,7 +141,10 @@ class GpiodRelayFanActuator:
         if not matches:
             raise ActuatorAdapterError("ACTUATOR_GPIO_LINE_NOT_FOUND", f"no unique line named {expected}")
         if len(matches) != 1:
-            raise ActuatorAdapterError("ACTUATOR_GPIO_LINE_AMBIGUOUS", f"multiple lines named {expected}")
+            rp1 = [item for item in matches if "pinctrl-rp1" in item.chip_label.casefold()]
+            if len(rp1) != 1:
+                raise ActuatorAdapterError("ACTUATOR_GPIO_LINE_AMBIGUOUS", f"multiple lines named {expected}")
+            matches = rp1
         self.identity = matches[0]
         return self.identity
 

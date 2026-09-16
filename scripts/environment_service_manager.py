@@ -21,6 +21,10 @@ from pathlib import Path
 
 SERVICE_NAME = "gonken-environment.service"
 TMPFILES_NAME = "gonken-environment.conf"
+KNOWN_PREVIOUS_UNIT_SHA256 = {
+    # Checkpoint-32 unit before explicit Python bytecode suppression.
+    "67123397d52a5895a9f60ce98205d8830d7a566b20e4ab183003f6dbabcd225b",
+}
 FORBIDDEN_TEXT = (
     "sudo",
     "sudoers",
@@ -38,6 +42,8 @@ REQUIRED_LINES = (
     "User=gonken-env",
     "Group=gonken-env",
     "EnvironmentFile=-/etc/gonken-agent/environment",
+    "Environment=PYTHONDONTWRITEBYTECODE=1",
+    "Environment=PYTHONNOUSERSITE=1",
     "ExecStart=/usr/local/lib/gonken-agent/current/.venv/bin/gonken-agent env serve",
     "Restart=on-failure",
     "RestartSec=3",
@@ -167,14 +173,21 @@ def run_tool(tool: Path, *arguments: str, optional: bool = False) -> subprocess.
     return result
 
 
-def write_if_exact_or_absent(path: Path, payload: bytes) -> None:
+def write_if_exact_or_absent(
+    path: Path, payload: bytes, *, known_previous_sha256: set[str] | None = None
+) -> None:
     if path.exists():
         if not path.is_file() or path.is_symlink():
             fail("ENV_SERVICE_CONFLICT", f"existing managed path is unsafe: {path}", "review and remove it explicitly", 75)
         current = path.read_bytes()
         if current == payload:
             return
-        fail("ENV_SERVICE_CONFLICT", f"existing managed file differs: {path}", "review and remove or migrate it explicitly", 75)
+        digest = hashlib.sha256(current).hexdigest()
+        if digest not in (known_previous_sha256 or set()):
+            fail("ENV_SERVICE_CONFLICT", f"existing managed file differs: {path}", "review and remove or migrate it explicitly", 75)
+        durable_bytes(path, payload)
+        print(f"[OK] code=ENV_SERVICE_MANAGED_UPGRADE path={path}")
+        return
     durable_bytes(path, payload)
 
 
@@ -193,7 +206,9 @@ def validate_installed(root: Path, unit_template: Path, tmpfiles_template: Path)
 def install(root: Path, unit_template: Path, tmpfiles_template: Path, systemctl: Path, tmpfiles_tool: Path) -> None:
     paths = layout(root)
     unit, tmpfiles = service_files(unit_template, tmpfiles_template)
-    write_if_exact_or_absent(paths["unit"], unit)
+    write_if_exact_or_absent(
+        paths["unit"], unit, known_previous_sha256=KNOWN_PREVIOUS_UNIT_SHA256
+    )
     write_if_exact_or_absent(paths["tmpfiles"], tmpfiles)
     run_tool(tmpfiles_tool, "--create", str(paths["tmpfiles"]), optional=root != Path("/"))
     run_tool(systemctl, "daemon-reload")

@@ -75,12 +75,13 @@ class FakeRequest:
 
 
 class FakeChip:
-    def __init__(self, lines):
+    def __init__(self, lines, *, label=""):
         self.lines = list(lines)
+        self.label = label
         self.closed = False
 
     def get_info(self):
-        return SimpleNamespace(num_lines=len(self.lines))
+        return SimpleNamespace(num_lines=len(self.lines), label=self.label)
 
     def get_line_info(self, offset):
         return SimpleNamespace(name=self.lines[offset])
@@ -94,17 +95,18 @@ class FakeGpiod:
     Value = Value
     LineSettings = FakeLineSettings
 
-    def __init__(self, *, fail_request: bool = False, fail_set: bool = False, chips=None) -> None:
+    def __init__(self, *, fail_request: bool = False, fail_set: bool = False, chips=None, labels=None) -> None:
         self.fail_request = fail_request
         self.fail_set = fail_set
         self.chips = dict(chips or {})
+        self.labels = dict(labels or {})
         self.requests = []
         self.last_request = None
 
     def Chip(self, chip_path):
         if chip_path not in self.chips:
             raise OSError("missing")
-        return FakeChip(self.chips[chip_path])
+        return FakeChip(self.chips[chip_path], label=self.labels.get(chip_path, ""))
 
     def request_lines(self, chip_path, *, consumer, config):
         if self.fail_request:
@@ -275,6 +277,24 @@ class GpiodRelayAdapterTests(unittest.TestCase):
         self.assertEqual(identity["line_name"], "GPIO23")
         self.assertEqual(identity["line_offset"], 7)
         self.assertFalse(identity["physical_acceptance_claimed"])
+
+
+    def test_relay_prefers_pi5_rp1_when_duplicate_line_name_exists(self) -> None:
+        rp1 = [None] * 32
+        rp1[23] = "GPIO23"
+        duplicate = ["GPIO23"]
+        relay = GpiodRelayFanActuator(
+            logical_bcm=23,
+            active_high=True,
+            gpiod_module=FakeGpiod(
+                chips={"/dev/gpiochip0": rp1, "/dev/gpiochip4": duplicate},
+                labels={"/dev/gpiochip0": "pinctrl-rp1", "/dev/gpiochip4": "other-controller"},
+            ),
+            chip_paths=["/dev/gpiochip0", "/dev/gpiochip4"],
+        )
+        relay.open()
+        self.assertEqual(relay.identity.chip_path, "/dev/gpiochip0")
+        self.assertEqual(relay.identity.line_offset, 23)
 
     def test_relay_discovery_fails_closed_for_missing_or_ambiguous_line_name(self) -> None:
         with self.subTest("missing"):

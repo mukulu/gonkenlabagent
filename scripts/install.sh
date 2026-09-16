@@ -6,6 +6,10 @@ set -Eeuo pipefail
 # Avoid package-manager noise when the image advertises an ungenerated site locale.
 export LANG=C.UTF-8
 export LC_ALL=C.UTF-8
+# All post-seal Python/application probes must be observational.  This protects
+# the immutable current release from root-created __pycache__/pyc artifacts.
+export PYTHONDONTWRITEBYTECODE=1
+export PYTHONNOUSERSITE=1
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
@@ -889,7 +893,7 @@ gonken_bluetooth_stack_action() {
 gonken_bluetooth_pair_postcondition() {
   python3 "$(gonken_bluetooth_manager)" status \
     --audio-user "$BLUETOOTH_AUDIO_USER" \
-    --record "$BLUETOOTH_RECORD" --require-connected >/dev/null 2>&1 || return 1
+    --record "$BLUETOOTH_RECORD" --require-connected --allow-direct-fallback >/dev/null 2>&1 || return 1
   GONKEN_STEP_EVIDENCE="bluetooth_device_paired_trusted"
 }
 

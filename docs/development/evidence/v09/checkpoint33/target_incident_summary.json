@@ -1,0 +1,55 @@
+{
+  "schema": 1,
+  "checkpoint": "v09-33",
+  "target_source": "checkpoint-32 Raspberry Pi transcripts, failure bundle, and support bundle supplied by operator",
+  "observed": [
+    {
+      "status": "FACT",
+      "item": "checkpoint32_first_install_progress",
+      "detail": "Commit 636285827c8947ba689400c9b1dc217ea5521130 built and activated, passed runtime/I2C/model/speech/application-service prerequisites, then stopped because preferred Bluetooth AIRHUG was paired but did not connect."
+    },
+    {
+      "status": "FACT",
+      "item": "same_commit_rerun_failure",
+      "detail": "Subsequent remote curl and local-checkpoint runs of the same commit stopped at immutable_release with RELEASE_ACTIVE_INVALID / RELEASE_INVALID."
+    },
+    {
+      "status": "FACT",
+      "item": "usb_audio_fallback",
+      "detail": "Support snapshot exposes AIRHUG USB capture and playback devices; deterministic direct USB duplex audio therefore exists independently of Bluetooth connection state."
+    },
+    {
+      "status": "FACT",
+      "item": "sensor_platform",
+      "detail": "Target transcript shows /dev/i2c-1 and SHT31 at 0x44."
+    },
+    {
+      "status": "FACT",
+      "item": "wake_gpio_events",
+      "detail": "Support service events counted WAKE_LED_GPIO_LINE_AMBIGUOUS repeatedly while the target snapshot identifies GPIO17/GPIO22/GPIO23/GPIO27 on the Raspberry Pi 5 header controller."
+    },
+    {
+      "status": "FACT",
+      "item": "manual_fan_path",
+      "detail": "Prior target evidence preserved GPIO23 manual 0/OFF, 1/ON, 0/OFF physical fan response."
+    }
+  ],
+  "root_causes": [
+    {
+      "status": "VERIFIED_HOST",
+      "item": "post_activation_cache_mutation",
+      "detail": "Privileged post-seal Python CLI execution can create __pycache__/pyc inside the current immutable release. Checkpoint 32 treated those derived runtime artifacts as authoritative payload drift, creating a same-commit rerun dead-end."
+    },
+    {
+      "status": "VERIFIED_HOST",
+      "item": "bluetooth_mandatory_preference",
+      "detail": "The pairing step treated requested Bluetooth connection as mandatory even when deterministic direct USB capture/playback was available."
+    },
+    {
+      "status": "VERIFIED_HOST",
+      "item": "pi5_gpio_line_name_ambiguity",
+      "detail": "Interaction GPIO resolvers failed on duplicate GPIO<n> names across gpiochips rather than preferring the unique Pi-5 RP1 header-controller match."
+    }
+  ],
+  "physical_acceptance_claimed": false
+}
