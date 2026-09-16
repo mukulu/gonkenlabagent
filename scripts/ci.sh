@@ -17,13 +17,15 @@ Run deterministic host checks. Without --phase, all phases run in order.
 Phases:
   t0                  dependency, milestone, readiness, syntax and static gates
   unit                bounded per-module unit suite
-  integration         bounded deterministic integration suite, excluding release lifecycle
+  integration         bounded deterministic integration suite, excluding long lifecycle modules
+  speech-lifecycle    bounded per-case speech lifecycle integration suite
   release-lifecycle   bounded per-case release lifecycle integration suite
   all                 all phases in the canonical order
 
 Examples:
   ./scripts/ci.sh
   ./scripts/ci.sh --phase t0 --phase unit
+  ./scripts/ci.sh --phase speech-lifecycle
   ./scripts/ci.sh --phase release-lifecycle
 USAGE
 }
@@ -37,7 +39,7 @@ while [[ $# -gt 0 ]]; do
       shift 2
       ;;
     --list-phases)
-      printf '%s\n' t0 unit integration release-lifecycle all
+      printf '%s\n' t0 unit integration speech-lifecycle release-lifecycle all
       exit 0
       ;;
     -h|--help)
@@ -58,7 +60,7 @@ fi
 
 for phase in "${SELECTED_PHASES[@]}"; do
   case "$phase" in
-    t0|unit|integration|release-lifecycle|all) ;;
+    t0|unit|integration|speech-lifecycle|release-lifecycle|all) ;;
     *) echo "ERROR: unknown phase: $phase" >&2; usage >&2; exit 2 ;;
   esac
 done
@@ -136,10 +138,25 @@ if has_phase integration; then
     --root "$PROJECT_ROOT" \
     --suite-dir tests/integration \
     --exclude-module tests.integration.test_release_lifecycle_process \
+    --exclude-module tests.integration.test_speech_lifecycle_process \
     --label integration \
     --log-dir "$CI_LOG_DIR/integration" \
     --manifest "$CI_LOG_DIR/integration_manifest.json" \
     --timeout-seconds "${GONKEN_CI_INTEGRATION_MODULE_TIMEOUT:-300}" \
+    --heartbeat-seconds "${GONKEN_CI_HEARTBEAT_SECONDS:-15}"
+fi
+
+if has_phase speech-lifecycle; then
+  echo "[T1] speech lifecycle integration suite (bounded per case)"
+  "$PYTHON_BIN" "$SCRIPT_DIR/bounded_unittest.py" \
+    --root "$PROJECT_ROOT" \
+    --suite-dir tests/integration \
+    --module tests.integration.test_speech_lifecycle_process \
+    --granularity case \
+    --label integration-speech-lifecycle \
+    --log-dir "$CI_LOG_DIR/integration-speech-lifecycle" \
+    --manifest "$CI_LOG_DIR/integration_speech_lifecycle_manifest.json" \
+    --timeout-seconds "${GONKEN_CI_SPEECH_CASE_TIMEOUT:-240}" \
     --heartbeat-seconds "${GONKEN_CI_HEARTBEAT_SECONDS:-15}"
 fi
 

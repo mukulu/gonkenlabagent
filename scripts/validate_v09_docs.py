@@ -276,7 +276,7 @@ def parse_documented_command(command: str, parser_name: str) -> None:
     if parser_name == "ci":
         if tokens[:1] != ["./scripts/ci.sh"]:
             raise ValueError("ci command must start with ./scripts/ci.sh")
-        allowed = {"t0", "unit", "integration", "release-lifecycle", "all"}
+        allowed = {"t0", "unit", "integration", "speech-lifecycle", "release-lifecycle", "all"}
         iterator = iter(tokens[1:])
         for token in iterator:
             if token == "--phase":

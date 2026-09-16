@@ -1,0 +1,13 @@
+test_appliance_readiness_record_is_bound_to_release_commit (tests.unit.test_v09_install_dependency_graph.TargetInstallDependencyGraphTests.test_appliance_readiness_record_is_bound_to_release_commit) ... ok
+test_bluetooth_capture_route_is_proven_before_appliance_readiness (tests.unit.test_v09_install_dependency_graph.TargetInstallDependencyGraphTests.test_bluetooth_capture_route_is_proven_before_appliance_readiness) ... ok
+test_environment_service_precedes_application_service_and_stays_non_actuating (tests.unit.test_v09_install_dependency_graph.TargetInstallDependencyGraphTests.test_environment_service_precedes_application_service_and_stays_non_actuating) ... ok
+test_i2c_planned_pause_is_handled_before_failure_bundle (tests.unit.test_v09_install_dependency_graph.TargetInstallDependencyGraphTests.test_i2c_planned_pause_is_handled_before_failure_bundle) ... ok
+test_release_seal_and_runtime_checks_are_separate_current_release_gates (tests.unit.test_v09_install_dependency_graph.TargetInstallDependencyGraphTests.test_release_seal_and_runtime_checks_are_separate_current_release_gates) ... ok
+test_target_install_dependency_order_is_explicit (tests.unit.test_v09_install_dependency_graph.TargetInstallDependencyGraphTests.test_target_install_dependency_order_is_explicit) ... ok
+test_release_only_builds_activates_and_freezes_release (tests.integration.test_release_lifecycle_process.EndToEndReleaseTests.test_release_only_builds_activates_and_freezes_release) ... ok
+test_release_only_repeat_is_idempotent (tests.integration.test_release_lifecycle_process.EndToEndReleaseTests.test_release_only_repeat_is_idempotent) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 32.459s
+
+OK

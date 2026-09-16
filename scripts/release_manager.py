@@ -63,6 +63,7 @@ TARGET_BINDING_PACKAGES = {
     "core-pi-trixie-py313": ("python3-libgpiod",),
 }
 BINDING_MANIFEST_RELATIVE = Path("share/gonken-agent/hardware-bindings.json")
+PAYLOAD_MANIFEST_RELATIVE = Path("share/gonken-agent/release-payload-manifest.json")
 HARDWARE_BINDING_CHECK = """
 import gpiod
 from gpiod.line import Bias, Direction, Value
@@ -368,9 +369,25 @@ def tree_size_kib(path: Path) -> int:
     return (total + 1023) // 1024
 
 
+def _payload_items(path: Path) -> list[Path]:
+    return sorted(path.rglob("*"), key=lambda entry: entry.relative_to(path).as_posix())
+
+
+def _payload_entry(path: Path, item: Path) -> tuple[str, str, str]:
+    relative = item.relative_to(path).as_posix()
+    if item.is_symlink():
+        return relative, "link", hashlib.sha256(os.readlink(item).encode()).hexdigest()
+    if item.is_dir():
+        return relative, "directory", hashlib.sha256(b"").hexdigest()
+    if item.is_file():
+        return relative, "file", sha256_file(item)
+    fail("RELEASE_PAYLOAD", f"unsupported release filesystem object: {relative}", "rebuild the candidate", 74)
+    raise AssertionError("unreachable")
+
+
 def payload_sha256(path: Path) -> str:
     digest = hashlib.sha256()
-    for item in sorted(path.rglob("*"), key=lambda entry: entry.relative_to(path).as_posix()):
+    for item in _payload_items(path):
         relative = item.relative_to(path).as_posix()
         if relative == "release.record":
             continue
@@ -387,6 +404,82 @@ def payload_sha256(path: Path) -> str:
             fail("RELEASE_PAYLOAD", f"unsupported release filesystem object: {relative}", "rebuild the candidate", 74)
         digest.update(kind + b"\0" + relative.encode() + b"\0" + payload + b"\0")
     return digest.hexdigest()
+
+
+def purge_release_transients(path: Path) -> None:
+    """Remove interpreter/build caches before the immutable payload is sealed."""
+    for item in sorted(path.rglob("*"), key=lambda entry: len(entry.parts), reverse=True):
+        if item.is_symlink():
+            continue
+        if item.is_file() and item.suffix in {".pyc", ".pyo"}:
+            item.unlink()
+        elif item.is_dir() and item.name in {"__pycache__", ".pytest_cache"}:
+            shutil.rmtree(item)
+
+
+def make_candidate_service_readable(workspace: Path, release: Path) -> None:
+    """Allow the target service account to smoke-test the candidate before sealing."""
+    workspace.chmod(0o711)
+    for item in [release, *_payload_items(release)]:
+        if item.is_symlink():
+            continue
+        mode = stat.S_IMODE(item.stat().st_mode)
+        if item.is_dir():
+            item.chmod(0o755)
+        elif item.is_file():
+            item.chmod(0o755 if mode & 0o111 else 0o644)
+
+
+def write_payload_manifest(path: Path) -> None:
+    entries: list[dict[str, str]] = []
+    excluded = {"release.record", PAYLOAD_MANIFEST_RELATIVE.as_posix()}
+    for item in _payload_items(path):
+        relative = item.relative_to(path).as_posix()
+        if relative in excluded:
+            continue
+        rel, kind, digest = _payload_entry(path, item)
+        entries.append({"path": rel, "kind": kind, "sha256": digest})
+    destination = path / PAYLOAD_MANIFEST_RELATIVE
+    destination.parent.mkdir(parents=True, exist_ok=True, mode=0o755)
+    destination.write_text(
+        json.dumps({"format": "gonken-release-payload-v1", "entries": entries}, sort_keys=True, indent=2) + "\n",
+        encoding="utf-8",
+    )
+
+
+def payload_manifest_differences(path: Path, limit: int = 8) -> list[str]:
+    manifest = path / PAYLOAD_MANIFEST_RELATIVE
+    try:
+        payload = json.loads(manifest.read_text(encoding="utf-8"))
+        expected_rows = payload.get("entries")
+        if payload.get("format") != "gonken-release-payload-v1" or not isinstance(expected_rows, list):
+            return ["manifest:invalid"]
+        expected: dict[str, tuple[str, str]] = {}
+        for row in expected_rows:
+            if not isinstance(row, dict) or not all(isinstance(row.get(key), str) for key in ("path", "kind", "sha256")):
+                return ["manifest:invalid"]
+            expected[row["path"]] = (row["kind"], row["sha256"])
+    except (OSError, UnicodeError, json.JSONDecodeError):
+        return ["manifest:unreadable"]
+    actual: dict[str, tuple[str, str]] = {}
+    excluded = {"release.record", PAYLOAD_MANIFEST_RELATIVE.as_posix()}
+    for item in _payload_items(path):
+        relative = item.relative_to(path).as_posix()
+        if relative in excluded:
+            continue
+        rel, kind, digest = _payload_entry(path, item)
+        actual[rel] = (kind, digest)
+    differences: list[str] = []
+    for name in sorted(set(expected) | set(actual)):
+        if name not in expected:
+            differences.append(f"unexpected:{name}")
+        elif name not in actual:
+            differences.append(f"missing:{name}")
+        elif expected[name] != actual[name]:
+            differences.append(f"changed:{name}")
+        if len(differences) >= limit:
+            break
+    return differences
 
 
 def freeze_tree(path: Path, *, keep_root_writable: bool = False) -> None:
@@ -805,14 +898,32 @@ def build_release(
     cleanup_stale_candidates(releases, commit)
     if final.exists() or final.is_symlink():
         try:
-            validate_release(final, commit=commit, profile=profile, service_user=service_user)
+            validate_release_static(final, commit=commit, profile=profile)
         except ReleaseError as error:
-            if error.code != "RELEASE_MUTABLE" or final.is_symlink() or not final.is_dir():
+            if error.code == "RELEASE_MUTABLE" and not final.is_symlink() and final.is_dir():
+                recover_final_permissions(final, commit, profile)
+                validate_release_static(final, commit=commit, profile=profile)
+                print(f"[OK] code=RELEASE_ALREADY_VALID commit={commit}")
+                return final
+            current = current_commit(release_root)
+            if current == commit:
+                fail(
+                    "RELEASE_ACTIVE_INVALID",
+                    f"active release for the requested commit is invalid: {error.code}",
+                    "install a newer checkpoint; never delete or rewrite the active release in place",
+                    74,
+                )
+            if final.is_symlink() or not final.is_dir():
                 raise
-            recover_final_permissions(final, commit, profile)
-            validate_release(final, commit=commit, profile=profile, service_user=service_user)
-        print(f"[OK] code=RELEASE_ALREADY_VALID commit={commit}")
-        return final
+            print(
+                f"[WARN] code=RELEASE_INVALID_REBUILD commit={commit} reason={error.code} "
+                "remediation=rebuild_noncurrent_release_from_current_source",
+                file=sys.stderr,
+            )
+            _remove_tree(final, releases)
+        else:
+            print(f"[OK] code=RELEASE_ALREADY_VALID commit={commit}")
+            return final
     free_kib = shutil.disk_usage(releases).free // 1024
     if os.environ.get("GONKEN_ENABLE_TEST_FAILURES") == "1" and os.environ.get("GONKEN_RELEASE_TEST_FREE_KIB"):
         free_kib = int(os.environ["GONKEN_RELEASE_TEST_FREE_KIB"])
@@ -926,12 +1037,18 @@ def build_release(
             maintenance / "uninstall_manager.py",
         ):
             executable.chmod(0o755)
+        # Complete every executable/package check before the immutable seal.
+        # The service account, not root, must be able to traverse and execute the
+        # candidate.  No runtime smoke is permitted after the seal is created.
+        make_candidate_service_readable(workspace, release)
         package_version, _ = smoke_release(
             release,
-            "root" if os.geteuid() == 0 else service_user,
+            service_user,
             profile=profile,
         )
         relocate_venv(release, final)
+        purge_release_transients(release)
+        write_payload_manifest(release)
         manager_digest = sha256_file(maintenance / "release_manager.py")
         payload_size = tree_size_kib(release)
         payload_digest = payload_sha256(release)
@@ -961,7 +1078,7 @@ def build_release(
         if workspace.exists() and not workspace.is_symlink():
             _remove_tree(workspace, releases)
         raise
-    validate_release(final, commit=commit, profile=profile, service_user=service_user)
+    validate_release_static(final, commit=commit, profile=profile)
     print(f"[OK] code=RELEASE_BUILT commit={commit} size_kib={tree_size_kib(final)} required_headroom_kib={required_kib}")
     return final
 
@@ -971,6 +1088,7 @@ def validate_release_static(
     *,
     commit: str | None = None,
     profile: str | None = None,
+    allow_legacy_transition: bool = False,
 ) -> dict[str, str]:
     """Validate immutable release identity/integrity without executing its runtime.
 
@@ -988,6 +1106,25 @@ def validate_release_static(
         fail("RELEASE_INVALID", "release does not match requested commit", "select the intended candidate", 74)
     if profile and record["profile"] != profile:
         fail("RELEASE_INVALID", "release dependency profile differs", "rebuild for the current platform", 74)
+    if profile_uses_distro_bindings(record["profile"]):
+        legacy_contract = allow_legacy_transition and _legacy_transition_runtime_allowed(
+            release, record["profile"]
+        )
+        if not legacy_contract:
+            if _venv_system_site_packages_enabled(release):
+                fail(
+                    "RELEASE_VENV_POLICY",
+                    f"target release venv exposes broad system site-packages: {release.name}",
+                    "rebuild with the isolated allow-listed binding bridge",
+                    74,
+                )
+            if not _binding_manifest_valid(release, record["profile"]):
+                fail(
+                    "RELEASE_BINDING_MANIFEST",
+                    f"target release hardware-binding bridge is missing or invalid: {release.name}",
+                    "rebuild the target release from validated distro binding packages",
+                    74,
+                )
     digest_fields = (
         "lock_sha256",
         "wheel_sha256",
@@ -1009,7 +1146,14 @@ def validate_release_static(
     if not manager.is_file() or sha256_file(manager) != record["maintenance_sha256"]:
         fail("RELEASE_INVALID", "release maintenance helper hash differs", "rebuild the candidate", 74)
     if payload_sha256(release) != record["payload_sha256"]:
-        fail("RELEASE_INVALID", "release payload digest differs", "quarantine the release and rebuild", 74)
+        differences = payload_manifest_differences(release)
+        detail = ",".join(differences) if differences else "aggregate_only"
+        fail(
+            "RELEASE_INVALID",
+            f"release payload digest differs: {release.name} changed={detail}",
+            "quarantine the release and rebuild from the exact current checkpoint",
+            74,
+        )
     for item in [release, *release.rglob("*")]:
         if item.is_symlink():
             continue
@@ -1029,7 +1173,12 @@ def validate_release(
     postcheck_operation: str | None = None,
     allow_legacy_transition: bool = False,
 ) -> dict[str, str]:
-    record = validate_release_static(release, commit=commit, profile=profile)
+    record = validate_release_static(
+        release,
+        commit=commit,
+        profile=profile,
+        allow_legacy_transition=allow_legacy_transition,
+    )
     if allow_legacy_transition and _legacy_transition_runtime_allowed(
         release, record["profile"]
     ):
@@ -1145,12 +1294,9 @@ def rollback(release_root: Path, state_root: Path, candidate: str, previous: str
     if previous == "none":
         remove_current(release_root)
     else:
-        validate_release(
-            release_root / "releases" / previous,
-            commit=previous,
-            service_user=service_user,
-            allow_legacy_transition=True,
-        )
+        previous_path = release_root / "releases" / previous
+        if not previous_path.is_dir() or previous_path.is_symlink():
+            fail("ROLLBACK_SOURCE_MISSING", "previous release directory is missing or unsafe", "repair the release namespace before retrying", 75)
         switch_current(release_root, previous)
     write_journal(state_root, candidate, previous, "rolled_back", message)
 
@@ -1172,32 +1318,27 @@ def reconcile(release_root: Path, state_root: Path, service_user: str) -> str:
     if phase == "post_verified":
         if pointer != candidate:
             fail("ACTIVATION_AMBIGUOUS", "post-verified journal and current pointer disagree", "inspect installed state manually", 75)
-        validate_release(
-            candidate_path,
-            commit=candidate,
-            service_user=service_user,
-            allow_legacy_transition=True,
-        )
-        print(f"[OK] code=ACTIVATION_RECONCILED phase=post_verified commit={candidate}")
+        if not candidate_path.is_dir() or candidate_path.is_symlink():
+            fail("ACTIVATION_SOURCE_MISSING", "current journal release directory is missing or unsafe", "install the current checkpoint to replace the broken release", 75)
+        # A completed previous release is not re-evaluated with today's runtime
+        # contract during a new install.  New candidate validity is independent.
+        print(f"[OK] code=ACTIVATION_RECONCILED phase=post_verified commit={candidate} policy=structural_current_only")
         return "post_verified"
     if phase == "rolled_back":
         if pointer != expected_previous:
             fail("ACTIVATION_AMBIGUOUS", "rolled-back journal and current pointer disagree", "inspect installed state manually", 75)
         if previous != "none":
-            validate_release(
-                release_root / "releases" / previous,
-                commit=previous,
-                service_user=service_user,
-                allow_legacy_transition=True,
-            )
-        print(f"[OK] code=ACTIVATION_RECONCILED phase=rolled_back commit={previous}")
+            previous_path = release_root / "releases" / previous
+            if not previous_path.is_dir() or previous_path.is_symlink():
+                fail("ACTIVATION_SOURCE_MISSING", "rolled-back release directory is missing or unsafe", "install the current checkpoint to restore a valid current release", 75)
+        print(f"[OK] code=ACTIVATION_RECONCILED phase=rolled_back commit={previous} policy=structural_current_only")
         return "rolled_back"
 
     if phase == "prepared":
         if pointer not in {expected_previous, candidate}:
             fail("ACTIVATION_AMBIGUOUS", "prepared journal and current pointer disagree", "inspect installed state manually", 75)
         try:
-            validate_release(candidate_path, commit=candidate, service_user=service_user)
+            validate_release_static(candidate_path, commit=candidate)
         except ReleaseError:
             rollback(release_root, state_root, candidate, previous, service_user, "candidate_invalid_during_reconcile")
             print(f"[OK] code=ACTIVATION_ROLLED_BACK commit={previous}")
@@ -1210,9 +1351,9 @@ def reconcile(release_root: Path, state_root: Path, service_user: str) -> str:
     if pointer != candidate:
         fail("ACTIVATION_AMBIGUOUS", "switched journal and current pointer disagree", "inspect installed state manually", 75)
     try:
-        validate_release(candidate_path, commit=candidate, service_user=service_user, postcheck_operation="post_switch_validation")
+        validate_release_static(candidate_path, commit=candidate)
     except ReleaseError:
-        rollback(release_root, state_root, candidate, previous, service_user, "post_switch_validation_failed")
+        rollback(release_root, state_root, candidate, previous, service_user, "post_switch_static_validation_failed")
         print(f"[OK] code=ACTIVATION_ROLLED_BACK commit={previous}")
         return "rolled_back"
     write_journal(state_root, candidate, previous, "post_verified", "candidate_validated_after_switch")
@@ -1222,13 +1363,13 @@ def reconcile(release_root: Path, state_root: Path, service_user: str) -> str:
 
 def activate(release_root: Path, state_root: Path, commit: str, service_user: str) -> None:
     reconcile(release_root, state_root, service_user)
-    # Normal activation always validates the requested candidate against the
-    # current strict contract. Legacy compatibility is confined to releases
-    # already bound to trusted activation state during reconcile/rollback.
-    validate_release(
+    # Normal activation validates only the requested candidate's immutable seal.
+    # Previously active releases are transition state, not dependencies of the
+    # new candidate.  Runtime capability checks occur in later current-release
+    # installer gates and service readiness, never by executing historical code.
+    validate_release_static(
         release_root / "releases" / commit,
         commit=commit,
-        service_user=service_user,
     )
     previous = current_commit(release_root) or "none"
     if previous == commit:
@@ -1240,15 +1381,12 @@ def activate(release_root: Path, state_root: Path, commit: str, service_user: st
     switch_current(release_root, commit)
     write_journal(state_root, commit, previous, "switched", "current_pointer_replaced")
     try:
-        validate_release(
+        validate_release_static(
             release_root / "releases" / commit,
             commit=commit,
-            service_user=service_user,
-            postcheck_operation="post_switch_validation",
-            allow_legacy_transition=False,
         )
     except ReleaseError:
-        rollback(release_root, state_root, commit, previous, service_user, "post_switch_validation_failed")
+        rollback(release_root, state_root, commit, previous, service_user, "post_switch_static_validation_failed")
         raise
     write_journal(state_root, commit, previous, "post_verified", "candidate_validated_after_switch")
     print(f"[OK] code=ACTIVATION_COMPLETE commit={commit} previous={previous}")
@@ -1274,12 +1412,10 @@ def prune_releases(release_root: Path, state_root: Path, service_user: str) -> N
     for path in releases.iterdir():
         if not COMMIT_RE.fullmatch(path.name) or path.name in keep:
             continue
-        try:
-            validate_release_static(path, commit=path.name)
-        except ReleaseError as error:
+        if path.is_symlink() or not path.is_dir():
             print(
                 f"[WARN] code=RELEASE_PRUNE_SKIPPED commit={path.name} "
-                f"reason={error.code} remediation=inspect_stale_release_manually",
+                "reason=UNSAFE_RELEASE_PATH remediation=inspect_stale_release_manually",
                 file=sys.stderr,
             )
             continue
@@ -1303,10 +1439,9 @@ def status(release_root: Path, state_root: Path, expected: str | None, service_u
         fail("ACTIVATION_INCOMPLETE", "release activation is not post-verified", "run reconciliation and inspect failures", 1)
     if expected and pointer != expected:
         fail("ACTIVATION_WRONG_RELEASE", "active release differs from the requested commit", "activate the verified candidate", 1)
-    validate_release(
+    validate_release_static(
         release_root / "releases" / pointer,
         commit=pointer,
-        service_user=service_user,
         allow_legacy_transition=True,
     )
     print(f"[OK] code=ACTIVATION_HEALTHY commit={pointer}")
@@ -1379,6 +1514,17 @@ def parser() -> argparse.ArgumentParser:
     validate.add_argument("--commit")
     validate.add_argument("--profile")
     validate.add_argument("--service-user", required=True)
+
+    validate_static = commands.add_parser("validate-static")
+    validate_static.add_argument("--release", required=True)
+    validate_static.add_argument("--commit")
+    validate_static.add_argument("--profile")
+
+    bindings = commands.add_parser("bindings-check")
+    bindings.add_argument("--release", required=True)
+    bindings.add_argument("--commit")
+    bindings.add_argument("--profile", required=True)
+    bindings.add_argument("--service-user", required=True)
     return result
 
 
@@ -1408,6 +1554,22 @@ def main(argv: list[str] | None = None) -> int:
                 service_user=args.service_user,
             )
             print("[OK] code=RELEASE_VALID")
+        elif args.command == "validate-static":
+            validate_release_static(
+                require_absolute(args.release, "release"),
+                commit=require_commit(args.commit) if args.commit else None,
+                profile=require_profile(args.profile) if args.profile else None,
+            )
+            print("[OK] code=RELEASE_STATIC_VALID")
+        elif args.command == "bindings-check":
+            release = require_absolute(args.release, "release")
+            record = validate_release_static(
+                release,
+                commit=require_commit(args.commit) if args.commit else None,
+                profile=require_profile(args.profile),
+            )
+            validate_runtime_hardware_bindings(release, record["profile"], args.service_user)
+            print("[OK] code=RELEASE_BINDINGS_VALID")
         elif args.command == "activate":
             release_root = require_absolute(args.release_root, "release root")
             state_root = require_absolute(args.state_root, "install-state root")

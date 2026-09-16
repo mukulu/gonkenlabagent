@@ -1,6 +1,6 @@
 {
   "baseline_commit": "6466f26a1a9cb97e4c24182505b37cefb766b3c3",
-  "checkpoint_scope": "V09 checkpoint 31 closes the checkpoint-30 Raspberry Pi installation-convergence gaps discovered after activation: stale-release garbage collection is noncritical, I2C reboot is a governed pause/resume transition, Bluetooth installation proves an input route early, and appliance readiness is bound to the exact immutable release. M10.26 is host-verified after regression closure; M10.24 exact-package Raspberry Pi acceptance remains open.",
+  "checkpoint_scope": "V09 checkpoint 32 repairs the checkpoint-31 Raspberry Pi immutable-release self-mutation defect and hardens current-release-only installation semantics: all runtime smoke completes before sealing, transient interpreter caches are purged before the digest is recorded, sealed releases use static validation only, runtime binding checks are a separate current-release gate, and historical releases are not executed/revalidated during normal install/runtime. M10.27 is host-verified; M10.24 physical acceptance remains open.",
   "milestones": [
     {
       "evidence": "TEST_MATRIX.md (M2.1)",
@@ -442,8 +442,8 @@
       "title": "Final Raspberry Pi environment and release acceptance",
       "software": "host-verified",
       "target": "not-run",
-      "evidence": "docs/development/V09_COMPREHENSIVE_CLOSURE_BLUEPRINT_CHECKPOINT_25.md; docs/RASPBERRY_PI_ACCEPTANCE_RUN.md; checkpoint-29/30 target transcripts: GPIO23 gpiochip0:23 manual 0/OFF, 1/ON, 0/OFF physical fan response; checkpoint-30 activation migrated to 34aee184d348f35db46fecacd36a369d9974c5a4, then a stale historical release 3b25b81c5bc7d4e24268726ad7f7b71296215a03 incorrectly failed post-activation pruning; checkpoint-30 local rerun authorized gonkenlab, passed identity preflight, requested I2C enablement, and paused before INSTALLATION_COMPLETE; support evidence then showed the active checkpoint-30 binding bridge and /dev/i2c-1 ready",
-      "remaining": "Partial target evidence is preserved: the Raspberry Pi 5 GPIO23/relay/PENGLIN/ELUTENG load path works manually and checkpoint 30 successfully activated its new release. Full M10.24 remains NOT_RUN because INSTALLATION_COMPLETE was not reached. Retest exact checkpoint 31 through governed install convergence, then complete GonKen CLI actuator, SHT31, full-real controller, voice/wake, faults, reboot/no-login, update/rollback/reinstall and final support evidence."
+      "evidence": "docs/development/V09_COMPREHENSIVE_CLOSURE_BLUEPRINT_CHECKPOINT_25.md; docs/RASPBERRY_PI_ACCEPTANCE_RUN.md; checkpoint-29/30 target transcripts: GPIO23 gpiochip0:23 manual 0/OFF, 1/ON, 0/OFF physical fan response; checkpoint-30 activation migrated to 34aee184d348f35db46fecacd36a369d9974c5a4, then a stale historical release 3b25b81c5bc7d4e24268726ad7f7b71296215a03 incorrectly failed post-activation pruning; checkpoint-30 local rerun authorized gonkenlab, passed identity preflight, requested I2C enablement, and paused before INSTALLATION_COMPLETE; support evidence then showed the active checkpoint-30 binding bridge and /dev/i2c-1 ready; checkpoint-31 target transcript/failure bundle: commit 8c9bd8b6a657f1a793c038bec8319d1f868315c7 built successfully then deterministically failed activation with RELEASE_INVALID payload digest differs before INSTALLATION_COMPLETE; support bundle retained checkpoint-30 current binding/I2C readiness",
+      "remaining": "Partial target evidence remains preserved: GPIO23/relay/PENGLIN/ELUTENG manual physical actuation PASS; checkpoint 30 activated and reached I2C readiness; checkpoint 31 exposed a deterministic post-seal payload self-mutation defect before INSTALLATION_COMPLETE. Retest exact checkpoint 32, require INSTALLATION_COMPLETE, then complete GonKen CLI actuator, SHT31, full-real controller, voice/wake, faults, reboot/no-login, update/rollback/reinstall and final support evidence."
     },
     {
       "id": "M10.25",
@@ -459,7 +459,15 @@
       "software": "host-verified",
       "target": "not-run",
       "evidence": "scripts/release_manager.py; scripts/i2c_manager.py; scripts/lib/install_engine.sh; scripts/install.sh; scripts/bluetooth_manager.py; scripts/appliance_manager.py; scripts/install_summary.py; src/gonken_agent/voice_runtime.py; tests/unit/test_v09_install_dependency_graph.py; docs/development/evidence/v09/checkpoint31/target_incident_summary.json; docs/development/evidence/v09/checkpoint31/final_unit_accounting.json; docs/development/evidence/v09/checkpoint31/final_integration_accounting.json; docs/development/evidence/v09/checkpoint31/final_release_lifecycle_accounting.json; docs/development/V09_CHECKPOINT_31_REPORT.md; docs/development/V09_CHANGE_VERIFICATION_REPORT_CHECKPOINT_31.md",
-      "remaining": "Retest exact checkpoint 31 on the Raspberry Pi. Best-effort stale-release cleanup must never invalidate an already-complete activation; genuine I2C reboot must pause/resume without a failure bundle; Bluetooth must prove either a headset capture source or exactly one deterministic direct ALSA capture route before final appliance readiness; and the ready record must belong to the current immutable commit. Physical audio, INSTALLATION_COMPLETE and the rest of M10.24 remain target evidence."
+      "remaining": "Checkpoint-31 target retest was superseded by the checkpoint-32 M10.27 repair after the Pi exposed post-seal current-candidate self-mutation. Preserve M10.26 host evidence, but use checkpoint 32 for the next target campaign. Physical audio, INSTALLATION_COMPLETE and the rest of M10.24 remain target evidence."
+    },
+    {
+      "id": "M10.27",
+      "title": "Current-release immutable seal and post-seal runtime isolation repair",
+      "software": "host-verified",
+      "target": "not-run",
+      "evidence": "scripts/release_manager.py; scripts/install.sh; scripts/ci.sh; tests/unit/test_m3_3_release_manager.py; tests/unit/test_v09_install_dependency_graph.py; tests/integration/test_release_lifecycle_process.py; tests/integration/test_speech_lifecycle_process.py; docs/development/evidence/v09/checkpoint32/target_incident_summary.json; docs/development/evidence/v09/checkpoint32/final_unit_accounting.json; docs/development/evidence/v09/checkpoint32/final_integration_accounting.json; docs/development/evidence/v09/checkpoint32/final_release_lifecycle_accounting.json; docs/development/V09_CHECKPOINT_32_REPORT.md",
+      "remaining": "Retest exact checkpoint 32 on the Raspberry Pi. Normal install/runtime must operate on the current checkpoint only: runtime smoke/API checks occur before sealing, activation uses static current-candidate integrity checks, runtime binding capability is checked later against the current release, and historical releases are not executed/revalidated except during an explicit operator rollback. INSTALLATION_COMPLETE and remaining M10.24 physical evidence are still required."
     }
   ],
   "schema_version": 1

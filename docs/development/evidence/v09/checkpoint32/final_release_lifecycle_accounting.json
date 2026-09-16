@@ -1,0 +1,25 @@
+{
+  "case_count": 11,
+  "checkpoint": "32",
+  "coverage": [
+    "build/seal/activate",
+    "repeat/idempotence",
+    "low-space refusal",
+    "current-only upgrade migration",
+    "no historical runtime execution",
+    "stale release pruning",
+    "journal/current interruption recovery",
+    "candidate tamper refusal",
+    "operator rollback",
+    "candidate finalization interruption"
+  ],
+  "evidence": [
+    "docs/development/evidence/v09/checkpoint32/focused_integration.log",
+    "docs/development/evidence/v09/checkpoint32/focused_integration_remaining.log",
+    "docs/development/evidence/v09/checkpoint32/current_release_contract.log"
+  ],
+  "passed": 11,
+  "schema": "gonken-test-accounting-v1",
+  "status": "PASS",
+  "suite": "release-lifecycle"
+}

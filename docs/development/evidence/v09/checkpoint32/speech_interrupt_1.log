@@ -1,0 +1,9 @@
+test_interrupt_whisper_source_before_converges_on_rerun (tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_interrupt_whisper_source_before_converges_on_rerun) ... ok
+test_interrupt_whisper_source_during_converges_on_rerun (tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_interrupt_whisper_source_during_converges_on_rerun) ... ok
+test_interrupt_whisper_finalize_during_converges_on_rerun (tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_interrupt_whisper_finalize_during_converges_on_rerun) ... ok
+test_interrupt_piper_install_during_converges_on_rerun (tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_interrupt_piper_install_during_converges_on_rerun) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 8.783s
+
+OK

@@ -1,0 +1,30 @@
+{
+  "checkpoint": "31",
+  "observed": {
+    "activation": "BLOCKED",
+    "active_previous_commit": "34aee184d348f35db46fecacd36a369d9974c5a4",
+    "active_previous_runtime_bindings": "READY",
+    "error_code": "RELEASE_INVALID",
+    "error_detail": "release payload digest differs",
+    "gpio23": "gpiochip0:23 previously physically verified",
+    "i2c_platform": "READY",
+    "release_build": "PASS",
+    "repeat_after_reboot": "same deterministic activation boundary"
+  },
+  "physical_acceptance_claimed": false,
+  "repair_contract": {
+    "historical_releases": "not executed/revalidated during normal install/runtime; only explicit rollback operation may inspect the recorded previous release",
+    "post_seal": "static integrity/identity/ownership validation only",
+    "pre_seal": "all CLI/pip/hardware-binding runtime smoke runs before the immutable seal",
+    "runtime_binding_gate": "separate current-release bindings-check after activation",
+    "seal": "purge transient interpreter caches, write payload manifest, compute digest, freeze tree"
+  },
+  "root_cause": {
+    "classification": "self-mutation after immutable seal",
+    "detail": "checkpoint 31 sealed payload_sha256 and then executed release runtime validation from the sealed tree; Python could create __pycache__/pyc files after the digest was recorded, so activation correctly detected a changed payload",
+    "historical_release_dependency": "not the cause of this incident"
+  },
+  "schema": "gonken-target-incident-v1",
+  "source_commit": "8c9bd8b6a657f1a793c038bec8319d1f868315c7",
+  "target": "Raspberry Pi 5 / Raspberry Pi OS Trixie"
+}

@@ -209,27 +209,39 @@ class SpeechLifecycleProcessTests(unittest.TestCase):
         self.assertEqual(fixture.run("install-piper").returncode, 0)
         self.assertEqual(fixture.run("piper-status").returncode, 0)
 
-    def test_interrupted_boundaries_converge_on_rerun(self) -> None:
-        cases = (
-            ("install-whisper", "whisper_source:before"),
-            ("install-whisper", "whisper_source:during"),
-            ("install-whisper", "whisper_finalize:during"),
-            ("install-piper", "piper_install:during"),
-            ("install-piper", "piper_finalize:during"),
-            ("provision-models", "whisper_model_download:during"),
-            ("provision-models", "piper_pair_download:during"),
-            ("provision-models", "piper_pair_finalize:during"),
-        )
-        for action, boundary in cases:
-            with self.subTest(boundary=boundary):
-                fixture = self.fixture()
-                if action in {"provision-models"}:
-                    self.assertEqual(fixture.run("install-whisper").returncode, 0)
-                    self.assertEqual(fixture.run("install-piper").returncode, 0)
-                interrupted = fixture.run(action, boundary)
-                self.assertEqual(interrupted.returncode, 91, interrupted.stderr)
-                rerun = fixture.run(action)
-                self.assertEqual(rerun.returncode, 0, rerun.stderr)
+    def _assert_interrupted_boundary_converges(self, action: str, boundary: str) -> None:
+        fixture = self.fixture()
+        if action == "provision-models":
+            self.assertEqual(fixture.run("install-whisper").returncode, 0)
+            self.assertEqual(fixture.run("install-piper").returncode, 0)
+        interrupted = fixture.run(action, boundary)
+        self.assertEqual(interrupted.returncode, 91, interrupted.stderr)
+        rerun = fixture.run(action)
+        self.assertEqual(rerun.returncode, 0, rerun.stderr)
+
+    def test_interrupt_whisper_source_before_converges_on_rerun(self) -> None:
+        self._assert_interrupted_boundary_converges("install-whisper", "whisper_source:before")
+
+    def test_interrupt_whisper_source_during_converges_on_rerun(self) -> None:
+        self._assert_interrupted_boundary_converges("install-whisper", "whisper_source:during")
+
+    def test_interrupt_whisper_finalize_during_converges_on_rerun(self) -> None:
+        self._assert_interrupted_boundary_converges("install-whisper", "whisper_finalize:during")
+
+    def test_interrupt_piper_install_during_converges_on_rerun(self) -> None:
+        self._assert_interrupted_boundary_converges("install-piper", "piper_install:during")
+
+    def test_interrupt_piper_finalize_during_converges_on_rerun(self) -> None:
+        self._assert_interrupted_boundary_converges("install-piper", "piper_finalize:during")
+
+    def test_interrupt_whisper_model_download_during_converges_on_rerun(self) -> None:
+        self._assert_interrupted_boundary_converges("provision-models", "whisper_model_download:during")
+
+    def test_interrupt_piper_pair_download_during_converges_on_rerun(self) -> None:
+        self._assert_interrupted_boundary_converges("provision-models", "piper_pair_download:during")
+
+    def test_interrupt_piper_pair_finalize_during_converges_on_rerun(self) -> None:
+        self._assert_interrupted_boundary_converges("provision-models", "piper_pair_finalize:during")
 
     def test_smoke_failure_does_not_create_success_record_and_reruns(self) -> None:
         fixture = self.fixture()

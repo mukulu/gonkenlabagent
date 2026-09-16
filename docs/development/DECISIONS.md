@@ -1596,3 +1596,24 @@ This compatibility is a migration mechanism, not a waiver. The goal is to move s
 
 - **Decision:** generic installation does not automatically enable `sensor-deferred-relay`, `real-sensor-simulated-actuator` or `full-real`. Profile selection remains supervised. A missing environment policy file is not precreated by generic install; the environment `PolicyStore` creates the safe MANUAL/OFF policy when the environment daemon is deliberately started.
 - **Reason:** installer convergence must not become actuator activation. This preserves one authoritative environment owner and fail-off semantics while avoiding a false dependency on a policy file that is intentionally runtime-owned.
+
+
+## 2026-09-16 — Checkpoint 32 current-release integrity decisions
+
+### D-168 — Normal installation/runtime is current-release only
+
+- **Decision:** Current installation and runtime health are established from the selected/current immutable release. Previously installed releases are not executed or revalidated as prerequisites of current operation. Historical commit identity remains only for release history and explicit rollback/update bookkeeping.
+- **Reason:** Applying current policy or executing historical runtime code created upgrade dead ends without improving current-release correctness.
+- **Consequence:** `reconcile` treats a post-verified current pointer structurally; `activate` validates only the requested candidate; stale pruning is non-runtime; ordinary `status` validates the current release. Explicit operator rollback is the only path that intentionally promotes and therefore validates the recorded previous release.
+
+### D-169 — Executable smoke ends before the immutable seal
+
+- **Decision:** CLI, pip and hardware-binding smoke are completed while the candidate is still mutable. Interpreter/build caches are purged, a payload-difference manifest is written, and the digest is recorded only after executable checks. Post-seal build/activation checks are static and non-mutating.
+- **Reason:** Checkpoint 31 executed Python after sealing, allowing bytecode/cache creation to make the release differ from its own recorded digest.
+- **Consequence:** Reboot/rerun cannot be used as a repair for a self-mutated release. Non-current invalid releases may be rebuilt from source; an invalid active release fails closed and must be replaced by a newer checkpoint rather than rewritten in place.
+
+### D-170 — Long speech lifecycle evidence is case-bounded
+
+- **Decision:** The previous eight-boundary speech interruption test is decomposed into independent unittest cases and `scripts/ci.sh` exposes `speech-lifecycle` as a per-case bounded phase; ordinary integration excludes both release and speech lifecycle modules.
+- **Reason:** Module-level execution could exceed an external session boundary even when each individual scenario was healthy, producing repeated apparent hangs.
+- **Consequence:** Each speech lifecycle scenario has its own timeout/log/result and checkpoint work can resume from the smallest unaccounted case.

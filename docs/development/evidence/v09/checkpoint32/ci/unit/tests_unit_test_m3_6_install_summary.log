@@ -1,0 +1,16 @@
+# command: /opt/pyvenv/bin/python3 -m unittest -v tests.unit.test_m3_6_install_summary
+# started_utc: 2026-09-16T00:42:00Z
+test_current_pointer_must_match_commit (tests.unit.test_m3_6_install_summary.InstallSummaryTests.test_current_pointer_must_match_commit) ... ok
+test_records_are_closed_schema_private_and_policy_checked (tests.unit.test_m3_6_install_summary.InstallSummaryTests.test_records_are_closed_schema_private_and_policy_checked) ... ok
+test_summary_rejects_ready_record_from_previous_release (tests.unit.test_m3_6_install_summary.InstallSummaryTests.test_summary_rejects_ready_record_from_previous_release) ... ok
+test_summary_reports_degraded_not_ready_with_exact_next_action (tests.unit.test_m3_6_install_summary.InstallSummaryTests.test_summary_reports_degraded_not_ready_with_exact_next_action) ... ok
+test_summary_reports_ready_when_voice_runtime_ready_file_exists (tests.unit.test_m3_6_install_summary.InstallSummaryTests.test_summary_reports_ready_when_voice_runtime_ready_file_exists) ... ok
+test_summary_reports_service_degraded_when_unit_differs (tests.unit.test_m3_6_install_summary.InstallSummaryTests.test_summary_reports_service_degraded_when_unit_differs) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.014s
+
+OK
+# finished_utc: 2026-09-16T00:42:01Z
+# duration_seconds: 0.628
+# returncode: 0

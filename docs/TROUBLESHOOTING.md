@@ -189,3 +189,12 @@ When `--bluetooth-audio` is requested, checkpoint 31 proves an input route befor
 ## Service appears ready immediately after an upgrade
 
 Readiness is now tied to the exact immutable release commit. A previous release's `/run/gonken-agent/ready.json` is intentionally ignored. The new current release must restart and create a fresh readiness record. If the commit in the ready record does not match the current release, collect support evidence instead of copying or editing the file.
+
+
+### `RELEASE_INVALID` / `release payload digest differs`
+
+This is a current-release integrity failure, not evidence that an older release must be made compatible. Checkpoint 31 could create this condition itself by running Python from the immutable tree after recording its payload digest, allowing bytecode/cache files to appear. Checkpoint 32 completes executable smoke before sealing, purges transient caches, records a path-level payload manifest, and limits post-seal installation/activation checks to non-mutating static validation of the current candidate/current release.
+
+Do not delete historical releases, fabricate manifests, thaw the active tree, or edit `/usr/local/lib/gonken-agent/current`. Preserve the installer failure bundle. Checkpoint-32 errors include bounded changed/missing/unexpected path hints when the payload manifest can localize the drift.
+
+Older releases are not normal runtime dependencies. They remain only as release history / explicit rollback candidates.

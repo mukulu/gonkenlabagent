@@ -138,6 +138,20 @@ class EndToEndReleaseTests(unittest.TestCase):
             ).stdout.strip(),
             "0.2.0.dev0",
         )
+        # Executing the sealed current release must not create bytecode/cache
+        # artifacts inside the immutable tree or invalidate its recorded digest.
+        static_check = subprocess.run(
+            [
+                sys.executable, str(MANAGER), "validate-static",
+                "--release", str(release),
+                "--commit", self.commit,
+                "--profile", "dev-py312",
+            ],
+            cwd=ROOT, check=False, capture_output=True, text=True, timeout=20,
+        )
+        self.assertEqual(static_check.returncode, 0, static_check.stderr)
+        self.assertEqual(list(release.rglob("__pycache__")), [])
+        self.assertEqual(list(release.rglob("*.pyc")), [])
         journal = system_root / "var/lib/gonken-agent/install/activation.record"
         self.assertIn("phase=post_verified", journal.read_text(encoding="utf-8"))
         for item in [release, *release.rglob("*")]:
@@ -229,13 +243,50 @@ class TargetBridgeUpgradeCompatibilityTests(unittest.TestCase):
                 timeout=20,
             )
             self.assertEqual(result.returncode, 0, result.stderr)
-            self.assertIn("code=RELEASE_LEGACY_TRANSITION_SOURCE", result.stdout)
+            self.assertIn("policy=structural_current_only", result.stdout)
+            self.assertNotIn("RELEASE_LEGACY_TRANSITION_SOURCE", result.stdout)
             self.assertIn("code=ACTIVATION_COMPLETE", result.stdout)
             self.assertEqual(os.readlink(release_root / "current"), f"releases/{candidate}")
             journal = (state_root / "activation.record").read_text(encoding="utf-8")
             self.assertIn("phase=post_verified", journal)
             self.assertIn(f"candidate_commit={candidate}", journal)
             self.assertIn(f"previous_commit={previous}", journal)
+
+    def test_process_activation_does_not_execute_or_revalidate_previous_current_release(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            release_root = root / "release-root"
+            state_root = root / "state-root"
+            state_root.mkdir()
+            previous = "5" * 40
+            candidate = "6" * 40
+            create_fake_release(release_root, previous)
+            create_fake_release(release_root, candidate)
+            # Corrupt the previous payload after it was historically accepted.
+            previous_cli = release_root / "releases" / previous / ".venv/bin/gonken-agent"
+            previous_cli.chmod(0o755)
+            previous_cli.write_text("#!/bin/sh\nexit 99\n", encoding="utf-8")
+            previous_cli.chmod(0o555)
+            point_current(release_root, previous)
+            (state_root / "activation.record").write_text(
+                activation_record(previous, "none", "post_verified"), encoding="utf-8"
+            )
+            (state_root / "activation.record").chmod(0o600)
+
+            result = subprocess.run(
+                [
+                    sys.executable, str(MANAGER), "activate",
+                    "--release-root", str(release_root),
+                    "--state-root", str(state_root),
+                    "--service-user", current_user(),
+                    "--commit", candidate,
+                ],
+                cwd=ROOT, check=False, capture_output=True, text=True, timeout=20,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn("policy=structural_current_only", result.stdout)
+            self.assertIn("code=ACTIVATION_COMPLETE", result.stdout)
+            self.assertEqual(os.readlink(release_root / "current"), f"releases/{candidate}")
 
     def test_process_activation_does_not_fail_after_success_when_older_stale_release_is_pre_bridge(self) -> None:
         """Reproduce checkpoint-30 Pi: stale legacy A, active legacy B, new strict C."""
@@ -348,7 +399,7 @@ class ActivationInterruptionTests(unittest.TestCase):
         self.assertIn(f"candidate_commit={CANDIDATE}", journal)
 
     def test_every_journal_switch_and_postcheck_boundary_reconciles(self) -> None:
-        operations = ("journal_replace", "current_switch", "post_switch_validation")
+        operations = ("journal_replace", "current_switch")
         for operation in operations:
             for point in ("before", "during", "after"):
                 with self.subTest(operation=operation, point=point), tempfile.TemporaryDirectory() as temporary:
@@ -364,21 +415,22 @@ class ActivationInterruptionTests(unittest.TestCase):
                     self.assertEqual(list(state_root.glob(".journal.*")), [])
                     self.assertEqual(list(release_root.glob(".current.*")), [])
 
-    def test_failed_post_switch_smoke_rolls_back_previous(self) -> None:
+    def test_tampered_candidate_is_rejected_before_switching_current(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
-            release_root, state_root = self.prepare(root, failing_candidate=True)
-            counter = root / "counter"
-            result = self.run_activate(
-                release_root,
-                state_root,
-                extra_environment={"GONKEN_FAKE_COUNTER": str(counter)},
-            )
-            self.assertEqual(result.returncode, 41, result.stderr)
+            release_root, state_root = self.prepare(root)
+            candidate = release_root / "releases" / CANDIDATE
+            cli = candidate / ".venv/bin/gonken-agent"
+            cli.chmod(0o755)
+            cli.write_text("#!/bin/sh\nexit 42\n", encoding="utf-8")
+            cli.chmod(0o555)
+            result = self.run_activate(release_root, state_root)
+            self.assertEqual(result.returncode, 74, result.stderr)
+            self.assertIn("RELEASE_INVALID", result.stderr)
             self.assertEqual(os.readlink(release_root / "current"), f"releases/{PREVIOUS}")
             journal = (state_root / "activation.record").read_text(encoding="utf-8")
-            self.assertIn("phase=rolled_back", journal)
-            self.assertIn(f"candidate_commit={CANDIDATE}", journal)
+            self.assertIn("phase=post_verified", journal)
+            self.assertIn(f"candidate_commit={PREVIOUS}", journal)
 
     def test_operator_rollback_script_restarts_service_after_validated_switch(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:

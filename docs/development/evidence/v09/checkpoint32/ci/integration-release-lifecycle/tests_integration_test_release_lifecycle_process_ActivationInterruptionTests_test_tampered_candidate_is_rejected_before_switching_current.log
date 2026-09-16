@@ -1,0 +1,11 @@
+# command: /opt/pyvenv/bin/python3 -m unittest -v tests.integration.test_release_lifecycle_process.ActivationInterruptionTests.test_tampered_candidate_is_rejected_before_switching_current
+# started_utc: 2026-09-16T00:52:37Z
+test_tampered_candidate_is_rejected_before_switching_current (tests.integration.test_release_lifecycle_process.ActivationInterruptionTests.test_tampered_candidate_is_rejected_before_switching_current) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.643s
+
+OK
+# finished_utc: 2026-09-16T00:52:38Z
+# duration_seconds: 1.235
+# returncode: 0

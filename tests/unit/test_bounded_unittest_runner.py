@@ -171,6 +171,7 @@ class BoundedUnittestRunnerTests(unittest.TestCase):
         self.assertIn("--exclude-module tests.integration.test_release_lifecycle_process", text)
         self.assertIn("--granularity case", text)
         self.assertIn("integration-release-lifecycle", text)
+        self.assertIn("integration-speech-lifecycle", text)
         self.assertIn("GONKEN_CI_UNIT_MODULE_TIMEOUT", text)
         self.assertIn("GONKEN_CI_INTEGRATION_MODULE_TIMEOUT", text)
         self.assertIn("GONKEN_CI_RELEASE_CASE_TIMEOUT", text)
@@ -201,7 +202,7 @@ class BoundedUnittestRunnerTests(unittest.TestCase):
         self.assertEqual(list_result.returncode, 0, list_result.stderr)
         self.assertEqual(
             list_result.stdout.splitlines(),
-            ["t0", "unit", "integration", "release-lifecycle", "all"],
+            ["t0", "unit", "integration", "speech-lifecycle", "release-lifecycle", "all"],
         )
 
     def test_ci_rejects_unknown_phase_without_running_checks(self) -> None:

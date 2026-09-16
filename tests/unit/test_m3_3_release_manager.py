@@ -155,6 +155,31 @@ class IntegrityAndPrivilegeTests(unittest.TestCase):
                 )
             self.assertEqual(raised.exception.code, "RELEASE_INVALID")
 
+    def test_payload_manifest_localizes_changed_and_unexpected_paths(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            release = Path(temporary) / "release"
+            (release / "pkg").mkdir(parents=True)
+            target = release / "pkg" / "module.py"
+            target.write_text("VALUE = 1\n", encoding="utf-8")
+            release_manager.write_payload_manifest(release)
+            target.write_text("VALUE = 2\n", encoding="utf-8")
+            extra = release / "unexpected.txt"
+            extra.write_text("x\n", encoding="utf-8")
+            differences = release_manager.payload_manifest_differences(release)
+            self.assertIn("changed:pkg/module.py", differences)
+            self.assertIn("unexpected:unexpected.txt", differences)
+
+    def test_transient_python_caches_are_removed_before_sealing(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            release = Path(temporary) / "release"
+            cache = release / "pkg" / "__pycache__"
+            cache.mkdir(parents=True)
+            (cache / "module.cpython-test.pyc").write_bytes(b"cache")
+            (release / "standalone.pyc").write_bytes(b"cache")
+            release_manager.purge_release_transients(release)
+            self.assertFalse(cache.exists())
+            self.assertFalse((release / "standalone.pyc").exists())
+
     def test_post_verified_journal_cannot_override_pointer_disagreement(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
@@ -298,7 +323,7 @@ class IntegrityAndPrivilegeTests(unittest.TestCase):
                 {active, previous},
             )
 
-    def test_pruning_corrupt_stale_release_is_nonblocking_and_preserves_it(self) -> None:
+    def test_pruning_corrupt_stale_release_does_not_revalidate_historical_payload(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
             release_root = root / "release"
@@ -307,7 +332,6 @@ class IntegrityAndPrivilegeTests(unittest.TestCase):
             stale, previous, active = ("2" * 40, "8" * 40, "9" * 40)
             for commit in (stale, previous, active):
                 create_fake_release(release_root, commit)
-            # Break static integrity of the unrelated stale release.
             stale_record = release_root / "releases" / stale / "release.record"
             stale_record.chmod(0o644)
             stale_record.write_text(stale_record.read_text(encoding="utf-8") + "junk=1\n", encoding="utf-8")
@@ -315,12 +339,9 @@ class IntegrityAndPrivilegeTests(unittest.TestCase):
             point_current(release_root, active)
             release_manager.write_journal(state_root, active, previous, "post_verified", "fixture")
 
-            output = io.StringIO()
-            with contextlib.redirect_stderr(output):
-                release_manager.prune_releases(release_root, state_root, current_user())
+            release_manager.prune_releases(release_root, state_root, current_user())
 
-            self.assertTrue((release_root / "releases" / stale).exists())
-            self.assertIn("code=RELEASE_PRUNE_SKIPPED", output.getvalue())
+            self.assertFalse((release_root / "releases" / stale).exists())
             self.assertEqual(release_manager.current_commit(release_root), active)
 
     def test_pruning_filesystem_error_is_nonblocking_after_successful_activation(self) -> None:
@@ -614,7 +635,8 @@ class TargetRuntimeBindingTests(unittest.TestCase):
             self.assertEqual(journal["phase"], "post_verified")
             self.assertEqual(journal["candidate_commit"], candidate)
             self.assertEqual(journal["previous_commit"], previous)
-            self.assertIn("code=RELEASE_LEGACY_TRANSITION_SOURCE", output.getvalue())
+            self.assertIn("policy=structural_current_only", output.getvalue())
+            self.assertNotIn("RELEASE_LEGACY_TRANSITION_SOURCE", output.getvalue())
 
     def test_normal_activation_still_rejects_unjournaled_pre_bridge_target_candidate(self) -> None:
         """Compatibility must not become a bypass for arbitrary legacy candidates."""

@@ -1,0 +1,22 @@
+{
+  "checkpoint": "32",
+  "evidence": [
+    "docs/development/evidence/v09/checkpoint32/ci/unit/",
+    "docs/development/evidence/v09/checkpoint32/unit_resume_1.log",
+    "docs/development/evidence/v09/checkpoint32/unit_resume_acceptance_runner.log",
+    "docs/development/evidence/v09/checkpoint32/unit_resume_2.log",
+    "docs/development/evidence/v09/checkpoint32/unit_resume_3.log",
+    "docs/development/evidence/v09/checkpoint32/bounded_runner_unit.log",
+    "docs/development/evidence/v09/checkpoint32/current_release_contract.log"
+  ],
+  "module_count": 46,
+  "notes": [
+    "Canonical bounded unit attempt completed 16 modules PASS before the outer execution boundary interrupted the wrapper.",
+    "Only unaccounted modules were resumed in bounded chunks; the interrupted environment acceptance module was rerun in full.",
+    "All 46 unit modules / 464 discovered unit cases are accounted PASS."
+  ],
+  "schema": "gonken-test-accounting-v1",
+  "status": "PASS",
+  "suite": "unit",
+  "test_count": 464
+}

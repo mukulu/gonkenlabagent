@@ -1,0 +1,30 @@
+test_release_only_repeat_is_idempotent (tests.integration.test_release_lifecycle_process.EndToEndReleaseTests.test_release_only_repeat_is_idempotent) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 19.136s
+
+OK
+test_process_activation_does_not_execute_or_revalidate_previous_current_release (tests.integration.test_release_lifecycle_process.TargetBridgeUpgradeCompatibilityTests.test_process_activation_does_not_execute_or_revalidate_previous_current_release) ... ok
+test_process_activation_does_not_fail_after_success_when_older_stale_release_is_pre_bridge (tests.integration.test_release_lifecycle_process.TargetBridgeUpgradeCompatibilityTests.test_process_activation_does_not_fail_after_success_when_older_stale_release_is_pre_bridge)
+Reproduce checkpoint-30 Pi: stale legacy A, active legacy B, new strict C. ... ok
+test_process_activation_migrates_from_post_verified_pre_bridge_target_release (tests.integration.test_release_lifecycle_process.TargetBridgeUpgradeCompatibilityTests.test_process_activation_migrates_from_post_verified_pre_bridge_target_release)
+Exact checkpoint-29 target failure: reconcile old active, then activate bridge release. ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 1.888s
+
+OK
+test_every_journal_switch_and_postcheck_boundary_reconciles (tests.integration.test_release_lifecycle_process.ActivationInterruptionTests.test_every_journal_switch_and_postcheck_boundary_reconciles) ... ok
+test_operator_rollback_script_restarts_service_after_validated_switch (tests.integration.test_release_lifecycle_process.ActivationInterruptionTests.test_operator_rollback_script_restarts_service_after_validated_switch) ... ok
+test_tampered_candidate_is_rejected_before_switching_current (tests.integration.test_release_lifecycle_process.ActivationInterruptionTests.test_tampered_candidate_is_rejected_before_switching_current) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 8.700s
+
+OK
+test_candidate_finalize_boundaries_leave_recoverable_old_or_new_state (tests.integration.test_release_lifecycle_process.FinalizationInterruptionTests.test_candidate_finalize_boundaries_leave_recoverable_old_or_new_state) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 2.661s
+
+OK

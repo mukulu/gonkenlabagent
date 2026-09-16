@@ -73,6 +73,28 @@ class TargetInstallDependencyGraphTests(unittest.TestCase):
         self.assertIn("direct_capture_fallback", manager)
         self.assertIn("libspa-0.2-bluetooth", self.text)
 
+    def test_release_seal_and_runtime_checks_are_separate_current_release_gates(self) -> None:
+        release_postcondition = self.text[
+            self.text.index("gonken_release_postcondition()"):
+            self.text.index("gonken_release_action()")
+        ]
+        bindings_postcondition = self.text[
+            self.text.index("gonken_target_runtime_bindings_postcondition()"):
+            self.text.index("gonken_target_runtime_bindings_action()")
+        ]
+        self.assertIn('validate-static', release_postcondition)
+        self.assertNotIn(' bindings-check ', release_postcondition)
+        self.assertIn('bindings-check', bindings_postcondition)
+        self.assertNotIn(' validate ', bindings_postcondition)
+
+        manager = (ROOT / "scripts" / "release_manager.py").read_text(encoding="utf-8")
+        reconcile = manager[manager.index("def reconcile("):manager.index("def activate(")]
+        activate = manager[manager.index("def activate("):manager.index("def prune_releases(")]
+        self.assertIn("policy=structural_current_only", reconcile)
+        self.assertNotIn("validate_release(", reconcile)
+        self.assertIn("validate_release_static(", activate)
+        self.assertNotIn("validate_release(", activate)
+
     def test_appliance_readiness_record_is_bound_to_release_commit(self) -> None:
         runtime = (ROOT / "src" / "gonken_agent" / "voice_runtime.py").read_text(encoding="utf-8")
         appliance = (ROOT / "scripts" / "appliance_manager.py").read_text(encoding="utf-8")

@@ -1,0 +1,31 @@
+{
+  "checkpoint": "32",
+  "evidence": [
+    "docs/development/evidence/v09/checkpoint32/integration_fast.log",
+    "docs/development/evidence/v09/checkpoint32/integration_user_test_release_candidate.log",
+    "docs/development/evidence/v09/checkpoint32/ollama_lifecycle.log",
+    "docs/development/evidence/v09/checkpoint32/speech_lifecycle.log",
+    "docs/development/evidence/v09/checkpoint32/speech_remaining.log",
+    "docs/development/evidence/v09/checkpoint32/speech_smoke_failure.log",
+    "docs/development/evidence/v09/checkpoint32/speech_interrupt_1.log",
+    "docs/development/evidence/v09/checkpoint32/speech_interrupt_2.log",
+    "docs/development/evidence/v09/checkpoint32/focused_integration.log",
+    "docs/development/evidence/v09/checkpoint32/focused_integration_remaining.log",
+    "docs/development/evidence/v09/checkpoint32/e2e_build.log"
+  ],
+  "module_count": 12,
+  "notes": [
+    "Long aggregate wrappers interrupted at outer execution boundaries are preserved as INTERRUPTED, never relabelled PASS.",
+    "Already completed cases were retained and only unaccounted cases were rerun.",
+    "The former single long speech interruption test was decomposed into eight independent unittest cases and a case-bounded CI phase."
+  ],
+  "schema": "gonken-test-accounting-v1",
+  "status": "PASS",
+  "subsets": {
+    "ollama_lifecycle": "5/5 PASS",
+    "release_lifecycle": "11/11 PASS",
+    "speech_lifecycle": "12/12 PASS"
+  },
+  "suite": "integration",
+  "test_count": 67
+}

@@ -1784,3 +1784,23 @@ Checkpoint 30 advanced materially on the real Raspberry Pi: the new strict relea
 6. **No target-only patching.** Existing target state is diagnostic evidence, not a reason to hand-edit immutable releases, fabricate manifests, bypass microphone selection, add broad privileges or manually mark installer steps complete. Any remaining target failure returns to the smallest correct source layer with a regression test.
 
 **Acceptance.** Host acceptance requires focused reproduction of both checkpoint-30 target transitions, dependency-order regression, complete affected unit/integration accounting, release/rollback/interruption non-regression, documentation/readiness synchronization and clean package verification. Target acceptance remains M10.24 and requires exact checkpoint-31 installation to reach `INSTALLATION_COMPLETE` followed by observed audio/voice/environment evidence.
+
+
+#### M10.27 Current-release immutable seal and post-seal runtime isolation repair
+
+**Triggering target evidence.** Exact checkpoint 31 (`8c9bd8b6a657f1a793c038bec8319d1f868315c7`) built successfully on the Raspberry Pi but activation repeatedly failed with `RELEASE_INVALID: release payload digest differs`, including after reboot. The accompanying support bundle showed the previously active checkpoint-30 release, its isolated hardware-binding bridge, GPIO23 mapping and `/dev/i2c-1` platform state were READY. The checkpoint-31 failure was therefore a defect in the new candidate's own immutable lifecycle, not a legacy-release dependency.
+
+**Root cause.** The checkpoint-31 builder performed executable runtime smoke, recorded `payload_sha256`, froze/renamed the release, and then ran executable validation from the sealed tree. Python runtime execution may create `__pycache__`/`.pyc` artifacts. Those files were not part of the recorded digest, so the release mutated itself after the immutable seal and later static validation correctly rejected it. Rebooting or comparing older releases cannot repair this state.
+
+**Current-release contract.**
+
+1. All CLI identity, `pip check` and target binding API smoke must complete **before** the immutable payload is sealed.
+2. Before sealing, remove interpreter/build transients (`__pycache__`, `.pyc`, `.pyo`, `.pytest_cache`), normalize candidate readability for the service account, and write a bounded payload manifest that can localize later drift.
+3. Record the payload digest only after all executable checks and transient cleanup. Freeze/rename atomically afterwards.
+4. After sealing, build postconditions, activation, reconciliation and ordinary status may perform only non-mutating static identity/integrity/ownership checks against the **current candidate/current release**.
+5. The target hardware-binding API probe is a separate installer gate (`bindings-check`) after activation and must address the current release only. It is not part of historical-release reconciliation.
+6. Previously active/historical releases are not normal-runtime dependencies and must not be executed or revalidated to establish current-release health. Historical identity is retained only for explicit rollback/update bookkeeping. An operator-requested rollback may validate the recorded previous release because that operation intentionally selects it as the new current release.
+7. Running the sealed CLI must not change its payload digest or create bytecode/cache artifacts inside the immutable release tree.
+8. Long lifecycle checks must be structurally decomposable. Speech lifecycle now has a dedicated case-bounded CI phase so an interruption scenario cannot monopolize a module-level run.
+
+**Acceptance.** Host acceptance requires exact build->pre-seal smoke->purge->seal->static validation->activation->repeat tests, tamper rejection, current-only migration, interruption/finalization checks, complete unit/integration accounting, documentation/readiness synchronization and clean package verification. Target acceptance remains M10.24 and requires checkpoint 32 to reach `INSTALLATION_COMPLETE` before integrated fan/sensor/voice claims.

@@ -123,6 +123,13 @@ getent group gonken-envctl
 
 The fresh `id` output must include `gonken-envctl`. If it does not, **STOP** and collect installer/support evidence. Do not add the human operator to raw `gpio` or `i2c` as a workaround. The environment feature is still disabled by default at this point.
 
+
+### Checkpoint-32 current-release rule
+
+Normal installation and operation must converge on the exact checkpoint being installed. The installer must not execute or revalidate older releases to decide whether the current release is healthy. Older release identities are retained only for explicit update/rollback bookkeeping; an operator-requested rollback is the only operation that intentionally promotes the recorded previous release.
+
+Checkpoint 31 exposed a different defect: the new release executed Python after its immutable digest had been recorded, so interpreter cache files could change the payload before activation. Checkpoint 32 moves all executable smoke before sealing, removes transient bytecode/cache files, and uses static non-mutating checks after sealing. A `RELEASE_INVALID ... payload digest differs` error on checkpoint 32 is therefore a real current-release integrity failure: **STOP**, preserve the installer failure bundle, and do not delete/rewrite releases by hand.
+
 ## 4. GPIO identity inventory before wiring or actuation
 
 The production GPIO contract does not assume that a BCM number is the same thing as a

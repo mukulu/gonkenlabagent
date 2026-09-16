@@ -1,0 +1,28 @@
+# command: /opt/pyvenv/bin/python3 -m unittest -v tests.unit.test_grounding_observability
+# started_utc: 2026-09-16T00:41:46Z
+test_explicit_abstention_normalized_and_extractive_marked (tests.unit.test_grounding_observability.GroundingTests.test_explicit_abstention_normalized_and_extractive_marked) ... ok
+test_sources_are_json_data_and_do_not_create_roles_or_tools (tests.unit.test_grounding_observability.GroundingTests.test_sources_are_json_data_and_do_not_create_roles_or_tools) ... ok
+test_valid_ids_and_invalid_shapes_citations_or_fields_abstain (tests.unit.test_grounding_observability.GroundingTests.test_valid_ids_and_invalid_shapes_citations_or_fields_abstain) ... ok
+test_atomic_replace_failure_preserves_previous (tests.unit.test_grounding_observability.RetrievalTests.test_atomic_replace_failure_preserves_previous) ... ok
+test_corrupt_threshold_and_tampered_chunks (tests.unit.test_grounding_observability.RetrievalTests.test_corrupt_threshold_and_tampered_chunks) ... ok
+test_default_text_pipeline_avoids_llm_for_unknown_and_rejects_stale (tests.unit.test_grounding_observability.RetrievalTests.test_default_text_pipeline_avoids_llm_for_unknown_and_rejects_stale) ... ok
+test_deterministic_order_identity_and_atomic_save (tests.unit.test_grounding_observability.RetrievalTests.test_deterministic_order_identity_and_atomic_save) ... ok
+test_frozen_40_answerable_20_unknown (tests.unit.test_grounding_observability.RetrievalTests.test_frozen_40_answerable_20_unknown) ... ok
+test_headings_overlap_and_unicode_reproducibility (tests.unit.test_grounding_observability.RetrievalTests.test_headings_overlap_and_unicode_reproducibility) ... ok
+test_invalid_utf8_size_name_empty_and_calibration (tests.unit.test_grounding_observability.RetrievalTests.test_invalid_utf8_size_name_empty_and_calibration) ... ok
+test_malformed_unknown_and_duplicate_calibration_rejected (tests.unit.test_grounding_observability.RetrievalTests.test_malformed_unknown_and_duplicate_calibration_rejected) ... ok
+test_stale_modified_deleted_and_added_sources (tests.unit.test_grounding_observability.RetrievalTests.test_stale_modified_deleted_and_added_sources) ... ok
+test_symlink_root_child_and_output_refused (tests.unit.test_grounding_observability.RetrievalTests.test_symlink_root_child_and_output_refused) ... ok
+test_default_snapshot_drops_content_optin_is_memory_only (tests.unit.test_grounding_observability.TelemetryTests.test_default_snapshot_drops_content_optin_is_memory_only) ... ok
+test_forbidden_content_unknown_sources_and_nonfinite (tests.unit.test_grounding_observability.TelemetryTests.test_forbidden_content_unknown_sources_and_nonfinite) ... ok
+test_rotation_bounded_permission_and_partial_tail_recovery (tests.unit.test_grounding_observability.TelemetryTests.test_rotation_bounded_permission_and_partial_tail_recovery) ... ok
+test_symlink_rotation_and_corrupt_middle_refused (tests.unit.test_grounding_observability.TelemetryTests.test_symlink_rotation_and_corrupt_middle_refused) ... ok
+test_threads_serialize_records_without_content (tests.unit.test_grounding_observability.TelemetryTests.test_threads_serialize_records_without_content) ... ok
+
+----------------------------------------------------------------------
+Ran 18 tests in 0.200s
+
+OK
+# finished_utc: 2026-09-16T00:41:47Z
+# duration_seconds: 0.848
+# returncode: 0

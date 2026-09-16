@@ -440,7 +440,7 @@ gonken_target_identity_preflight_action() {
 
 gonken_target_runtime_bindings_postcondition() {
   [[ "${GONKEN_SOURCE_RECORD[platform_mode]}" == "target" ]] || return 0
-  python3 "$RELEASE_MANAGER" validate \
+  python3 "$RELEASE_MANAGER" bindings-check \
     --release "$RELEASE_ROOT/releases/${GONKEN_SOURCE_RECORD[resolved_commit]}" \
     --commit "${GONKEN_SOURCE_RECORD[resolved_commit]}" \
     --profile "$RELEASE_PROFILE" \
@@ -486,11 +486,10 @@ gonken_release_precondition() {
 }
 
 gonken_release_postcondition() {
-  python3 "$RELEASE_MANAGER" validate \
+  python3 "$RELEASE_MANAGER" validate-static \
     --release "$RELEASE_ROOT/releases/${GONKEN_SOURCE_RECORD[resolved_commit]}" \
     --commit "${GONKEN_SOURCE_RECORD[resolved_commit]}" \
-    --profile "$RELEASE_PROFILE" \
-    --service-user "$SERVICE_USER" >/dev/null 2>&1 || return 1
+    --profile "$RELEASE_PROFILE" >/dev/null 2>&1 || return 1
   GONKEN_STEP_EVIDENCE="release_${GONKEN_SOURCE_RECORD[resolved_commit]}"
 }
 

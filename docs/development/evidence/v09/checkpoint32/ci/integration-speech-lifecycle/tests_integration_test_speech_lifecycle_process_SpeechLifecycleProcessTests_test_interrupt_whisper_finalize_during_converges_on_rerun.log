@@ -1,0 +1,3 @@
+# command: /opt/pyvenv/bin/python3 -m unittest -v tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_interrupt_whisper_finalize_during_converges_on_rerun
+# started_utc: 2026-09-16T00:51:47Z
+test_interrupt_whisper_finalize_during_converges_on_rerun (tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_interrupt_whisper_finalize_during_converges_on_rerun) ... 

@@ -1283,3 +1283,20 @@ Checkpoint 24 closes the host-side root cause and adds regression protection, bu
 | CP31-T160 | Release lifecycle accounting | `checkpoint31/final_release_lifecycle_accounting.json` | PASS — 10/10 | Includes stale-prune-after-success, migration, rollback and interruption/finalization. |
 | CP31-T161 | Ollama lifecycle | `checkpoint31/ollama_lifecycle.log` | PASS — 5/5 | Synthetic host lifecycle only. |
 | CP31-T162 | Speech lifecycle | `checkpoint31/speech_cases/` | PASS — 5/5 | Synthetic host lifecycle only; physical microphone/speaker remains target gate. |
+
+## V09 Checkpoint 32 — current-release immutable seal convergence
+
+| ID | Scope | Command / artifact | Host result | Target boundary |
+|---|---|---|---:|---|
+| CP32-T158 | Checkpoint-31 target incident classification | `checkpoint32/target_incident_summary.json`; checkpoint-31 failure/support bundle | VERIFIED | Checkpoint 31 built the new candidate then repeatedly failed with `RELEASE_INVALID: release payload digest differs`; checkpoint-30 active binding/I2C state remained READY. No `INSTALLATION_COMPLETE`. |
+| CP32-T159 | Pre-seal executable smoke / transient purge | `scripts/release_manager.py`; `test_transient_python_caches_are_removed_before_sealing`; release end-to-end build | PASS | Target must still build under Pi profile and service account. |
+| CP32-T160 | Payload drift localization | `release-payload-manifest.json`; `test_payload_manifest_localizes_changed_and_unexpected_paths` | PASS | Future target digest failure can name changed/missing/unexpected payload paths without live-tree editing. |
+| CP32-T161 | Sealed CLI does not mutate payload | `current_release_contract.log`; end-to-end `gonken-agent version` followed by `validate-static`; no `__pycache__`/`.pyc` | PASS | Exact Pi release must still reach activation; host test is filesystem/process evidence only. |
+| CP32-T162 | Current-only normal activation/reconcile | `test_process_activation_does_not_execute_or_revalidate_previous_current_release`; `test_release_seal_and_runtime_checks_are_separate_current_release_gates` | PASS | Historical releases are not normal runtime prerequisites. Explicit rollback remains separately governed. |
+| CP32-T163 | Candidate tamper rejection | `ActivationInterruptionTests.test_tampered_candidate_is_rejected_before_switching_current` | PASS | Current pointer remains on previous release when candidate static integrity is invalid. |
+| CP32-T164 | Release lifecycle accounting | `checkpoint32/final_release_lifecycle_accounting.json` | PASS — 11/11 | Host sandbox only; Pi update/rollback remains M10.24. |
+| CP32-T165 | Complete unit accounting | `checkpoint32/final_unit_accounting.json` | PASS — 46 modules / 464 tests | Host only. Interrupted aggregate wrapper is not relabelled PASS. |
+| CP32-T166 | Complete integration accounting | `checkpoint32/final_integration_accounting.json` | PASS — 12 modules / 67 tests | Includes 5/5 Ollama and decomposed 12/12 speech lifecycle evidence. No physical audio claim. |
+| CP32-T167 | Speech lifecycle anti-hang decomposition | `scripts/ci.sh --phase speech-lifecycle`; eight independent interruption cases; `speech_interrupt_1.log`; `speech_interrupt_2.log` | PASS by case accounting | Aggregate phase attempt interrupted by external wrapper; every case is independently bounded and accounted. |
+| CP32-T168 | Checkpoint-32 control plane | milestone/status/docs/readiness/T0 artifacts | PASS | M10.27 host-verified; M10.24 remains target not-run. |
+| CP32-T169 | Exact checkpoint-32 Raspberry Pi install | exact delivered checkpoint 32; `./bootstrap.sh --local-checkpoint` | NOT RUN / BLOCKED TARGET GATE | Must reach `INSTALLATION_COMPLETE` without modifying immutable releases; then continue GonKen CLI fan, SHT31 and voice/wake acceptance. |

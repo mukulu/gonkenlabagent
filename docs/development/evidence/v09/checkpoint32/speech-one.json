@@ -1,0 +1,21 @@
+{
+  "created_utc": "2026-09-16T00:52:20Z",
+  "granularity": "module",
+  "label": "speech-one",
+  "module_count": 1,
+  "modules": [
+    {
+      "duration_seconds": 3.063,
+      "log_file": "docs/development/evidence/v09/checkpoint32/speech-one/tests_integration_test_speech_lifecycle_process_SpeechLifecycleProcessTests_test_interrupt_whisper_finalize_during_converges_on_rerun.log",
+      "module": "tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_interrupt_whisper_finalize_during_converges_on_rerun",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    }
+  ],
+  "result": "PASS",
+  "schema": "gonken-bounded-unittest-v1",
+  "status_counts": {
+    "PASS": 1
+  }
+}
