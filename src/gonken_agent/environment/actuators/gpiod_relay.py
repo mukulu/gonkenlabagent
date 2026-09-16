@@ -15,6 +15,8 @@ import threading
 from dataclasses import dataclass
 from typing import Any, Iterable
 
+from gonken_agent.gpio_resolver import GpioResolveError, resolve_named_gpio_line
+
 from ..domain import FanCapability, FanPower
 from .base import ActuatorAdapterError
 
@@ -28,6 +30,8 @@ class RelayLineIdentity:
     logical_bcm: int | None = None
     line_name: str | None = None
     chip_label: str = ""
+    chip_name: str = ""
+    resolution_basis: str = ""
 
 
 class GpiodRelayFanActuator:
@@ -107,46 +111,29 @@ class GpiodRelayFanActuator:
             return self.identity
         assert self.logical_bcm is not None
         expected = f"GPIO{self.logical_bcm}"
-        matches: list[RelayLineIdentity] = []
-        for chip_path in self._paths():
-            try:
-                chip = gpiod.Chip(chip_path)
-            except Exception:
-                continue
-            try:
-                info = chip.get_info()
-                count = int(getattr(info, "num_lines"))
-                chip_label = str(getattr(info, "label", "") or "")
-                if not 1 <= count <= 4096:
-                    continue
-                for offset in range(count):
-                    try:
-                        line_info = chip.get_line_info(offset)
-                    except Exception:
-                        continue
-                    if getattr(line_info, "name", None) == expected:
-                        matches.append(
-                            RelayLineIdentity(
-                                chip_path,
-                                offset,
-                                self._active_high,
-                                self._consumer,
-                                self.logical_bcm,
-                                expected,
-                                chip_label,
-                            )
-                        )
-            finally:
-                self._close_chip(chip)
-        if not matches:
-            raise ActuatorAdapterError("ACTUATOR_GPIO_LINE_NOT_FOUND", f"no unique line named {expected}")
-        if len(matches) != 1:
-            rp1 = [item for item in matches if "pinctrl-rp1" in item.chip_label.casefold()]
-            if len(rp1) != 1:
-                raise ActuatorAdapterError("ACTUATOR_GPIO_LINE_AMBIGUOUS", f"multiple lines named {expected}")
-            matches = rp1
-        self.identity = matches[0]
+        try:
+            resolved = resolve_named_gpio_line(
+                gpiod=gpiod, logical_bcm=self.logical_bcm, chip_paths=self._paths()
+            )
+        except GpioResolveError as exc:
+            if exc.reason == "not_found":
+                raise ActuatorAdapterError("ACTUATOR_GPIO_LINE_NOT_FOUND", expected) from exc
+            if exc.reason == "ambiguous":
+                raise ActuatorAdapterError("ACTUATOR_GPIO_LINE_AMBIGUOUS", exc.detail) from exc
+            raise ActuatorAdapterError("ACTUATOR_CONFIG_INVALID", exc.detail) from exc
+        self.identity = RelayLineIdentity(
+            chip_path=resolved.chip_path,
+            line_offset=resolved.line_offset,
+            active_high=self._active_high,
+            consumer=self._consumer,
+            logical_bcm=self.logical_bcm,
+            line_name=resolved.line_name,
+            chip_label=resolved.chip_label,
+            chip_name=resolved.chip_name,
+            resolution_basis=resolved.resolution_basis,
+        )
         return self.identity
+
 
     def open(self) -> None:
         with self._lock:
@@ -213,6 +200,9 @@ class GpiodRelayFanActuator:
                 "line_name": identity.line_name,
                 "chip_path": identity.chip_path,
                 "line_offset": identity.line_offset,
+                "chip_label": identity.chip_label,
+                "chip_name": identity.chip_name,
+                "resolution_basis": identity.resolution_basis,
                 "active_high": identity.active_high,
                 "physical_acceptance_claimed": False,
             }

@@ -461,6 +461,47 @@ gonken_target_runtime_bindings_action() {
   return 74
 }
 
+
+gonken_gpio_identity_preflight() {
+  printf '%s\n' "$RELEASE_ROOT/current/maintenance/gpio_identity_preflight.py"
+}
+
+gonken_target_gpio_identity_postcondition() {
+  [[ "${GONKEN_SOURCE_RECORD[platform_mode]}" == "target" ]] || return 0
+  local helper artifact
+  helper="$(gonken_gpio_identity_preflight)"
+  artifact="$STATE_DIR/artifacts/target-gpio-identity.json"
+  [[ -x "$helper" && -f "$artifact" && ! -L "$artifact" ]] || return 1
+  runuser -u "$SERVICE_USER" -- env PYTHONDONTWRITEBYTECODE=1 PYTHONNOUSERSITE=1 \
+    "$RELEASE_ROOT/current/.venv/bin/python" "$helper" --json >/dev/null 2>&1 || return 1
+  python3 - "$artifact" <<'PYGPIO' >/dev/null 2>&1 || return 1
+import json, sys
+with open(sys.argv[1], encoding="utf-8") as handle:
+    payload=json.load(handle)
+assert payload.get("format") == "gonken-gpio-identity-preflight-v1"
+assert payload.get("status") == "PASS"
+assert payload.get("code") == "GPIO_HEADER_RESOLVED"
+assert payload.get("physical_acceptance_claimed") is False
+assert {"GPIO17","GPIO22","GPIO23","GPIO27"}.issubset(payload.get("lines", {}))
+PYGPIO
+  GONKEN_STEP_EVIDENCE="pi5_header_gpio17_22_23_27_metadata_resolved_non_actuating"
+}
+
+gonken_target_gpio_identity_action() {
+  local step_id="$1" helper artifact
+  helper="$(gonken_gpio_identity_preflight)"
+  artifact="$STATE_DIR/artifacts/target-gpio-identity.json"
+  [[ -x "$helper" ]] || {
+    gonken_error "GPIO_PREFLIGHT_LAYOUT" "GPIO identity preflight helper is missing" "rebuild the immutable release from the complete checkpoint"
+    return 66
+  }
+  gonken_step_checkpoint "$step_id" "during" || return $?
+  runuser -u "$SERVICE_USER" -- env PYTHONDONTWRITEBYTECODE=1 PYTHONNOUSERSITE=1 \
+    "$RELEASE_ROOT/current/.venv/bin/python" "$helper" --json >/dev/null || return $?
+  env PYTHONDONTWRITEBYTECODE=1 PYTHONNOUSERSITE=1 \
+    "$RELEASE_ROOT/current/.venv/bin/python" "$helper" --output "$artifact" --json >/dev/null
+}
+
 gonken_layout_precondition() {
   gonken_account_postcondition
 }
@@ -874,49 +915,96 @@ gonken_app_service_action() {
     --service-uid "$service_uid"
 }
 
+gonken_bluetooth_direct_audio_ready() {
+  python3 "$(gonken_bluetooth_manager)" direct-status \
+    --audio-user "$BLUETOOTH_AUDIO_USER" >/dev/null 2>&1
+}
+
 gonken_bluetooth_stack_postcondition() {
-  python3 "$(gonken_bluetooth_manager)" stack-status \
-    --audio-user "$BLUETOOTH_AUDIO_USER" >/dev/null 2>&1 || return 1
-  GONKEN_STEP_EVIDENCE="bluetooth_stack_pipewire_bluez_headless"
+  if python3 "$(gonken_bluetooth_manager)" stack-status \
+      --audio-user "$BLUETOOTH_AUDIO_USER" >/dev/null 2>&1; then
+    GONKEN_STEP_EVIDENCE="bluetooth_stack_pipewire_bluez_headless"
+    return 0
+  fi
+  if gonken_bluetooth_direct_audio_ready; then
+    GONKEN_STEP_EVIDENCE="bluetooth_optional_stack_unavailable_direct_audio_ready"
+    return 0
+  fi
+  return 1
 }
 
 gonken_bluetooth_stack_action() {
   printf '[RUNNING] code=BLUETOOTH_PACKAGES message=installing_headless_bluez_pipewire_stack\n'
-  DEBIAN_FRONTEND=noninteractive apt-get update || return 69
-  DEBIAN_FRONTEND=noninteractive apt-get install -y \
-    bluez rfkill pipewire pipewire-pulse pipewire-audio pipewire-alsa \
-    libspa-0.2-bluetooth pulseaudio-utils wireplumber || return 69
-  python3 "$(gonken_bluetooth_manager)" prepare \
-    --audio-user "$BLUETOOTH_AUDIO_USER"
+  if DEBIAN_FRONTEND=noninteractive apt-get update \
+      && DEBIAN_FRONTEND=noninteractive apt-get install -y \
+        bluez rfkill pipewire pipewire-pulse pipewire-audio pipewire-alsa \
+        libspa-0.2-bluetooth pulseaudio-utils wireplumber \
+      && python3 "$(gonken_bluetooth_manager)" prepare --audio-user "$BLUETOOTH_AUDIO_USER"; then
+    return 0
+  fi
+  if gonken_bluetooth_direct_audio_ready; then
+    printf '[WARN] code=BLUETOOTH_OPTIONAL_STACK_UNAVAILABLE remediation=USB_or_wired_audio_is_ready_and_base_appliance_installation_will_continue\n'
+    return 0
+  fi
+  return 69
 }
 
 gonken_bluetooth_pair_postcondition() {
-  python3 "$(gonken_bluetooth_manager)" status \
-    --audio-user "$BLUETOOTH_AUDIO_USER" \
-    --record "$BLUETOOTH_RECORD" --require-connected --allow-direct-fallback >/dev/null 2>&1 || return 1
-  GONKEN_STEP_EVIDENCE="bluetooth_device_paired_trusted"
+  if python3 "$(gonken_bluetooth_manager)" status \
+      --audio-user "$BLUETOOTH_AUDIO_USER" \
+      --record "$BLUETOOTH_RECORD" --require-connected --allow-direct-fallback >/dev/null 2>&1; then
+    GONKEN_STEP_EVIDENCE="bluetooth_device_paired_trusted_or_direct_audio_fallback"
+    return 0
+  fi
+  if gonken_bluetooth_direct_audio_ready; then
+    GONKEN_STEP_EVIDENCE="bluetooth_optional_pairing_unavailable_direct_audio_ready"
+    return 0
+  fi
+  return 1
 }
 
 gonken_bluetooth_pair_action() {
-  local selector="${GONKEN_SOURCE_RECORD[bluetooth_device]:-}"
-  python3 "$(gonken_bluetooth_manager)" pair \
-    --audio-user "$BLUETOOTH_AUDIO_USER" \
-    --record "$BLUETOOTH_RECORD" \
-    --selector "$selector" \
-    --timeout 120
+  local selector="${GONKEN_SOURCE_RECORD[bluetooth_device]:-}" rc
+  if python3 "$(gonken_bluetooth_manager)" pair \
+      --audio-user "$BLUETOOTH_AUDIO_USER" \
+      --record "$BLUETOOTH_RECORD" \
+      --selector "$selector" \
+      --timeout 120; then
+    return 0
+  fi
+  rc=$?
+  if gonken_bluetooth_direct_audio_ready; then
+    printf '[WARN] code=BLUETOOTH_OPTIONAL_PAIRING_UNAVAILABLE remediation=deterministic_direct_audio_is_ready_and_base_appliance_installation_will_continue\n'
+    return 0
+  fi
+  return "$rc"
 }
 
 gonken_bluetooth_autoconnect_postcondition() {
-  python3 "$(gonken_bluetooth_manager)" autoconnect-status \
-    --record "$BLUETOOTH_RECORD" \
-    --unit-template "$(gonken_bluetooth_unit_template)" >/dev/null 2>&1 || return 1
-  GONKEN_STEP_EVIDENCE="bluetooth_trusted_device_autoconnect_service"
+  if [[ -f "$BLUETOOTH_RECORD" ]] && python3 "$(gonken_bluetooth_manager)" autoconnect-status \
+      --record "$BLUETOOTH_RECORD" \
+      --unit-template "$(gonken_bluetooth_unit_template)" >/dev/null 2>&1; then
+    GONKEN_STEP_EVIDENCE="bluetooth_trusted_device_autoconnect_service"
+    return 0
+  fi
+  if gonken_bluetooth_direct_audio_ready; then
+    GONKEN_STEP_EVIDENCE="bluetooth_optional_autoconnect_skipped_direct_audio_ready"
+    return 0
+  fi
+  return 1
 }
 
 gonken_bluetooth_autoconnect_action() {
-  python3 "$(gonken_bluetooth_manager)" install-autoconnect \
-    --record "$BLUETOOTH_RECORD" \
-    --unit-template "$(gonken_bluetooth_unit_template)"
+  if [[ -f "$BLUETOOTH_RECORD" ]]; then
+    python3 "$(gonken_bluetooth_manager)" install-autoconnect \
+      --record "$BLUETOOTH_RECORD" \
+      --unit-template "$(gonken_bluetooth_unit_template)" && return 0
+  fi
+  if gonken_bluetooth_direct_audio_ready; then
+    printf '[WARN] code=BLUETOOTH_OPTIONAL_AUTOCONNECT_SKIPPED remediation=no_trusted_Bluetooth_record_is_required_for_direct_audio_operation\n'
+    return 0
+  fi
+  return 75
 }
 
 
@@ -930,9 +1018,6 @@ gonken_runtime_context_postcondition() {
   manager="$(gonken_runtime_context_manager)"
   [[ -x "$manager" ]] || return 1
   local -a args=(status --audio-user "$SERVICE_USER" --require-ready)
-  if [[ "${GONKEN_SOURCE_RECORD[bluetooth_audio]:-disabled}" == "requested" ]]; then
-    args+=(--require-pipewire)
-  fi
   python3 "$manager" "${args[@]}" >/dev/null 2>&1 || return 1
   GONKEN_STEP_EVIDENCE="service_runtime_context_headless_audio_session_validated"
 }
@@ -945,9 +1030,6 @@ gonken_runtime_context_action() {
     return 66
   }
   local -a args=(status --audio-user "$SERVICE_USER" --require-ready)
-  if [[ "${GONKEN_SOURCE_RECORD[bluetooth_audio]:-disabled}" == "requested" ]]; then
-    args+=(--require-pipewire)
-  fi
   python3 "$manager" "${args[@]}"
 }
 
@@ -1076,8 +1158,15 @@ if ((ENGINE_ONLY == 0)); then
       "no_hardware_is_opened_or_actuated_by_import_validation" || exit $?
 
     gonken_register_step \
+      "target_gpio_identity" "1" \
+      "gonken_target_runtime_bindings_postcondition" "gonken_target_gpio_identity_action" "gonken_target_gpio_identity_postcondition" \
+      "non_actuating_pi5_header_gpio_identity_for_ptt_wake_recording_and_relay" \
+      "resolve_gpio17_22_23_27_before_services_and_fail_early_with_candidate_metadata" \
+      "does_not_request_write_or_toggle_any_gpio_line" || exit $?
+
+    gonken_register_step \
       "environment_service" "1" \
-      "gonken_target_runtime_bindings_postcondition" "gonken_environment_service_action" "gonken_environment_service_postcondition" \
+      "gonken_target_gpio_identity_postcondition" "gonken_environment_service_action" "gonken_environment_service_postcondition" \
       "exact_environment_systemd_unit_tmpfiles_and_disabled_autostart" \
       "install_structural_service_files_without_enable_or_start" \
       "generic_upgrade_does_not_actuate_or_claim_physical_acceptance" || exit $?

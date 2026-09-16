@@ -1,0 +1,8 @@
+test_interrupt_whisper_source_before_converges_on_rerun (tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_interrupt_whisper_source_before_converges_on_rerun) ... ok
+test_interrupt_whisper_source_during_converges_on_rerun (tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_interrupt_whisper_source_during_converges_on_rerun) ... ok
+test_interrupt_whisper_finalize_during_converges_on_rerun (tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_interrupt_whisper_finalize_during_converges_on_rerun) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 6.150s
+
+OK

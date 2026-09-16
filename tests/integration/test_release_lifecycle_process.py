@@ -170,6 +170,28 @@ class EndToEndReleaseTests(unittest.TestCase):
         self.assertEqual(second.returncode, 0, second.stderr)
         self.assertEqual((release / "release.record").read_bytes(), manifest_before)
 
+    def test_same_commit_repeat_ignores_standard_runtime_cache_without_repairing_release(self) -> None:
+        system_root = self.root / "system-success-runtime-cache-repeat"
+        _release_root, release = self.assert_release_only_complete(system_root)
+        maintenance = release / "maintenance"
+        maintenance.chmod(0o755)
+        cache = maintenance / "__pycache__"
+        cache.mkdir()
+        (cache / "release_manager.cpython-313.pyc").write_bytes(b"derived-cache")
+        cache.chmod(0o755)
+        (cache / "release_manager.cpython-313.pyc").chmod(0o644)
+        maintenance.chmod(0o555)
+        second = self.run_install(system_root, "--release-only")
+        self.assertEqual(second.returncode, 0, second.stderr)
+        self.assertIn("code=INSTALL_STEP_SATISFIED step=immutable_release", second.stdout)
+        self.assertTrue(cache.exists(), "runtime cache is outside immutable authority and is not repaired in-place")
+        static_check = subprocess.run(
+            [sys.executable, str(MANAGER), "validate-static", "--release", str(release),
+             "--commit", self.commit, "--profile", "dev-py312"],
+            cwd=ROOT, check=False, capture_output=True, text=True, timeout=20,
+        )
+        self.assertEqual(static_check.returncode, 0, static_check.stderr)
+
     def test_default_install_after_release_boundary_stops_before_target_only_steps(self) -> None:
         system_root = self.root / "system-success-default-boundary"
         self.assert_release_only_complete(system_root)

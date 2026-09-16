@@ -1,0 +1,8 @@
+test_interrupt_piper_pair_download_during_converges_on_rerun (tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_interrupt_piper_pair_download_during_converges_on_rerun) ... ok
+test_interrupt_piper_pair_finalize_during_converges_on_rerun (tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_interrupt_piper_pair_finalize_during_converges_on_rerun) ... ok
+test_smoke_failure_does_not_create_success_record_and_reruns (tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_smoke_failure_does_not_create_success_record_and_reruns) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 17.015s
+
+OK

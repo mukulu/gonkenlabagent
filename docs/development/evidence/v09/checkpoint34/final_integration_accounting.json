@@ -1,0 +1,20 @@
+{
+  "method": "bounded module accounting; aggregate interruption on final simulation-candidate case was decomposed and the missing case rerun PASS",
+  "module_counts": {
+    "tests.integration.test_bootstrap_preflight_process": 4,
+    "tests.integration.test_cli_process": 5,
+    "tests.integration.test_first_install_launcher": 4,
+    "tests.integration.test_install_engine_process": 10,
+    "tests.integration.test_ollama_lifecycle_process": 5,
+    "tests.integration.test_support_collection_process": 1,
+    "tests.integration.test_text_runtime_process": 9,
+    "tests.integration.test_uninstall_lifecycle_process": 2,
+    "tests.integration.test_v09_environment_voice_transaction": 3,
+    "tests.integration.test_v09_user_test_release_candidate": 1
+  },
+  "modules": 10,
+  "physical_acceptance_claimed": false,
+  "schema": 1,
+  "status": "PASS",
+  "tests": 44
+}

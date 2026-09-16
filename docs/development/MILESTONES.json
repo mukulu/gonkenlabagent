@@ -1,6 +1,6 @@
 {
   "baseline_commit": "6466f26a1a9cb97e4c24182505b37cefb766b3c3",
-  "checkpoint_scope": "V09 checkpoint 33 closes the checkpoint-32 same-commit runtime-stability and audio-convergence defects: recognized Python bytecode/cache artifacts can no longer dead-end an otherwise authoritative current release, privileged/post-seal entry points suppress bytecode writes, requested Bluetooth is a preferred route rather than a mandatory dependency when deterministic direct USB capture+playback is available, managed checkpoint-32 systemd units upgrade safely, and Raspberry Pi 5 header GPIO duplicate-name resolution prefers the unique RP1 pin-controller match without assuming gpiochip numbering. M10.28 is host-verified; M10.24 physical acceptance remains open.",
+  "checkpoint_scope": "V09 checkpoint 34 strengthens checkpoint-33 convergence using fresh Raspberry Pi evidence: runtime Python cache trees are outside the authoritative immutable payload across digest/manifest/ownership/mode checks without in-place release repair; Bluetooth is only a preferred transport when deterministic direct USB/wired duplex audio is ready; Raspberry Pi 5 GPIO17/22/23/27 identity is resolved by a shared non-actuating resolver and proven before services start; and repeated local/curl installs remain bound to the current release rather than historical-release execution. M10.29 is host-verified; M10.24 physical acceptance remains open until exact checkpoint 34 reaches INSTALLATION_COMPLETE and the integrated hardware/voice campaign passes.",
   "milestones": [
     {
       "evidence": "TEST_MATRIX.md (M2.1)",
@@ -360,122 +360,130 @@
       "id": "M10.14",
       "remaining": "Host user-test gating remains implemented. Checkpoint 23 adds exact downloaded-package installation plus pre-target runtime/mapping repairs. Raspberry Pi simulation, real relay/PENGLIN/fan actuation, SHT31, wake/audio and full M10.7 acceptance remain target NOT_RUN.",
       "software": "host-verified",
-      "target": "not-run",
-      "title": "User simulation and sensor-deferred HIL release candidate",
       "status": "host-verified",
-      "target_status": "not-run"
+      "target": "not-run",
+      "target_status": "not-run",
+      "title": "User simulation and sensor-deferred HIL release candidate"
     },
     {
-      "id": "M10.15",
-      "title": "Target installer/runtime dependency repair and evidence hardening",
-      "software": "host-verified",
-      "target": "not-run",
       "evidence": "scripts/release_manager.py; scripts/install.sh; scripts/environment_profile_manager.py; src/gonken_agent/support.py; src/gonken_agent/diagnostics.py; tests/unit/test_m3_3_release_manager.py; tests/unit/test_v09_environment_profile_manager.py; tests/unit/test_support_export.py; tests/unit/test_diagnostics_snapshot.py; docs/development/V09_CHECKPOINT_24_REPORT.md; docs/development/V09_CHANGE_VERIFICATION_REPORT_CHECKPOINT_24.md",
-      "remaining": "Real target closure requires the exact checkpoint-24 archive to reach governed INSTALLATION_COMPLETE and pass the target runtime/operator preflight before relay actuation resumes. Physical relay/fan acceptance remains NOT_RUN."
-    },
-    {
-      "id": "M10.16",
-      "title": "Comprehensive closure blueprint and quality-system reconstruction",
+      "id": "M10.15",
+      "remaining": "Real target closure requires the exact checkpoint-24 archive to reach governed INSTALLATION_COMPLETE and pass the target runtime/operator preflight before relay actuation resumes. Physical relay/fan acceptance remains NOT_RUN.",
       "software": "host-verified",
       "target": "not-run",
+      "title": "Target installer/runtime dependency repair and evidence hardening"
+    },
+    {
       "evidence": "docs/development/V09_COMPREHENSIVE_CLOSURE_BLUEPRINT_CHECKPOINT_25.md; MASTER_BLUEPRINT.md; TEST_MATRIX.md; DECISIONS.md; external source verification recorded in checkpoint 25",
-      "remaining": "Blueprint reconstructed; implementation continues through M10.17-M10.23. M10.24 remains physical target acceptance."
-    },
-    {
-      "id": "M10.17",
-      "title": "Target Python dependency boundary redesign",
+      "id": "M10.16",
+      "remaining": "Blueprint reconstructed; implementation continues through M10.17-M10.23. M10.24 remains physical target acceptance.",
       "software": "host-verified",
       "target": "not-run",
+      "title": "Comprehensive closure blueprint and quality-system reconstruction"
+    },
+    {
       "evidence": "scripts/release_manager.py; scripts/install.sh; src/gonken_agent/support.py; requirements/README.md; tests/unit/test_m3_3_release_manager.py; tests/unit/test_support_export.py; docs/development/evidence/v09/checkpoint26/m10_17_release_lifecycle_interruption.log",
-      "remaining": "Allow-listed distro binding bridge and isolated target venv are host-verified, including dirty-system-metadata regression. Target build/import remains target-run evidence. Continue with M10.18 installer convergence."
-    },
-    {
-      "id": "M10.18",
-      "title": "Installer convergence DAG, preflight and failure-evidence hardening",
+      "id": "M10.17",
+      "remaining": "Allow-listed distro binding bridge and isolated target venv are host-verified, including dirty-system-metadata regression. Target build/import remains target-run evidence. Continue with M10.18 installer convergence.",
       "software": "host-verified",
       "target": "not-run",
+      "title": "Target Python dependency boundary redesign"
+    },
+    {
       "evidence": "scripts/target_preflight.py; scripts/installer_failure_bundle.py; scripts/install.sh; tests/unit/test_v09_target_preflight.py; tests/unit/test_v09_installer_failure_bundle.py; tests/integration/test_install_engine_process.py; docs/development/evidence/v09/checkpoint27/m10_18_19_focused_tests.log",
-      "remaining": "Target prerequisite convergence and installer-owned early-failure bundle are host-verified. Real target package/device truth remains target-run evidence."
-    },
-    {
-      "id": "M10.19",
-      "title": "Accounts, groups, configuration and environment-profile convergence",
+      "id": "M10.18",
+      "remaining": "Target prerequisite convergence and installer-owned early-failure bundle are host-verified. Real target package/device truth remains target-run evidence.",
       "software": "host-verified",
       "target": "not-run",
+      "title": "Installer convergence DAG, preflight and failure-evidence hardening"
+    },
+    {
       "evidence": "scripts/environment_profile_manager.py; scripts/target_preflight.py; scripts/install.sh; tests/unit/test_v09_environment_profile_manager.py; tests/unit/test_v09_target_preflight.py; docs/development/evidence/v09/checkpoint27/m10_18_19_focused_tests.log",
-      "remaining": "Four governed non-actuating backend profiles and identity/socket-group convergence are host-verified. Device permissions and fresh-login effect remain target-run evidence."
-    },
-    {
-      "id": "M10.20",
-      "title": "Systemd runtime, service-context and audio closure",
+      "id": "M10.19",
+      "remaining": "Four governed non-actuating backend profiles and identity/socket-group convergence are host-verified. Device permissions and fresh-login effect remain target-run evidence.",
       "software": "host-verified",
       "target": "not-run",
+      "title": "Accounts, groups, configuration and environment-profile convergence"
+    },
+    {
       "evidence": "scripts/runtime_context_preflight.py; scripts/install.sh; scripts/release_manager.py; tests/unit/test_v09_runtime_context_preflight.py; tests/unit/test_m6_service_manager.py; tests/unit/test_x4_bluetooth_manager.py; docs/development/evidence/v09/checkpoint28/m10_20_runtime_service_audio.log",
-      "remaining": "Service/runtime-context and dedicated PipeWire/WirePlumber structural readiness are host-verified. Physical microphone/speaker/BlueZ behavior, reboot/no-login convergence and latency remain target-run evidence."
-    },
-    {
-      "id": "M10.21",
-      "title": "SHT31/I2C and environment simulation-hybrid-full-real readiness",
+      "id": "M10.20",
+      "remaining": "Service/runtime-context and dedicated PipeWire/WirePlumber structural readiness are host-verified. Physical microphone/speaker/BlueZ behavior, reboot/no-login convergence and latency remain target-run evidence.",
       "software": "host-verified",
       "target": "not-run",
+      "title": "Systemd runtime, service-context and audio closure"
+    },
+    {
       "evidence": "scripts/i2c_manager.py; scripts/sht31_diagnostic.py; src/gonken_agent/environment/sensors/sht31.py; scripts/environment_profile_manager.py; src/gonken_agent/environment/simulation.py; tests/unit/test_v09_i2c_manager.py; tests/unit/test_v09_sht31_diagnostic.py; tests/unit/test_v09_environment_hardware_adapters.py; docs/development/evidence/v09/checkpoint28/m10_21_inprogress_narrow.log; docs/development/evidence/v09/checkpoint28/m10_21_evidence_mode_fix.log",
-      "remaining": "Wire-correct SHT31 transaction, I2C convergence helper, heater/status safeguards, four-profile parity and false-green evidence-mode boundary are host-verified. Physical breakout inspection, /dev/i2c-1 target access, 0x44/0x45 detection, repeated real reads and full-real control remain target-run evidence."
-    },
-    {
-      "id": "M10.22",
-      "title": "Voice/environment end-to-end transaction closure",
+      "id": "M10.21",
+      "remaining": "Wire-correct SHT31 transaction, I2C convergence helper, heater/status safeguards, four-profile parity and false-green evidence-mode boundary are host-verified. Physical breakout inspection, /dev/i2c-1 target access, 0x44/0x45 detection, repeated real reads and full-real control remain target-run evidence.",
       "software": "host-verified",
       "target": "not-run",
+      "title": "SHT31/I2C and environment simulation-hybrid-full-real readiness"
+    },
+    {
       "evidence": "src/gonken_agent/environment/intents.py; src/gonken_agent/voice_runtime.py; tests/unit/test_v09_environment_voice_intents.py; tests/integration/test_v09_environment_voice_transaction.py; docs/development/evidence/v09/checkpoint28/m10_22_voice_transaction.log",
-      "remaining": "Deterministic voice-to-daemon Unix-socket transactions and truthful failure/simulation wording are host-verified. Real wake/STT/TTS, physical relay/fan response and physical sensor query remain target-run evidence."
-    },
-    {
-      "id": "M10.23",
-      "title": "Clean/dirty lifecycle, support, documentation, package and Git closure",
+      "id": "M10.22",
+      "remaining": "Deterministic voice-to-daemon Unix-socket transactions and truthful failure/simulation wording are host-verified. Real wake/STT/TTS, physical relay/fan response and physical sensor query remain target-run evidence.",
       "software": "host-verified",
       "target": "not-run",
+      "title": "Voice/environment end-to-end transaction closure"
+    },
+    {
       "evidence": "docs/development/V09_CHECKPOINT_29_REPORT.md; docs/development/V09_CHANGE_VERIFICATION_REPORT_CHECKPOINT_29.md; docs/development/evidence/v09/checkpoint29/final_unit_accounting.json; docs/development/evidence/v09/checkpoint29/final_integration_accounting.json; docs/development/evidence/v09/checkpoint29/final_release_lifecycle_accounting.json; src/gonken_agent/support.py; docs/RASPBERRY_PI_ACCEPTANCE_RUN.md; docs/HARDWARE_SETUP.md; scripts/release_readiness.py",
-      "remaining": "Host lifecycle/support/documentation/readiness closure is verified. Package integrity is verified at checkpoint packaging. M10.24 remains the exact-package Raspberry Pi campaign and no physical acceptance is inferred."
+      "id": "M10.23",
+      "remaining": "Host lifecycle/support/documentation/readiness closure is verified. Package integrity is verified at checkpoint packaging. M10.24 remains the exact-package Raspberry Pi campaign and no physical acceptance is inferred.",
+      "software": "host-verified",
+      "target": "not-run",
+      "title": "Clean/dirty lifecycle, support, documentation, package and Git closure"
     },
     {
+      "evidence": "docs/development/V09_COMPREHENSIVE_CLOSURE_BLUEPRINT_CHECKPOINT_25.md; docs/RASPBERRY_PI_ACCEPTANCE_RUN.md; checkpoint-29/30 target transcripts: GPIO23 gpiochip0:23 manual 0/OFF, 1/ON, 0/OFF physical fan response; checkpoint-30 activation migrated to 34aee184d348f35db46fecacd36a369d9974c5a4, then a stale historical release 3b25b81c5bc7d4e24268726ad7f7b71296215a03 incorrectly failed post-activation pruning; checkpoint-30 local rerun authorized gonkenlab, passed identity preflight, requested I2C enablement, and paused before INSTALLATION_COMPLETE; support evidence then showed the active checkpoint-30 binding bridge and /dev/i2c-1 ready; checkpoint-31 target transcript/failure bundle: commit 8c9bd8b6a657f1a793c038bec8319d1f868315c7 built successfully then deterministically failed activation with RELEASE_INVALID payload digest differs before INSTALLATION_COMPLETE; support bundle retained checkpoint-30 current binding/I2C readiness; checkpoint-32 target transcript: commit 636285827c8947ba689400c9b1dc217ea5521130 activated and advanced through target runtime/I2C/model/speech/application-service gates before preferred Bluetooth AIRHUG connection failed; same-commit curl/local reruns then failed immutable_release with RELEASE_ACTIVE_INVALID; checkpoint-32 support bundle showed deterministic AIRHUG USB capture+playback, I2C ready, active gpiod bridge ready, and repeated WAKE_LED_GPIO_LINE_AMBIGUOUS events; checkpoint-33 target transcript: commit e5d05d105228d4cb8cf81201435d122a89435e6f built and activated, passed target identity/I2C/runtime bindings, environment service, Ollama, Whisper, Piper, speech smoke, application service, Bluetooth/autoconnect and runtime context, then failed appliance readiness because gonken-agent.service repeatedly emitted WAKE_LED_GPIO_LINE_AMBIGUOUS for GPIO22",
       "id": "M10.24",
-      "title": "Final Raspberry Pi environment and release acceptance",
+      "remaining": "Partial target evidence remains preserved: GPIO23/relay/PENGLIN/ELUTENG manual physical actuation PASS; SHT31 is visible at 0x44 on /dev/i2c-1; checkpoint 33 reached the live application service and final appliance-readiness gate but did not reach INSTALLATION_COMPLETE because GPIO22 remained ambiguous on the real Pi 5. Retest exact checkpoint 34, require its early non-actuating GPIO17/22/23/27 identity gate plus INSTALLATION_COMPLETE, then complete GonKen CLI actuator, real SHT31 diagnostics, full-real controller, voice/wake, faults, reboot/no-login, update/rollback/reinstall and final support evidence.",
       "software": "host-verified",
       "target": "not-run",
-      "evidence": "docs/development/V09_COMPREHENSIVE_CLOSURE_BLUEPRINT_CHECKPOINT_25.md; docs/RASPBERRY_PI_ACCEPTANCE_RUN.md; checkpoint-29/30 target transcripts: GPIO23 gpiochip0:23 manual 0/OFF, 1/ON, 0/OFF physical fan response; checkpoint-30 activation migrated to 34aee184d348f35db46fecacd36a369d9974c5a4, then a stale historical release 3b25b81c5bc7d4e24268726ad7f7b71296215a03 incorrectly failed post-activation pruning; checkpoint-30 local rerun authorized gonkenlab, passed identity preflight, requested I2C enablement, and paused before INSTALLATION_COMPLETE; support evidence then showed the active checkpoint-30 binding bridge and /dev/i2c-1 ready; checkpoint-31 target transcript/failure bundle: commit 8c9bd8b6a657f1a793c038bec8319d1f868315c7 built successfully then deterministically failed activation with RELEASE_INVALID payload digest differs before INSTALLATION_COMPLETE; support bundle retained checkpoint-30 current binding/I2C readiness; checkpoint-32 target transcript: commit 636285827c8947ba689400c9b1dc217ea5521130 activated and advanced through target runtime/I2C/model/speech/application-service gates before preferred Bluetooth AIRHUG connection failed; same-commit curl/local reruns then failed immutable_release with RELEASE_ACTIVE_INVALID; checkpoint-32 support bundle showed deterministic AIRHUG USB capture+playback, I2C ready, active gpiod bridge ready, and repeated WAKE_LED_GPIO_LINE_AMBIGUOUS events",
-      "remaining": "Partial target evidence remains preserved: GPIO23/relay/PENGLIN/ELUTENG manual physical actuation PASS; SHT31 is visible at 0x44 on /dev/i2c-1; checkpoint 32 activated and reached Bluetooth pairing but did not reach INSTALLATION_COMPLETE, and same-commit reruns exposed current-release runtime-cache self-contamination plus a hard Bluetooth preference. Retest exact checkpoint 33, require INSTALLATION_COMPLETE, then complete GonKen CLI actuator, real SHT31 diagnostics, full-real controller, voice/wake, faults, reboot/no-login, update/rollback/reinstall and final support evidence."
+      "title": "Final Raspberry Pi environment and release acceptance"
     },
     {
-      "id": "M10.25",
-      "title": "Target activation contract migration and upgrade compatibility repair",
-      "software": "host-verified",
-      "target": "not-run",
       "evidence": "scripts/release_manager.py; tests/fixtures/release_fakes.py; tests/unit/test_m3_3_release_manager.py; tests/integration/test_release_lifecycle_process.py; docs/development/evidence/v09/checkpoint30/affected_unit.log; docs/development/evidence/v09/checkpoint30/affected_integration.log; docs/development/evidence/v09/checkpoint30/final_unit_accounting.json; docs/development/evidence/v09/checkpoint30/final_integration_accounting.json; docs/development/evidence/v09/checkpoint30/final_release_lifecycle_accounting.json; docs/development/V09_CHECKPOINT_30_REPORT.md",
-      "remaining": "Install exact checkpoint 30 on the Raspberry Pi. The old post-verified pre-bridge active release may be used only as a bounded state-bound transition source; the new candidate remains under the strict bridge manifest/API contract. Target acceptance is not claimed until INSTALLATION_COMPLETE and the remaining M10.24 campaign pass."
-    },
-    {
-      "id": "M10.26",
-      "title": "Target install convergence, planned reboot and voice prerequisite hardening",
+      "id": "M10.25",
+      "remaining": "Install exact checkpoint 30 on the Raspberry Pi. The old post-verified pre-bridge active release may be used only as a bounded state-bound transition source; the new candidate remains under the strict bridge manifest/API contract. Target acceptance is not claimed until INSTALLATION_COMPLETE and the remaining M10.24 campaign pass.",
       "software": "host-verified",
       "target": "not-run",
+      "title": "Target activation contract migration and upgrade compatibility repair"
+    },
+    {
       "evidence": "scripts/release_manager.py; scripts/i2c_manager.py; scripts/lib/install_engine.sh; scripts/install.sh; scripts/bluetooth_manager.py; scripts/appliance_manager.py; scripts/install_summary.py; src/gonken_agent/voice_runtime.py; tests/unit/test_v09_install_dependency_graph.py; docs/development/evidence/v09/checkpoint31/target_incident_summary.json; docs/development/evidence/v09/checkpoint31/final_unit_accounting.json; docs/development/evidence/v09/checkpoint31/final_integration_accounting.json; docs/development/evidence/v09/checkpoint31/final_release_lifecycle_accounting.json; docs/development/V09_CHECKPOINT_31_REPORT.md; docs/development/V09_CHANGE_VERIFICATION_REPORT_CHECKPOINT_31.md",
-      "remaining": "Checkpoint-31 target retest was superseded by the checkpoint-32 M10.27 repair after the Pi exposed post-seal current-candidate self-mutation. Preserve M10.26 host evidence, but use checkpoint 32 for the next target campaign. Physical audio, INSTALLATION_COMPLETE and the rest of M10.24 remain target evidence."
-    },
-    {
-      "id": "M10.27",
-      "title": "Current-release immutable seal and post-seal runtime isolation repair",
+      "id": "M10.26",
+      "remaining": "Checkpoint-31 target retest was superseded by the checkpoint-32 M10.27 repair after the Pi exposed post-seal current-candidate self-mutation. Preserve M10.26 host evidence, but use checkpoint 32 for the next target campaign. Physical audio, INSTALLATION_COMPLETE and the rest of M10.24 remain target evidence.",
       "software": "host-verified",
       "target": "not-run",
+      "title": "Target install convergence, planned reboot and voice prerequisite hardening"
+    },
+    {
       "evidence": "scripts/release_manager.py; scripts/install.sh; scripts/ci.sh; tests/unit/test_m3_3_release_manager.py; tests/unit/test_v09_install_dependency_graph.py; tests/integration/test_release_lifecycle_process.py; tests/integration/test_speech_lifecycle_process.py; docs/development/evidence/v09/checkpoint32/target_incident_summary.json; docs/development/evidence/v09/checkpoint32/final_unit_accounting.json; docs/development/evidence/v09/checkpoint32/final_integration_accounting.json; docs/development/evidence/v09/checkpoint32/final_release_lifecycle_accounting.json; docs/development/V09_CHECKPOINT_32_REPORT.md",
-      "remaining": "Checkpoint-32 target retest exposed a later same-current-release rerun defect and optional-audio convergence gap after successful activation. Preserve M10.27 host evidence, but use checkpoint 33 M10.28 for the next target campaign. INSTALLATION_COMPLETE and remaining M10.24 physical evidence remain open."
-    },
-    {
-      "id": "M10.28",
-      "title": "Same-commit runtime stability, optional audio fallback and Pi5 GPIO convergence",
+      "id": "M10.27",
+      "remaining": "Checkpoint-32 target retest exposed a later same-current-release rerun defect and optional-audio convergence gap after successful activation. Preserve M10.27 host evidence, but use checkpoint 33 M10.28 for the next target campaign. INSTALLATION_COMPLETE and remaining M10.24 physical evidence remain open.",
       "software": "host-verified",
       "target": "not-run",
+      "title": "Current-release immutable seal and post-seal runtime isolation repair"
+    },
+    {
       "evidence": "scripts/release_manager.py; scripts/install.sh; scripts/bluetooth_manager.py; scripts/service_manager.py; scripts/environment_service_manager.py; packaging/systemd/gonken-agent.service; packaging/systemd/gonken-environment.service; packaging/systemd/gonken-bluetooth-autoconnect.service; src/gonken_agent/interaction/gpiod_ptt.py; src/gonken_agent/environment/actuators/gpiod_relay.py; tests/unit/test_m3_3_release_manager.py; tests/unit/test_x4_bluetooth_manager.py; tests/unit/test_v09_install_dependency_graph.py; tests/unit/test_m5_1_ptt_runtime.py; tests/unit/test_v09_environment_hardware_adapters.py; docs/development/evidence/v09/checkpoint33/target_incident_summary.json; docs/development/evidence/v09/checkpoint33/final_unit_accounting.json; docs/development/evidence/v09/checkpoint33/final_integration_accounting.json; docs/development/evidence/v09/checkpoint33/final_release_lifecycle_accounting.json; docs/development/V09_CHECKPOINT_33_REPORT.md",
-      "remaining": "Install exact checkpoint 33 on the Raspberry Pi. Repeated local-checkpoint and remote/curl entry paths must converge on the same current-release state without RELEASE_ACTIVE_INVALID from derived Python cache artifacts; busy/unavailable preferred Bluetooth must fall back to one deterministic direct USB duplex route when present; Pi5 header GPIOs must resolve via the unique RP1 controller. Target INSTALLATION_COMPLETE and the rest of M10.24 remain unclaimed until observed."
+      "id": "M10.28",
+      "remaining": "Checkpoint-33 target retest advanced through release activation and all installer/runtime/audio prerequisites to the final appliance-readiness gate, where the real Pi still reported WAKE_LED_GPIO_LINE_AMBIGUOUS for GPIO22. Preserve M10.28 host evidence, but use checkpoint 34 M10.29 for the next target campaign. INSTALLATION_COMPLETE and remaining M10.24 physical evidence remain open.",
+      "software": "host-verified",
+      "target": "not-run",
+      "title": "Same-commit runtime stability, optional audio fallback and Pi5 GPIO convergence"
+    },
+    {
+      "evidence": "docs/development/V09_CHECKPOINT_34_FINAL_CONVERGENCE_BLUEPRINT.md; src/gonken_agent/gpio_resolver.py; scripts/gpio_identity_preflight.py; scripts/release_manager.py; scripts/install.sh; scripts/bluetooth_manager.py; src/gonken_agent/interaction/gpiod_ptt.py; src/gonken_agent/environment/actuators/gpiod_relay.py; tests/unit/test_m3_3_release_manager.py; tests/unit/test_m5_1_ptt_runtime.py; tests/unit/test_v09_environment_hardware_adapters.py; tests/unit/test_v09_gpio_identity_preflight.py; tests/unit/test_v09_install_dependency_graph.py; tests/unit/test_x4_bluetooth_manager.py; tests/integration/test_release_lifecycle_process.py; docs/development/evidence/v09/checkpoint34/target_incident_summary.json; docs/development/evidence/v09/checkpoint34/final_unit_accounting.json; docs/development/evidence/v09/checkpoint34/final_integration_accounting.json; docs/development/evidence/v09/checkpoint34/final_speech_lifecycle_accounting.json; docs/development/evidence/v09/checkpoint34/final_release_lifecycle_accounting.json; docs/development/V09_CHECKPOINT_34_REPORT.md; docs/development/V09_CHANGE_VERIFICATION_REPORT_CHECKPOINT_34.md",
+      "id": "M10.29",
+      "remaining": "Install exact checkpoint 34 on the Raspberry Pi. The installer must prove GPIO17/22/23/27 coherently through the shared non-actuating header resolver before environment/application readiness, must continue through deterministic USB/wired duplex audio if preferred Bluetooth is unavailable, and repeated local-checkpoint/curl runs of the same commit must remain convergent without current-release dead ends. Target INSTALLATION_COMPLETE and the rest of M10.24 remain unclaimed until observed.",
+      "software": "host-verified",
+      "target": "not-run",
+      "title": "Authoritative runtime boundary, transport-neutral audio and early Pi5 GPIO identity convergence"
     }
   ],
   "schema_version": 1

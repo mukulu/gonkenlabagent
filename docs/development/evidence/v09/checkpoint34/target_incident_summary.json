@@ -1,0 +1,24 @@
+{
+  "checkpoint34_repairs": [
+    "shared non-actuating Pi5 GPIO resolver with metadata/sysfs/header-topology evidence and fail-closed ambiguity",
+    "early target_gpio_identity installer step for GPIO17/22/23/27 before services",
+    "single immutable authoritative-payload definition excludes only real __pycache__ bytecode artifacts from digest/manifest/owner/mode validation",
+    "Bluetooth is optional when one deterministic direct USB/wired input+output route is available",
+    "runtime context is transport-neutral",
+    "same-commit repeated install and current-only release behavior remain regression-protected"
+  ],
+  "classification": "checkpoint33 target failure is a late Pi5 GPIO identity/discovery defect, not a release activation failure",
+  "observed": [
+    "checkpoint 33 built and activated successfully",
+    "target identity, I2C, runtime binding, environment service, Ollama, Whisper, Piper, speech smoke, application service, Bluetooth steps and runtime context advanced to appliance readiness",
+    "gonken-agent.service stayed running but repeatedly emitted WAKE_LED_GPIO_LINE_AMBIGUOUS for GPIO22",
+    "installer stopped at APPLIANCE_NOT_READY after the 180 second readiness window",
+    "prior target evidence physically verifies GPIO23 relay/fan actuation and SHT31 address 0x44 on /dev/i2c-1",
+    "prior target support startup snapshot shows one 54-line chip containing the coherent header signature GPIO2/GPIO3/GPIO17/GPIO22/GPIO23/GPIO27, supporting topology-based Pi5 header disambiguation without making gpiochip0 a product assumption"
+  ],
+  "physical_acceptance_claimed": false,
+  "remaining": "exact checkpoint34 must reach INSTALLATION_COMPLETE and integrated CLI/SHT31/fan/voice/wake/fault/reboot/update/rollback acceptance on target",
+  "schema": 1,
+  "source_checkpoint": "e5d05d105228d4cb8cf81201435d122a89435e6f",
+  "target": "Raspberry Pi 5"
+}

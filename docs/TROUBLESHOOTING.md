@@ -198,3 +198,33 @@ This is a current-release integrity failure, not evidence that an older release 
 Do not delete historical releases, fabricate manifests, thaw the active tree, or edit `/usr/local/lib/gonken-agent/current`. Preserve the installer failure bundle. Checkpoint-32 errors include bounded changed/missing/unexpected path hints when the payload manifest can localize the drift.
 
 Older releases are not normal runtime dependencies. They remain only as release history / explicit rollback candidates.
+
+## Checkpoint 34: installer or service reports `WAKE_LED_GPIO_LINE_AMBIGUOUS`
+
+Checkpoint 33 demonstrated this failure on the real Raspberry Pi 5 after every earlier installer prerequisite had passed. Checkpoint 34 moves GPIO identity into an earlier non-actuating installer gate and uses the same shared resolver for PTT GPIO17, wake GPIO22, relay GPIO23 and recording LED GPIO27.
+
+Safe diagnostics:
+
+```bash
+gpiodetect
+gpioinfo --strict GPIO17
+gpioinfo --strict GPIO22
+gpioinfo --strict GPIO23
+gpioinfo --strict GPIO27
+```
+
+Do not assume `/dev/gpiochip0` from documentation alone. The checkpoint-34 resolver first accepts a globally unique line name, then a unique RP1 metadata match, then a unique coherent header topology. If multiple coherent header-like chips remain, it fails closed. The installer should now stop at `target_gpio_identity` with bounded candidate details instead of waiting for `APPLIANCE_NOT_READY`.
+
+Do not disable the wake indicator, hard-code an offset, or manually edit the immutable release merely to get readiness. Preserve the installer failure bundle and support evidence.
+
+## Checkpoint 34: same-commit reinstall after runtime activity
+
+Checkpoint 34 defines one immutable-authority boundary for payload hashing, path manifests, ownership and mutability. A real non-symlink `__pycache__` tree containing only `.pyc`/`.pyo` derivatives is outside that authority; it must not make a valid current release fail on rerun. A symlink named `__pycache__`, top-level bytecode, non-bytecode files hidden in cache directories, and any source/config/executable/manifest difference remain authoritative and fail closed.
+
+`RELEASE_ACTIVE_INVALID` therefore remains meaningful for actual current-release drift. It is not a comparison with historical releases. Historical releases are not executed or revalidated during normal install/runtime and matter only for explicit rollback/update bookkeeping.
+
+## Checkpoint 34: requested Bluetooth is unavailable but USB audio works
+
+`--bluetooth-audio` means “prefer/configure Bluetooth,” not “make Bluetooth mandatory.” If the requested headset is busy or offline and the service user can prove exactly one direct USB/wired capture device plus one direct non-HDMI playback device, the installer may continue and report bounded Bluetooth warnings with `AUDIO_DIRECT_FALLBACK_READY`.
+
+If direct audio is missing or ambiguous, the installer still fails rather than guessing. Keep only the intended USB/wired audio devices connected or restore the preferred Bluetooth device, then rerun the same checkpoint.

@@ -1,0 +1,6 @@
+test_process_activation_does_not_execute_or_revalidate_previous_current_release (tests.integration.test_release_lifecycle_process.TargetBridgeUpgradeCompatibilityTests.test_process_activation_does_not_execute_or_revalidate_previous_current_release) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.605s
+
+OK

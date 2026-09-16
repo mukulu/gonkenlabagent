@@ -176,6 +176,30 @@ class GpiodPttHardwareTests(unittest.TestCase):
         self.assertEqual(wake.identity.chip_path, "/dev/gpiochip0")
         self.assertEqual(wake.identity.line_offset, 22)
 
+    def test_pi5_header_topology_disambiguates_when_chip_labels_are_unavailable(self):
+        rp1 = [None] * 54
+        for bcm in (2, 3, 17, 22, 23, 27):
+            rp1[bcm] = f"GPIO{bcm}"
+        duplicate = [None] * 32
+        duplicate[7] = "GPIO22"
+        duplicate[5] = "GPIO17"
+        duplicate[9] = "GPIO27"
+        module = FakeGpiod({"/dev/gpiochip0": rp1, "/dev/gpiochip10": duplicate})
+        hardware = GpiodPushToTalkHardware(
+            button_bcm=17, led_bcm=27, gpiod_module=module,
+            chip_paths=["/dev/gpiochip0", "/dev/gpiochip10"],
+        )
+        hardware.open()
+        self.assertEqual(hardware.button_identity.chip_path, "/dev/gpiochip0")
+        self.assertEqual(hardware.button_identity.resolution_basis, "header-topology")
+        wake = GpiodWakeMonitoringLed(
+            logical_bcm=22, gpiod_module=module, chip_paths=["/dev/gpiochip0", "/dev/gpiochip10"]
+        )
+        wake.open()
+        self.assertEqual(wake.identity.chip_path, "/dev/gpiochip0")
+        self.assertEqual(wake.identity.line_offset, 22)
+        self.assertEqual(wake.identity.resolution_basis, "header-topology")
+
     def test_refuses_missing_ambiguous_or_cross_chip_mappings(self):
         with self.subTest("missing"):
             module = FakeGpiod({"/dev/gpiochip0": ["GPIO27"]})

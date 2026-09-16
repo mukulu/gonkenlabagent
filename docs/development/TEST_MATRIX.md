@@ -1319,3 +1319,20 @@ Checkpoint 24 closes the host-side root cause and adds regression protection, bu
 | Full deterministic integration surface | 12 modules / 67 tests PASS; interrupted aggregate wrappers are not counted as PASS | `docs/development/evidence/v09/checkpoint33/final_integration_accounting.json` |
 | Release lifecycle | 11/11 PASS including build/seal/repeat/current-only/tamper/rollback/finalization | `docs/development/evidence/v09/checkpoint33/final_release_lifecycle_accounting.json` |
 | Raspberry Pi acceptance | Must reach `INSTALLATION_COMPLETE`, then real CLI fan, SHT31, full-real controller and voice/wake/fault/reboot/update/rollback evidence | M10.24 — TARGET NOT RUN for checkpoint 33 |
+
+## V09 checkpoint 34 — M10.29 authoritative runtime/audio/GPIO final convergence
+
+| ID | Scope | Command / artifact | Host result | Target boundary |
+|---|---|---|---:|---|
+| CP34-T170 | Checkpoint-33 target incident classification | `checkpoint34/target_incident_summary.json`; target transcript | VERIFIED | Checkpoint 33 activated and passed every installer prerequisite through runtime context; final appliance readiness failed on repeated `WAKE_LED_GPIO_LINE_AMBIGUOUS GPIO22`. |
+| CP34-T171 | Unified immutable authority boundary | release manager + adversarial cache/tamper unit tests | PASS | Only real `__pycache__` bytecode derivatives are non-authoritative; symlink/top-level bytecode/non-bytecode cache content and real payload drift fail closed. |
+| CP34-T172 | Same-commit runtime-cache repeat | release lifecycle dedicated rerun | PASS | Exact Pi repeated local/curl install still requires target confirmation. |
+| CP34-T173 | Current-release-only normal operation | release lifecycle current-only case | PASS | Historical releases remain explicit rollback state only. |
+| CP34-T174 | Transport-neutral audio and optional Bluetooth | Bluetooth manager + installer dependency tests | PASS | Busy/offline preferred Bluetooth may continue only with one deterministic direct capture+playback route; ambiguous/missing fallback fails. |
+| CP34-T175 | Shared Pi5 GPIO resolver | PTT/wake/relay adapter tests | PASS | No hard-coded gpiochip number; metadata/topology resolution is host-tested, physical target still required. |
+| CP34-T176 | Non-actuating target GPIO preflight | `gpio_identity_preflight.py`; installer-order tests | PASS | GPIO17/22/23/27 must resolve before services; helper requests/writes no GPIO lines. |
+| CP34-T177 | Complete unit accounting | `checkpoint34/final_unit_accounting.json` | PASS — 47 modules / 487 tests | Host only. Aggregate interruptions were decomposed; all discovered modules accounted. |
+| CP34-T178 | Deterministic non-lifecycle integration | `checkpoint34/final_integration_accounting.json` | PASS — 10 modules / 44 tests | Includes launcher, installer, support, text runtime, Ollama, uninstall, environment voice transaction and simulation candidate. |
+| CP34-T179 | Speech lifecycle | `checkpoint34/final_speech_lifecycle_accounting.json`; `checkpoint34/speech_cases/` | PASS — 12/12 | Synthetic lifecycle only; physical microphone/speaker remains target gate. |
+| CP34-T180 | Release lifecycle | `checkpoint34/final_release_lifecycle_accounting.json`; `checkpoint34/release_cases/` | PASS — 12/12 | Includes same-commit runtime-cache repeat and previous-current non-execution. |
+| CP34-T181 | Exact checkpoint-34 Raspberry Pi install | exact delivered checkpoint 34 | NOT RUN / BLOCKED TARGET GATE | Must pass early GPIO identity and reach `INSTALLATION_COMPLETE`, then complete M10.24 integrated hardware/voice/lifecycle campaign. |

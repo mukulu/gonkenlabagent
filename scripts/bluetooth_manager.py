@@ -983,11 +983,24 @@ def watch(record: Path, audio_user: str, interval: int) -> None:
             time.sleep(0.5)
 
 
+def direct_status(audio_user: str) -> tuple[str, str]:
+    routes = direct_audio_fallback(audio_user)
+    if routes is None:
+        fail(
+            "AUDIO_DIRECT_UNAVAILABLE",
+            "no single deterministic direct capture+playback route is available",
+            "connect exactly one supported USB/wired microphone and playback device or restore Bluetooth",
+            75,
+        )
+    print(f"[OK] code=AUDIO_DIRECT_FALLBACK_READY input={routes[0]} output={routes[1]}")
+    return routes
+
+
 def parser() -> argparse.ArgumentParser:
     result = argparse.ArgumentParser(description=__doc__)
     commands = result.add_subparsers(dest="command", required=True)
 
-    for name in ("stack-status", "prepare"):
+    for name in ("stack-status", "prepare", "direct-status"):
         item = commands.add_parser(name)
         item.add_argument("--audio-user", default="gonken-agent")
 
@@ -1033,6 +1046,8 @@ def main(argv: list[str] | None = None) -> int:
             stack_status(args.audio_user)
         elif args.command == "prepare":
             prepare(args.audio_user)
+        elif args.command == "direct-status":
+            direct_status(args.audio_user)
         elif args.command == "pair":
             pair(args.selector, args.audio_user, Path(args.record), args.timeout)
         elif args.command == "status":

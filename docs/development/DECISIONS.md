@@ -1641,3 +1641,28 @@ This compatibility is a migration mechanism, not a waiver. The goal is to move s
 - **Decision:** Each checkpoint that changes a managed systemd template records the exact hash of the immediately supported managed predecessor. Unknown unit content remains a conflict.
 - **Reason:** Adding runtime bytecode-suppression environment variables is itself a legitimate package upgrade and must not trigger the exact-conflict protection designed for administrator modifications.
 - **Consequence:** Checkpoint 32 → checkpoint 33 service upgrades converge automatically without weakening ownership/conflict safeguards.
+
+## V09 checkpoint 34 — final-convergence decisions
+
+### D34-01 — Immutable authority excludes only standard derived Python cache artifacts
+- **Decision:** Use one authoritative-payload iterator for digest, manifest, ownership and mutability validation. Exclude only a real non-symlink `__pycache__` directory and `.pyc`/`.pyo` files beneath it.
+- **Reason:** Checkpoint 33 could still encounter mode/owner drift from root-created caches even after cache-aware digest handling. A single authority definition prevents the same benign derivation from failing under a different validator.
+- **Must avoid:** broad `*.pyc` exclusions, symlink cache directories, arbitrary files inside cache directories, source/config/manifest changes, or in-place repair of authoritative drift.
+- **Consequence:** same-commit runtime caches cannot dead-end installation, while genuine current-release tampering still fails closed.
+
+### D34-02 — Historical releases are not normal runtime prerequisites
+- **Decision:** Normal installation/runtime never executes or revalidates a previous release. Previous release content is consulted only by explicit rollback/update state transitions.
+- **Reason:** The product must operate from the current release; historical compatibility belongs to release engineering, not ordinary service readiness.
+- **Consequence:** `RELEASE_ACTIVE_INVALID` protects the requested current release only and is not a cross-version comparison gate.
+
+### D34-03 — Bluetooth is a preferred transport; usable physical audio is the prerequisite
+- **Decision:** When deterministic direct USB/wired input and non-HDMI output are proven, Bluetooth stack/pair/autoconnect failure degrades to bounded warnings rather than blocking installation.
+- **Reason:** Target evidence already provides usable AIRHUG USB capture/playback while the preferred Bluetooth device may be busy with another host.
+- **Must avoid:** guessing among multiple USB devices, treating HDMI-only output as headset fallback, or claiming Bluetooth success when fallback is direct audio.
+- **Consequence:** appliance readiness depends on an actual usable audio route, not the requested transport mechanism.
+
+### D34-04 — One shared, non-actuating Pi5 GPIO resolver and an early installer gate
+- **Decision:** GPIO17/22/23/27 use a shared resolver based on line names, RP1 metadata/sysfs label, and coherent header topology; a pre-service installer step runs the same resolver without requesting any line.
+- **Reason:** Checkpoint 33 reached the live service but timed out because GPIO22 resolution remained ambiguous despite host RP1-label tests.
+- **Must avoid:** hard-coding gpiochip0, assuming BCM equals offset, or adding a special wake-only mapping rule.
+- **Consequence:** installer and runtime share one truth and target mapping defects surface before the final 180-second readiness wait.

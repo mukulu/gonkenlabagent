@@ -296,6 +296,22 @@ class GpiodRelayAdapterTests(unittest.TestCase):
         self.assertEqual(relay.identity.chip_path, "/dev/gpiochip0")
         self.assertEqual(relay.identity.line_offset, 23)
 
+    def test_relay_uses_header_topology_when_pi5_chip_label_is_missing(self) -> None:
+        rp1 = [None] * 54
+        for bcm in (2, 3, 17, 22, 23, 27):
+            rp1[bcm] = f"GPIO{bcm}"
+        duplicate = [None] * 32
+        duplicate[4] = "GPIO23"
+        module = FakeGpiod(chips={"/dev/gpiochip0": rp1, "/dev/gpiochip10": duplicate})
+        relay = GpiodRelayFanActuator(
+            logical_bcm=23, active_high=True, gpiod_module=module,
+            chip_paths=["/dev/gpiochip0", "/dev/gpiochip10"],
+        )
+        relay.open()
+        self.assertEqual(relay.identity.chip_path, "/dev/gpiochip0")
+        self.assertEqual(relay.identity.line_offset, 23)
+        self.assertEqual(relay.identity.resolution_basis, "header-topology")
+
     def test_relay_discovery_fails_closed_for_missing_or_ambiguous_line_name(self) -> None:
         with self.subTest("missing"):
             relay = GpiodRelayFanActuator(

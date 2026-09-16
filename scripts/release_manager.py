@@ -373,55 +373,42 @@ def _payload_items(path: Path) -> list[Path]:
     return sorted(path.rglob("*"), key=lambda entry: entry.relative_to(path).as_posix())
 
 
-def _is_python_runtime_transient(path: Path, release: Path) -> bool:
-    """Return whether ``path`` is a non-authoritative Python cache artifact.
+def _is_runtime_cache_artifact(path: Path, release: Path) -> bool:
+    """Return whether ``path`` is a standard derived Python cache artifact.
 
-    A sealed release may be executed by privileged installer/runtime helpers.  A
-    Python interpreter can create ``__pycache__`` directories and ``.pyc/.pyo``
-    files even when the release is otherwise read-only because root can bypass
-    ordinary DAC write checks.  These artifacts are derived from authoritative
-    source and are never part of the release contract.
+    The immutable authority boundary covers source/config/manifests/native
+    bindings and all other release payload.  A *real directory* named
+    ``__pycache__`` plus only ``.pyc/.pyo`` files immediately below/within it
+    are interpreter-derived runtime cache and are not authoritative.
 
-    Keep the allow-list deliberately narrow: source, configuration, manifests,
-    wheels, native bindings and every other file remain integrity-protected.
+    A symlink named ``__pycache__`` is never trusted as cache.  Top-level
+    sourceless bytecode and non-bytecode files hidden inside a cache directory
+    remain authoritative/unexpected and therefore fail validation.
     """
     try:
         relative = path.relative_to(release)
     except ValueError:
         return False
-    if any(part == "__pycache__" for part in relative.parts):
+    parts = relative.parts
+    try:
+        index = parts.index("__pycache__")
+    except ValueError:
+        return False
+    cache_root = release.joinpath(*parts[: index + 1])
+    try:
+        if cache_root.is_symlink() or not cache_root.is_dir():
+            return False
+    except OSError:
+        return False
+    if path == cache_root:
         return True
-    return path.is_file() and path.suffix in {".pyc", ".pyo"}
-
-
-def _runtime_transient_differences_only(release: Path) -> bool:
-    # Repair decisions must inspect the complete difference set.  A bounded
-    # diagnostic view is appropriate for error messages, but truncation here
-    # could hide an authoritative change behind many cache artifacts.
-    differences = payload_manifest_differences(release, limit=None)
-    if not differences:
+    if path.is_symlink() or not path.is_file():
         return False
-    for difference in differences:
-        prefix, sep, raw = difference.partition(":")
-        if not sep or prefix != "unexpected":
-            return False
-        if not _is_python_runtime_transient(release / raw, release):
-            return False
-    return True
+    return path.suffix in {".pyc", ".pyo"}
 
 
-def repair_active_runtime_transients(release: Path) -> bool:
-    """Remove only benign interpreter caches from an otherwise sealed release.
-
-    This recovery is intentionally narrower than rebuilding or rewriting the
-    active release.  It is allowed only when the payload manifest proves every
-    difference is an unexpected Python cache artifact.
-    """
-    if not _runtime_transient_differences_only(release):
-        return False
-    purge_release_transients(release)
-    freeze_tree(release)
-    return True
+def _authoritative_payload_items(path: Path) -> list[Path]:
+    return [item for item in _payload_items(path) if not _is_runtime_cache_artifact(item, path)]
 
 
 def _payload_entry(path: Path, item: Path) -> tuple[str, str, str]:
@@ -438,7 +425,7 @@ def _payload_entry(path: Path, item: Path) -> tuple[str, str, str]:
 
 def payload_sha256(path: Path) -> str:
     digest = hashlib.sha256()
-    for item in _payload_items(path):
+    for item in _authoritative_payload_items(path):
         relative = item.relative_to(path).as_posix()
         if relative == "release.record":
             continue
@@ -484,7 +471,7 @@ def make_candidate_service_readable(workspace: Path, release: Path) -> None:
 def write_payload_manifest(path: Path) -> None:
     entries: list[dict[str, str]] = []
     excluded = {"release.record", PAYLOAD_MANIFEST_RELATIVE.as_posix()}
-    for item in _payload_items(path):
+    for item in _authoritative_payload_items(path):
         relative = item.relative_to(path).as_posix()
         if relative in excluded:
             continue
@@ -514,7 +501,7 @@ def payload_manifest_differences(path: Path, limit: int | None = 8) -> list[str]
         return ["manifest:unreadable"]
     actual: dict[str, tuple[str, str]] = {}
     excluded = {"release.record", PAYLOAD_MANIFEST_RELATIVE.as_posix()}
-    for item in _payload_items(path):
+    for item in _authoritative_payload_items(path):
         relative = item.relative_to(path).as_posix()
         if relative in excluded:
             continue
@@ -958,13 +945,6 @@ def build_release(
                 return final
             current = current_commit(release_root)
             if current == commit:
-                if error.code == "RELEASE_INVALID" and repair_active_runtime_transients(final):
-                    validate_release_static(final, commit=commit, profile=profile)
-                    print(
-                        f"[OK] code=RELEASE_ACTIVE_TRANSIENTS_REPAIRED commit={commit} "
-                        "policy=python_cache_only"
-                    )
-                    return final
                 fail(
                     "RELEASE_ACTIVE_INVALID",
                     f"active release for the requested commit is invalid: {error.code}",
@@ -1047,6 +1027,7 @@ def build_release(
             source / "scripts" / "environment_profile_manager.py": maintenance / "environment_profile_manager.py",
             source / "scripts" / "target_preflight.py": maintenance / "target_preflight.py",
             source / "scripts" / "i2c_manager.py": maintenance / "i2c_manager.py",
+            source / "scripts" / "gpio_identity_preflight.py": maintenance / "gpio_identity_preflight.py",
             source / "scripts" / "sht31_diagnostic.py": maintenance / "sht31_diagnostic.py",
             source / "scripts" / "runtime_context_preflight.py": maintenance / "runtime_context_preflight.py",
             source / "scripts" / "installer_failure_bundle.py": maintenance / "installer_failure_bundle.py",
@@ -1086,6 +1067,7 @@ def build_release(
             maintenance / "environment_profile_manager.py",
             maintenance / "target_preflight.py",
             maintenance / "i2c_manager.py",
+            maintenance / "gpio_identity_preflight.py",
             maintenance / "sht31_diagnostic.py",
             maintenance / "runtime_context_preflight.py",
             maintenance / "installer_failure_bundle.py",
@@ -1212,7 +1194,7 @@ def validate_release_static(
             "quarantine the release and rebuild from the exact current checkpoint",
             74,
         )
-    for item in [release, *release.rglob("*")]:
+    for item in [release, *_authoritative_payload_items(release)]:
         if item.is_symlink():
             continue
         if stat.S_IMODE(item.stat().st_mode) & 0o222:

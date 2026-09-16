@@ -308,6 +308,17 @@ card 4: MicB [USB Mic B], device 0: USB Audio [USB Audio]
                 allow_direct_fallback=True,
             )
 
+    def test_direct_status_accepts_deterministic_usb_duplex_without_bluetooth(self) -> None:
+        with mock.patch.object(bluetooth_manager, "direct_audio_fallback", return_value=("plughw:CARD=A01,DEV=0", "plughw:CARD=A01,DEV=0")):
+            routes = bluetooth_manager.direct_status("gonken-agent")
+        self.assertEqual(routes, ("plughw:CARD=A01,DEV=0", "plughw:CARD=A01,DEV=0"))
+
+    def test_direct_status_refuses_missing_or_ambiguous_direct_audio(self) -> None:
+        with mock.patch.object(bluetooth_manager, "direct_audio_fallback", return_value=None):
+            with self.assertRaises(bluetooth_manager.BluetoothError) as raised:
+                bluetooth_manager.direct_status("gonken-agent")
+        self.assertEqual(raised.exception.code, "AUDIO_DIRECT_UNAVAILABLE")
+
     def test_direct_playback_fallback_prefers_one_usb_card_and_ignores_hdmi(self) -> None:
         output = """**** List of PLAYBACK Hardware Devices ****
 card 0: A01 [AIRHUG 01], device 0: USB Audio [USB Audio]

@@ -594,3 +594,17 @@ A requested Bluetooth headset is a preference, not a mandatory core dependency. 
 A repeated install of the same commit must not stop merely because Python generated cache files after activation. Checkpoint 33 suppresses such writes and can remove only recognized Python cache artifacts before revalidating the current release. `RELEASE_ACTIVE_INVALID` remains a real stop for authoritative payload drift and must not be bypassed manually.
 
 On Raspberry Pi 5, GPIO17/GPIO22/GPIO23/GPIO27 line-name duplicates across unrelated gpiochips may be disambiguated only by a unique chip labelled `pinctrl-rp1`; do not hard-code a gpiochip number. A genuinely ambiguous or absent header mapping remains a STOP condition.
+
+## Checkpoint 34 convergence note — early Pi5 GPIO identity and transport-neutral audio
+
+Checkpoint 34 supersedes checkpoint-33 target retry instructions. The checkpoint-33 target run built and activated the current release and passed target identity, I2C, runtime bindings, environment service, Ollama, Whisper, Piper, speech smoke, application service, Bluetooth/autoconnect and runtime-context checks. It then spent the final readiness window reporting `WAKE_LED_GPIO_LINE_AMBIGUOUS` for GPIO22. The next package therefore proves the Pi5 header mapping **before** environment/application readiness.
+
+After `target_runtime_bindings`, expect the non-actuating `target_gpio_identity` installer step. It inspects gpiochip metadata only and must resolve GPIO17, GPIO22, GPIO23 and GPIO27 to one coherent Pi header controller. It does not request a line and cannot toggle the fan, PTT button or LEDs. A valid result records `GPIO_HEADER_RESOLVED`; an unresolved/ambiguous result is a STOP condition and should name bounded candidate metadata. Do not work around it with `gpioset`, a hard-coded `/dev/gpiochip0`, or a manual line offset inside the GonKen configuration.
+
+The resolver is shared by PTT, wake indication and the environment relay. It may use a globally unique line name, unique RP1 controller metadata, or a unique coherent header topology containing the project header GPIO signature. It never assumes BCM equals a character-device offset.
+
+Requested Bluetooth remains a preference. If it is busy/offline but exactly one direct USB/wired capture route and one direct non-HDMI playback route are proven, installation may continue with warnings and later Bluetooth autoconnect. Zero or ambiguous fallback devices remain a STOP condition. Runtime-context validation is transport-neutral: it validates a usable audio runtime rather than requiring PipeWire solely because Bluetooth was requested.
+
+Repeated installation of the same checkpoint must remain idempotent after service/runtime execution. Standard Python `__pycache__` bytecode derivatives are outside the authoritative immutable payload; source/config/executable/manifest changes are not. Do not manually delete or rewrite `/usr/local/lib/gonken-agent/current` if an authoritative integrity error occurs.
+
+Only proceed to the integrated M10.24 hardware/voice campaign after the exact checkpoint reaches `INSTALLATION_COMPLETE`.

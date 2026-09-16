@@ -30,6 +30,7 @@ class TargetInstallDependencyGraphTests(unittest.TestCase):
             "target_identity_preflight",
             "target_i2c_platform",
             "target_runtime_bindings",
+            "target_gpio_identity",
             "environment_service",
             "ollama_account_and_store",
             "ollama_binary",
@@ -127,6 +128,28 @@ class TargetInstallDependencyGraphTests(unittest.TestCase):
         self.assertIn("BLUETOOTH_OPTIONAL_UNAVAILABLE", manager)
         self.assertIn("AUDIO_DIRECT_FALLBACK_READY", manager)
         self.assertIn("direct_playback_fallback", manager)
+
+    def test_gpio_identity_is_proven_non_actuating_before_services_and_appliance(self) -> None:
+        self.assertLess(self.position("target_runtime_bindings"), self.position("target_gpio_identity"))
+        self.assertLess(self.position("target_gpio_identity"), self.position("environment_service"))
+        self.assertLess(self.position("target_gpio_identity"), self.position("appliance_readiness"))
+        registration = self.text[self.position("target_gpio_identity"):self.position("environment_service")]
+        self.assertIn("non_actuating_pi5_header_gpio_identity", registration)
+        self.assertIn("does_not_request_write_or_toggle_any_gpio_line", registration)
+
+    def test_runtime_context_is_transport_neutral_when_bluetooth_is_requested(self) -> None:
+        post = self.text[self.text.index("gonken_runtime_context_postcondition()"):self.text.index("gonken_runtime_context_action()")]
+        action = self.text[self.text.index("gonken_runtime_context_action()"):self.text.index("gonken_appliance_postcondition()")]
+        self.assertNotIn("--require-pipewire", post)
+        self.assertNotIn("--require-pipewire", action)
+        self.assertIn("--require-ready", post)
+        self.assertIn("--require-ready", action)
+
+        bluetooth_region = self.text[self.text.index("gonken_bluetooth_stack_postcondition()"):self.text.index("gonken_runtime_context_manager()")]
+        self.assertIn("gonken_bluetooth_direct_audio_ready", bluetooth_region)
+        self.assertIn("BLUETOOTH_OPTIONAL_STACK_UNAVAILABLE", bluetooth_region)
+        self.assertIn("BLUETOOTH_OPTIONAL_PAIRING_UNAVAILABLE", bluetooth_region)
+        self.assertIn("BLUETOOTH_OPTIONAL_AUTOCONNECT_SKIPPED", bluetooth_region)
 
     def test_appliance_readiness_record_is_bound_to_release_commit(self) -> None:
         runtime = (ROOT / "src" / "gonken_agent" / "voice_runtime.py").read_text(encoding="utf-8")
