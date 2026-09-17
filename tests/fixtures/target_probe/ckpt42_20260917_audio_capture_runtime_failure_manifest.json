@@ -1,0 +1,54 @@
+{
+  "audio": {
+    "capture_routes": [
+      {"id": "usb-airhug-capture", "source": "arecord -l", "status": "observed"}
+    ],
+    "playback_routes": [
+      {"hdmi": false, "id": "usb-airhug-playback", "source": "aplay -l", "status": "observed"}
+    ],
+    "selected_route": {
+      "ambiguous": false,
+      "capture": {"id": "usb-airhug-capture", "status": "available", "transport": "usb"},
+      "playback": {"hdmi": false, "id": "usb-airhug-playback", "status": "available", "transport": "usb"},
+      "selection_basis": "service-runtime-wired-first"
+    },
+    "runtime": {
+      "service_user": "gonken-agent",
+      "runtime_dir_ready": true,
+      "pipewire_socket_exists": true,
+      "pulse_socket_exists": true,
+      "capture_probe": {
+        "status": "failed",
+        "code": "AUDIO_CAPTURE_FAILED",
+        "backend": "pipewire-usb+alsa-usb",
+        "route_codes": ["AUDIO_CAPTURE_INVALID", "AUDIO_CAPTURE_FAILED"],
+        "content_persisted": false
+      }
+    }
+  },
+  "captured_at": "2026-09-17T13:41:39+00:00",
+  "format": "gonken-target-hardware-manifest-v1",
+  "gpiochips": [
+    {
+      "alias_paths": ["/dev/gpiochip0"],
+      "canonical_chip_id": "char:254:0:/sys/devices/platform/rp1/gpiochip0",
+      "chip_info": {"label": "pinctrl-rp1", "name": "gpiochip0", "num_lines": 54},
+      "line_names": {"2": "GPIO2", "3": "GPIO3", "17": "GPIO17", "22": "GPIO22", "23": "GPIO23", "27": "GPIO27"},
+      "path": "/dev/gpiochip0",
+      "stat": {"kind": "char", "major": 254, "minor": 0},
+      "sysfs_realpath": "/sys/devices/platform/rp1/gpiochip0"
+    }
+  ],
+  "physical_acceptance_claimed": false,
+  "privacy": {
+    "prompts_or_model_responses_included": false,
+    "raw_audio_included": false,
+    "transcripts_included": false
+  },
+  "target_shadow_requirements": {
+    "audio_duplex": true,
+    "audio_runtime": true,
+    "gpio_identity": true,
+    "privacy_boundary": true
+  }
+}

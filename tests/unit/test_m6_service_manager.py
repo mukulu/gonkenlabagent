@@ -84,6 +84,7 @@ class ServiceManagerTests(unittest.TestCase):
             "Wants=ollama.service gonken-environment.service",
             "After=network-online.target ollama.service gonken-environment.service",
             "ExecStartPre=+/usr/local/lib/gonken-agent/current/maintenance/reconcile-release.sh",
+            "ExecStartPre=/usr/bin/rm -f /run/gonken-agent/ready.json /run/gonken-agent/readiness.json",
             "ExecStart=/usr/local/lib/gonken-agent/current/.venv/bin/gonken-agent service",
             "EnvironmentFile=-/etc/gonken-agent/runtime-environment",
             "ReadWritePaths=/var/lib/gonken-agent/install /var/lib/gonken-agent/runtime /var/cache/gonken-agent /run/gonken-agent",

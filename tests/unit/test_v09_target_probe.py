@@ -92,6 +92,16 @@ class TargetProbeTests(unittest.TestCase):
         self.assertEqual(result["release_state"]["code"], "RELEASE_STATE_SAFE")
         self.assertFalse(result["physical_acceptance_claimed"])
 
+    def test_ckpt42_runtime_audio_failure_fixture_fails_functional_capture_gate(self):
+        result = target_probe.replay_manifest(
+            self.fixture("ckpt42_20260917_audio_capture_runtime_failure_manifest.json")
+        )
+        self.assertEqual(result["status"], "FAIL")
+        self.assertEqual(result["code"], "AUDIO_CAPTURE_RUNTIME_UNREADY")
+        self.assertEqual(result["audio_duplex"]["status"], "PASS")
+        self.assertEqual(result["audio_runtime"]["status"], "FAIL")
+        self.assertEqual(result["audio_runtime"]["observed_code"], "AUDIO_CAPTURE_FAILED")
+
     def test_ambiguous_audio_fixture_fails_closed(self):
         result = target_probe.replay_manifest(self.fixture("ambiguous_audio_route_manifest.json"))
         self.assertEqual(result["status"], "FAIL")

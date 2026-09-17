@@ -26,39 +26,65 @@ class ApplianceManagerTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary:
             path = Path(temporary) / "ready.json"
             module.READY_FILE = path
-            path.write_text(
-                '{"status":"READY","code":"VOICE_RUNTIME_READY",'
-                '"wake_phrase":"Hey Gonken","audio_backend":"alsa-usb",'
-                '"model":"qwen3.5:2b-q4_K_M","release_commit":"fixture",'
-                '"observed_epoch":1}\n',
-                encoding="utf-8",
-            )
+            payload = {
+                "status": "READY", "code": "VOICE_RUNTIME_READY",
+                "wake_phrase": "Hey Gonken", "audio_backend": "alsa-usb",
+                "model": "qwen3.5:2b-q4_K_M", "release_commit": "fixture",
+                "boot_id": module.current_boot_id(), "service_pid": __import__("os").getpid(),
+                "observed_epoch": 1,
+            }
+            path.write_text(__import__("json").dumps(payload) + "\n", encoding="utf-8")
             with mock.patch.object(module, "current_release_commit", return_value=None):
                 self.assertEqual(module.read_ready()["wake_phrase"], "Hey Gonken")
             path.write_text('{"status":"READY","code":"OTHER","wake_phrase":"Hey Gonken"}\n')
             self.assertIsNone(module.read_ready())
 
-    def test_ready_record_is_bound_to_current_immutable_release(self) -> None:
+    def test_ready_record_is_bound_to_current_immutable_release_and_boot(self) -> None:
         module = load_module()
         with tempfile.TemporaryDirectory() as temporary:
             path = Path(temporary) / "ready.json"
             module.READY_FILE = path
             current = "a" * 40
             previous = "b" * 40
-            path.write_text(
-                '{"status":"READY","code":"VOICE_RUNTIME_READY",'
-                '"wake_phrase":"GonKen","release_commit":"' + previous + '"}\n',
-                encoding="utf-8",
-            )
+            base = {
+                "status": "READY", "code": "VOICE_RUNTIME_READY", "wake_phrase": "GonKen",
+                "boot_id": module.current_boot_id(), "service_pid": __import__("os").getpid(),
+                "observed_epoch": 1,
+            }
+            wrong = dict(base, release_commit=previous)
+            path.write_text(__import__("json").dumps(wrong) + "\n", encoding="utf-8")
             with mock.patch.object(module, "current_release_commit", return_value=current):
                 self.assertIsNone(module.read_ready())
-            path.write_text(
-                '{"status":"READY","code":"VOICE_RUNTIME_READY",'
-                '"wake_phrase":"GonKen","release_commit":"' + current + '"}\n',
-                encoding="utf-8",
-            )
+            good = dict(base, release_commit=current)
+            path.write_text(__import__("json").dumps(good) + "\n", encoding="utf-8")
             with mock.patch.object(module, "current_release_commit", return_value=current):
                 self.assertEqual(module.read_ready()["release_commit"], current)
+            stale_boot = dict(good, boot_id="00000000-0000-0000-0000-000000000000")
+            path.write_text(__import__("json").dumps(stale_boot) + "\n", encoding="utf-8")
+            with mock.patch.object(module, "current_release_commit", return_value=current):
+                self.assertIsNone(module.read_ready())
+
+    def test_pending_readiness_rejects_stale_process_and_exposes_causal_code(self) -> None:
+        module = load_module()
+        with tempfile.TemporaryDirectory() as temporary:
+            path = Path(temporary) / "readiness.json"
+            module.READINESS_FILE = path
+            payload = {
+                "format": "gonken-voice-readiness-v1", "status": "WAITING",
+                "code": "AUDIO_CAPTURE_FAILED", "component": "audio_capture",
+                "recoverable": True, "release_commit": "development",
+                "boot_id": module.current_boot_id(), "service_pid": __import__("os").getpid(),
+                "observed_epoch": 1,
+            }
+            path.write_text(__import__("json").dumps(payload) + "\n", encoding="utf-8")
+            with mock.patch.object(module, "current_release_commit", return_value=None):
+                value = module.read_readiness()
+            self.assertEqual(value["component"], "audio_capture")
+            self.assertEqual(value["code"], "AUDIO_CAPTURE_FAILED")
+            payload["service_pid"] = 99999999
+            path.write_text(__import__("json").dumps(payload) + "\n", encoding="utf-8")
+            with mock.patch.object(module, "current_release_commit", return_value=None):
+                self.assertIsNone(module.read_readiness())
 
     def test_status_requires_enabled_active_and_runtime_ready_independently(self) -> None:
         module = load_module()
@@ -103,6 +129,7 @@ class ApplianceManagerTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary, \
              mock.patch.object(module.os, "geteuid", return_value=0), \
              mock.patch.object(module, "READY_FILE", Path(temporary) / "ready.json"), \
+             mock.patch.object(module, "READINESS_FILE", Path(temporary) / "readiness.json"), \
              mock.patch.object(module, "systemctl", side_effect=fake_systemctl), \
              mock.patch.object(module, "read_ready", return_value=ready):
             module.activate(30)

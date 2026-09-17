@@ -47,9 +47,14 @@ class SupportTests(unittest.TestCase):
         with zipfile.ZipFile(output) as z:
             index=json.loads(z.read('evidence_index.json'))
             target=json.loads(z.read('target_manifest.json'))
-        self.assertIn('target_manifest.json', index['members'])
+        self.assertIn('target_manifest.json', {item['path'] for item in index['members']})
         self.assertEqual(target['status'], 'UNAVAILABLE')
         self.assertFalse(index['physical_acceptance_claimed'])
+        self.assertEqual(index['format'], 'gonken-evidence-bundle-index-v2')
+        self.assertEqual(index['bundle_kind'], 'support')
+        for member in index['members']:
+            self.assertRegex(member['sha256'], r'^[0-9a-f]{64}$')
+            self.assertGreater(member['bytes'], 0)
 
     def test_bundle_preserves_allow_listed_health_reason_codes(self):
         output=self.root/'support-codes.zip'
@@ -75,6 +80,30 @@ class SupportTests(unittest.TestCase):
         self.assertNotIn('stdout', json.dumps(payload))
         self.assertIn('gpio_platform', payload)
         self.assertIn('runtime_context', payload)
+        self.assertIn('audio_session', payload)
+        self.assertIn('voice_readiness', payload)
+        self.assertFalse(payload['audio_session']['capture_content_collected'])
+
+    def test_audio_endpoint_metadata_redacts_stable_bluetooth_identifiers(self):
+        self.assertEqual(
+            support._safe_audio_endpoint("bluez_input.41_42_06_42_05_80.0"),
+            "bluez_input.DEVICE.0",
+        )
+        self.assertEqual(
+            support._safe_audio_endpoint("bluez_output.41:42:06:42:05:80.1"),
+            "bluez_output.DEVICE.1",
+        )
+
+    def test_service_audio_probe_refuses_to_mislabel_wrong_nonroot_identity(self):
+        account=Mock(pw_uid=999)
+        with patch("gonken_agent.support.pwd.getpwnam", return_value=account), \
+             patch("gonken_agent.support.shutil.which", return_value="/usr/bin/pactl"), \
+             patch("gonken_agent.support.os.geteuid", return_value=1000), \
+             patch("gonken_agent.support.subprocess.run") as run:
+            payload=support._service_user_audio_context()
+        self.assertEqual(payload["status"], "UNAVAILABLE")
+        self.assertEqual(payload["code"], "SERVICE_IDENTITY_REQUIRED")
+        run.assert_not_called()
 
     def test_target_manifest_member_embeds_valid_non_actuating_manifest(self):
         manifest=self.root/'target-manifest.json'
@@ -222,7 +251,7 @@ class SupportTests(unittest.TestCase):
         output.unlink();output.symlink_to(self.root/'elsewhere')
         with self.assertRaises(ValueError):create_bundle(output,self.config,self.health)
         output.unlink()
-        with patch('gonken_agent.support.os.link',side_effect=FileExistsError):
+        with patch('gonken_agent.evidence.os.link',side_effect=FileExistsError):
             with self.assertRaises(FileExistsError):create_bundle(output,self.config,self.health)
         self.assertFalse(list(self.root.glob('.support-*')))
     def test_extra_health_details_are_not_exported(self):

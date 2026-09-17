@@ -1,0 +1,37 @@
+test_voice_appliance (unittest.loader._FailedTest.test_voice_appliance) ... ERROR
+test_support_export (unittest.loader._FailedTest.test_support_export) ... ERROR
+test_bundle_is_private_allowlisted_and_works_without_active_release (tests.unit.test_v09_installer_failure_bundle.InstallerFailureBundleTests.test_bundle_is_private_allowlisted_and_works_without_active_release) ... ok
+test_installed_maintenance_wrapper_auto_embeds_target_probe_manifest (tests.integration.test_support_collection_process.SupportCollectionProcessTests.test_installed_maintenance_wrapper_auto_embeds_target_probe_manifest) ... ok
+test_installed_maintenance_wrapper_uses_release_local_entrypoint (tests.integration.test_support_collection_process.SupportCollectionProcessTests.test_installed_maintenance_wrapper_uses_release_local_entrypoint) ... ok
+
+======================================================================
+ERROR: test_voice_appliance (unittest.loader._FailedTest.test_voice_appliance)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_voice_appliance
+Traceback (most recent call last):
+  File "/usr/lib/python3.13/unittest/loader.py", line 137, in loadTestsFromName
+    module = __import__(module_name)
+  File "/mnt/data/gonken_ckpt42_v2work/gonkenlabagent-v09-single-zip-target-evidence-checkpoint-42/tests/unit/test_voice_appliance.py", line 12, in <module>
+    from gonken_agent.llm.ollama import OllamaClient
+ModuleNotFoundError: No module named 'gonken_agent'
+
+
+======================================================================
+ERROR: test_support_export (unittest.loader._FailedTest.test_support_export)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_support_export
+Traceback (most recent call last):
+  File "/usr/lib/python3.13/unittest/loader.py", line 137, in loadTestsFromName
+    module = __import__(module_name)
+  File "/mnt/data/gonken_ckpt42_v2work/gonkenlabagent-v09-single-zip-target-evidence-checkpoint-42/tests/unit/test_support_export.py", line 7, in <module>
+    from gonken_agent.config import load_config
+ModuleNotFoundError: No module named 'gonken_agent'
+
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.620s
+
+FAILED (errors=2)
+Command exited with non-zero status 1
+
+ELAPSED=1.27 EXIT=1

@@ -1033,6 +1033,7 @@ def build_release(
             source / "scripts" / "sht31_diagnostic.py": maintenance / "sht31_diagnostic.py",
             source / "scripts" / "runtime_context_preflight.py": maintenance / "runtime_context_preflight.py",
             source / "scripts" / "installer_failure_bundle.py": maintenance / "installer_failure_bundle.py",
+            source / "src" / "gonken_agent" / "evidence.py": maintenance / "evidence.py",
             source / "scripts" / "bluetooth_manager.py": maintenance / "bluetooth_manager.py",
             source / "scripts" / "appliance_manager.py": maintenance / "appliance_manager.py",
             source / "scripts" / "update_manager.py": maintenance / "update_manager.py",

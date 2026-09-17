@@ -63,20 +63,58 @@ class InstallerFailureBundleTests(unittest.TestCase):
                 index = json.loads(zf.read("evidence_index.json"))
                 target = json.loads(zf.read("target_manifest.json"))
                 service = json.loads(zf.read("service_events.json"))
-            self.assertIn("failure.json", names)
+            self.assertIn("installer/failure.json", names)
             self.assertIn("platform_inventory.json", names)
             self.assertIn("target_manifest.json", names)
             self.assertIn("service_events.json", names)
             self.assertIn("evidence_index.json", names)
-            self.assertIn("preflight-prerequisites.json", names)
+            self.assertIn("installer/preflight-prerequisites.json", names)
             self.assertIn("INSTALL_ACTION", text)
             self.assertIn("device:i2c-1", text)
-            self.assertIn("target_manifest.json", index["members"])
+            self.assertIn("target_manifest.json", {item["path"] for item in index["members"]})
+            self.assertEqual(index["format"], "gonken-evidence-bundle-index-v2")
+            self.assertEqual(index["bundle_kind"], "combined_installer_failure_support")
             self.assertEqual(target["raspberry_pi"]["model"], "Raspberry Pi 5 Model B")
             self.assertEqual(service["units"]["gonken-agent.service"]["codes"]["WAKE_LED_GPIO_LINE_AMBIGUOUS"], 2)
             self.assertNotIn("SECRET-DEVICE", text)
             self.assertNotIn("secret.invalid", text)
             self.assertNotIn("do-not-copy", text)
+
+
+    def test_bundle_merges_canonical_support_once_and_names_installer_members(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            state = root / "state"; (state / "artifacts").mkdir(parents=True)
+            logs = root / "logs"; (logs / "events").mkdir(parents=True)
+            source = root / "source.record"
+            source.write_text(
+                "format=gonken-bootstrap-source-v1\nresolved_commit=" + "b"*40 + "\n"
+                "platform_mode=target\nsource_mode=local-checkpoint\n", encoding="utf-8"
+            )
+            common = {
+                "configuration.json": {"status": "READY", "config": {}},
+                "runtime_bindings.json": {"status": "READY"},
+                "target_manifest.json": {"status": "READY", "physical_acceptance_claimed": False},
+            }
+            with patch.object(bundle, "_collect_support_payloads", return_value=(common, [])), \
+                 patch.object(bundle, "_current_readiness", return_value={
+                     "status": "WAITING", "code": "AUDIO_CAPTURE_FAILED",
+                     "component": "audio_capture", "recoverable": True, "observed_epoch": 1,
+                 }):
+                path = bundle.create_bundle(
+                    state_dir=state, log_dir=logs, source_record=source,
+                    output_dir=root / "out", exit_code=75,
+                )
+            with zipfile.ZipFile(path) as zf:
+                names = zf.namelist()
+                index = json.loads(zf.read("evidence_index.json"))
+                failure = json.loads(zf.read("installer/failure.json"))
+            self.assertEqual(names.count("target_manifest.json"), 1)
+            self.assertIn("installer/source.json", names)
+            self.assertIn("configuration.json", names)
+            self.assertEqual(failure["current_failure"]["runtime_readiness"]["code"], "AUDIO_CAPTURE_FAILED")
+            self.assertEqual(index["omitted_sections"], [])
+
 
 
 if __name__ == "__main__":

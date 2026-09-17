@@ -13,6 +13,8 @@ from pathlib import Path
 
 SERVICE = "gonken-agent.service"
 READY_FILE = Path("/run/gonken-agent/ready.json")
+READINESS_FILE = Path("/run/gonken-agent/readiness.json")
+BOOT_ID_FILE = Path("/proc/sys/kernel/random/boot_id")
 CURRENT_LINK = Path("/usr/local/lib/gonken-agent/current")
 COMMIT_RE = re.compile(r"^[0-9a-f]{40}$")
 
@@ -56,48 +58,117 @@ def current_release_commit() -> str | None:
     return resolved.name
 
 
-def read_ready() -> dict[str, object] | None:
-    if not READY_FILE.is_file() or READY_FILE.is_symlink() or READY_FILE.stat().st_size > 8192:
-        return None
+def current_boot_id() -> str | None:
     try:
-        value = json.loads(READY_FILE.read_text(encoding="utf-8"))
+        value = BOOT_ID_FILE.read_text(encoding="ascii").strip().casefold()
+    except (OSError, UnicodeError):
+        return None
+    return value if re.fullmatch(r"[0-9a-f-]{36}", value) else None
+
+
+def _read_state(path: Path, *, expected_status: str | None = None) -> dict[str, object] | None:
+    try:
+        if not path.is_file() or path.is_symlink() or path.stat().st_size > 8192:
+            return None
+        value = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, ValueError, json.JSONDecodeError):
         return None
-    if not isinstance(value, dict) or value.get("status") != "READY" or value.get("code") != "VOICE_RUNTIME_READY":
+    if not isinstance(value, dict):
         return None
-    if not isinstance(value.get("wake_phrase"), str) or not value["wake_phrase"].strip():
+    if expected_status is not None and value.get("status") != expected_status:
         return None
     current = current_release_commit()
     recorded = value.get("release_commit")
     if current is not None and recorded != current:
         return None
+    boot = current_boot_id()
+    if boot is not None and value.get("boot_id") != boot:
+        return None
+    pid = value.get("service_pid")
+    if not isinstance(pid, int) or pid <= 1 or not Path(f"/proc/{pid}").exists():
+        return None
+    observed = value.get("observed_epoch")
+    if not isinstance(observed, int) or observed <= 0:
+        return None
+    return value
+
+
+def read_ready() -> dict[str, object] | None:
+    value = _read_state(READY_FILE, expected_status="READY")
+    if value is None or value.get("code") != "VOICE_RUNTIME_READY":
+        return None
+    if not isinstance(value.get("wake_phrase"), str) or not value["wake_phrase"].strip():
+        return None
+    return value
+
+
+def read_readiness() -> dict[str, object] | None:
+    value = _read_state(READINESS_FILE)
+    if value is None or value.get("format") != "gonken-voice-readiness-v1":
+        return None
+    if value.get("status") not in {"WAITING", "READY"}:
+        return None
+    code = value.get("code")
+    component = value.get("component")
+    if not isinstance(code, str) or not re.fullmatch(r"[A-Z0-9_]{3,64}", code):
+        return None
+    if not isinstance(component, str) or not re.fullmatch(r"[a-z0-9_.-]{1,64}", component):
+        return None
+    if not isinstance(value.get("recoverable"), bool):
+        return None
     return value
 
 
 def bounded_failure() -> str:
+    """Return content-free service state and reason-code counts only."""
     chunks: list[str] = []
-    for command in (
-        ["/usr/bin/systemctl", "status", SERVICE, "--no-pager", "-l"],
-        ["/usr/bin/journalctl", "-u", SERVICE, "-b", "--no-pager", "-n", "60"],
-    ):
-        try:
-            result = subprocess.run(command, check=False, capture_output=True, text=True, timeout=12)
-        except (OSError, subprocess.TimeoutExpired):
-            continue
-        text = (result.stdout or result.stderr).strip()
-        if text:
-            chunks.append(" ".join(text.split()))
-    return " | ".join(chunks)[:2200]
+    try:
+        result = subprocess.run(
+            [
+                "/usr/bin/systemctl", "show", SERVICE,
+                "--property=ActiveState,SubState,MainPID,ExecMainStatus,Result",
+            ],
+            check=False, capture_output=True, text=True, timeout=8,
+        )
+        fields = []
+        for line in result.stdout.splitlines():
+            key, sep, value = line.partition("=")
+            if sep and key in {"ActiveState", "SubState", "MainPID", "ExecMainStatus", "Result"}:
+                safe = re.sub(r"[^A-Za-z0-9_.:-]", "", value)[:80]
+                fields.append(f"{key}={safe}")
+        if fields:
+            chunks.append("systemd:" + ",".join(fields))
+    except (OSError, subprocess.TimeoutExpired):
+        pass
+    try:
+        result = subprocess.run(
+            ["/usr/bin/journalctl", "-u", SERVICE, "-b", "--no-pager", "-n", "120", "-o", "cat"],
+            check=False, capture_output=True, text=True, timeout=8,
+        )
+        counts: dict[str, int] = {}
+        for match in re.finditer(r"(?:^|\s)code=([A-Z0-9_]{1,64})(?:\s|$)", result.stdout):
+            code = match.group(1)
+            counts[code] = counts.get(code, 0) + 1
+        if counts:
+            chunks.append("codes:" + ",".join(f"{key}={counts[key]}" for key in sorted(counts)))
+    except (OSError, subprocess.TimeoutExpired):
+        pass
+    return " | ".join(chunks)[:1200]
 
 
 def status() -> dict[str, object]:
     enabled = systemctl("is-enabled", "--quiet", SERVICE, check=False).returncode == 0
     active = systemctl("is-active", "--quiet", SERVICE, check=False).returncode == 0
     ready = read_ready()
+    readiness = read_readiness()
     return {
         "enabled": enabled,
         "active": active,
         "ready": bool(ready),
+        "semantic_status": "READY" if ready else (readiness.get("status") if readiness else "UNKNOWN"),
+        "pending_component": None if ready else (readiness.get("component") if readiness else None),
+        "pending_code": None if ready else (readiness.get("code") if readiness else None),
+        "pending_recoverable": None if ready else (readiness.get("recoverable") if readiness else None),
         "wake_phrase": ready.get("wake_phrase") if ready else None,
         "model": ready.get("model") if ready else None,
         "audio_backend": ready.get("audio_backend") if ready else None,
@@ -108,11 +179,14 @@ def activate(timeout: int) -> None:
     if os.geteuid() != 0:
         fail("APPLIANCE_PRIVILEGE", "activation requires root", "run through bootstrap or sudo", 77)
     READY_FILE.unlink(missing_ok=True)
+    READINESS_FILE.unlink(missing_ok=True)
     systemctl("enable", SERVICE)
     systemctl("reset-failed", SERVICE)
     print("[RUNNING] code=APPLIANCE_START service=gonken-agent.service", flush=True)
     systemctl("restart", SERVICE)
     deadline = time.monotonic() + timeout
+    last_pending = ""
+    nonrecoverable_seen_at: float | None = None
     while time.monotonic() < deadline:
         if systemctl("is-active", "--quiet", SERVICE, check=False).returncode != 0:
             time.sleep(1)
@@ -125,12 +199,43 @@ def activate(timeout: int) -> None:
                 flush=True,
             )
             return
+        pending = read_readiness()
+        if pending and pending.get("status") == "WAITING":
+            fingerprint = f"{pending.get('component')}:{pending.get('code')}:{pending.get('recoverable')}"
+            if fingerprint != last_pending:
+                print(
+                    "[WAITING] code=APPLIANCE_DEPENDENCY_WAIT "
+                    f"component={pending['component']} dependency_code={pending['code']} "
+                    f"recoverable={str(pending['recoverable']).lower()}",
+                    flush=True,
+                )
+                last_pending = fingerprint
+            if pending.get("recoverable") is False:
+                if nonrecoverable_seen_at is None:
+                    nonrecoverable_seen_at = time.monotonic()
+                elif time.monotonic() - nonrecoverable_seen_at >= 3.0:
+                    detail = bounded_failure()
+                    fail(
+                        "APPLIANCE_DEPENDENCY_FAILED",
+                        f"component={pending['component']} code={pending['code']}; {detail}",
+                        "correct the named non-recoverable dependency and rerun the same installer",
+                        75,
+                    )
+            else:
+                nonrecoverable_seen_at = None
         time.sleep(1)
+    pending = read_readiness()
+    causal = ""
+    if pending and pending.get("status") == "WAITING":
+        causal = (
+            f"component={pending.get('component')} code={pending.get('code')} "
+            f"recoverable={str(pending.get('recoverable')).lower()}; "
+        )
     detail = bounded_failure()
     fail(
         "APPLIANCE_NOT_READY",
-        f"voice service did not reach physical readiness within {timeout}s; {detail}",
-        "keep the configured microphone/speaker powered and inspect the captured service journal",
+        f"voice service did not reach semantic readiness within {timeout}s; {causal}{detail}",
+        "keep required local dependencies powered, inspect the named component, and upload the generated evidence ZIP",
         75,
     )
 

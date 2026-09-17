@@ -50,6 +50,81 @@ def _diagnostic_text(value: object) -> str:
     return "".join(ch if ch.isprintable() else "?" for ch in text)[:320]
 
 
+def _classify_audio_capture_failure(detail: object, *, backend: str) -> str:
+    """Return a stable content-free reason code for common capture failures."""
+    text = str(detail).casefold()
+    if any(token in text for token in ("permission denied", "access denied", "not permitted")):
+        return "AUDIO_CAPTURE_PERMISSION_DENIED"
+    if any(token in text for token in ("connection refused", "connection failure", "connection terminated")):
+        return "AUDIO_SERVER_UNAVAILABLE"
+    if any(token in text for token in ("no such entity", "no such device", "device not found", "unknown pcm")):
+        return "AUDIO_CAPTURE_DEVICE_UNAVAILABLE"
+    if any(token in text for token in ("device or resource busy", "resource busy")):
+        return "AUDIO_CAPTURE_DEVICE_BUSY"
+    return "AUDIO_CAPTURE_BACKEND_FAILED" if backend == "pulse" else "AUDIO_CAPTURE_FAILED"
+
+
+def _write_pcm16_mono_wav(raw_path: Path, destination: Path, *, rate: int) -> dict[str, int]:
+    """Wrap bounded raw S16_LE mono PCM in a canonical WAV container.
+
+    ``parecord --raw`` avoids depending on libsndfile WAV finalization when the
+    recorder is stopped with SIGINT.  The project owns the small deterministic
+    WAV header written here, which is then checked by the normal validator.
+    """
+    size = raw_path.stat().st_size if raw_path.is_file() else 0
+    if size <= 0:
+        raise VoiceRuntimeError("AUDIO_CAPTURE_EMPTY")
+    if size % 2:
+        raise VoiceRuntimeError("AUDIO_CAPTURE_PCM_MISALIGNED", f"bytes={size}")
+    with raw_path.open("rb") as source, wave.open(str(destination), "wb") as output:
+        output.setnchannels(1)
+        output.setsampwidth(2)
+        output.setframerate(rate)
+        while True:
+            chunk = source.read(64 * 1024)
+            if not chunk:
+                break
+            output.writeframesraw(chunk)
+        output.writeframes(b"")
+    return {"pcm_bytes": size, "frames": size // 2, "rate": rate}
+
+
+def _boot_id() -> str:
+    try:
+        value = Path("/proc/sys/kernel/random/boot_id").read_text(encoding="ascii").strip().casefold()
+    except (OSError, UnicodeError):
+        return "unknown"
+    return value if re.fullmatch(r"[0-9a-f-]{36}", value) else "unknown"
+
+
+def _readiness_component(code: str) -> str:
+    if code.startswith(("AUDIO_", "PARECORD_")):
+        return "audio_capture"
+    if code.startswith(("TTS_", "PIPER_", "AUDIO_PLAYBACK")):
+        return "audio_playback"
+    if code.startswith(("LOCAL_MODEL_", "OLLAMA_")):
+        return "local_model"
+    if code.startswith(("WAKE_LED_", "GPIO_")):
+        return "gpio_identity"
+    if code.startswith(("STT_", "WHISPER_", "VOICE_TRANSCRIPTION")):
+        return "speech_to_text"
+    return "voice_runtime"
+
+
+def _readiness_recoverable(code: str) -> bool:
+    # Hardware hotplug, user-session startup and local-model warm-up can recover
+    # without reinstalling. Ambiguous identities and invalid static selections
+    # require operator/configuration repair and should fail the installer early.
+    nonrecoverable = {
+        "AUDIO_DEVICE_AMBIGUOUS",
+        "AUDIO_CAPTURE_PERMISSION_DENIED",
+        "WAKE_LED_GPIO_LINE_AMBIGUOUS",
+        "GPIO_LINE_AMBIGUOUS",
+        "GPIO_HEADER_UNRESOLVED",
+    }
+    return code not in nonrecoverable
+
+
 def _runtime_release_commit() -> str:
     """Return the immutable release identity executing this process.
 
@@ -795,7 +870,8 @@ class AudioBackend:
             raise VoiceRuntimeError("AUDIO_CAPTURE_CANCELLED")
         if process.returncode != 0 and not (cancelled and keep_on_cancel):
             detail = stderr or "arecord returned nonzero"
-            raise VoiceRuntimeError("AUDIO_CAPTURE_FAILED", f"backend=alsa device={self.input_device} {_diagnostic_text(detail)}")
+            code = _classify_audio_capture_failure(detail, backend="alsa")
+            raise VoiceRuntimeError(code, f"backend=alsa device={self.input_device} {_diagnostic_text(detail)}")
 
     def _pulse_record_to(
         self,
@@ -807,42 +883,74 @@ class AudioBackend:
     ) -> None:
         if self.parecord is None:
             raise VoiceRuntimeError("PARECORD_MISSING")
+        descriptor, raw_name = tempfile.mkstemp(
+            prefix=".voice-pulse-", suffix=".pcm", dir=destination.parent
+        )
+        raw_path = Path(raw_name)
+        rate = int(self.config.audio.processing_rate)
         args = [
-            str(self.parecord), f"--device={self.input_device}", "--file-format=wav",
-            "--format=s16le", f"--rate={self.config.audio.processing_rate}", "--channels=1",
-            str(destination),
+            str(self.parecord), f"--device={self.input_device}", "--raw",
+            "--format=s16le", f"--rate={rate}", "--channels=1",
         ]
-        try:
-            process = subprocess.Popen(args, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True)
-        except OSError as exc:
-            raise VoiceRuntimeError("AUDIO_CAPTURE_FAILED", f"parecord {type(exc).__name__}") from exc
-        started = time.monotonic()
+        process: subprocess.Popen[str] | None = None
         stderr = ""
         cancelled = False
         try:
-            while time.monotonic() - started < seconds:
-                if cancel is not None and cancel.is_set():
-                    cancelled = True
-                    break
-                if process.poll() is not None:
-                    stderr = process.stderr.read() if process.stderr else ""
-                    raise VoiceRuntimeError("AUDIO_CAPTURE_FAILED", f"backend=pulse device={self.input_device} {_diagnostic_text(stderr)}")
-                time.sleep(0.05)
-            if process.poll() is None:
-                process.send_signal(signal.SIGINT)
+            with os.fdopen(descriptor, "wb") as raw_output:
+                try:
+                    process = subprocess.Popen(
+                        args, stdout=raw_output, stderr=subprocess.PIPE, text=True
+                    )
+                except OSError as exc:
+                    raise VoiceRuntimeError(
+                        "AUDIO_CAPTURE_BACKEND_FAILED", f"parecord {type(exc).__name__}"
+                    ) from exc
+                started = time.monotonic()
+                while time.monotonic() - started < seconds:
+                    if cancel is not None and cancel.is_set():
+                        cancelled = True
+                        break
+                    if process.poll() is not None:
+                        _stdout, stderr = process.communicate(timeout=3)
+                        detail = stderr or f"parecord exited rc={process.returncode}"
+                        code = _classify_audio_capture_failure(detail, backend="pulse")
+                        raise VoiceRuntimeError(
+                            code, f"backend=pulse device={self.input_device} {_diagnostic_text(detail)}"
+                        )
+                    time.sleep(0.05)
+                if process.poll() is None:
+                    process.send_signal(signal.SIGINT)
+                try:
+                    _stdout, stderr = process.communicate(timeout=5)
+                except subprocess.TimeoutExpired:
+                    process.kill()
+                    _stdout, stderr = process.communicate(timeout=3)
+            if cancelled and not keep_on_cancel:
+                raise VoiceRuntimeError("AUDIO_CAPTURE_CANCELLED")
+            max_pcm_bytes = rate * 2 * (seconds + 2)
+            observed_bytes = raw_path.stat().st_size if raw_path.is_file() else 0
+            if observed_bytes > max_pcm_bytes:
+                raise VoiceRuntimeError(
+                    "AUDIO_CAPTURE_OVERSIZE", f"bytes={observed_bytes} limit={max_pcm_bytes}"
+                )
             try:
-                _stdout, stderr = process.communicate(timeout=5)
-            except subprocess.TimeoutExpired:
-                process.kill()
-                _stdout, stderr = process.communicate(timeout=3)
+                _write_pcm16_mono_wav(raw_path, destination, rate=rate)
+            except VoiceRuntimeError:
+                if stderr and observed_bytes == 0:
+                    code = _classify_audio_capture_failure(stderr, backend="pulse")
+                    if code != "AUDIO_CAPTURE_BACKEND_FAILED":
+                        raise VoiceRuntimeError(
+                            code, f"backend=pulse device={self.input_device} {_diagnostic_text(stderr)}"
+                        )
+                raise
         finally:
-            if process.poll() is None:
+            if process is not None and process.poll() is None:
                 process.kill()
-                process.wait(timeout=3)
-        if cancelled and not keep_on_cancel:
-            raise VoiceRuntimeError("AUDIO_CAPTURE_CANCELLED")
-        if not destination.is_file() or destination.stat().st_size < 44:
-            raise VoiceRuntimeError("AUDIO_CAPTURE_FAILED", f"backend=pulse device={self.input_device} {_diagnostic_text(stderr)}")
+                try:
+                    process.wait(timeout=3)
+                except subprocess.TimeoutExpired:
+                    pass
+            raw_path.unlink(missing_ok=True)
 
     def _record_to(
         self,
@@ -861,7 +969,11 @@ class AudioBackend:
         try:
             metadata = validate_wav(destination, max_seconds=seconds + 1)
         except Exception as exc:
-            raise VoiceRuntimeError("AUDIO_CAPTURE_INVALID", f"backend={self.input_mode} device={self.input_device} {type(exc).__name__}") from exc
+            detail = _diagnostic_text(str(exc) or type(exc).__name__)
+            raise VoiceRuntimeError(
+                "AUDIO_CAPTURE_WAV_INVALID",
+                f"backend={self.input_mode} device={self.input_device} {detail}",
+            ) from exc
         if metadata["rate"] != self.config.audio.processing_rate:
             raise VoiceRuntimeError("AUDIO_CAPTURE_RATE_MISMATCH", f"expected={self.config.audio.processing_rate} observed={metadata['rate']}")
 
@@ -1181,6 +1293,7 @@ class PushToTalkVoiceAdapter:
 
 class VoiceAppliance:
     READY_FILE = Path("/run/gonken-agent/ready.json")
+    READINESS_FILE = Path("/run/gonken-agent/readiness.json")
 
     def __init__(self, config, *, emitter=print, foreground: bool = False):
         self.config = config
@@ -1308,6 +1421,29 @@ class VoiceAppliance:
         identity = self.brain.probe(self.stop)
         return {"audio": audio, "model": identity}
 
+    def _write_readiness_state(
+        self, *, status: str, code: str, component: str, recoverable: bool
+    ) -> None:
+        if not self.publish_ready:
+            return
+        self.READINESS_FILE.parent.mkdir(parents=True, exist_ok=True)
+        payload = {
+            "format": "gonken-voice-readiness-v1",
+            "status": status,
+            "code": code,
+            "component": component,
+            "recoverable": bool(recoverable),
+            "wake_phrase": self.config.extensions.wake_word.phrase,
+            "release_commit": _runtime_release_commit(),
+            "boot_id": _boot_id(),
+            "service_pid": os.getpid(),
+            "observed_epoch": int(time.time()),
+        }
+        temporary = self.READINESS_FILE.with_name(f".{self.READINESS_FILE.name}.{os.getpid()}")
+        temporary.write_text(json.dumps(payload, sort_keys=True) + "\n", encoding="utf-8")
+        temporary.chmod(0o644)
+        os.replace(temporary, self.READINESS_FILE)
+
     def _write_ready(self, probe: dict[str, object]) -> None:
         if not self.publish_ready:
             return
@@ -1320,16 +1456,23 @@ class VoiceAppliance:
             "audio_backend": probe["audio"]["backend"],
             "model": probe["model"]["model"],
             "release_commit": _runtime_release_commit(),
+            "boot_id": _boot_id(),
+            "service_pid": os.getpid(),
             "observed_epoch": int(time.time()),
         }
         temporary = self.READY_FILE.with_name(f".{self.READY_FILE.name}.{os.getpid()}")
         temporary.write_text(json.dumps(payload, sort_keys=True) + "\n", encoding="utf-8")
         temporary.chmod(0o644)
         os.replace(temporary, self.READY_FILE)
+        self._write_readiness_state(
+            status="READY", code="VOICE_RUNTIME_READY", component="voice_runtime", recoverable=True
+        )
 
-    def _clear_ready(self) -> None:
+    def _clear_ready(self, *, clear_readiness: bool = False) -> None:
         if self.publish_ready:
             self.READY_FILE.unlink(missing_ok=True)
+            if clear_readiness:
+                self.READINESS_FILE.unlink(missing_ok=True)
         self.ready = False
 
     def wait_until_ready(self) -> bool:
@@ -1354,6 +1497,12 @@ class VoiceAppliance:
                 self._clear_ready()
                 code = exc.code if isinstance(exc, VoiceRuntimeError) else "VOICE_DEPENDENCY_WAIT"
                 detail = exc.detail if isinstance(exc, VoiceRuntimeError) else _diagnostic_text(type(exc).__name__)
+                self._write_readiness_state(
+                    status="WAITING",
+                    code=code,
+                    component=_readiness_component(code),
+                    recoverable=_readiness_recoverable(code),
+                )
                 fingerprint = f"{code}:{detail}"
                 if fingerprint != self._last_wait_code:
                     fields: dict[str, object] = {"retry_seconds": int(delay)}
@@ -1449,8 +1598,12 @@ class VoiceAppliance:
                 if self.stop.is_set():
                     break
                 self._clear_ready()
-                code = getattr(exc, "code", "PTT_RUNTIME_RECOVERY")
+                code = str(getattr(exc, "code", "PTT_RUNTIME_RECOVERY"))
                 detail = getattr(exc, "detail", _diagnostic_text(type(exc).__name__))
+                self._write_readiness_state(
+                    status="WAITING", component=_readiness_component(code), code=code,
+                    recoverable=_readiness_recoverable(code),
+                )
                 fields: dict[str, object] = {"retry_seconds": retry_seconds}
                 if detail:
                     fields["detail"] = detail
@@ -1576,8 +1729,12 @@ class VoiceAppliance:
                 if self.stop.is_set():
                     break
                 self._clear_ready()
-                code = getattr(exc, "code", "VOICE_RUNTIME_RECOVERY")
+                code = str(getattr(exc, "code", "VOICE_RUNTIME_RECOVERY"))
                 detail = getattr(exc, "detail", _diagnostic_text(type(exc).__name__))
+                self._write_readiness_state(
+                    status="WAITING", component=_readiness_component(code), code=code,
+                    recoverable=_readiness_recoverable(code),
+                )
                 fields: dict[str, object] = {"retry_seconds": retry_seconds}
                 if detail:
                     fields["detail"] = detail
@@ -1593,7 +1750,7 @@ class VoiceAppliance:
         return 0
 
     def close(self) -> None:
-        self._clear_ready()
+        self._clear_ready(clear_readiness=True)
         self.stop.set()
         self.brain.close()
 

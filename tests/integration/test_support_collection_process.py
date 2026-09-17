@@ -65,6 +65,41 @@ class SupportCollectionProcessTests(unittest.TestCase):
             self.assertNotIn("--startup-snapshot", recorded)
             self.assertNotIn("--target-manifest", recorded)
 
+    def test_output_dir_places_single_bundle_at_requested_directory(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            current = root / "current"
+            maintenance = current / "maintenance"
+            bin_dir = current / ".venv" / "bin"
+            maintenance.mkdir(parents=True)
+            bin_dir.mkdir(parents=True)
+            shutil.copy2(ROOT / "scripts" / "collect-support.sh", maintenance / "collect-support.sh")
+            (maintenance / "collect-support.sh").chmod(0o755)
+            outdir = root / "out"
+            calls = root / "calls.log"
+            fake = bin_dir / "gonken-agent"
+            fake.write_text(
+                "#!/usr/bin/env bash\n"
+                "printf '%s\\n' \"$@\" > \"$GONKEN_FAKE_SUPPORT_LOG\"\n"
+                "while [[ $# -gt 0 ]]; do\n"
+                "  if [[ \"$1\" == \"--output\" ]]; then printf '{}' > \"$2\"; exit 0; fi\n"
+                "  shift\n"
+                "done\nexit 64\n",
+                encoding="utf-8",
+            )
+            fake.chmod(0o755)
+            env = os.environ.copy(); env["GONKEN_FAKE_SUPPORT_LOG"] = str(calls)
+            result = subprocess.run(
+                [str(maintenance / "collect-support.sh"), "--output-dir", str(outdir),
+                 "--site", str(root / "missing-site.toml")],
+                check=False, capture_output=True, text=True, env=env, timeout=10,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            output = Path(result.stdout.strip().splitlines()[-1])
+            self.assertEqual(output.parent, outdir)
+            self.assertTrue(output.name.startswith("gonken-support-"))
+            self.assertTrue(output.is_file())
+
     def test_installed_maintenance_wrapper_auto_embeds_target_probe_manifest(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

@@ -3,16 +3,24 @@
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import json
 import re
 import subprocess
 import sys
+import time
 from pathlib import Path
 from typing import Any
 
 
 ROOT = Path(__file__).resolve().parents[1]
 DOCS = ROOT / "docs" / "development"
+_TARGET_PROBE_SPEC = importlib.util.spec_from_file_location("gonken_release_target_probe", ROOT / "scripts" / "target_probe.py")
+if _TARGET_PROBE_SPEC is None or _TARGET_PROBE_SPEC.loader is None:
+    raise RuntimeError("cannot load target_probe.py")
+TARGET_PROBE = importlib.util.module_from_spec(_TARGET_PROBE_SPEC)
+sys.modules[_TARGET_PROBE_SPEC.name] = TARGET_PROBE
+_TARGET_PROBE_SPEC.loader.exec_module(TARGET_PROBE)
 REQUIRED_HOST_VERIFIED = {
     "M2.1", "M2.2", "M2.3", "M2.4",
     "M3.1", "M3.2", "M3.3", "M3.4", "M3.5", "M3.6",
@@ -71,6 +79,12 @@ REQUIRED_TARGET_SHADOW_FIXTURES = (
         "path": "tests/fixtures/target_probe/ambiguous_audio_route_manifest.json",
         "expected_status": "FAIL",
         "expected_code": "AUDIO_ROUTE_UNRESOLVED",
+    },
+    {
+        "id": "ckpt42_20260917_audio_capture_runtime_fail_closed",
+        "path": "tests/fixtures/target_probe/ckpt42_20260917_audio_capture_runtime_failure_manifest.json",
+        "expected_status": "FAIL",
+        "expected_code": "AUDIO_CAPTURE_RUNTIME_UNREADY",
     },
     {
         "id": "missing_service_identity_fail_closed",
@@ -279,22 +293,19 @@ def target_shadow_results() -> list[dict[str, Any]]:
             "observed_status": None,
             "observed_code": None,
             "detail": "",
+            "elapsed_ms": 0.0,
         }
         if not path.is_file() or path.is_symlink():
             result["detail"] = "fixture_missing"
             results.append(result)
             continue
+        started = time.monotonic()
         try:
-            completed = subprocess.run(
-                [sys.executable, str(ROOT / "scripts" / "target_probe.py"), "--replay", str(path), "--json"],
-                cwd=ROOT,
-                check=False,
-                capture_output=True,
-                text=True,
-                timeout=10,
-            )
-            payload = json.loads(completed.stdout)
-        except (OSError, subprocess.TimeoutExpired, json.JSONDecodeError) as exc:
+            manifest = json.loads(path.read_text(encoding="utf-8"))
+            payload = TARGET_PROBE.replay_manifest(manifest)
+            result["elapsed_ms"] = round((time.monotonic() - started) * 1000, 3)
+        except (OSError, UnicodeError, json.JSONDecodeError, ValueError, TypeError) as exc:
+            result["elapsed_ms"] = round((time.monotonic() - started) * 1000, 3)
             result["detail"] = type(exc).__name__
             results.append(result)
             continue
@@ -305,24 +316,24 @@ def target_shadow_results() -> list[dict[str, Any]]:
             observed.get("code") if isinstance(observed, dict) else None,
         ]
         for check_name in (
-            "privacy_boundary", "audio_duplex", "service_identity", "release_state",
+            "privacy_boundary", "audio_duplex", "audio_runtime", "service_identity", "release_state",
             "i2c_sht31", "environment_profile", "operator_identity", "systemd_runtime",
             "release_lifecycle", "resource_capacity", "model_finalization",
         ):
             check = payload.get(check_name)
             if isinstance(check, dict):
                 observed_codes.append(check.get("code"))
-        result["observed_code"] = next((code for code in observed_codes if code == fixture["expected_code"]), observed_codes[0])
-        exit_expected = 0 if fixture["expected_status"] == "PASS" else 75
+        result["observed_code"] = next(
+            (code for code in observed_codes if code == fixture["expected_code"]), observed_codes[0]
+        )
         if (
-            completed.returncode == exit_expected
-            and result["observed_status"] == fixture["expected_status"]
+            result["observed_status"] == fixture["expected_status"]
             and fixture["expected_code"] in observed_codes
             and payload.get("physical_acceptance_claimed") is False
         ):
             result["status"] = "PASS"
         else:
-            result["detail"] = f"exit={completed.returncode}"
+            result["detail"] = "replay_expectation_mismatch"
         results.append(result)
     return results
 

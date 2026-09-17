@@ -1,0 +1,2 @@
+[RUNNING] code=APPLIANCE_START service=gonken-agent.service
+[READY] code=APPLIANCE_READY service=gonken-agent.service wake_phrase=Hey_Gonken reboot_required=false

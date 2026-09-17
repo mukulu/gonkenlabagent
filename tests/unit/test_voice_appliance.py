@@ -4,6 +4,7 @@ import contextlib
 import tempfile
 import threading
 import unittest
+import wave
 from pathlib import Path
 from types import SimpleNamespace
 from unittest import mock
@@ -22,7 +23,9 @@ from gonken_agent.voice_runtime import (
     VoiceAppliance,
     VoiceRuntimeError,
     WAKE_MATCHER_VERSION,
+    _classify_audio_capture_failure,
     _runtime_release_commit,
+    _write_pcm16_mono_wav,
     _transition_announcement_text,
     _wake_remainder,
     wake_matcher_aliases,
@@ -186,6 +189,81 @@ class VoiceWakeTests(unittest.TestCase):
         backend._input_candidates = []
         backend._output_candidates = []
         return backend
+
+    def test_raw_pcm_wrapper_produces_canonical_mono_s16_wav(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            raw = root / "capture.pcm"
+            wav = root / "capture.wav"
+            raw.write_bytes(b"\x01\x00" * 1600)
+            result = _write_pcm16_mono_wav(raw, wav, rate=16000)
+            self.assertEqual(result["frames"], 1600)
+            with wave.open(str(wav), "rb") as source:
+                self.assertEqual(source.getnchannels(), 1)
+                self.assertEqual(source.getsampwidth(), 2)
+                self.assertEqual(source.getframerate(), 16000)
+                self.assertEqual(source.getnframes(), 1600)
+
+    def test_audio_failure_classifier_preserves_actionable_reason_classes(self) -> None:
+        self.assertEqual(
+            _classify_audio_capture_failure("Connection refused", backend="pulse"),
+            "AUDIO_SERVER_UNAVAILABLE",
+        )
+        self.assertEqual(
+            _classify_audio_capture_failure("Permission denied", backend="pulse"),
+            "AUDIO_CAPTURE_PERMISSION_DENIED",
+        )
+        self.assertEqual(
+            _classify_audio_capture_failure("Device or resource busy", backend="alsa"),
+            "AUDIO_CAPTURE_DEVICE_BUSY",
+        )
+
+    def test_pulse_capture_uses_raw_pcm_then_owns_wav_finalization(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            backend = self._backend_fixture()
+            backend.runtime_dir = Path(temporary)
+            backend.config.audio.processing_rate = 16000
+            backend.input_device = "alsa_input.usb-AIRHUG"
+            backend.input_mode = "pipewire-usb"
+            destination = Path(temporary) / "capture.wav"
+            observed_args = []
+
+            class FakeProcess:
+                def __init__(self, args, stdout):
+                    self.returncode = None
+                    self.stderr = None
+                    observed_args.extend(args)
+                    stdout.write(b"\x01\x00" * 1600)
+                    stdout.flush()
+
+                def poll(self):
+                    return self.returncode
+
+                def send_signal(self, _signal):
+                    self.returncode = 0
+
+                def communicate(self, timeout=None):
+                    self.returncode = 0
+                    return None, ""
+
+                def kill(self):
+                    self.returncode = -9
+
+                def wait(self, timeout=None):
+                    return self.returncode
+
+            def fake_popen(args, *, stdout, stderr, text):
+                return FakeProcess(args, stdout)
+
+            with mock.patch("gonken_agent.voice_runtime.subprocess.Popen", side_effect=fake_popen), \
+                 mock.patch("gonken_agent.voice_runtime.time.monotonic", side_effect=[0.0, 2.0]):
+                backend._pulse_record_to(destination, 1)
+            self.assertIn("--raw", observed_args)
+            self.assertNotIn("--file-format=wav", observed_args)
+            with wave.open(str(destination), "rb") as source:
+                self.assertEqual(source.getframerate(), 16000)
+                self.assertEqual(source.getnchannels(), 1)
+                self.assertEqual(source.getsampwidth(), 2)
 
     def test_wired_routes_outrank_connected_bluetooth_when_both_exist(self) -> None:
         backend = self._backend_fixture()

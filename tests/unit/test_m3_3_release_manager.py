@@ -421,6 +421,7 @@ class IntegrityAndPrivilegeTests(unittest.TestCase):
             '"update.sh"',
             '"update_manager.py"',
             '"collect-support.sh"',
+            '"gonken_agent" / "evidence.py"',
             '"rollback.sh"',
             '"uninstall.sh"',
             '"uninstall_manager.py"',

@@ -20,6 +20,7 @@ EnvironmentFile=-/etc/gonken-agent/runtime-environment
 # this bounded immutable helper privileged while the long-running service stays
 # on the dedicated non-login account.
 ExecStartPre=+/usr/local/lib/gonken-agent/current/maintenance/reconcile-release.sh
+ExecStartPre=/usr/bin/rm -f /run/gonken-agent/ready.json /run/gonken-agent/readiness.json
 ExecStart=/usr/local/lib/gonken-agent/current/.venv/bin/gonken-agent service --diagnostic-mode debug
 Restart=on-failure
 RestartSec=5

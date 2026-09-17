@@ -39,6 +39,7 @@ TARGET_SHADOW_REQUIREMENTS = {
     "gpio_identity": True,
     "privacy_boundary": True,
     "audio_duplex": False,
+    "audio_runtime": False,
     "service_identity": False,
     "release_state": False,
     "i2c_sht31": False,
@@ -517,6 +518,55 @@ def replay_audio_duplex(manifest: dict[str, object]) -> dict[str, object]:
     }
 
 
+def replay_audio_runtime(manifest: dict[str, object]) -> dict[str, object]:
+    """Replay service-context audio evidence, not just device inventory.
+
+    Structural enumeration can look healthy while the dedicated service user
+    still cannot record.  This gate therefore requires an explicit bounded
+    functional capture result when a fixture opts into ``audio_runtime``.
+    """
+    audio = manifest.get("audio")
+    if not isinstance(audio, dict):
+        return {"status": "FAIL", "code": "AUDIO_RUNTIME_UNDECLARED", "detail": "audio"}
+    runtime = audio.get("runtime")
+    if not isinstance(runtime, dict):
+        return {"status": "FAIL", "code": "AUDIO_RUNTIME_UNDECLARED", "detail": "audio.runtime"}
+    problems: list[str] = []
+    if runtime.get("service_user") != "gonken-agent":
+        problems.append("service_user")
+    if runtime.get("runtime_dir_ready") is not True:
+        problems.append("runtime_dir")
+    if runtime.get("pipewire_socket_exists") is not True and runtime.get("pulse_socket_exists") is not True:
+        problems.append("audio_socket")
+    capture = runtime.get("capture_probe")
+    if not isinstance(capture, dict):
+        problems.append("capture_probe")
+    else:
+        if str(capture.get("status", "")).casefold() not in {"ready", "pass", "ok"}:
+            problems.append("capture")
+        if capture.get("content_persisted") is not False:
+            problems.append("capture_privacy")
+    if problems:
+        detail = ",".join(sorted(set(problems)))
+        observed_code = ""
+        if isinstance(capture, dict):
+            observed_code = str(capture.get("code", ""))[:64]
+        result: dict[str, object] = {
+            "status": "FAIL",
+            "code": "AUDIO_CAPTURE_RUNTIME_UNREADY",
+            "detail": detail,
+        }
+        if observed_code:
+            result["observed_code"] = observed_code
+        return result
+    return {
+        "status": "PASS",
+        "code": "AUDIO_CAPTURE_RUNTIME_READY",
+        "backend": str(capture.get("backend", "")) if isinstance(capture, dict) else "",
+        "service_user": "gonken-agent",
+    }
+
+
 def replay_service_identity(manifest: dict[str, object]) -> dict[str, object]:
     identity = manifest.get("identity")
     if not isinstance(identity, dict):
@@ -824,6 +874,7 @@ def replay_manifest(manifest: dict[str, object], required_gpios: Iterable[int] =
     }
     privacy = replay_privacy_boundary(manifest)
     audio = replay_audio_duplex(manifest)
+    audio_runtime = replay_audio_runtime(manifest)
     identity = replay_service_identity(manifest)
     release = replay_release_state(manifest)
     i2c_sht31 = replay_i2c_sht31(manifest)
@@ -840,6 +891,8 @@ def replay_manifest(manifest: dict[str, object], required_gpios: Iterable[int] =
         required_checks.append(gpio)
     if requirements["audio_duplex"]:
         required_checks.append(audio)
+    if requirements["audio_runtime"]:
+        required_checks.append(audio_runtime)
     if requirements["service_identity"]:
         required_checks.append(identity)
     if requirements["release_state"]:
@@ -868,6 +921,7 @@ def replay_manifest(manifest: dict[str, object], required_gpios: Iterable[int] =
         "gpio_identity": gpio,
         "privacy_boundary": privacy,
         "audio_duplex": audio,
+        "audio_runtime": audio_runtime,
         "service_identity": identity,
         "release_state": release,
         "i2c_sht31": i2c_sht31,

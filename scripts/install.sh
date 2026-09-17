@@ -1272,7 +1272,7 @@ else
   if [[ "${GONKEN_SOURCE_RECORD[platform_mode]}" == "target" && -x "$INSTALL_FAILURE_BUNDLE" ]]; then
     python3 "$INSTALL_FAILURE_BUNDLE" \
       --state-dir "$STATE_DIR" --log-dir "$LOG_DIR" --source-record "$GONKEN_SOURCE_RECORD_PATH" \
-      --output-dir "$INSTALL_STATE_ROOT/failures" --exit-code "$result" || true
+      --exit-code "$result" || true
   fi
   exit "$result"
 fi

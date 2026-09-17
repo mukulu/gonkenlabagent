@@ -9,6 +9,7 @@ content, audio, prompts and model data are never copied.
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import json
 import os
 import platform
@@ -23,7 +24,7 @@ from pathlib import Path
 SAFE_CODE = re.compile(r"^[A-Z0-9_]{1,64}$")
 SAFE_STEP = re.compile(r"^(?:[a-z0-9_.-]{1,64}|none)$")
 COMMIT = re.compile(r"^[0-9a-f]{40}$")
-FORMAT = "gonken-installer-failure-bundle-v1"
+FORMAT = "gonken-installer-failure-bundle-v2"
 TARGET_MANIFEST_FORMAT = "gonken-target-hardware-manifest-v1"
 SERVICE_UNITS = (
     "gonken-agent.service",
@@ -32,6 +33,25 @@ SERVICE_UNITS = (
     "bluetooth.service",
     "gonken-bluetooth-autoconnect.service",
 )
+
+
+def _load_evidence_module():
+    candidates = [
+        Path(__file__).resolve().with_name("evidence.py"),
+        Path(__file__).resolve().parents[1] / "src" / "gonken_agent" / "evidence.py",
+    ]
+    for candidate in candidates:
+        if candidate.is_file() and not candidate.is_symlink():
+            spec = importlib.util.spec_from_file_location("gonken_canonical_evidence", candidate)
+            if spec and spec.loader:
+                module = importlib.util.module_from_spec(spec)
+                spec.loader.exec_module(module)
+                return module
+    raise RuntimeError("canonical evidence engine unavailable")
+
+
+EVIDENCE = _load_evidence_module()
+CURRENT_MAINTENANCE = Path("/usr/local/lib/gonken-agent/current/maintenance")
 
 
 def clean(value: object, limit: int = 240) -> str:
@@ -289,64 +309,112 @@ def service_event_codes(limit: int = 200) -> dict[str, object]:
     return {"status": "READY", "units": units}
 
 
-def bundle_index(payloads: dict[str, object]) -> dict[str, object]:
+def _current_readiness() -> dict[str, object] | None:
+    path = Path("/run/gonken-agent/readiness.json")
+    try:
+        if path.is_symlink() or not path.is_file() or path.stat().st_size > 8192:
+            return None
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError):
+        return None
+    code = str(payload.get("code", ""))
+    component = str(payload.get("component", ""))
+    status = str(payload.get("status", ""))
+    if payload.get("format") != "gonken-voice-readiness-v1" or status not in {"WAITING", "READY"}:
+        return None
+    if not SAFE_CODE.fullmatch(code) or not re.fullmatch(r"[a-z0-9_.-]{1,64}", component):
+        return None
     return {
-        "schema": 1,
-        "format": "gonken-install-failure-evidence-index-v1",
-        "content_logging": False,
-        "physical_acceptance_claimed": False,
-        "diagnostic_package_role": (
-            "single-upload installer failure evidence bundle for host-side troubleshooting and next-package construction"
-        ),
-        "members": sorted(payloads),
-        "privacy_exclusions": [
-            "raw audio",
-            "conversation transcripts",
-            "prompts or model responses",
-            "credentials",
-            "Wi-Fi passphrases",
-            "source URLs",
-            "Bluetooth device selectors",
-            "arbitrary raw journal text",
-        ],
-        "interpretation": (
-            "The bundle records target topology, installer provenance, preflight outcomes and bounded service codes. "
-            "It does not by itself prove physical fan blade motion, acoustic quality or sensor placement."
-        ),
+        "status": status, "code": code, "component": component,
+        "recoverable": bool(payload.get("recoverable")),
+        "observed_epoch": payload.get("observed_epoch") if isinstance(payload.get("observed_epoch"), int) else None,
     }
 
 
-def create_bundle(*, state_dir: Path, log_dir: Path, source_record: Path, output_dir: Path, exit_code: int) -> Path:
-    output_dir.mkdir(parents=True, exist_ok=True, mode=0o700)
-    output_dir.chmod(0o700)
+def _collect_support_payloads(staging: Path) -> tuple[dict[str, object], list[dict[str, str]]]:
+    collector = CURRENT_MAINTENANCE / "collect-support.sh"
+    if not collector.is_file() or collector.is_symlink() or not os.access(collector, os.X_OK):
+        return {}, [{"name": "canonical_support", "reason": "collect-support unavailable at current install stage"}]
+    support_zip = staging / "canonical-support.zip"
+    try:
+        result = subprocess.run(
+            [str(collector), "--output", str(support_zip)],
+            check=False, capture_output=True, text=True, timeout=90,
+        )
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        return {}, [{"name": "canonical_support", "reason": f"collector {type(exc).__name__}"}]
+    if result.returncode != 0 or not support_zip.is_file():
+        return {}, [{"name": "canonical_support", "reason": f"collector exit {result.returncode}"}]
+    try:
+        return EVIDENCE.read_json_members(support_zip), []
+    except (OSError, ValueError, zipfile.BadZipFile, json.JSONDecodeError) as exc:
+        return {}, [{"name": "canonical_support", "reason": f"collector archive {type(exc).__name__}"}]
+
+
+def create_bundle(
+    *, state_dir: Path, log_dir: Path, source_record: Path, exit_code: int,
+    output: Path | None = None, output_dir: Path | None = None,
+) -> Path:
+    source = safe_source(source_record)
+    events = safe_events(log_dir / "events")
+    last_error = next((event for event in reversed(events) if event.get("level") == "error"), None)
+    readiness = _current_readiness()
+    commit = source.get("resolved_commit") if isinstance(source.get("resolved_commit"), str) else None
+    final = EVIDENCE.resolve_output_path(
+        prefix="gonken-install-failure", output=output, output_dir=output_dir,
+        fallback_dir=Path("/var/lib/gonken-agent/install/failures"),
+    )
+    final.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
     payloads: dict[str, object] = {
-        "failure.json": {"format": FORMAT, "installer_exit_code": int(exit_code), "content_logging": False},
-        "source.json": safe_source(source_record),
-        "events.json": {"events": safe_events(log_dir / "events")},
-        "platform_inventory.json": platform_inventory(),
-        "target_manifest.json": target_manifest(Path(__file__).resolve().parent),
-        "service_events.json": service_event_codes(),
+        "installer/failure.json": {
+            "format": FORMAT, "installer_exit_code": int(exit_code), "content_logging": False,
+            "current_failure": {
+                "installer_event": last_error,
+                "runtime_readiness": readiness,
+            },
+        },
+        "installer/source.json": source,
+        "installer/events.json": {"status": "READY" if events else "UNAVAILABLE", "events": events},
     }
+    producers = {name: "installer_failure_bundle.py" for name in payloads}
     artifacts = state_dir / "artifacts"
     for phase in ("prerequisites", "identities"):
         item = safe_preflight(artifacts / f"target-preflight-{phase}.json")
         if item is not None:
-            payloads[f"preflight-{phase}.json"] = item
-    payloads["evidence_index.json"] = bundle_index(payloads)
-    stamp = time.strftime("%Y%m%dT%H%M%SZ", time.gmtime())
-    final = output_dir / f"gonken-install-failure-{stamp}-{os.getpid()}.zip"
-    fd, name = tempfile.mkstemp(prefix=".gonken-install-failure.", dir=output_dir)
-    os.close(fd)
-    temporary = Path(name)
-    try:
-        with zipfile.ZipFile(temporary, "w", compression=zipfile.ZIP_DEFLATED) as archive:
-            for member, payload in sorted(payloads.items()):
-                archive.writestr(member, json.dumps(payload, sort_keys=True, separators=(",", ":")) + "\n")
-        os.chmod(temporary, 0o600)
-        os.replace(temporary, final)
-    finally:
-        if temporary.exists():
-            temporary.unlink()
+            name = f"installer/preflight-{phase}.json"
+            payloads[name] = item
+            producers[name] = "target_preflight.py"
+    omitted: list[dict[str, str]] = []
+    with tempfile.TemporaryDirectory(prefix="gonken-installer-evidence.") as temporary:
+        staging = Path(temporary)
+        common, support_omitted = _collect_support_payloads(staging)
+        omitted.extend(support_omitted)
+        if common:
+            for name, value in common.items():
+                if name.startswith("installer/") or name in payloads:
+                    raise ValueError(f"canonical support member conflicts with installer evidence: {name}")
+                payloads[name] = value
+                producers[name] = "canonical-support-collector"
+        else:
+            # Preserve checkpoint-42 early-failure observability, but identify
+            # these as explicit fallbacks rather than a second canonical schema.
+            fallback = {
+                "platform_inventory.json": platform_inventory(),
+                "target_manifest.json": target_manifest(Path(__file__).resolve().parent),
+                "service_events.json": service_event_codes(),
+            }
+            payloads.update(fallback)
+            for name in fallback:
+                producers[name] = "installer-early-fallback"
+            omitted.append({
+                "name": "installed_support_sections",
+                "reason": "canonical installed collector unavailable; early-stage fallback members supplied",
+            })
+        EVIDENCE.write_bundle(
+            final, payloads, bundle_kind="combined_installer_failure_support",
+            producers=producers, omitted_sections=omitted, package_commit=commit,
+        )
+    EVIDENCE.return_ownership_to_invoking_user(final)
     return final
 
 
@@ -355,7 +423,9 @@ def parser() -> argparse.ArgumentParser:
     p.add_argument("--state-dir", required=True)
     p.add_argument("--log-dir", required=True)
     p.add_argument("--source-record", required=True)
-    p.add_argument("--output-dir", required=True)
+    group = p.add_mutually_exclusive_group()
+    group.add_argument("--output")
+    group.add_argument("--output-dir")
     p.add_argument("--exit-code", type=int, required=True)
     return p
 
@@ -364,9 +434,14 @@ def main(argv: list[str] | None = None) -> int:
     args = parser().parse_args(argv)
     bundle = create_bundle(
         state_dir=Path(args.state_dir), log_dir=Path(args.log_dir), source_record=Path(args.source_record),
-        output_dir=Path(args.output_dir), exit_code=args.exit_code,
+        output=Path(args.output) if args.output else None,
+        output_dir=Path(args.output_dir) if args.output_dir else None,
+        exit_code=args.exit_code,
     )
-    print(f"[OK] code=INSTALL_FAILURE_BUNDLE path={bundle} content_logging=false")
+    print(f"[EVIDENCE] bundle: {bundle}")
+    print("[EVIDENCE] kind: combined installer failure + support")
+    print(f"[EVIDENCE] installer: exit={args.exit_code}")
+    print("[EVIDENCE] upload this single ZIP for the next build cycle")
     return 0
 
 

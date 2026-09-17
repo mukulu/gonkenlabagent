@@ -10,8 +10,6 @@ import re
 import shutil
 import subprocess
 import sys
-import tempfile
-import zipfile
 from collections import Counter
 from pathlib import Path
 
@@ -19,6 +17,7 @@ from . import __version__
 from .health import COMPONENTS
 from .telemetry import validate_event
 from .diagnostics import load_snapshot, collect_environment_diagnostics
+from .evidence import write_bundle
 
 
 SAFE_CODE_RE = re.compile(r"^[A-Z0-9_]{1,64}$")
@@ -273,6 +272,105 @@ def _runtime_context_health() -> dict[str, object]:
     result["status"] = "READY" if structural_ready else "NOT_READY"
     return result
 
+def _safe_audio_endpoint(value: str) -> str | None:
+    """Return bounded endpoint metadata without stable device identifiers."""
+    value = re.sub(
+        r"(?i)(?:[0-9a-f]{2}[:-]){5}[0-9a-f]{2}|(?:[0-9a-f]{2}_){5}[0-9a-f]{2}",
+        "DEVICE",
+        value.strip(),
+    )
+    value = re.sub(r"[^A-Za-z0-9_.:+/@ -]", "", value)[:160]
+    return value or None
+
+
+def _service_user_audio_context() -> dict[str, object]:
+    """Collect metadata-only audio-session evidence in the exact service identity."""
+    result: dict[str, object] = {
+        "status": "UNAVAILABLE",
+        "service_user": "gonken-agent",
+        "server_ready": False,
+        "default_source": None,
+        "default_sink": None,
+        "source_count": 0,
+        "sink_count": 0,
+        "capture_content_collected": False,
+    }
+    try:
+        account = pwd.getpwnam("gonken-agent")
+    except KeyError:
+        return result
+    pactl = shutil.which("pactl")
+    if not pactl:
+        return result
+    current_euid = os.geteuid()
+    if current_euid not in {0, account.pw_uid}:
+        result["code"] = "SERVICE_IDENTITY_REQUIRED"
+        return result
+    runtime_dir = f"/run/user/{account.pw_uid}"
+    environment = os.environ.copy()
+    environment["XDG_RUNTIME_DIR"] = runtime_dir
+    environment["DBUS_SESSION_BUS_ADDRESS"] = f"unix:path={runtime_dir}/bus"
+    base: list[str] = []
+    if current_euid == 0 and current_euid != account.pw_uid:
+        runuser = shutil.which("runuser")
+        if not runuser:
+            return result
+        base = [runuser, "-u", "gonken-agent", "--"]
+    def invoke(extra: list[str]) -> subprocess.CompletedProcess[str] | None:
+        try:
+            return subprocess.run(
+                base + [pactl] + extra, check=False, capture_output=True, text=True,
+                timeout=5, env=environment,
+            )
+        except (OSError, subprocess.TimeoutExpired):
+            return None
+    info = invoke(["info"])
+    if info is None or info.returncode != 0:
+        result["status"] = "NOT_READY"
+        return result
+    result["server_ready"] = True
+    for line in info.stdout.splitlines():
+        key, sep, value = line.partition(":")
+        if not sep:
+            continue
+        normalized = key.strip().casefold()
+        safe_value = _safe_audio_endpoint(value)
+        if normalized == "default source":
+            result["default_source"] = safe_value
+        elif normalized == "default sink":
+            result["default_sink"] = safe_value
+        elif normalized == "server name":
+            result["server_name"] = safe_value
+    sources = invoke(["list", "short", "sources"])
+    sinks = invoke(["list", "short", "sinks"])
+    if sources is not None and sources.returncode == 0:
+        result["source_count"] = len([line for line in sources.stdout.splitlines() if line.strip()])
+    if sinks is not None and sinks.returncode == 0:
+        result["sink_count"] = len([line for line in sinks.stdout.splitlines() if line.strip()])
+    result["status"] = "READY" if result["source_count"] > 0 and result["sink_count"] > 0 else "DEGRADED"
+    return result
+
+
+def _runtime_readiness_state() -> dict[str, object]:
+    path = Path("/run/gonken-agent/readiness.json")
+    payload = _bounded_json_file(path, max_bytes=8192)
+    if not isinstance(payload, dict) or payload.get("format") != "gonken-voice-readiness-v1":
+        return {"status": "UNAVAILABLE", "code": "READINESS_STATE_UNAVAILABLE"}
+    code = str(payload.get("code", ""))
+    component = str(payload.get("component", ""))
+    status = str(payload.get("status", ""))
+    if not SAFE_CODE_RE.fullmatch(code) or status not in {"WAITING", "READY"} or not re.fullmatch(r"[a-z0-9_.-]{1,64}", component):
+        return {"status": "INVALID", "code": "READINESS_STATE_INVALID"}
+    return {
+        "status": status,
+        "code": code,
+        "component": component,
+        "recoverable": bool(payload.get("recoverable")),
+        "release_commit": payload.get("release_commit") if isinstance(payload.get("release_commit"), str) else None,
+        "observed_epoch": payload.get("observed_epoch") if isinstance(payload.get("observed_epoch"), int) else None,
+    }
+
+
 def _runtime_binding_health() -> dict[str, object]:
     gpiod = _module_probe(
         "import gpiod; from gpiod.line import Bias,Direction,Value; "
@@ -292,6 +390,8 @@ def _runtime_binding_health() -> dict[str, object]:
         "i2c_platform": _i2c_platform_health(),
         "gpio_platform": _gpio_platform_health(),
         "runtime_context": _runtime_context_health(),
+        "audio_session": _service_user_audio_context(),
+        "voice_readiness": _runtime_readiness_state(),
         "distro_packages": _package_versions(),
     }
 
@@ -551,17 +651,10 @@ def create_bundle(
         files['environment_health.json'] = environment_health
     if startup_snapshot is not None:
         files['startup_snapshot.json']=load_snapshot(startup_snapshot)
-    files['evidence_index.json'] = _evidence_index(files)
-    fd,temporary=tempfile.mkstemp(prefix='.support-',dir=output.parent)
-    os.close(fd)
-    try:
-        with zipfile.ZipFile(temporary,'w',compression=zipfile.ZIP_DEFLATED) as archive:
-            for name,value in sorted(files.items()):
-                entry=zipfile.ZipInfo(name,date_time=(1980,1,1,0,0,0));entry.external_attr=0o100600<<16
-                entry.compress_type=zipfile.ZIP_DEFLATED
-                archive.writestr(entry,json.dumps(value,sort_keys=True,indent=2,allow_nan=False)+'\n')
-        with open(temporary,'rb') as stream:os.fsync(stream.fileno())
-        # Hard link is atomic and fails if another writer created output meanwhile.
-        os.link(temporary,output,follow_symlinks=False)
-    finally:Path(temporary).unlink(missing_ok=True)
-    return {'status':'CREATED','members':sorted(files),'content_logging':False}
+    release = files["runtime_bindings.json"].get("release", {}) if isinstance(files["runtime_bindings.json"], dict) else {}
+    package_commit = release.get("commit") if isinstance(release, dict) and isinstance(release.get("commit"), str) else None
+    producers = {name: "gonken_agent.support" for name in files}
+    result = write_bundle(
+        output, files, bundle_kind="support", producers=producers, package_commit=package_commit
+    )
+    return result

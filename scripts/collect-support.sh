@@ -3,7 +3,7 @@ set -Eeuo pipefail
 
 usage() {
   cat <<'USAGE'
-Usage: collect-support.sh [--output PATH] [--site PATH] [--index PATH] [--telemetry PATH] [--startup-snapshot PATH] [--target-manifest PATH]
+Usage: collect-support.sh [--output PATH | --output-dir DIR] [--site PATH] [--index PATH] [--telemetry PATH] [--startup-snapshot PATH] [--target-manifest PATH]
 
 Create a private, content-free GonKenLab Agent support ZIP for upload and review.
 When target_probe.py is available, the ZIP also includes a sanitized
@@ -23,6 +23,7 @@ else
 fi
 
 OUTPUT=""
+OUTPUT_DIR=""
 SITE="/etc/gonken-agent/config.toml"
 INDEX=""
 TELEMETRY="/var/lib/gonken-agent/runtime/telemetry.jsonl"
@@ -40,6 +41,7 @@ trap cleanup EXIT
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --output) OUTPUT="${2:-}"; shift 2 ;;
+    --output-dir) OUTPUT_DIR="${2:-}"; shift 2 ;;
     --site) SITE="${2:-}"; shift 2 ;;
     --index) INDEX="${2:-}"; shift 2 ;;
     --telemetry) TELEMETRY="${2:-}"; shift 2 ;;
@@ -49,6 +51,23 @@ while [[ $# -gt 0 ]]; do
     *) echo "[FAIL] unknown argument: $1" >&2; usage >&2; exit 64 ;;
   esac
 done
+
+if [[ -n "$OUTPUT" && -n "$OUTPUT_DIR" ]]; then
+  echo "[FAIL] use either --output or --output-dir, not both" >&2
+  exit 64
+fi
+if [[ -n "$OUTPUT_DIR" ]]; then
+  if [[ "$OUTPUT_DIR" != /* ]]; then
+    echo "[FAIL] --output-dir must be absolute" >&2
+    exit 64
+  fi
+  mkdir -p -- "$OUTPUT_DIR"
+  if [[ ! -d "$OUTPUT_DIR" || -L "$OUTPUT_DIR" ]]; then
+    echo "[FAIL] --output-dir must resolve to a real directory" >&2
+    exit 64
+  fi
+  OUTPUT="$OUTPUT_DIR/gonken-support-$(date -u +%Y%m%dT%H%M%SZ)-$$.zip"
+fi
 
 DEFAULT_OUTPUT=0
 if [[ -z "$OUTPUT" ]]; then
@@ -81,7 +100,7 @@ fi
 if [[ -f "$TARGET_MANIFEST" ]]; then args+=(--target-manifest "$TARGET_MANIFEST"); fi
 
 "$GONKEN_AGENT" "${args[@]}"
-if ((DEFAULT_OUTPUT == 1)) && [[ -n "${SUDO_UID:-}" && -n "${SUDO_GID:-}" && -f "$OUTPUT" ]]; then
+if [[ -n "${SUDO_UID:-}" && -n "${SUDO_GID:-}" && -f "$OUTPUT" ]]; then
   chown "$SUDO_UID:$SUDO_GID" "$OUTPUT" || true
 fi
 echo "$OUTPUT"
