@@ -1,0 +1,38 @@
+{
+  "captured_at": "2026-09-17T00:00:00+00:00",
+  "commit": "ca85092a7c3a0d985fba27c979ca834b53b40ca0",
+  "format": "gonken-target-hardware-manifest-v1",
+  "physical_acceptance_claimed": false,
+  "privacy": {
+    "prompts_or_model_responses_included": false,
+    "raw_audio_included": false,
+    "transcripts_included": false
+  },
+  "release": {
+    "current": "/usr/local/lib/gonken-agent/releases/ca85092a7c3a0d985fba27c979ca834b53b40ca0",
+    "current_commit": "ca85092a7c3a0d985fba27c979ca834b53b40ca0",
+    "current_status": "verified",
+    "current_symlink_state": "valid",
+    "expected_commit": "ca85092a7c3a0d985fba27c979ca834b53b40ca0",
+    "install_complete": true,
+    "installer_state": {
+      "dirty": false,
+      "exists": true,
+      "path": "/var/lib/gonken-agent/install",
+      "status": "complete"
+    },
+    "runtime_derivatives": [
+      {
+        "kind": "authoritative_drift",
+        "path": "/usr/local/lib/gonken-agent/releases/ca85092a7c3a0d985fba27c979ca834b53b40ca0/src/gonken_agent/config.py"
+      }
+    ],
+    "temp_artifacts": []
+  },
+  "target_shadow_requirements": {
+    "gpio_identity": false,
+    "privacy_boundary": true,
+    "release_lifecycle": true,
+    "release_state": true
+  }
+}

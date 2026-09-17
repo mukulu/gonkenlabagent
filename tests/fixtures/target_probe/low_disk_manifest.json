@@ -1,0 +1,20 @@
+{
+  "captured_at": "2026-09-17T00:00:00+00:00",
+  "format": "gonken-target-hardware-manifest-v1",
+  "physical_acceptance_claimed": false,
+  "privacy": {
+    "prompts_or_model_responses_included": false,
+    "raw_audio_included": false,
+    "transcripts_included": false
+  },
+  "resources": {
+    "minimum_required_free_kib": 4194304,
+    "root_free_kib": 8000000,
+    "var_free_kib": 1024
+  },
+  "target_shadow_requirements": {
+    "gpio_identity": false,
+    "privacy_boundary": true,
+    "resource_capacity": true
+  }
+}

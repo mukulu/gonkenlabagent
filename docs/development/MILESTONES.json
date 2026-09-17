@@ -1,6 +1,6 @@
 {
   "baseline_commit": "6466f26a1a9cb97e4c24182505b37cefb766b3c3",
-  "checkpoint_scope": "V09 checkpoint 40 expands target-shadow replay to I2C/SHT31 and governed environment profiles. The gate now distinguishes ready full-real evidence from planned I2C reboot, absent SHT31, missing relay GPIO23 and simulation-safe profile states across 11 required fixtures. M10.35 is host-verified as replay/readiness evidence only; no Raspberry Pi release candidate or physical acceptance is claimed. Sanitized real-target manifests, complete host/target-shadow release-candidate gating and the M10.24 hardware/voice/lifecycle campaign remain open.",
+  "checkpoint_scope": "V09 checkpoint 41 expands target-shadow replay to lifecycle, runtime, resource and model-finalization states across 22 required fixtures. The gate blocks current-release drift, partial installer state, stale temp artifacts, wrong-release support evidence, old managed systemd units, restart failure, low disk, interrupted model finalization and missing operator control-group readiness, while allowing noncurrent corrupt historical releases when the current release is exact. M10.36 is host-verified as replay/readiness evidence only; no Raspberry Pi release candidate or physical acceptance is claimed. Sanitized real-target manifests, remaining host/target-shadow release-candidate gating and the M10.24 hardware/voice/lifecycle campaign remain open.",
   "milestones": [
     {
       "evidence": "TEST_MATRIX.md (M2.1)",
@@ -532,6 +532,14 @@
       "software": "host-verified",
       "target": "not-run",
       "title": "I2C/SHT31 and environment profile target-shadow replay"
+    },
+    {
+      "evidence": "scripts/target_probe.py; scripts/release_readiness.py; tests/unit/test_v09_target_probe.py; tests/unit/test_release_readiness.py; tests/fixtures/target_probe/release_lifecycle_ready_manifest.json; tests/fixtures/target_probe/partial_installer_state_manifest.json; tests/fixtures/target_probe/stale_release_temp_manifest.json; tests/fixtures/target_probe/corrupt_historical_noncurrent_manifest.json; tests/fixtures/target_probe/runtime_authoritative_drift_manifest.json; tests/fixtures/target_probe/support_wrong_release_manifest.json; tests/fixtures/target_probe/old_systemd_units_manifest.json; tests/fixtures/target_probe/service_restart_failure_manifest.json; tests/fixtures/target_probe/operator_missing_control_group_manifest.json; tests/fixtures/target_probe/low_disk_manifest.json; tests/fixtures/target_probe/interrupted_model_finalization_manifest.json; docs/development/V09_CHECKPOINT_41_LIFECYCLE_RUNTIME_REPLAY_REPORT.md; docs/development/MASTER_BLUEPRINT.md; docs/development/DECISIONS.md; docs/development/TEST_MATRIX.md",
+      "id": "M10.36",
+      "remaining": "This checkpoint expands host/target-shadow replay only and deliberately blocks only current-release, service/runtime, operator, resource and model states that can invalidate delivery or target convergence. Live Raspberry Pi manifests, exact candidate execution and M10.24 physical evidence remain target-run work.",
+      "software": "host-verified",
+      "target": "not-run",
+      "title": "Lifecycle, runtime, resource and model-finalization target-shadow replay"
     }
   ],
   "schema_version": 1

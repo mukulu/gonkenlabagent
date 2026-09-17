@@ -1921,3 +1921,15 @@ Checkpoint 30 advanced materially on the real Raspberry Pi: the new strict relea
 **Host acceptance.** Host acceptance requires PASS and fail-closed fixtures for ready full-real, planned I2C reboot, absent SHT31, missing full-real relay evidence and simulation-safe profile handling; release-readiness inclusion of all required fixtures; focused target-probe/readiness tests; static syntax checks; milestone/status synchronization; T0 validation; and clean tagged archive qualification.
 
 **Target acceptance.** M10.24/WP-L remains open. A future Raspberry Pi candidate remains blocked until sanitized real-target manifests cover the exact hardware/service/release/profile state, the complete host/target-shadow release-candidate gate passes and the real Pi campaign reaches `INSTALLATION_COMPLETE` before integrated hardware evidence is claimed.
+
+#### M10.36 Target-shadow lifecycle, runtime and resource-state replay expansion
+
+**Purpose.** Target-shadow replay SHALL cover the remaining high-risk host-verifiable target states that previously caused dead ends or false confidence: partial installer state, stale temporary artifacts, runtime mutation of the active release, support evidence from the wrong release, old managed systemd units, service restart failure, operator control-group gaps, low disk and interrupted model finalization.
+
+**Delivery principle.** These checks SHALL block readiness only when the manifest describes a state that can invalidate the exact current release, make installation non-convergent, make service restart/no-login operation fail, or make model/runtime evidence untrustworthy. Noncurrent corrupt historical releases SHALL NOT block by themselves when the current release, install record and rollback-selected state are clean.
+
+**Replay contracts.** Required fixtures SHALL include both ready and fail-closed cases. Ready lifecycle replay may tolerate Python cache artifacts and corrupt unreferenced history. It must reject current authoritative drift, wrong current commit, stale symlink/temp artifacts, incomplete install records, wrong-release support collection, low resource headroom, old/conflicting managed systemd templates, service restart failure and missing `gonken-envctl` operator authorization.
+
+**Host acceptance.** Host acceptance requires focused target-probe/readiness tests, release-readiness inclusion of all required fixtures, static syntax checks, milestone/status synchronization, T0 validation, clean Git state and exact archive qualification from a clean tagged clone.
+
+**Target acceptance.** M10.24/WP-L remains open. These replay checks improve confidence that the next package will be usable on the Raspberry Pi, but they still do not prove physical SHT31 reads, fan motion, audio behavior, wake/voice performance, reboot/no-login persistence, update, rollback or reinstall acceptance.

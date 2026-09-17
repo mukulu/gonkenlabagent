@@ -1,0 +1,28 @@
+{
+  "captured_at": "2026-09-17T00:00:00+00:00",
+  "format": "gonken-target-hardware-manifest-v1",
+  "model_finalization": {
+    "digest_match": true,
+    "install_record_valid": false,
+    "model": "qwen3.5:2b-q4_K_M",
+    "model_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "model_digest_prefix": "aaaaaaaaaaaa",
+    "partial_artifacts": [
+      "/var/lib/ollama/models/blobs/sha256-partial"
+    ],
+    "quantization": "Q4_K_M",
+    "smoke_passed": false,
+    "status": "partial"
+  },
+  "physical_acceptance_claimed": false,
+  "privacy": {
+    "prompts_or_model_responses_included": false,
+    "raw_audio_included": false,
+    "transcripts_included": false
+  },
+  "target_shadow_requirements": {
+    "gpio_identity": false,
+    "model_finalization": true,
+    "privacy_boundary": true
+  }
+}

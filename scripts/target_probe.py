@@ -43,6 +43,11 @@ TARGET_SHADOW_REQUIREMENTS = {
     "release_state": False,
     "i2c_sht31": False,
     "environment_profile": False,
+    "operator_identity": False,
+    "systemd_runtime": False,
+    "release_lifecycle": False,
+    "resource_capacity": False,
+    "model_finalization": False,
 }
 SERVICE_IDENTITY_REQUIREMENTS = {
     "gonken-agent": frozenset({"audio", "gpio"}),
@@ -95,6 +100,13 @@ ENVIRONMENT_PROFILE_SPECS = {
 }
 REAL_SENSOR_PROFILES = frozenset({"real-sensor-simulated-actuator", "full-real"})
 REAL_RELAY_PROFILES = frozenset({"sensor-deferred-relay", "full-real"})
+REQUIRED_RUNTIME_UNITS = ("gonken-agent.service", "gonken-environment.service", "ollama.service")
+SYSTEMD_TEMPLATE_OK = frozenset({"current", "compatible", "upgraded", "not-managed"})
+SYSTEMD_RESTART_OK = frozenset({"ok", "not-run", "not-required", "none"})
+RELEASE_HISTORY_BLOCKING_ROLES = frozenset({"current", "previous", "rollback_target", "selected_previous"})
+RELEASE_HISTORY_OK = frozenset({"verified", "stale_nonblocking", "pruned", "none"})
+PYTHON_CACHE_SUFFIXES = (".pyc", ".pyo")
+MIN_TARGET_FREE_KIB = 4_194_304
 
 
 def _clean(value: object, limit: int = 240) -> str:
@@ -321,6 +333,16 @@ def _release_state() -> dict[str, object]:
     }
 
 
+def _resource_inventory() -> dict[str, object]:
+    root = shutil.disk_usage("/")
+    var = shutil.disk_usage("/var") if Path("/var").exists() else root
+    return {
+        "root_free_kib": root.free // 1024,
+        "var_free_kib": var.free // 1024,
+        "minimum_required_free_kib": MIN_TARGET_FREE_KIB,
+    }
+
+
 def collect_manifest(*, gpiod_module=None, chip_paths: Iterable[str] | None = None, stat_func=os.stat) -> dict[str, object]:
     return {
         "format": FORMAT,
@@ -335,6 +357,7 @@ def collect_manifest(*, gpiod_module=None, chip_paths: Iterable[str] | None = No
         "systemd": {"version": _systemd_version(), "units": {name: _unit_state(name) for name in SERVICE_UNITS}},
         "identity": _identity(),
         "release": _release_state(),
+        "resources": _resource_inventory(),
         "privacy": {
             "raw_audio_included": False,
             "transcripts_included": False,
@@ -516,6 +539,17 @@ def replay_service_identity(manifest: dict[str, object]) -> dict[str, object]:
     return {"status": "PASS", "code": "SERVICE_IDENTITY_RESOLVED"}
 
 
+def replay_operator_identity(manifest: dict[str, object]) -> dict[str, object]:
+    identity = manifest.get("identity")
+    if not isinstance(identity, dict):
+        return {"status": "FAIL", "code": "OPERATOR_IDENTITY_UNDECLARED", "detail": "identity"}
+    groups = {str(group) for group in identity.get("operator_groups", []) if isinstance(group, str)}
+    if "gonken-envctl" not in groups:
+        return {"status": "FAIL", "code": "OPERATOR_IDENTITY_UNREADY", "detail": "gonken-envctl"}
+    raw_groups = sorted(groups & {"gpio", "i2c"})
+    return {"status": "PASS", "code": "OPERATOR_IDENTITY_READY", "groups": sorted(groups), "raw_hardware_groups": raw_groups}
+
+
 def replay_release_state(manifest: dict[str, object]) -> dict[str, object]:
     release = manifest.get("release")
     if not isinstance(release, dict):
@@ -541,6 +575,143 @@ def replay_release_state(manifest: dict[str, object]) -> dict[str, object]:
     if problems:
         return {"status": "FAIL", "code": "RELEASE_STATE_UNSAFE", "detail": ",".join(sorted(problems))}
     return {"status": "PASS", "code": "RELEASE_STATE_SAFE"}
+
+
+def replay_systemd_runtime(manifest: dict[str, object]) -> dict[str, object]:
+    systemd = manifest.get("systemd")
+    if not isinstance(systemd, dict):
+        return {"status": "FAIL", "code": "SYSTEMD_RUNTIME_UNDECLARED", "detail": "systemd"}
+    units = systemd.get("units")
+    if not isinstance(units, dict):
+        return {"status": "FAIL", "code": "SYSTEMD_RUNTIME_UNDECLARED", "detail": "units"}
+    problems = []
+    for unit_name in REQUIRED_RUNTIME_UNITS:
+        unit = units.get(unit_name)
+        if not isinstance(unit, dict):
+            problems.append(f"{unit_name}:missing")
+            continue
+        active = str(unit.get("active", "")).casefold()
+        enabled = str(unit.get("enabled", "")).casefold()
+        if active != "active":
+            problems.append(f"{unit_name}:active={active or 'missing'}")
+        if enabled not in {"enabled", "static"}:
+            problems.append(f"{unit_name}:enabled={enabled or 'missing'}")
+        template = str(unit.get("managed_template_status", "current")).casefold()
+        if template not in SYSTEMD_TEMPLATE_OK:
+            problems.append(f"{unit_name}:template={template}")
+        restart = str(unit.get("restart_status", "ok")).casefold()
+        if restart not in SYSTEMD_RESTART_OK:
+            problems.append(f"{unit_name}:restart={restart}")
+    if problems:
+        return {"status": "FAIL", "code": "SYSTEMD_RUNTIME_UNREADY", "detail": ";".join(sorted(problems))}
+    return {"status": "PASS", "code": "SYSTEMD_RUNTIME_READY", "units": list(REQUIRED_RUNTIME_UNITS)}
+
+
+def _release_commit_from_current(current: str) -> str:
+    path = Path(current)
+    if str(current).startswith(RELEASE_ROOT) and path.name:
+        return path.name
+    return ""
+
+
+def _is_python_cache_artifact(path: object) -> bool:
+    text = str(path or "")
+    parts = Path(text).parts
+    return "__pycache__" in parts or text.endswith(PYTHON_CACHE_SUFFIXES)
+
+
+def replay_release_lifecycle(manifest: dict[str, object]) -> dict[str, object]:
+    release = manifest.get("release")
+    if not isinstance(release, dict):
+        return {"status": "FAIL", "code": "RELEASE_LIFECYCLE_UNDECLARED", "detail": "release"}
+    current = str(release.get("current", ""))
+    current_commit = str(release.get("current_commit") or _release_commit_from_current(current))
+    expected_commit = str(release.get("expected_commit") or manifest.get("commit") or current_commit)
+    problems = []
+    if expected_commit and current_commit != expected_commit:
+        problems.append("current_commit")
+    if release.get("install_complete") is not True:
+        problems.append("install_complete")
+    symlink = str(release.get("current_symlink_state", "valid")).casefold()
+    if symlink not in {"valid", "none"}:
+        problems.append("current_symlink_state")
+    temp_artifacts = release.get("temp_artifacts")
+    if isinstance(temp_artifacts, list) and temp_artifacts:
+        problems.append("temp_artifacts")
+    runtime_derivatives = release.get("runtime_derivatives")
+    if isinstance(runtime_derivatives, list):
+        for item in runtime_derivatives:
+            path = item.get("path") if isinstance(item, dict) else item
+            kind = str(item.get("kind", "") if isinstance(item, dict) else "").casefold()
+            if kind in {"authoritative_drift", "source_drift", "manifest_drift"} or not _is_python_cache_artifact(path):
+                problems.append("runtime_mutation")
+                break
+    support = release.get("support_collection")
+    if isinstance(support, dict):
+        if str(support.get("source_release_commit") or current_commit) != current_commit:
+            problems.append("support_wrong_release")
+        if support.get("release_mutated") is True:
+            problems.append("support_mutated_release")
+    history = release.get("history")
+    if isinstance(history, list):
+        for item in history:
+            if not isinstance(item, dict):
+                continue
+            role = str(item.get("role", "")).casefold()
+            status = str(item.get("status", "")).casefold()
+            if role in RELEASE_HISTORY_BLOCKING_ROLES and status not in RELEASE_HISTORY_OK:
+                problems.append(f"history:{role}")
+    if problems:
+        return {"status": "FAIL", "code": "RELEASE_LIFECYCLE_UNSAFE", "detail": ",".join(sorted(set(problems)))}
+    return {"status": "PASS", "code": "RELEASE_LIFECYCLE_READY", "current_commit": current_commit}
+
+
+def replay_resource_capacity(manifest: dict[str, object]) -> dict[str, object]:
+    resources = manifest.get("resources")
+    if not isinstance(resources, dict):
+        return {"status": "FAIL", "code": "RESOURCE_CAPACITY_UNDECLARED", "detail": "resources"}
+    minimum = resources.get("minimum_required_free_kib", MIN_TARGET_FREE_KIB)
+    if not isinstance(minimum, int) or isinstance(minimum, bool) or minimum < MIN_TARGET_FREE_KIB:
+        minimum = MIN_TARGET_FREE_KIB
+    failures = []
+    for field in ("root_free_kib", "var_free_kib"):
+        value = resources.get(field)
+        if not isinstance(value, int) or isinstance(value, bool):
+            failures.append(field)
+        elif value < minimum:
+            failures.append(f"{field}={value}")
+    if failures:
+        return {"status": "FAIL", "code": "RESOURCE_CAPACITY_LOW", "detail": ",".join(failures), "minimum_required_free_kib": minimum}
+    return {"status": "PASS", "code": "RESOURCE_CAPACITY_READY", "minimum_required_free_kib": minimum}
+
+
+def replay_model_finalization(manifest: dict[str, object]) -> dict[str, object]:
+    model = manifest.get("model_finalization")
+    if not isinstance(model, dict):
+        model = manifest.get("ollama_model") if isinstance(manifest.get("ollama_model"), dict) else None
+    if not isinstance(model, dict):
+        return {"status": "FAIL", "code": "MODEL_FINALIZATION_UNDECLARED", "detail": "model_finalization"}
+    problems = []
+    status = str(model.get("status", "")).casefold()
+    if status not in {"ready", "validated", "complete"}:
+        problems.append("status")
+    for field in ("install_record_valid", "digest_match", "smoke_passed"):
+        if model.get(field) is not True:
+            problems.append(field)
+    if model.get("partial_artifacts"):
+        problems.append("partial_artifacts")
+    digest = str(model.get("model_digest", ""))
+    prefix = str(model.get("model_digest_prefix", ""))
+    if len(digest) != 64 or any(ch not in "0123456789abcdef" for ch in digest):
+        problems.append("model_digest")
+    elif prefix and not digest.startswith(prefix):
+        problems.append("model_digest_prefix")
+    quantization = str(model.get("quantization", "")).upper()
+    if quantization and quantization != "Q4_K_M":
+        problems.append("quantization")
+    if problems:
+        return {"status": "FAIL", "code": "MODEL_FINALIZATION_UNREADY", "detail": ",".join(sorted(set(problems)))}
+    return {"status": "PASS", "code": "MODEL_FINALIZATION_READY", "model": model.get("model", "")}
 
 
 def _i2c_device_names(i2c: dict[str, object]) -> set[str]:
@@ -657,6 +828,11 @@ def replay_manifest(manifest: dict[str, object], required_gpios: Iterable[int] =
     release = replay_release_state(manifest)
     i2c_sht31 = replay_i2c_sht31(manifest)
     environment = replay_environment_profile(manifest, gpio=gpio, i2c_sht31=i2c_sht31)
+    operator = replay_operator_identity(manifest)
+    systemd = replay_systemd_runtime(manifest)
+    lifecycle = replay_release_lifecycle(manifest)
+    resources = replay_resource_capacity(manifest)
+    model = replay_model_finalization(manifest)
     required_checks = [format_check]
     if requirements["privacy_boundary"]:
         required_checks.append(privacy)
@@ -672,6 +848,16 @@ def replay_manifest(manifest: dict[str, object], required_gpios: Iterable[int] =
         required_checks.append(i2c_sht31)
     if requirements["environment_profile"]:
         required_checks.append(environment)
+    if requirements["operator_identity"]:
+        required_checks.append(operator)
+    if requirements["systemd_runtime"]:
+        required_checks.append(systemd)
+    if requirements["release_lifecycle"]:
+        required_checks.append(lifecycle)
+    if requirements["resource_capacity"]:
+        required_checks.append(resources)
+    if requirements["model_finalization"]:
+        required_checks.append(model)
     status = "PASS" if all(check.get("status") == "PASS" for check in required_checks) else "FAIL"
     return {
         "format": REPLAY_FORMAT,
@@ -686,6 +872,11 @@ def replay_manifest(manifest: dict[str, object], required_gpios: Iterable[int] =
         "release_state": release,
         "i2c_sht31": i2c_sht31,
         "environment_profile": environment,
+        "operator_identity": operator,
+        "systemd_runtime": systemd,
+        "release_lifecycle": lifecycle,
+        "resource_capacity": resources,
+        "model_finalization": model,
         "physical_acceptance_claimed": False,
     }
 

@@ -27,7 +27,7 @@ REQUIRED_HOST_VERIFIED = {
     "M9.2", "M9.3", "M9.4", "M9.5",
     "M10.1", "M10.2", "M10.3", "M10.4", "M10.5", "M10.6",
     "M10.8", "M10.9", "M10.10", "M10.11", "M10.12", "M10.13", "M10.14", "M10.15",
-    "M10.16", "M10.17", "M10.18", "M10.19", "M10.20", "M10.21", "M10.22", "M10.23", "M10.25", "M10.26", "M10.27", "M10.28", "M10.29", "M10.30", "M10.31", "M10.32", "M10.33", "M10.34", "M10.35",
+    "M10.16", "M10.17", "M10.18", "M10.19", "M10.20", "M10.21", "M10.22", "M10.23", "M10.25", "M10.26", "M10.27", "M10.28", "M10.29", "M10.30", "M10.31", "M10.32", "M10.33", "M10.34", "M10.35", "M10.36",
 }
 TARGET_CAMPAIGN_ITEMS = {
     "M3.1", "M3.2", "M3.3", "M3.4", "M3.5", "M3.6",
@@ -114,6 +114,72 @@ REQUIRED_TARGET_SHADOW_FIXTURES = (
         "expected_status": "PASS",
         "expected_code": "TARGET_SHADOW_READY",
     },
+    {
+        "id": "release_lifecycle_ready",
+        "path": "tests/fixtures/target_probe/release_lifecycle_ready_manifest.json",
+        "expected_status": "PASS",
+        "expected_code": "TARGET_SHADOW_READY",
+    },
+    {
+        "id": "partial_installer_state_fail_closed",
+        "path": "tests/fixtures/target_probe/partial_installer_state_manifest.json",
+        "expected_status": "FAIL",
+        "expected_code": "RELEASE_STATE_UNSAFE",
+    },
+    {
+        "id": "stale_release_temp_fail_closed",
+        "path": "tests/fixtures/target_probe/stale_release_temp_manifest.json",
+        "expected_status": "FAIL",
+        "expected_code": "RELEASE_LIFECYCLE_UNSAFE",
+    },
+    {
+        "id": "corrupt_historical_noncurrent_safe",
+        "path": "tests/fixtures/target_probe/corrupt_historical_noncurrent_manifest.json",
+        "expected_status": "PASS",
+        "expected_code": "TARGET_SHADOW_READY",
+    },
+    {
+        "id": "runtime_authoritative_drift_fail_closed",
+        "path": "tests/fixtures/target_probe/runtime_authoritative_drift_manifest.json",
+        "expected_status": "FAIL",
+        "expected_code": "RELEASE_LIFECYCLE_UNSAFE",
+    },
+    {
+        "id": "support_wrong_release_fail_closed",
+        "path": "tests/fixtures/target_probe/support_wrong_release_manifest.json",
+        "expected_status": "FAIL",
+        "expected_code": "RELEASE_LIFECYCLE_UNSAFE",
+    },
+    {
+        "id": "old_systemd_units_fail_closed",
+        "path": "tests/fixtures/target_probe/old_systemd_units_manifest.json",
+        "expected_status": "FAIL",
+        "expected_code": "SYSTEMD_RUNTIME_UNREADY",
+    },
+    {
+        "id": "service_restart_failure_fail_closed",
+        "path": "tests/fixtures/target_probe/service_restart_failure_manifest.json",
+        "expected_status": "FAIL",
+        "expected_code": "SYSTEMD_RUNTIME_UNREADY",
+    },
+    {
+        "id": "operator_missing_control_group_fail_closed",
+        "path": "tests/fixtures/target_probe/operator_missing_control_group_manifest.json",
+        "expected_status": "FAIL",
+        "expected_code": "OPERATOR_IDENTITY_UNREADY",
+    },
+    {
+        "id": "low_disk_fail_closed",
+        "path": "tests/fixtures/target_probe/low_disk_manifest.json",
+        "expected_status": "FAIL",
+        "expected_code": "RESOURCE_CAPACITY_LOW",
+    },
+    {
+        "id": "interrupted_model_finalization_fail_closed",
+        "path": "tests/fixtures/target_probe/interrupted_model_finalization_manifest.json",
+        "expected_status": "FAIL",
+        "expected_code": "MODEL_FINALIZATION_UNREADY",
+    },
 )
 READY_STATUS = "READY_FOR_HOST_TARGET_SHADOW_GATE"
 
@@ -193,8 +259,8 @@ def build_report() -> dict[str, object]:
         "physical_acceptance_claimed": False,
         "next_action": (
             "Complete the remaining host/target-shadow release-candidate gate first: add real target manifests as sanitized fixtures, replay them, "
-            "run exact-archive verification, then only after that prepare a Raspberry Pi RELEASE_CANDIDATE. On the target, run target_probe.py before installation, "
-            "then install the exact candidate with ./bootstrap.sh --local-checkpoint, require INSTALLATION_COMPLETE before integrated hardware actuation, "
+            "and run exact-archive verification without treating host or replay evidence as physical acceptance. On the target, run target_probe.py before installation, "
+            "then install the exact archive with ./bootstrap.sh --local-checkpoint, require INSTALLATION_COMPLETE before integrated hardware actuation, "
             "and execute docs/RASPBERRY_PI_ACCEPTANCE_RUN.md through M10.7/M10.24 evidence without marking physical gates PASS from host or replay evidence."
         ),
     }
@@ -238,7 +304,11 @@ def target_shadow_results() -> list[dict[str, Any]]:
             payload.get("code"),
             observed.get("code") if isinstance(observed, dict) else None,
         ]
-        for check_name in ("privacy_boundary", "audio_duplex", "service_identity", "release_state", "i2c_sht31", "environment_profile"):
+        for check_name in (
+            "privacy_boundary", "audio_duplex", "service_identity", "release_state",
+            "i2c_sht31", "environment_profile", "operator_identity", "systemd_runtime",
+            "release_lifecycle", "resource_capacity", "model_finalization",
+        ):
             check = payload.get(check_name)
             if isinstance(check, dict):
                 observed_codes.append(check.get("code"))

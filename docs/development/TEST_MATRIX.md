@@ -1405,3 +1405,17 @@ Checkpoint 24 closes the host-side root cause and adds regression protection, bu
 | CP40-T218 | Full-simulation safe profile fixture | `tests/fixtures/target_probe/environment_disabled_safe_manifest.json`; `target_probe.py --replay` | PASS | Simulation profile may remain hardware-free and cannot close physical gates. |
 | CP40-T219 | Release-readiness fixture matrix | `scripts/release_readiness.py`; `tests/unit/test_release_readiness.py` | PASS | Internal host/target-shadow status only; no Pi candidate. |
 | CP40-T220 | Static syntax and control sync | `compileall`; `milestone_status.py --check`; `git diff --check`; `./scripts/ci.sh --phase t0` | PASS | Host/static only. |
+
+## V09 checkpoint 41 — M10.36 lifecycle/runtime/resource target-shadow replay
+
+| ID | Scope | Command / artifact | Host result | Target boundary |
+|---|---|---|---:|---|
+| CP41-T221 | Lifecycle/runtime/resource replay contract | `scripts/target_probe.py`; `tests/unit/test_v09_target_probe.py` | PASS | Replay checks sanitized state summaries only; no target service operation is performed. |
+| CP41-T222 | Ready lifecycle fixture | `release_lifecycle_ready_manifest.json`; `target_probe.py --replay` | PASS | Allows Python cache artifacts and noncurrent corrupt history when current release state is exact. |
+| CP41-T223 | Partial installer and stale temp fail-closed fixtures | `partial_installer_state_manifest.json`; `stale_release_temp_manifest.json` | PASS — expected FAIL with exit 75 | Blocks stale/partial installation evidence from satisfying current readiness. |
+| CP41-T224 | Current runtime/support drift fixtures | `runtime_authoritative_drift_manifest.json`; `support_wrong_release_manifest.json` | PASS — expected FAIL with exit 75 | Blocks mutated current release or support evidence from the wrong release. |
+| CP41-T225 | Managed systemd/runtime fixtures | `old_systemd_units_manifest.json`; `service_restart_failure_manifest.json` | PASS — expected FAIL with exit 75 | Blocks old managed templates and restart failures before target campaign handoff. |
+| CP41-T226 | Operator/resource/model fixtures | `operator_missing_control_group_manifest.json`; `low_disk_manifest.json`; `interrupted_model_finalization_manifest.json` | PASS — expected FAIL with exit 75 | Blocks missing control-group access, insufficient storage and partial model finalization. |
+| CP41-T227 | Noncurrent corrupt history fixture | `corrupt_historical_noncurrent_manifest.json`; `target_probe.py --replay` | PASS | Confirms historical noise alone does not block a clean current release. |
+| CP41-T228 | Release-readiness fixture matrix | `scripts/release_readiness.py`; `tests/unit/test_release_readiness.py` | PASS | Internal host/target-shadow status only; no Pi candidate. |
+| CP41-T229 | Static syntax and control sync | `compileall`; `milestone_status.py --check`; `git diff --check`; `./scripts/ci.sh --phase t0` | PASS | Host/static only. |

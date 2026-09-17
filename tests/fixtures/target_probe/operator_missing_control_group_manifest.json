@@ -1,0 +1,21 @@
+{
+  "captured_at": "2026-09-17T00:00:00+00:00",
+  "format": "gonken-target-hardware-manifest-v1",
+  "identity": {
+    "operator_groups": [
+      "gpio"
+    ],
+    "service_users": {}
+  },
+  "physical_acceptance_claimed": false,
+  "privacy": {
+    "prompts_or_model_responses_included": false,
+    "raw_audio_included": false,
+    "transcripts_included": false
+  },
+  "target_shadow_requirements": {
+    "gpio_identity": false,
+    "operator_identity": true,
+    "privacy_boundary": true
+  }
+}

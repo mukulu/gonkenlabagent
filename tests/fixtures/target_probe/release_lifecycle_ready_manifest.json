@@ -1,0 +1,98 @@
+{
+  "captured_at": "2026-09-17T00:00:00+00:00",
+  "commit": "ca85092a7c3a0d985fba27c979ca834b53b40ca0",
+  "format": "gonken-target-hardware-manifest-v1",
+  "identity": {
+    "operator_groups": [
+      "gonken-envctl"
+    ],
+    "service_users": {}
+  },
+  "model_finalization": {
+    "digest_match": true,
+    "install_record_valid": true,
+    "model": "qwen3.5:2b-q4_K_M",
+    "model_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "model_digest_prefix": "aaaaaaaaaaaa",
+    "partial_artifacts": [],
+    "quantization": "Q4_K_M",
+    "smoke_passed": true,
+    "status": "validated"
+  },
+  "physical_acceptance_claimed": false,
+  "privacy": {
+    "prompts_or_model_responses_included": false,
+    "raw_audio_included": false,
+    "transcripts_included": false
+  },
+  "release": {
+    "current": "/usr/local/lib/gonken-agent/releases/ca85092a7c3a0d985fba27c979ca834b53b40ca0",
+    "current_commit": "ca85092a7c3a0d985fba27c979ca834b53b40ca0",
+    "current_status": "verified",
+    "current_symlink_state": "valid",
+    "expected_commit": "ca85092a7c3a0d985fba27c979ca834b53b40ca0",
+    "history": [
+      {
+        "commit": "1111111111111111111111111111111111111111",
+        "role": "stale",
+        "status": "payload_digest_mismatch"
+      }
+    ],
+    "install_complete": true,
+    "installer_state": {
+      "dirty": false,
+      "exists": true,
+      "path": "/var/lib/gonken-agent/install",
+      "status": "complete"
+    },
+    "runtime_derivatives": [
+      {
+        "kind": "python_cache",
+        "path": "/usr/local/lib/gonken-agent/releases/ca85092a7c3a0d985fba27c979ca834b53b40ca0/src/gonken_agent/__pycache__/cli.cpython-313.pyc"
+      }
+    ],
+    "support_collection": {
+      "release_mutated": false,
+      "source_release_commit": "ca85092a7c3a0d985fba27c979ca834b53b40ca0"
+    },
+    "temp_artifacts": []
+  },
+  "resources": {
+    "minimum_required_free_kib": 4194304,
+    "root_free_kib": 9000000,
+    "var_free_kib": 9000000
+  },
+  "systemd": {
+    "units": {
+      "gonken-agent.service": {
+        "active": "active",
+        "enabled": "enabled",
+        "managed_template_status": "current",
+        "restart_status": "ok"
+      },
+      "gonken-environment.service": {
+        "active": "active",
+        "enabled": "enabled",
+        "managed_template_status": "current",
+        "restart_status": "ok"
+      },
+      "ollama.service": {
+        "active": "active",
+        "enabled": "enabled",
+        "managed_template_status": "current",
+        "restart_status": "ok"
+      }
+    },
+    "version": "255"
+  },
+  "target_shadow_requirements": {
+    "gpio_identity": false,
+    "model_finalization": true,
+    "operator_identity": true,
+    "privacy_boundary": true,
+    "resource_capacity": true,
+    "release_lifecycle": true,
+    "release_state": true,
+    "systemd_runtime": true
+  }
+}

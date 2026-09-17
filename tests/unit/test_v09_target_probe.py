@@ -146,6 +146,76 @@ class TargetProbeTests(unittest.TestCase):
         self.assertEqual(result["i2c_sht31"]["status"], "FAIL")
         self.assertFalse(result["requirements"]["i2c_sht31"])
 
+    def test_release_lifecycle_ready_fixture_tolerates_noncurrent_corrupt_history_and_python_caches(self):
+        result = target_probe.replay_manifest(self.fixture("release_lifecycle_ready_manifest.json"))
+        self.assertEqual(result["status"], "PASS")
+        self.assertEqual(result["code"], "TARGET_SHADOW_READY")
+        self.assertEqual(result["operator_identity"]["code"], "OPERATOR_IDENTITY_READY")
+        self.assertEqual(result["systemd_runtime"]["code"], "SYSTEMD_RUNTIME_READY")
+        self.assertEqual(result["release_lifecycle"]["code"], "RELEASE_LIFECYCLE_READY")
+        self.assertEqual(result["resource_capacity"]["code"], "RESOURCE_CAPACITY_READY")
+        self.assertEqual(result["model_finalization"]["code"], "MODEL_FINALIZATION_READY")
+
+    def test_partial_installer_state_fixture_fails_closed(self):
+        result = target_probe.replay_manifest(self.fixture("partial_installer_state_manifest.json"))
+        self.assertEqual(result["status"], "FAIL")
+        self.assertEqual(result["code"], "RELEASE_STATE_UNSAFE")
+        self.assertIn("installer_status", result["release_state"]["detail"])
+
+    def test_stale_release_temp_artifact_fixture_fails_lifecycle(self):
+        result = target_probe.replay_manifest(self.fixture("stale_release_temp_manifest.json"))
+        self.assertEqual(result["status"], "FAIL")
+        self.assertEqual(result["code"], "RELEASE_LIFECYCLE_UNSAFE")
+        self.assertIn("temp_artifacts", result["release_lifecycle"]["detail"])
+
+    def test_noncurrent_corrupt_history_fixture_remains_candidate_safe(self):
+        result = target_probe.replay_manifest(self.fixture("corrupt_historical_noncurrent_manifest.json"))
+        self.assertEqual(result["status"], "PASS")
+        self.assertEqual(result["code"], "TARGET_SHADOW_READY")
+        self.assertEqual(result["release_lifecycle"]["code"], "RELEASE_LIFECYCLE_READY")
+
+    def test_runtime_authoritative_drift_fixture_fails_lifecycle(self):
+        result = target_probe.replay_manifest(self.fixture("runtime_authoritative_drift_manifest.json"))
+        self.assertEqual(result["status"], "FAIL")
+        self.assertEqual(result["code"], "RELEASE_LIFECYCLE_UNSAFE")
+        self.assertIn("runtime_mutation", result["release_lifecycle"]["detail"])
+
+    def test_support_wrong_release_fixture_fails_lifecycle(self):
+        result = target_probe.replay_manifest(self.fixture("support_wrong_release_manifest.json"))
+        self.assertEqual(result["status"], "FAIL")
+        self.assertEqual(result["code"], "RELEASE_LIFECYCLE_UNSAFE")
+        self.assertIn("support_wrong_release", result["release_lifecycle"]["detail"])
+
+    def test_old_systemd_units_fixture_fails_runtime(self):
+        result = target_probe.replay_manifest(self.fixture("old_systemd_units_manifest.json"))
+        self.assertEqual(result["status"], "FAIL")
+        self.assertEqual(result["code"], "SYSTEMD_RUNTIME_UNREADY")
+        self.assertIn("template=pre-fix7", result["systemd_runtime"]["detail"])
+
+    def test_service_restart_failure_fixture_fails_runtime(self):
+        result = target_probe.replay_manifest(self.fixture("service_restart_failure_manifest.json"))
+        self.assertEqual(result["status"], "FAIL")
+        self.assertEqual(result["code"], "SYSTEMD_RUNTIME_UNREADY")
+        self.assertIn("restart=failed", result["systemd_runtime"]["detail"])
+
+    def test_operator_missing_control_group_fixture_fails_identity(self):
+        result = target_probe.replay_manifest(self.fixture("operator_missing_control_group_manifest.json"))
+        self.assertEqual(result["status"], "FAIL")
+        self.assertEqual(result["code"], "OPERATOR_IDENTITY_UNREADY")
+        self.assertEqual(result["operator_identity"]["detail"], "gonken-envctl")
+
+    def test_low_disk_fixture_fails_resource_capacity(self):
+        result = target_probe.replay_manifest(self.fixture("low_disk_manifest.json"))
+        self.assertEqual(result["status"], "FAIL")
+        self.assertEqual(result["code"], "RESOURCE_CAPACITY_LOW")
+        self.assertIn("var_free_kib=1024", result["resource_capacity"]["detail"])
+
+    def test_interrupted_model_finalization_fixture_fails_model_gate(self):
+        result = target_probe.replay_manifest(self.fixture("interrupted_model_finalization_manifest.json"))
+        self.assertEqual(result["status"], "FAIL")
+        self.assertEqual(result["code"], "MODEL_FINALIZATION_UNREADY")
+        self.assertIn("partial_artifacts", result["model_finalization"]["detail"])
+
     def test_manifest_capture_is_content_free_and_non_actuating(self):
         rp1 = [None] * 54
         for bcm in (2, 3, 17, 22, 23, 27):
@@ -213,6 +283,16 @@ class TargetProbeTests(unittest.TestCase):
         self.assertEqual(json.loads(ok.stdout)["environment_profile"]["code"], "ENVIRONMENT_PROFILE_READY")
         self.assertEqual(failed.returncode, 75)
         self.assertEqual(json.loads(failed.stdout)["code"], "I2C_REBOOT_REQUIRED")
+
+    def test_cli_replay_exit_codes_for_lifecycle_runtime_fixtures(self):
+        good = ROOT / "tests" / "fixtures" / "target_probe" / "release_lifecycle_ready_manifest.json"
+        bad = ROOT / "tests" / "fixtures" / "target_probe" / "service_restart_failure_manifest.json"
+        ok = subprocess.run([sys.executable, str(ROOT / "scripts" / "target_probe.py"), "--replay", str(good), "--json"], text=True, capture_output=True, check=False)
+        failed = subprocess.run([sys.executable, str(ROOT / "scripts" / "target_probe.py"), "--replay", str(bad), "--json"], text=True, capture_output=True, check=False)
+        self.assertEqual(ok.returncode, 0, ok.stderr)
+        self.assertEqual(json.loads(ok.stdout)["release_lifecycle"]["code"], "RELEASE_LIFECYCLE_READY")
+        self.assertEqual(failed.returncode, 75)
+        self.assertEqual(json.loads(failed.stdout)["code"], "SYSTEMD_RUNTIME_UNREADY")
 
 
 if __name__ == "__main__":

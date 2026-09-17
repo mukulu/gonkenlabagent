@@ -1756,3 +1756,17 @@ This compatibility is a migration mechanism, not a waiver. The goal is to move s
 - **Reason:** Static profile drift can create false greens, especially when a profile name implies physical backends that the manifest does not actually support.
 - **Must avoid:** inferring relay or sensor readiness from a profile name alone, or making simulated profiles depend on unavailable physical devices.
 - **Consequence:** target-shadow replay can now distinguish safe simulation, real-sensor deferral and full-real prerequisites before any future candidate is offered to the Pi.
+
+## 2026-09-17 — Checkpoint 41 lifecycle/runtime target-shadow decisions
+
+### D41-01 — Readiness gates should block only evidence-invalidating or convergence-breaking states
+- **Decision:** Expand target-shadow replay to lifecycle/runtime/resource/model states, but classify noncurrent corrupt history as non-blocking when the current release is exact, install completion is current, temp artifacts are absent and rollback-selected state is not implicated.
+- **Reason:** The project needs a usable final package, not an indefinitely expanding checklist. Gates must prevent known false greens and target dead ends without blocking delivery for historical noise that normal runtime does not consume.
+- **Must avoid:** letting stale historical releases invalidate a clean current release, or conversely allowing current-release drift, partial install state or wrong-release support evidence to pass.
+- **Consequence:** delivery-blocking semantics are now tied to the current operating release and explicit rollback/update roles.
+
+### D41-02 — Runtime, model and operator states are target-shadow prerequisites
+- **Decision:** Required replay fixtures now cover old managed systemd templates, restart failures, missing operator `gonken-envctl` membership, low resource headroom and interrupted Ollama model finalization.
+- **Reason:** These states can make a package appear installed while services, model smoke or operator control remain unusable.
+- **Must avoid:** treating a successful host archive as enough when target service restart, model record, disk headroom or operator control evidence is unsafe.
+- **Consequence:** the internal gate becomes stricter where failure is operationally meaningful, while still remaining below physical Raspberry Pi acceptance.
