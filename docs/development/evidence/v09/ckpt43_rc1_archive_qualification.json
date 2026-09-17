@@ -1,0 +1,90 @@
+{
+  "archive": "/mnt/data/gonkenlabagent-v09-semantic-convergence-checkpoint-43-rc1.zip",
+  "checks": [
+    {
+      "code": "ARCHIVE_STRUCTURE_VALID",
+      "members": 1020,
+      "root": "gonkenlabagent-v09-semantic-convergence-checkpoint-43-rc1",
+      "status": "PASS"
+    },
+    {
+      "code": "GIT_STATUS_CLEAN",
+      "command": [
+        "git",
+        "status",
+        "--porcelain"
+      ],
+      "exit": 0,
+      "status": "PASS",
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "code": "GIT_COMMIT_MATCH",
+      "expected": "d0c40d000699b7e6ec174df4cf569281cd77bd4e",
+      "observed": "d0c40d000699b7e6ec174df4cf569281cd77bd4e",
+      "status": "PASS"
+    },
+    {
+      "code": "GIT_TAG_MATCH",
+      "expected": "checkpoint/v09-43-semantic-convergence-rc1",
+      "observed": [
+        "checkpoint/v09-43-semantic-convergence-rc1"
+      ],
+      "status": "PASS"
+    },
+    {
+      "code": "GIT_FSCK_STRICT",
+      "command": [
+        "git",
+        "fsck",
+        "--strict"
+      ],
+      "exit": 0,
+      "status": "PASS",
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "code": "MILESTONE_STATUS_CHECK",
+      "command": [
+        "/opt/pyvenv/bin/python3",
+        "scripts/milestone_status.py",
+        "--check"
+      ],
+      "exit": 0,
+      "status": "PASS",
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "code": "RELEASE_READINESS_CHECK",
+      "command": [
+        "/opt/pyvenv/bin/python3",
+        "scripts/release_readiness.py",
+        "--check"
+      ],
+      "exit": 0,
+      "status": "PASS",
+      "stderr": "",
+      "stdout": "Status: READY_FOR_HOST_TARGET_SHADOW_GATE\nBranch: \nCommit: d0c40d000699b7e6ec174df4cf569281cd77bd4e\nDirty tree: False\nHost verified required items: 61/61\nTarget-shadow fixtures: 23/23\nTarget gates remaining: 26\n- M3.1: Bootstrap preflight\n- M3.2: Step engine and install state\n- M3.3: Immutable application release\n- M3.4: Ollama lifecycle and selected model\n- M3.5: Whisper and Piper artifacts\n- M3.6: Install summary\n- M4.1: Coordinator/state/health\n- M4.2: Audio discovery and recovery\n- M4.3: Resampling/STT/TTS lifecycle\n- M5.1: Push-to-talk and recording indication\n- M5.2: Offline boundary\n- M6.1: Application service"
+    },
+    {
+      "code": "CI_T0_CHECK",
+      "command": [
+        "./scripts/ci.sh",
+        "--phase",
+        "t0"
+      ],
+      "exit": 0,
+      "status": "PASS",
+      "stderr": "",
+      "stdout": "[T0] dependency lock drift\nverified 5 installable dependency profiles\n[T0] source/config syntax\n[T0] V09 documentation/evidence boundary\nSelected T0/T1 checks passed: t0"
+    }
+  ],
+  "physical_acceptance_claimed": false,
+  "raspberry_pi_candidate": false,
+  "schema": 1,
+  "sha256": "ff6f9699d064dbbd6351fa5f261dcdb35edabb72090ad7b790d3065669170b53",
+  "status": "PASS"
+}

@@ -58,13 +58,15 @@ The broad release lifecycle campaign is intentionally expensive. Rather than rep
 
 The first readiness attempt in this closeout wrote its log inside the repository before running, making the tree dirty by construction. That false-red is retained as evidence; the gate was rerun from the unchanged commit with output outside the tree and passed.
 
-## Remaining before package close
+## Archive-qualification evidence
 
-- mark M10.38 host-verified only after those gates pass;
-- create the final checkpoint commit/tag;
-- build a clean ZIP from that tag;
-- qualify the exact archive;
-- extract the exact ZIP and rerun focused evidence/readiness gates;
+A clean tagged RC1 archive was built from commit `d0c40d000699b7e6ec174df4cf569281cd77bd4e` at tag `checkpoint/v09-43-semantic-convergence-rc1`. Archive SHA-256 was `ff6f9699d064dbbd6351fa5f261dcdb35edabb72090ad7b790d3065669170b53`. `archive_qualifier.py` passed archive structure, clean extracted Git status, exact commit, exact tag, `git fsck --strict`, milestone synchronization, release readiness and T0 from the extracted archive. This closes the host/package evidence needed to mark M10.38 host-verified.
+
+## Remaining before final handoff
+
+- create the final checkpoint commit/tag containing this qualification record and host-verified milestone state;
+- build and qualify the final exact ZIP again;
+- rerun the focused evidence/readiness slice from that exact final extraction;
 - provide final SHA-256 and target continuation command.
 
 ## Target boundary
