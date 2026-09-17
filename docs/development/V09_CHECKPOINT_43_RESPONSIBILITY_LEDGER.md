@@ -1,0 +1,19 @@
+# V09 Checkpoint 43 — Responsibility and Redundancy Ledger
+
+| Responsibility | Current authoritative owner after checkpoint 43 | Consumers | Reduction / rule | Verification |
+|---|---|---|---|---|
+| Remote acquisition and checkout | `install-gonken.sh` | operator | Launcher installs only minimal checkout prerequisites, obtains the repository and `exec`s bootstrap. It must not own target probes, readiness or failure packaging. | `tests.unit.test_v09_responsibility_boundaries`; `tests.integration.test_first_install_launcher` |
+| Source request, target/development preflight, source record and privilege handoff | `bootstrap.sh` + `scripts/lib/common.sh` | installer | Bootstrap owns the private `source.record` and validated privilege transition; it does not own installer DAG/readiness/failure bundles. | `tests.unit.test_v09_responsibility_boundaries`; `tests.integration.test_bootstrap_preflight_process` |
+| Install DAG and step state | `scripts/install.sh` + `scripts/lib/install_engine.sh` | bootstrap | Installer owns ordered prerequisites/postconditions, resume state and final semantic readiness step. | `tests.unit.test_v09_install_dependency_graph` |
+| Voice semantic readiness | `src/gonken_agent/voice_runtime.py` produces; `scripts/appliance_manager.py` validates | installer, support | Process-active and semantic-ready are separate. Readiness is bound to release, boot, PID and freshness and contains a causal component/reason. | `tests.unit.test_voice_appliance`; `tests.unit.test_fix5_appliance_manager` |
+| Target hardware/runtime manifest | `scripts/target_probe.py` | readiness, support/evidence | One non-actuating producer; target-shadow replay consumes saved manifests and never substitutes for physical acceptance. | `tests.unit.test_v09_target_probe`; `tests.unit.test_release_readiness` |
+| Canonical evidence ZIP schema, integrity, output and ownership | `src/gonken_agent/evidence.py` | normal support, installer failure | One v2 index/member/integrity/output policy. Common members are not reimplemented by installer failure. | `tests.unit.test_support_export`; `tests.unit.test_v09_installer_failure_bundle`; `tests.integration.test_support_collection_process` |
+| Common installed-system support payloads | `src/gonken_agent/support.py` / installed `collect-support.sh` | operator, installer-failure orchestration | Includes service-user audio-session metadata and semantic readiness without raw audio/content. | support tests above |
+| Installer-specific failure evidence | `scripts/installer_failure_bundle.py` | installer | Namespaced `installer/*` evidence is added to canonical support payloads; one final ZIP only. | `tests.unit.test_v09_installer_failure_bundle` |
+| Environment hardware ownership | `gonken-environment.service` / `src/gonken_agent/environment/*` | CLI, voice | Exactly one sensor/controller/relay owner; CLI and voice remain IPC clients. | existing environment unit/integration suites |
+| Environment static profile selection | `scripts/environment_profile_manager.py` | operator | Four governed profiles; no silent unmanaged merge or implicit actuation. | `tests.unit.test_v09_environment_profile_manager` |
+| Exact archive qualification | `scripts/archive_qualifier.py` | release packaging | Qualifies exact Git/archive integrity and host gates only; cannot create Pi physical acceptance. | `tests.unit.test_v09_archive_qualifier` plus exact archive run |
+
+## Result
+
+No repository-wide rewrite was required. The checkpoint-42 architecture already had reasonably separated launcher/bootstrap/installer layers; checkpoint 43 adds explicit regression tests so later edits cannot silently move readiness, failure packaging or source authority into the wrong layer. The material redundancy removed in this cycle is evidence-bundle generation: installer failure now orchestrates the canonical support/evidence implementation rather than maintaining a divergent common-member schema.

@@ -1784,3 +1784,41 @@ This compatibility is a migration mechanism, not a waiver. The goal is to move s
 - **Reason:** The project needs richer machine-readable device evidence, not broader copying of private user content or noisy logs.
 - **Must avoid:** treating ZIP completeness as fan-motion, acoustic-quality, SHT31-placement or wake-recognition proof.
 - **Consequence:** a complete ZIP can drive development and troubleshooting, while physical observations remain target-collected evidence rather than host-inferred claims.
+
+## 2026-09-17 — Checkpoint 43 semantic-convergence decisions
+
+### D43-01 — Service liveness is not appliance readiness
+
+- **Decision:** Keep the existing systemd `Type=exec` service architecture for this checkpoint, but make appliance readiness a freshness-bound semantic state tied to current release commit, boot ID, service PID and observation time. The state carries a causal component/reason and recoverability classification. Clear stale readiness records before each service start.
+- **Rationale:** The target run proved that `systemctl` could report the service active while the voice appliance remained `STARTING`. A `Type=notify` migration would add a second change axis; the current defect can be closed more narrowly by strengthening the existing readiness protocol.
+- **Consequence:** Installer status may report a specific dependency and may fail early for known non-recoverable conditions. A prior READY file cannot satisfy a restarted/rebooted/new-release process.
+
+### D43-02 — PipeWire capture owns WAV construction above raw PCM
+
+- **Decision:** Capture bounded PipeWire/Pulse audio as raw S16LE mono PCM and write the canonical WAV container in GonKen code before validation. Preserve ALSA and transport fallback behavior.
+- **Rationale:** The current target failure was `pipewire-usb:AUDIO_CAPTURE_INVALID`; the previous path relied on an externally encoded WAV remaining valid when the recorder was interrupted at a bounded duration. Application-owned container construction removes that finalization ambiguity without hard-coding target hardware.
+- **Consequence:** Capture failures are classified into permission, server-unavailable, device-unavailable, device-busy, WAV-invalid and generic backend reason codes. Real Pi evidence is still required to establish that the target microphone path is repaired.
+
+### D43-03 — Exact service identity is the audio evidence boundary
+
+- **Decision:** Support may collect metadata-only audio-server/source/sink evidence only when it is actually executing as `gonken-agent` or can use root to enter that identity. A different non-root caller is reported `SERVICE_IDENTITY_REQUIRED` rather than mislabeled.
+- **Rationale:** The checkpoint-42 support artifacts proved runtime socket existence, while separate external evidence showed the interactive user could see AIRHUG. Those facts did not prove service-account capture.
+- **Consequence:** Interactive desktop/user success cannot close the service audio gate. Stable Bluetooth-like identifiers in metadata are normalized when they are not needed for diagnosis.
+
+### D43-04 — One canonical evidence engine owns common ZIP semantics
+
+- **Decision:** `src/gonken_agent/evidence.py` owns the v2 index, member hashing, safe ZIP publication, output resolution, privacy boundary and sudo-caller ownership return. Normal support uses it directly; installer failure adds only namespaced installer-specific payloads and merges canonical common support payloads where available.
+- **Rationale:** Checkpoint 42 still produced separate partial schemas and forced the operator to run a second collection after failure.
+- **Consequence:** An ordinary failed install should emit one final combined ZIP in an operator-accessible location. `collect-support.sh` remains the successful-install support route and need not be rerun after ordinary installer failure.
+
+### D43-05 — Current causal failure and historical failure history are separate evidence
+
+- **Decision:** The current readiness/installer event is the causal failure record. Bounded historical service-code counts remain useful chronology but are not promoted to the present cause merely because they occur in the same journal/support artifact.
+- **Rationale:** The 2026-09-17 readiness timeout contained fresh `AUDIO_CAPTURE_FAILED` plus earlier `WAKE_LED_GPIO_LINE_AMBIGUOUS` lines from a different process/attempt.
+- **Consequence:** Combined evidence keeps both layers but downstream diagnosis starts from the freshness-bound current state.
+
+### D43-06 — Checker performance is a reliability property
+
+- **Decision:** Required target-shadow fixtures are replayed in-process after loading the probe implementation once; fixture timing is recorded. CLI replay remains independently tested.
+- **Rationale:** A subprocess-per-fixture readiness implementation grew enough to trigger test-timeout false reds. The replay matrix is deterministic and does not need process startup overhead for every case.
+- **Consequence:** Release readiness preserves all target-shadow cases, including the new exact-service audio-runtime failure fixture, while staying within a bounded host gate budget.

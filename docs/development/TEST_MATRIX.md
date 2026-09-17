@@ -1429,3 +1429,20 @@ Checkpoint 24 closes the host-side root cause and adds regression protection, bu
 | CP42-T232 | Installed maintenance wrapper auto-captures target manifest | `scripts/collect-support.sh`; `tests/integration/test_support_collection_process.py` | PASS | Running the target collector automatically invokes non-actuating `target_probe.py` when packaged. |
 | CP42-T233 | Privacy boundary for expanded evidence | support/failure bundle tests | PASS | Rejects privacy-violating target manifests and excludes credentials, raw journal text, audio and transcripts. |
 | CP42-T234 | Milestone/readiness synchronization | `MILESTONES.json`; `release_readiness.py`; `tests/unit/test_release_readiness.py` | PASS | M10.37 is host-verified evidence infrastructure only; target physical evidence remains operator-collected. |
+
+## V09 checkpoint 43 — M10.38 semantic convergence and canonical evidence architecture
+
+| ID | Scope | Command / artifact | Host result | Target boundary |
+|---|---|---|---:|---|
+| CP43-T235 | Fresh checkpoint-42 audio-runtime target-shadow fixture | `ckpt42_20260917_audio_capture_runtime_failure_manifest.json`; `target_probe.py --replay` | PASS — expected FAIL localized as `AUDIO_CAPTURE_RUNTIME_UNREADY` | Sanitized replay of target evidence; no microphone capture performed on host. |
+| CP43-T236 | PipeWire raw capture and application-owned canonical WAV | `src/gonken_agent/voice_runtime.py`; `tests.unit.test_voice_appliance` | PASS | Host validates subprocess contract/container construction only; real service-user microphone remains target-run. |
+| CP43-T237 | Fresh semantic readiness and stale-state rejection | `src/gonken_agent/voice_runtime.py`; `scripts/appliance_manager.py`; systemd pre-start cleanup; focused tests | PASS | Host validates identity/freshness/causal-state logic; boot/no-login behavior remains target-run. |
+| CP43-T238 | Canonical evidence engine and single combined installer-failure ZIP | `src/gonken_agent/evidence.py`; support/failure/output-policy test slices | PASS | Host proves archive semantics/privacy/ownership logic; target must prove actual failure ZIP placement/ownership. |
+| CP43-T239 | Exact service-user audio metadata privacy boundary | `src/gonken_agent/support.py`; `test_support_export.py` | PASS | Metadata-only host contract; does not prove target capture or playback. |
+| CP43-T240 | Launcher/bootstrap/installer ownership boundary | `test_v09_responsibility_boundaries.py`; launcher/bootstrap/install graph integration tests | PASS | Structural/process host evidence only. |
+| CP43-T241 | Target-shadow readiness performance | `release_readiness.py --json --allow-dirty`; 23 required fixtures | PASS; measured host readiness about 0.75 s during implementation | Performance is host/checker evidence only. |
+| CP43-T242 | Downstream voice/speech/Ollama/environment convergence | bounded 249-test affected portfolio | PASS | Host/fake/process evidence; no physical audio, SHT31 or relay acceptance. |
+| CP43-T243 | Lifecycle/recovery/no-regression | release/install/restart/hotplug/update/rollback affected portfolio | PASS — release lifecycle decomposed case-by-case plus 12/12 install/uninstall lifecycle | Must be completed before checkpoint-43 package qualification. |
+| CP43-T244 | Docs, milestone, compile/static, readiness and T0 | checkpoint close gates | IN PROGRESS at ledger creation | Host/static only. |
+| CP43-T245 | Exact tagged archive qualification and extracted rerun | `archive_qualifier.py` plus extracted focused/readiness tests | NOT RUN at ledger creation | Package integrity only; no Pi physical acceptance. |
+| CP43-T246 | Exact Raspberry Pi convergence campaign | checkpoint-43 target runbook | NOT RUN / BLOCKED TARGET GATE | Required to close M10.24 physical audio/SHT31/relay/fan/wake/reboot/lifecycle claims. |

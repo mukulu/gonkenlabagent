@@ -611,3 +611,63 @@ Requested Bluetooth remains a preference. If it is busy/offline but exactly one 
 Repeated installation of the same checkpoint must remain idempotent after service/runtime execution. Standard Python `__pycache__` bytecode derivatives are outside the authoritative immutable payload; source/config/executable/manifest changes are not. Do not manually delete or rewrite `/usr/local/lib/gonken-agent/current` if an authoritative integrity error occurs.
 
 Only proceed to the integrated M10.24 hardware/voice campaign after the exact checkpoint reaches `INSTALLATION_COMPLETE`.
+
+## Checkpoint 43 exact-package convergence campaign
+
+Checkpoint 43 is the first package after the 2026-09-17 target attempt that reached final appliance readiness and then failed on service-context audio capture. It also consolidates installer-failure and normal support evidence. The package remains a **release candidate for target testing**, not a physical PASS.
+
+### A. Install only the exact qualified archive
+
+Extract the delivered checkpoint-43 ZIP including `.git`, enter its repository root, and verify the documented SHA-256 from the checkpoint report. Use the local-checkpoint route so the target source record is bound to the exact delivered commit:
+
+```bash
+./bootstrap.sh --local-checkpoint --bluetooth-audio --bluetooth-device 41:42:06:42:05:80
+```
+
+If the target hardware selector differs, use the intended configured device rather than copying that example blindly. Preserve the same command for reruns.
+
+If the installer intentionally reports `I2C_REBOOT_REQUIRED`, reboot once, return to the same extracted checkpoint and rerun the exact same command. Do not delete install state, immutable releases or model files merely to make the rerun look clean.
+
+### B. Failure handling is one-ZIP-first
+
+If any installer step fails, the terminal should print one operator-accessible evidence ZIP. Upload that ZIP first. Do not run `collect-support.sh` a second time unless `evidence_index.json` says canonical support collection was unavailable. The combined archive must identify the current installer failure separately from historical service-code counts.
+
+A failure to create or return an operator-readable ZIP is itself a checkpoint-43 defect; record the terminal output and location/ownership observed.
+
+### C. Required installation-success token
+
+Do not begin integrated relay/fan/SHT31 acceptance until the installer prints:
+
+```text
+[READY] code=INSTALLATION_COMPLETE ... wake_phrase=GonKen
+```
+
+`systemctl is-active gonken-agent.service` alone is insufficient. While waiting, a fresh `APPLIANCE_DEPENDENCY_WAIT` line should identify the causal component/reason. The final READY must belong to the current release, current boot and current service PID.
+
+### D. Immediate post-install convergence checks
+
+After `INSTALLATION_COMPLETE`:
+
+1. disconnect/reconnect SSH if instructed so `gonken-envctl` supplementary membership is refreshed;
+2. confirm `gonken-agent.service` remains enabled and semantically ready without an interactive desktop login;
+3. say `GonKen` and complete at least one wake -> capture -> Whisper -> local Ollama -> Piper -> speaker transaction;
+4. repeat an immediate same-commit installer invocation and confirm it converges without mutating/rebuilding the active immutable release incorrectly;
+5. reboot and repeat the no-login service/voice check before changing the environment profile;
+6. collect a normal support ZIP and retain it as the successful-install target evidence artifact.
+
+### E. Environment commissioning ladder
+
+Proceed from lower-risk to higher-risk evidence and do not collapse the stages:
+
+1. `full-simulation` — controller/IPC/CLI/voice semantics only;
+2. `real-sensor-simulated-actuator` — SHT31 software/device/read quality without fan actuation;
+3. `sensor-deferred-relay` only when supervised relay/fan testing is intended;
+4. `full-real` only after SHT31 and relay wiring/polarity/GPIO identity prerequisites are separately satisfied.
+
+For a real SHT31, run the governed targeted diagnostic and record the proven `0x44` or `0x45` address. For real relay/fan work, preserve the established GPIO23/header mapping evidence and repeat safe OFF -> ON -> OFF supervision. Never infer blade motion from `relay_logical_state=on`. Never claim software fan-speed control.
+
+### F. Lifecycle acceptance sequence
+
+For the exact checkpoint-43 archive, record separate results for: fresh/dirty-state install convergence; immediate same-commit rerun; reboot/no-login at least three times; USB capture/playback; configured Bluetooth preference plus deterministic direct fallback; wake/listen/STT/model/TTS transaction; SHT31 campaign; relay/fan cycles; MANUAL/SEMI/AUTOMATIC/DISABLED semantics; sensor unplug/recovery; service restart; audio hotplug/re-enumeration; update/rollback/reinstall when a suitable prior/newer governed release is available; and the final support/evidence ZIP privacy/integrity review.
+
+Host, simulation and target-shadow PASS rows do not close these physical gates.

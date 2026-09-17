@@ -441,3 +441,32 @@ Ordinary fan voice responses still avoid software-speed claims. With the
 current ELUTENG inline controller and relay architecture, GonKen can report
 relay/fan-power command state only; it cannot select Low/Medium/High speed or
 observe blade RPM.
+
+## Checkpoint 43 convergence: semantic readiness and single evidence output
+
+Checkpoint 43 changes two operator-visible contracts without changing the offline/least-privilege model.
+
+First, `systemctl is-active gonken-agent.service` is only a liveness observation. Installation success requires a fresh semantic readiness record from the current release, current boot and current service process. While dependencies are still converging, the installer may print a bounded line such as:
+
+```text
+[WAITING] code=APPLIANCE_DEPENDENCY_WAIT component=audio_capture dependency_code=AUDIO_CAPTURE_DEVICE_UNAVAILABLE recoverable=true
+```
+
+A known non-recoverable dependency may stop early instead of consuming the full readiness timeout. Do not copy/edit files under `/run/gonken-agent` to force READY; rerun the same installer after correcting the stated dependency.
+
+Second, an ordinary failed target installation now produces **one final evidence ZIP**. Installer-specific evidence is namespaced under `installer/`, while the common support members use the same canonical evidence engine as successful-install support collection. The terminal prints the absolute path. By default a sudo-launched install returns the ZIP to the invoking administrator's home and ownership. `--output` and `--output-dir` remain available on the evidence collector paths; `/tmp` may be selected explicitly when disposable post-reboot evidence is preferred.
+
+After an ordinary installer failure, upload the single printed ZIP. Do **not** run `collect-support.sh` again unless the ZIP/index explicitly says that canonical support collection was unavailable at that install stage. After a successful installation, `collect-support.sh` remains the normal support command.
+
+The support bundle records metadata-only service-user audio context and semantic readiness. It does not retain microphone audio, transcripts, prompts, model responses, Wi-Fi credentials or raw journals. Interactive-user audio success is not treated as proof that the `gonken-agent` service identity can capture or play audio.
+
+### Environment profile states
+
+The environment subsystem remains default-safe and must not be inferred from the fact that the main voice service is ready. The governed static profiles are:
+
+- `full-simulation`: simulated sensor + simulated actuator;
+- `sensor-deferred-relay`: simulated sensor + real libgpiod relay;
+- `real-sensor-simulated-actuator`: real SHT31 + simulated actuator;
+- `full-real`: real SHT31 + real libgpiod relay, with simulation runtime control disabled.
+
+Use `scripts/environment_profile_manager.py` only as documented by the target runbook. A real-sensor profile can establish software/device readiness only after the SHT31 diagnostic succeeds; a real-actuator profile still does not prove relay polarity, PENGLIN wiring or fan blade motion. The ELUTENG room fan remains power ON/OFF only from software; `software_speed_control=false`. The Raspberry Pi Active Cooler is a separate CPU-cooling subsystem.

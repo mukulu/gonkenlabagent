@@ -1,0 +1,7 @@
+test_process_activation_migrates_from_post_verified_pre_bridge_target_release (tests.integration.test_release_lifecycle_process.TargetBridgeUpgradeCompatibilityTests.test_process_activation_migrates_from_post_verified_pre_bridge_target_release)
+Exact checkpoint-29 target failure: reconcile old active, then activate bridge release. ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.722s
+
+OK

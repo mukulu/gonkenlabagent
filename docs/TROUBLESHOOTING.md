@@ -228,3 +228,23 @@ Checkpoint 34 defines one immutable-authority boundary for payload hashing, path
 `--bluetooth-audio` means “prefer/configure Bluetooth,” not “make Bluetooth mandatory.” If the requested headset is busy or offline and the service user can prove exactly one direct USB/wired capture device plus one direct non-HDMI playback device, the installer may continue and report bounded Bluetooth warnings with `AUDIO_DIRECT_FALLBACK_READY`.
 
 If direct audio is missing or ambiguous, the installer still fails rather than guessing. Keep only the intended USB/wired audio devices connected or restore the preferred Bluetooth device, then rerun the same checkpoint.
+
+## Checkpoint 43: service is active but installation reports audio/readiness failure
+
+Treat this as a semantic-readiness problem, not as proof that systemd is broken. The voice process can be `active (running)` while waiting for an audio, GPIO, speech-model or local-model dependency.
+
+1. Read the current installer line containing `APPLIANCE_DEPENDENCY_WAIT`. Record its `component`, `dependency_code` and `recoverable` value.
+2. If installation has failed, use the **single evidence ZIP path printed by the installer**. Do not immediately run a second support command; the combined failure ZIP already attempts canonical support collection and records omitted sections with reasons.
+3. Do not substitute the interactive login user's `wpctl`/PipeWire success for the `gonken-agent` service identity. Check `runtime_bindings.json -> audio_session` and `voice_readiness` in the evidence ZIP.
+4. `AUDIO_CAPTURE_PERMISSION_DENIED` is treated as a configuration/authority error and should not be retried forever. Repair the service account/device/runtime permission contract.
+5. `AUDIO_SERVER_UNAVAILABLE` means the service user's PipeWire/Pulse endpoint is unavailable; inspect the runtime-context evidence instead of switching to a desktop user's runtime directory.
+6. `AUDIO_CAPTURE_DEVICE_UNAVAILABLE` means the selected physical capture route is absent. Restore the intended USB/wired microphone or the configured Bluetooth headset/profile; do not hard-code a transient ALSA card number.
+7. `AUDIO_CAPTURE_DEVICE_BUSY` means another owner is holding the path. Remove the conflict rather than broadening privileges.
+8. `AUDIO_CAPTURE_WAV_INVALID` means capture bytes did not produce a valid canonical WAV at the application boundary. Preserve the evidence ZIP; do not manually manufacture a WAV or mark READY.
+9. A generic ALSA/backend failure remains a STOP condition if deterministic fallback cannot be proven.
+
+Checkpoint 43's PipeWire capture path records bounded raw signed-16-bit mono PCM and then writes the canonical WAV container itself before validation. ALSA and Bluetooth/direct fallback semantics remain intact. The change is intended to remove dependence on an interrupted encoded-WAV finalization path, but only the exact Raspberry Pi campaign can prove the physical repair.
+
+### Historical reason codes versus current causal failure
+
+A support/failure archive may contain counts from earlier processes or attempts. Do not treat the most frequent or oldest code as the current cause. Check the current semantic readiness record and installer event first; historical failure codes are retained as chronology, not silently promoted to the present root cause.

@@ -1,6 +1,6 @@
 {
   "baseline_commit": "6466f26a1a9cb97e4c24182505b37cefb766b3c3",
-  "checkpoint_scope": "V09 checkpoint 42 makes one comprehensive target evidence ZIP the required handoff unit for future build cycles. Normal support export and installer-failure bundles now include a sanitized non-actuating target manifest, platform/resource inventory, bounded service-event codes, installer provenance, preflight summaries and an evidence index while preserving content-free privacy boundaries. M10.37 is host-verified as support/failure-bundle evidence infrastructure only; the platform still does not directly run physical hardware, and M10.24 physical observations remain target-collected evidence carried by the ZIP.",
+  "checkpoint_scope": "V09 checkpoint 43 applies the reliability-first V2 convergence architecture to the 2026-09-17 checkpoint-42 target failure: service-context audio capture is repaired and target-shadowed, appliance readiness is freshness-bound and causal, installer failure orchestrates canonical support into one operator-accessible ZIP, launcher/bootstrap/installer responsibility boundaries are regression-tested, and downstream voice/environment/lifecycle gates are rerun before packaging. M10.38 is currently partial until the exact checkpoint archive and final host gates complete; M10.24 physical Raspberry Pi acceptance remains target-run.",
   "milestones": [
     {
       "evidence": "TEST_MATRIX.md (M2.1)",
@@ -548,6 +548,14 @@
       "software": "host-verified",
       "target": "not-run",
       "title": "Single-ZIP target evidence and failure-bundle completeness"
+    },
+    {
+      "id": "M10.38",
+      "title": "Post-checkpoint-42 semantic convergence and canonical evidence architecture",
+      "software": "partial",
+      "target": "not-run",
+      "evidence": "src/gonken_agent/evidence.py; src/gonken_agent/support.py; src/gonken_agent/voice_runtime.py; scripts/appliance_manager.py; scripts/installer_failure_bundle.py; scripts/target_probe.py; scripts/release_readiness.py; tests/fixtures/target_probe/ckpt42_20260917_audio_capture_runtime_failure_manifest.json; tests/unit/test_v09_responsibility_boundaries.py; docs/development/V09_CHECKPOINT_43_FAILURE_CHRONOLOGY.md; docs/development/V09_CHECKPOINT_43_RESPONSIBILITY_LEDGER.md",
+      "remaining": "Complete checkpoint-43 downstream/lifecycle host verification, documentation/static gates, clean commit/tag, exact archive qualification and extracted-archive reruns. Then run the exact package on the real Raspberry Pi; only target evidence may close M10.24 physical audio, SHT31, relay/fan, wake, reboot/no-login and lifecycle gates."
     }
   ],
   "schema_version": 1

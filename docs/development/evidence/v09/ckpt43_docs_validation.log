@@ -1,0 +1,207 @@
+[PASS] doc-exists:README.md: README.md exists
+[PASS] doc-exists:docs/HARDWARE_SETUP.md: docs/HARDWARE_SETUP.md exists
+[PASS] doc-exists:docs/ENVIRONMENT_CONTROL.md: docs/ENVIRONMENT_CONTROL.md exists
+[PASS] doc-exists:docs/SIMULATION.md: docs/SIMULATION.md exists
+[PASS] doc-exists:docs/TROUBLESHOOTING.md: docs/TROUBLESHOOTING.md exists
+[PASS] doc-exists:docs/ENVIRONMENT_ACCEPTANCE_RUN.md: docs/ENVIRONMENT_ACCEPTANCE_RUN.md exists
+[PASS] doc-exists:docs/RASPBERRY_PI_ACCEPTANCE_RUN.md: docs/RASPBERRY_PI_ACCEPTANCE_RUN.md exists
+[PASS] doc-exists:docs/OPERATIONS.md: docs/OPERATIONS.md exists
+[PASS] doc-exists:docs/INSTALLATION.md: docs/INSTALLATION.md exists
+[PASS] doc-exists:docs/USER_SIMULATION_HIL_HANDOFF.md: docs/USER_SIMULATION_HIL_HANDOFF.md exists
+[PASS] local-link:README.md:docs/INSTALLATION.md: local link resolves: README.md -> docs/INSTALLATION.md
+[PASS] local-link:README.md:docs/BLUETOOTH_AUDIO.md: local link resolves: README.md -> docs/BLUETOOTH_AUDIO.md
+[PASS] local-link:README.md:docs/RASPBERRY_PI_ACCEPTANCE_RUN.md: local link resolves: README.md -> docs/RASPBERRY_PI_ACCEPTANCE_RUN.md
+[PASS] local-link:README.md:docs/OPERATIONS.md: local link resolves: README.md -> docs/OPERATIONS.md
+[PASS] local-link:README.md:docs/INSTALLATION.md: local link resolves: README.md -> docs/INSTALLATION.md
+[PASS] local-link:README.md:docs/OPERATIONS.md: local link resolves: README.md -> docs/OPERATIONS.md
+[PASS] local-link:README.md:docs/BLUETOOTH_AUDIO.md: local link resolves: README.md -> docs/BLUETOOTH_AUDIO.md
+[PASS] local-link:README.md:docs/RASPBERRY_PI_ACCEPTANCE_RUN.md: local link resolves: README.md -> docs/RASPBERRY_PI_ACCEPTANCE_RUN.md
+[PASS] local-link:README.md:docs/HARDWARE_SETUP.md: local link resolves: README.md -> docs/HARDWARE_SETUP.md
+[PASS] local-link:README.md:docs/ENVIRONMENT_CONTROL.md: local link resolves: README.md -> docs/ENVIRONMENT_CONTROL.md
+[PASS] local-link:README.md:docs/SIMULATION.md: local link resolves: README.md -> docs/SIMULATION.md
+[PASS] local-link:README.md:docs/TROUBLESHOOTING.md: local link resolves: README.md -> docs/TROUBLESHOOTING.md
+[PASS] local-link:README.md:docs/ENVIRONMENT_ACCEPTANCE_RUN.md: local link resolves: README.md -> docs/ENVIRONMENT_ACCEPTANCE_RUN.md
+[PASS] local-link:README.md:requirements/README.md: local link resolves: README.md -> requirements/README.md
+[PASS] local-link:README.md:docs/development/: local link resolves: README.md -> docs/development/
+[PASS] local-link:README.md:docs/RASPBERRY_PI_ACCEPTANCE_RUN.md: local link resolves: README.md -> docs/RASPBERRY_PI_ACCEPTANCE_RUN.md
+[PASS] local-link:README.md:docs/USER_SIMULATION_HIL_HANDOFF.md: local link resolves: README.md -> docs/USER_SIMULATION_HIL_HANDOFF.md
+[PASS] local-link:docs/HARDWARE_SETUP.md:ENVIRONMENT_ACCEPTANCE_RUN.md: local link resolves: docs/HARDWARE_SETUP.md -> ENVIRONMENT_ACCEPTANCE_RUN.md
+[PASS] local-link:docs/ENVIRONMENT_ACCEPTANCE_RUN.md:RASPBERRY_PI_ACCEPTANCE_RUN.md: local link resolves: docs/ENVIRONMENT_ACCEPTANCE_RUN.md -> RASPBERRY_PI_ACCEPTANCE_RUN.md
+[PASS] local-link:docs/OPERATIONS.md:HARDWARE_SETUP.md: local link resolves: docs/OPERATIONS.md -> HARDWARE_SETUP.md
+[PASS] local-link:docs/OPERATIONS.md:RASPBERRY_PI_ACCEPTANCE_RUN.md: local link resolves: docs/OPERATIONS.md -> RASPBERRY_PI_ACCEPTANCE_RUN.md
+[PASS] local-link:docs/OPERATIONS.md:BLUETOOTH_AUDIO.md: local link resolves: docs/OPERATIONS.md -> BLUETOOTH_AUDIO.md
+[PASS] local-link:docs/OPERATIONS.md:HARDWARE_SETUP.md: local link resolves: docs/OPERATIONS.md -> HARDWARE_SETUP.md
+[PASS] local-link:docs/OPERATIONS.md:ENVIRONMENT_CONTROL.md: local link resolves: docs/OPERATIONS.md -> ENVIRONMENT_CONTROL.md
+[PASS] local-link:docs/OPERATIONS.md:SIMULATION.md: local link resolves: docs/OPERATIONS.md -> SIMULATION.md
+[PASS] local-link:docs/OPERATIONS.md:TROUBLESHOOTING.md: local link resolves: docs/OPERATIONS.md -> TROUBLESHOOTING.md
+[PASS] local-link:docs/INSTALLATION.md:OPERATIONS.md: local link resolves: docs/INSTALLATION.md -> OPERATIONS.md
+[PASS] local-link:docs/INSTALLATION.md:OPERATIONS.md: local link resolves: docs/INSTALLATION.md -> OPERATIONS.md
+[PASS] local-link:docs/INSTALLATION.md:HARDWARE_SETUP.md: local link resolves: docs/INSTALLATION.md -> HARDWARE_SETUP.md
+[PASS] local-link:docs/INSTALLATION.md:ENVIRONMENT_CONTROL.md: local link resolves: docs/INSTALLATION.md -> ENVIRONMENT_CONTROL.md
+[PASS] local-link:docs/INSTALLATION.md:ENVIRONMENT_ACCEPTANCE_RUN.md: local link resolves: docs/INSTALLATION.md -> ENVIRONMENT_ACCEPTANCE_RUN.md
+[PASS] local-link:docs/USER_SIMULATION_HIL_HANDOFF.md:HARDWARE_SETUP.md: local link resolves: docs/USER_SIMULATION_HIL_HANDOFF.md -> HARDWARE_SETUP.md
+[PASS] local-link:docs/USER_SIMULATION_HIL_HANDOFF.md:HARDWARE_SETUP.md: local link resolves: docs/USER_SIMULATION_HIL_HANDOFF.md -> HARDWARE_SETUP.md
+[PASS] boundary-term:docs/HARDWARE_SETUP.md:not the Raspberry Pi Active Cooler: required boundary term present in docs/HARDWARE_SETUP.md: not the Raspberry Pi Active Cooler
+[PASS] boundary-term:docs/HARDWARE_SETUP.md:software_speed_control=false: required boundary term present in docs/HARDWARE_SETUP.md: software_speed_control=false
+[PASS] boundary-term:docs/HARDWARE_SETUP.md:fan_motion_observed=false: required boundary term present in docs/HARDWARE_SETUP.md: fan_motion_observed=false
+[PASS] boundary-term:docs/HARDWARE_SETUP.md:PENGLIN: required boundary term present in docs/HARDWARE_SETUP.md: PENGLIN
+[PASS] boundary-term:docs/HARDWARE_SETUP.md:ELUTENG: required boundary term present in docs/HARDWARE_SETUP.md: ELUTENG
+[PASS] boundary-term:docs/HARDWARE_SETUP.md:SHT31: required boundary term present in docs/HARDWARE_SETUP.md: SHT31
+[PASS] boundary-term:docs/HARDWARE_SETUP.md:KKHMF: required boundary term present in docs/HARDWARE_SETUP.md: KKHMF
+[PASS] boundary-term:docs/HARDWARE_SETUP.md:physical_evidence=false: required boundary term present in docs/HARDWARE_SETUP.md: physical_evidence=false
+[PASS] boundary-term:docs/ENVIRONMENT_CONTROL.md:The CLI and voice layers are clients of the daemon: required boundary term present in docs/ENVIRONMENT_CONTROL.md: The CLI and voice layers are clients of the daemon
+[PASS] boundary-term:docs/ENVIRONMENT_CONTROL.md:physical_evidence=false: required boundary term present in docs/ENVIRONMENT_CONTROL.md: physical_evidence=false
+[PASS] boundary-term:docs/ENVIRONMENT_CONTROL.md:software_speed_control=false: required boundary term present in docs/ENVIRONMENT_CONTROL.md: software_speed_control=false
+[PASS] boundary-term:docs/ENVIRONMENT_CONTROL.md:fan_motion_observed=false: required boundary term present in docs/ENVIRONMENT_CONTROL.md: fan_motion_observed=false
+[PASS] boundary-term:docs/ENVIRONMENT_CONTROL.md:env watch` is passive: required boundary term present in docs/ENVIRONMENT_CONTROL.md: env watch` is passive
+[PASS] boundary-term:docs/SIMULATION.md:HOST_SIMULATION: required boundary term present in docs/SIMULATION.md: HOST_SIMULATION
+[PASS] boundary-term:docs/SIMULATION.md:TARGET_HYBRID_SENSOR_SIMULATED: required boundary term present in docs/SIMULATION.md: TARGET_HYBRID_SENSOR_SIMULATED
+[PASS] boundary-term:docs/SIMULATION.md:TARGET_HYBRID_ACTUATOR_SIMULATED: required boundary term present in docs/SIMULATION.md: TARGET_HYBRID_ACTUATOR_SIMULATED
+[PASS] boundary-term:docs/SIMULATION.md:TARGET_REAL_BACKENDS_UNVERIFIED: required boundary term present in docs/SIMULATION.md: TARGET_REAL_BACKENDS_UNVERIFIED
+[PASS] boundary-term:docs/SIMULATION.md:SIMULATION_ACTIVE_PHYSICAL_ACCEPTANCE_BLOCKED: required boundary term present in docs/SIMULATION.md: SIMULATION_ACTIVE_PHYSICAL_ACCEPTANCE_BLOCKED
+[PASS] boundary-term:docs/SIMULATION.md:not physical Raspberry Pi acceptance: required boundary term present in docs/SIMULATION.md: not physical Raspberry Pi acceptance
+[PASS] boundary-term:docs/TROUBLESHOOTING.md:SIMULATION_ACTIVE_PHYSICAL_ACCEPTANCE_BLOCKED: required boundary term present in docs/TROUBLESHOOTING.md: SIMULATION_ACTIVE_PHYSICAL_ACCEPTANCE_BLOCKED
+[PASS] boundary-term:docs/TROUBLESHOOTING.md:Do not interpret `fan_power=on` as measured blade motion: required boundary term present in docs/TROUBLESHOOTING.md: Do not interpret `fan_power=on` as measured blade motion
+[PASS] boundary-term:docs/TROUBLESHOOTING.md:GonKen: required boundary term present in docs/TROUBLESHOOTING.md: GonKen
+[PASS] boundary-term:docs/ENVIRONMENT_ACCEPTANCE_RUN.md:physical_acceptance_claimed=false: required boundary term present in docs/ENVIRONMENT_ACCEPTANCE_RUN.md: physical_acceptance_claimed=false
+[PASS] boundary-term:docs/ENVIRONMENT_ACCEPTANCE_RUN.md:SIMULATION_ACTIVE_PHYSICAL_ACCEPTANCE_BLOCKED: required boundary term present in docs/ENVIRONMENT_ACCEPTANCE_RUN.md: SIMULATION_ACTIVE_PHYSICAL_ACCEPTANCE_BLOCKED
+[PASS] boundary-term:docs/ENVIRONMENT_ACCEPTANCE_RUN.md:Exit code 0 means: required boundary term present in docs/ENVIRONMENT_ACCEPTANCE_RUN.md: Exit code 0 means
+[PASS] boundary-term:docs/USER_SIMULATION_HIL_HANDOFF.md:READY_FOR_USER_SIMULATION_AND_SENSOR_DEFERRED_HIL: required boundary term present in docs/USER_SIMULATION_HIL_HANDOFF.md: READY_FOR_USER_SIMULATION_AND_SENSOR_DEFERRED_HIL
+[PASS] boundary-term:docs/USER_SIMULATION_HIL_HANDOFF.md:not Raspberry Pi physical acceptance: required boundary term present in docs/USER_SIMULATION_HIL_HANDOFF.md: not Raspberry Pi physical acceptance
+[PASS] boundary-term:docs/USER_SIMULATION_HIL_HANDOFF.md:TARGET_HYBRID_SENSOR_SIMULATED: required boundary term present in docs/USER_SIMULATION_HIL_HANDOFF.md: TARGET_HYBRID_SENSOR_SIMULATED
+[PASS] boundary-term:docs/USER_SIMULATION_HIL_HANDOFF.md:SIMULATION_ACTIVE_PHYSICAL_ACCEPTANCE_BLOCKED: required boundary term present in docs/USER_SIMULATION_HIL_HANDOFF.md: SIMULATION_ACTIVE_PHYSICAL_ACCEPTANCE_BLOCKED
+[PASS] boundary-term:docs/USER_SIMULATION_HIL_HANDOFF.md:Do not actuate: required boundary term present in docs/USER_SIMULATION_HIL_HANDOFF.md: Do not actuate
+[PASS] boundary-term:docs/RASPBERRY_PI_ACCEPTANCE_RUN.md:--local-checkpoint: required boundary term present in docs/RASPBERRY_PI_ACCEPTANCE_RUN.md: --local-checkpoint
+[PASS] boundary-term:docs/RASPBERRY_PI_ACCEPTANCE_RUN.md:READY_FOR_TARGET_ACCEPTANCE: required boundary term present in docs/RASPBERRY_PI_ACCEPTANCE_RUN.md: READY_FOR_TARGET_ACCEPTANCE
+[PASS] boundary-term:docs/RASPBERRY_PI_ACCEPTANCE_RUN.md:M10.7: required boundary term present in docs/RASPBERRY_PI_ACCEPTANCE_RUN.md: M10.7
+[PASS] boundary-term:docs/RASPBERRY_PI_ACCEPTANCE_RUN.md:not physically accepted: required boundary term present in docs/RASPBERRY_PI_ACCEPTANCE_RUN.md: not physically accepted
+[PASS] boundary-term:docs/RASPBERRY_PI_ACCEPTANCE_RUN.md:BLOCKED_NO_PREVIOUS_VALIDATED_RELEASE: required boundary term present in docs/RASPBERRY_PI_ACCEPTANCE_RUN.md: BLOCKED_NO_PREVIOUS_VALIDATED_RELEASE
+[PASS] wake-default-config: packaged wake phrase is GonKen
+[PASS] wake-stale-default:README.md:wake_phrase=Hey_Gonken: README.md has no stale wake default token wake_phrase=Hey_Gonken
+[PASS] wake-stale-default:README.md:say_Hey_Gonken: README.md has no stale wake default token say_Hey_Gonken
+[PASS] wake-stale-default:docs/INSTALLATION.md:wake_phrase=Hey_Gonken: docs/INSTALLATION.md has no stale wake default token wake_phrase=Hey_Gonken
+[PASS] wake-stale-default:docs/INSTALLATION.md:say_Hey_Gonken: docs/INSTALLATION.md has no stale wake default token say_Hey_Gonken
+[PASS] wake-stale-default:docs/RASPBERRY_PI_ACCEPTANCE_RUN.md:wake_phrase=Hey_Gonken: docs/RASPBERRY_PI_ACCEPTANCE_RUN.md has no stale wake default token wake_phrase=Hey_Gonken
+[PASS] wake-stale-default:docs/RASPBERRY_PI_ACCEPTANCE_RUN.md:say_Hey_Gonken: docs/RASPBERRY_PI_ACCEPTANCE_RUN.md has no stale wake default token say_Hey_Gonken
+[PASS] wake-stale-default:scripts/install.sh:wake_phrase=Hey_Gonken: scripts/install.sh has no stale wake default token wake_phrase=Hey_Gonken
+[PASS] wake-stale-default:scripts/install.sh:say_Hey_Gonken: scripts/install.sh has no stale wake default token say_Hey_Gonken
+[PASS] env-config-documented:enabled: environment config key documented: enabled
+[PASS] env-config-documented:i2c_address: environment config key documented: i2c_address
+[PASS] env-config-documented:i2c_bus: environment config key documented: i2c_bus
+[PASS] env-config-documented:maximum_dwell_seconds: environment config key documented: maximum_dwell_seconds
+[PASS] env-config-documented:maximum_hysteresis_c: environment config key documented: maximum_hysteresis_c
+[PASS] env-config-documented:minimum_dwell_seconds: environment config key documented: minimum_dwell_seconds
+[PASS] env-config-documented:minimum_hysteresis_c: environment config key documented: minimum_hysteresis_c
+[PASS] env-config-documented:policy_path: environment config key documented: policy_path
+[PASS] env-config-documented:poll_interval_seconds: environment config key documented: poll_interval_seconds
+[PASS] env-config-documented:relay_active_high: environment config key documented: relay_active_high
+[PASS] env-config-documented:relay_backend: environment config key documented: relay_backend
+[PASS] env-config-documented:relay_bcm: environment config key documented: relay_bcm
+[PASS] env-config-documented:safe_state: environment config key documented: safe_state
+[PASS] env-config-documented:sensor_backend: environment config key documented: sensor_backend
+[PASS] env-config-documented:sensor_repeatability: environment config key documented: sensor_repeatability
+[PASS] env-config-documented:simulation_event_history_limit: environment config key documented: simulation_event_history_limit
+[PASS] env-config-documented:simulation_runtime_control_enabled: environment config key documented: simulation_runtime_control_enabled
+[PASS] env-config-documented:socket_path: environment config key documented: socket_path
+[PASS] env-config-documented:stale_after_seconds: environment config key documented: stale_after_seconds
+[PASS] env-config-documented:temperature_policy_max_c: environment config key documented: temperature_policy_max_c
+[PASS] env-config-documented:temperature_policy_min_c: environment config key documented: temperature_policy_min_c
+[PASS] env-config-documented:valid_samples_to_recover: environment config key documented: valid_samples_to_recover
+[PASS] documented-command-present:DOC-CMD-001: documented command appears in README.md: gonken-agent status
+[PASS] documented-command-parses:DOC-CMD-001: command parses: gonken-agent status
+[PASS] documented-command-present:DOC-CMD-002: documented command appears in README.md: gonken-agent wake status --json
+[PASS] documented-command-parses:DOC-CMD-002: command parses: gonken-agent wake status --json
+[PASS] documented-command-present:DOC-CMD-003: documented command appears in docs/ENVIRONMENT_CONTROL.md: gonken-agent env status --json
+[PASS] documented-command-parses:DOC-CMD-003: command parses: gonken-agent env status --json
+[PASS] documented-command-present:DOC-CMD-004: documented command appears in docs/ENVIRONMENT_CONTROL.md: gonken-agent env health
+[PASS] documented-command-parses:DOC-CMD-004: command parses: gonken-agent env health
+[PASS] documented-command-present:DOC-CMD-005: documented command appears in docs/ENVIRONMENT_CONTROL.md: gonken-agent env read
+[PASS] documented-command-parses:DOC-CMD-005: command parses: gonken-agent env read
+[PASS] documented-command-present:DOC-CMD-006: documented command appears in docs/ENVIRONMENT_CONTROL.md: gonken-agent env watch --interval 2 --count 3
+[PASS] documented-command-parses:DOC-CMD-006: command parses: gonken-agent env watch --interval 2 --count 3
+[PASS] documented-command-present:DOC-CMD-007: documented command appears in docs/ENVIRONMENT_CONTROL.md: gonken-agent env fan on
+[PASS] documented-command-parses:DOC-CMD-007: command parses: gonken-agent env fan on
+[PASS] documented-command-present:DOC-CMD-008: documented command appears in docs/ENVIRONMENT_CONTROL.md: gonken-agent env fan off
+[PASS] documented-command-parses:DOC-CMD-008: command parses: gonken-agent env fan off
+[PASS] documented-command-present:DOC-CMD-009: documented command appears in docs/ENVIRONMENT_CONTROL.md: gonken-agent env mode set automatic
+[PASS] documented-command-parses:DOC-CMD-009: command parses: gonken-agent env mode set automatic
+[PASS] documented-command-present:DOC-CMD-010: documented command appears in docs/ENVIRONMENT_CONTROL.md: gonken-agent env policy set --start-c 28 --stop-c 26.5
+[PASS] documented-command-parses:DOC-CMD-010: command parses: gonken-agent env policy set --start-c 28 --stop-c 26.5
+[PASS] documented-command-present:DOC-CMD-011: documented command appears in docs/SIMULATION.md: gonken-agent env simulate status
+[PASS] documented-command-parses:DOC-CMD-011: command parses: gonken-agent env simulate status
+[PASS] documented-command-present:DOC-CMD-012: documented command appears in docs/SIMULATION.md: gonken-agent env simulate sensor set --temperature-c 27 --humidity-pct 50
+[PASS] documented-command-parses:DOC-CMD-012: command parses: gonken-agent env simulate sensor set --temperature-c 27 --humidity-pct 50
+[PASS] documented-command-present:DOC-CMD-013: documented command appears in docs/SIMULATION.md: gonken-agent env simulate sensor stale --age-seconds 30
+[PASS] documented-command-parses:DOC-CMD-013: command parses: gonken-agent env simulate sensor stale --age-seconds 30
+[PASS] documented-command-present:DOC-CMD-014: documented command appears in docs/SIMULATION.md: gonken-agent env simulate sensor recover --temperature-c 27 --humidity-pct 50
+[PASS] documented-command-parses:DOC-CMD-014: command parses: gonken-agent env simulate sensor recover --temperature-c 27 --humidity-pct 50
+[PASS] documented-command-present:DOC-CMD-015: documented command appears in docs/SIMULATION.md: gonken-agent env simulate fan behavior normal
+[PASS] documented-command-parses:DOC-CMD-015: command parses: gonken-agent env simulate fan behavior normal
+[PASS] documented-command-present:DOC-CMD-016: documented command appears in docs/SIMULATION.md: gonken-agent env simulate fan fail-next-write
+[PASS] documented-command-parses:DOC-CMD-016: command parses: gonken-agent env simulate fan fail-next-write
+[PASS] documented-command-present:DOC-CMD-017: documented command appears in docs/ENVIRONMENT_ACCEPTANCE_RUN.md: environment_acceptance_runner.py --output-dir /tmp/gonken-m10-7-evidence --plan-only --json
+[PASS] documented-command-parses:DOC-CMD-017: command parses: environment_acceptance_runner.py --output-dir /tmp/gonken-m10-7-evidence --plan-only --json
+[PASS] documented-command-present:DOC-CMD-018: documented command appears in docs/ENVIRONMENT_ACCEPTANCE_RUN.md: environment_acceptance_runner.py --output-dir /tmp/gonken-m10-7-evidence --allow-actuation --json
+[PASS] documented-command-parses:DOC-CMD-018: command parses: environment_acceptance_runner.py --output-dir /tmp/gonken-m10-7-evidence --allow-actuation --json
+[PASS] documented-command-present:DOC-CMD-019: documented command appears in docs/TROUBLESHOOTING.md: gonken-agent env probe --json
+[PASS] documented-command-parses:DOC-CMD-019: command parses: gonken-agent env probe --json
+[PASS] documented-command-present:DOC-CMD-020: documented command appears in docs/TROUBLESHOOTING.md: gonken-agent env policy show --json
+[PASS] documented-command-parses:DOC-CMD-020: command parses: gonken-agent env policy show --json
+[PASS] documented-command-present:DOC-CMD-021: documented command appears in docs/TROUBLESHOOTING.md: gonken-agent wake status --json
+[PASS] documented-command-parses:DOC-CMD-021: command parses: gonken-agent wake status --json
+[PASS] documented-command-present:DOC-CMD-022: documented command appears in docs/development/V09_SIMULATION_HIL_EXTENSION_PLAN.md: ./scripts/ci.sh --phase t0
+[PASS] documented-command-parses:DOC-CMD-022: command parses: ./scripts/ci.sh --phase t0
+[PASS] documented-command-present:DOC-CMD-023: documented command appears in docs/USER_SIMULATION_HIL_HANDOFF.md: gonken-agent env simulate status --json
+[PASS] documented-command-parses:DOC-CMD-023: command parses: gonken-agent env simulate status --json
+[PASS] documented-command-present:DOC-CMD-024: documented command appears in docs/USER_SIMULATION_HIL_HANDOFF.md: gonken-agent env watch --interval 1
+[PASS] documented-command-parses:DOC-CMD-024: command parses: gonken-agent env watch --interval 1
+[PASS] documented-command-present:DOC-CMD-025: documented command appears in docs/USER_SIMULATION_HIL_HANDOFF.md: gonken-agent env mode set manual
+[PASS] documented-command-parses:DOC-CMD-025: command parses: gonken-agent env mode set manual
+[PASS] documented-command-present:DOC-CMD-026: documented command appears in docs/USER_SIMULATION_HIL_HANDOFF.md: gonken-agent env fan on
+[PASS] documented-command-parses:DOC-CMD-026: command parses: gonken-agent env fan on
+[PASS] documented-command-present:DOC-CMD-027: documented command appears in docs/USER_SIMULATION_HIL_HANDOFF.md: gonken-agent env fan off
+[PASS] documented-command-parses:DOC-CMD-027: command parses: gonken-agent env fan off
+[PASS] documented-command-present:DOC-CMD-028: documented command appears in docs/USER_SIMULATION_HIL_HANDOFF.md: gonken-agent status --json
+[PASS] documented-command-parses:DOC-CMD-028: command parses: gonken-agent status --json
+[PASS] documented-command-present:DOC-CMD-029: documented command appears in docs/USER_SIMULATION_HIL_HANDOFF.md: gonken-agent wake status --json
+[PASS] documented-command-parses:DOC-CMD-029: command parses: gonken-agent wake status --json
+[PASS] documented-command-present:DOC-CMD-030: documented command appears in docs/USER_SIMULATION_HIL_HANDOFF.md: gonken-agent env status --json
+[PASS] documented-command-parses:DOC-CMD-030: command parses: gonken-agent env status --json
+[PASS] documented-command-present:DOC-CMD-031: documented command appears in docs/USER_SIMULATION_HIL_HANDOFF.md: gonken-agent env policy set --mode automatic --start-c 28 --stop-c 26.5
+[PASS] documented-command-parses:DOC-CMD-031: command parses: gonken-agent env policy set --mode automatic --start-c 28 --stop-c 26.5
+[PASS] documented-command-present:DOC-CMD-032: documented command appears in docs/USER_SIMULATION_HIL_HANDOFF.md: gonken-agent env simulate sensor set --temperature-c 27 --humidity-pct 50
+[PASS] documented-command-parses:DOC-CMD-032: command parses: gonken-agent env simulate sensor set --temperature-c 27 --humidity-pct 50
+[PASS] documented-command-present:DOC-CMD-033: documented command appears in docs/USER_SIMULATION_HIL_HANDOFF.md: gonken-agent env mode set semi-automatic
+[PASS] documented-command-parses:DOC-CMD-033: command parses: gonken-agent env mode set semi-automatic
+[PASS] documented-command-present:DOC-CMD-034: documented command appears in docs/USER_SIMULATION_HIL_HANDOFF.md: gonken-agent env simulate sensor stale --age-seconds 30
+[PASS] documented-command-parses:DOC-CMD-034: command parses: gonken-agent env simulate sensor stale --age-seconds 30
+[PASS] documented-command-present:DOC-CMD-035: documented command appears in docs/USER_SIMULATION_HIL_HANDOFF.md: gonken-agent env simulate sensor recover --temperature-c 27 --humidity-pct 50
+[PASS] documented-command-parses:DOC-CMD-035: command parses: gonken-agent env simulate sensor recover --temperature-c 27 --humidity-pct 50
+[PASS] documented-command-present:DOC-CMD-036: documented command appears in docs/RASPBERRY_PI_ACCEPTANCE_RUN.md: gonken-agent status --json
+[PASS] documented-command-parses:DOC-CMD-036: command parses: gonken-agent status --json
+[PASS] documented-command-present:DOC-CMD-037: documented command appears in docs/RASPBERRY_PI_ACCEPTANCE_RUN.md: gonken-agent wake status --json
+[PASS] documented-command-parses:DOC-CMD-037: command parses: gonken-agent wake status --json
+[PASS] documented-command-present:DOC-CMD-038: documented command appears in docs/RASPBERRY_PI_ACCEPTANCE_RUN.md: gonken-agent doctor --probe-ollama --probe-audio
+[PASS] documented-command-parses:DOC-CMD-038: command parses: gonken-agent doctor --probe-ollama --probe-audio
+[PASS] documented-command-present:DOC-CMD-039: documented command appears in docs/RASPBERRY_PI_ACCEPTANCE_RUN.md: gonken-agent config show --effective --json
+[PASS] documented-command-parses:DOC-CMD-039: command parses: gonken-agent config show --effective --json
+[PASS] documented-command-present:DOC-CMD-040: documented command appears in docs/RASPBERRY_PI_ACCEPTANCE_RUN.md: gonken-agent env status --json
+[PASS] documented-command-parses:DOC-CMD-040: command parses: gonken-agent env status --json
+[PASS] documented-command-present:DOC-CMD-041: documented command appears in docs/RASPBERRY_PI_ACCEPTANCE_RUN.md: gonken-agent env health --json
+[PASS] documented-command-parses:DOC-CMD-041: command parses: gonken-agent env health --json
+[PASS] documented-command-present:DOC-CMD-042: documented command appears in docs/RASPBERRY_PI_ACCEPTANCE_RUN.md: ./bootstrap.sh --local-checkpoint
+[PASS] documented-command-parses:DOC-CMD-042: command parses: ./bootstrap.sh --local-checkpoint
+[PASS] control-host-verified:M10.9: M10.9 is host-verified in the milestone ledger
+[PASS] control-no-stale-plan:M10.9: M10.9 has no stale PLANNED / NOT_RUN plan rows
+[PASS] control-host-verified:M10.10: M10.10 is host-verified in the milestone ledger
+[PASS] control-no-stale-plan:M10.10: M10.10 has no stale PLANNED / NOT_RUN plan rows
+[PASS] control-host-verified:M10.11: M10.11 is host-verified in the milestone ledger
+[PASS] control-no-stale-plan:M10.11: M10.11 has no stale PLANNED / NOT_RUN plan rows
+[PASS] control-host-verified:M10.12: M10.12 is host-verified in the milestone ledger
+[PASS] control-no-stale-plan:M10.12: M10.12 has no stale PLANNED / NOT_RUN plan rows
+[PASS] control-host-verified:M10.13: M10.13 is host-verified in the milestone ledger
+[PASS] control-no-stale-plan:M10.13: M10.13 has no stale PLANNED / NOT_RUN plan rows
+[PASS] control-host-verified:M10.14: M10.14 is host-verified in the milestone ledger
+[PASS] control-no-stale-plan:M10.14: M10.14 has no stale PLANNED / NOT_RUN plan rows
+[PASS] control-host-verified:M10.15: M10.15 is host-verified in the milestone ledger
+[PASS] control-no-stale-plan:M10.15: M10.15 has no stale PLANNED / NOT_RUN plan rows

@@ -1,0 +1,8 @@
+test_process_activation_does_not_execute_or_revalidate_previous_current_release (tests.integration.test_release_lifecycle_process.TargetBridgeUpgradeCompatibilityTests.test_process_activation_does_not_execute_or_revalidate_previous_current_release) ... ok
+test_process_activation_does_not_fail_after_success_when_older_stale_release_is_pre_bridge (tests.integration.test_release_lifecycle_process.TargetBridgeUpgradeCompatibilityTests.test_process_activation_does_not_fail_after_success_when_older_stale_release_is_pre_bridge)
+Reproduce checkpoint-30 Pi: stale legacy A, active legacy B, new strict C. ... ok
+
+----------------------------------------------------------------------
+Ran 2 tests in 1.336s
+
+OK
