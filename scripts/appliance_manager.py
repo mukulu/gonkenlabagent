@@ -46,7 +46,7 @@ def systemctl(*args: str, check: bool = True) -> subprocess.CompletedProcess[str
     return result
 
 
-def current_release_commit() -> str | None:
+def current_release_directory() -> Path | None:
     if not CURRENT_LINK.is_symlink():
         return None
     try:
@@ -55,7 +55,40 @@ def current_release_commit() -> str | None:
         return None
     if resolved.parent.name != "releases" or not COMMIT_RE.fullmatch(resolved.name):
         return None
-    return resolved.name
+    return resolved
+
+
+def current_release_commit() -> str | None:
+    release = current_release_directory()
+    return release.name if release is not None else None
+
+
+def current_release_profile() -> str | None:
+    release = current_release_directory()
+    if release is None:
+        return None
+    record = release / "release.record"
+    try:
+        if not record.is_file() or record.is_symlink() or record.stat().st_size > 16384:
+            return None
+        for line in record.read_text(encoding="utf-8").splitlines():
+            key, separator, value = line.partition("=")
+            if separator and key == "profile" and re.fullmatch(r"[a-z0-9][a-z0-9_.-]{0,63}", value):
+                return value
+    except (OSError, UnicodeError):
+        return None
+    return None
+
+
+def process_start_ticks(pid: int) -> int | None:
+    try:
+        text = Path(f"/proc/{pid}/stat").read_text(encoding="ascii")
+        closing = text.rfind(")")
+        fields = text[closing + 2 :].split() if closing >= 0 else []
+        value = int(fields[19])
+    except (OSError, UnicodeError, ValueError, IndexError):
+        return None
+    return value if value > 0 else None
 
 
 def current_boot_id() -> str | None:
@@ -81,11 +114,20 @@ def _read_state(path: Path, *, expected_status: str | None = None) -> dict[str, 
     recorded = value.get("release_commit")
     if current is not None and recorded != current:
         return None
+    recorded_profile = value.get("release_profile")
+    if not isinstance(recorded_profile, str) or not re.fullmatch(r"[a-z0-9][a-z0-9_.-]{0,63}", recorded_profile):
+        return None
+    current_profile = current_release_profile()
+    if current is not None and (current_profile is None or recorded_profile != current_profile):
+        return None
     boot = current_boot_id()
     if boot is not None and value.get("boot_id") != boot:
         return None
     pid = value.get("service_pid")
     if not isinstance(pid, int) or pid <= 1 or not Path(f"/proc/{pid}").exists():
+        return None
+    recorded_start = value.get("service_start_ticks")
+    if not isinstance(recorded_start, int) or recorded_start <= 0 or process_start_ticks(pid) != recorded_start:
         return None
     observed = value.get("observed_epoch")
     if not isinstance(observed, int) or observed <= 0:

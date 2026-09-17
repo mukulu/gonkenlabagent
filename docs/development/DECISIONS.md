@@ -1822,3 +1822,21 @@ This compatibility is a migration mechanism, not a waiver. The goal is to move s
 - **Decision:** Required target-shadow fixtures are replayed in-process after loading the probe implementation once; fixture timing is recorded. CLI replay remains independently tested.
 - **Rationale:** A subprocess-per-fixture readiness implementation grew enough to trigger test-timeout false reds. The replay matrix is deterministic and does not need process startup overhead for every case.
 - **Consequence:** Release readiness preserves all target-shadow cases, including the new exact-service audio-runtime failure fixture, while staying within a bounded host gate budget.
+
+### D43-07 — Explicit evidence output directories must pre-exist
+
+- **Decision:** `--output-dir` is accepted only for an existing real directory. The evidence tools never create an explicit operator-selected directory while running under `sudo`; only the documented root fallback directory may be created by the root process.
+- **Rationale:** A verification review found that creating a new explicit directory as root could strand an otherwise correctly chowned ZIP under a root-owned `0700` parent. Requiring the operator to create the directory first preserves ownership intent and prevents a false "operator-accessible" result.
+- **Consequence:** `/tmp` and existing home/project directories work directly; a custom directory must be created by the operator before collection. Regression tests assert that missing explicit directories are rejected and remain absent.
+
+### D43-08 — Readiness identity includes release profile and Linux process start identity
+
+- **Decision:** Voice READY/WAITING records bind not only release commit, boot ID and PID, but also the immutable release dependency profile and `/proc/<pid>/stat` process-start ticks.
+- **Rationale:** PID existence alone does not distinguish a long-stale readiness record from PID reuse. A release commit also does not by itself encode the dependency profile under which that release is expected to operate.
+- **Consequence:** `appliance_manager.py` rejects profile drift and PID-reuse/stale-process fixtures. Physical readiness still requires the exact Raspberry Pi campaign.
+
+### D43-09 — Target runbooks must not hard-code a site-specific Bluetooth identity
+
+- **Decision:** Checkpoint-43 operator documentation uses an explicit operator-supplied Bluetooth selector placeholder rather than embedding the device address observed on the current lab target.
+- **Rationale:** The repair must generalize by capability and governed configuration, not encode the current hardware instance as universal product identity.
+- **Consequence:** The exact target may reuse its configured selector during its own campaign, while the distributed package remains portable to another supported audio device/target.

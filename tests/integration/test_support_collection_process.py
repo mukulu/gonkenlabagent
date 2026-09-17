@@ -75,7 +75,7 @@ class SupportCollectionProcessTests(unittest.TestCase):
             bin_dir.mkdir(parents=True)
             shutil.copy2(ROOT / "scripts" / "collect-support.sh", maintenance / "collect-support.sh")
             (maintenance / "collect-support.sh").chmod(0o755)
-            outdir = root / "out"
+            outdir = root / "out"; outdir.mkdir()
             calls = root / "calls.log"
             fake = bin_dir / "gonken-agent"
             fake.write_text(
@@ -151,6 +151,29 @@ class SupportCollectionProcessTests(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stderr)
             recorded = calls.read_text(encoding="utf-8")
             self.assertIn("--target-manifest", recorded)
+
+    def test_output_dir_must_preexist_and_is_not_created_by_sudo_capable_wrapper(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            current = root / "current"
+            maintenance = current / "maintenance"
+            bin_dir = current / ".venv" / "bin"
+            maintenance.mkdir(parents=True)
+            bin_dir.mkdir(parents=True)
+            shutil.copy2(ROOT / "scripts" / "collect-support.sh", maintenance / "collect-support.sh")
+            (maintenance / "collect-support.sh").chmod(0o755)
+            fake = bin_dir / "gonken-agent"
+            fake.write_text("#!/usr/bin/env bash\nexit 99\n", encoding="utf-8")
+            fake.chmod(0o755)
+            missing = root / "operator-created-destination"
+            result = subprocess.run(
+                [str(maintenance / "collect-support.sh"), "--output-dir", str(missing)],
+                check=False, capture_output=True, text=True, timeout=10,
+            )
+            self.assertEqual(result.returncode, 64)
+            self.assertIn("existing real directory", result.stderr)
+            self.assertFalse(missing.exists())
+
 
 
 if __name__ == "__main__":

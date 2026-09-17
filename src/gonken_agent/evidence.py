@@ -180,7 +180,13 @@ def resolve_output_path(
             raise ValueError("evidence --output must end in .zip")
         return result
     if output_dir is not None:
+        # Explicit destinations are operator-owned policy.  Require the caller
+        # to create them first so a sudo invocation cannot silently create a
+        # root-only directory inside the caller's home and then strand an
+        # otherwise correctly chowned ZIP beneath it.
         directory = Path(output_dir).absolute()
+        if not directory.is_dir() or directory.is_symlink() or directory.resolve() != directory:
+            raise ValueError("evidence --output-dir must be an existing real directory")
     else:
         identity = invoking_user_identity()
         if identity is not None:
@@ -189,7 +195,9 @@ def resolve_output_path(
             directory = Path.home().absolute()
         else:
             directory = fallback_dir.absolute()
-    directory.mkdir(parents=True, exist_ok=True, mode=0o700)
+            directory.mkdir(parents=True, exist_ok=True, mode=0o700)
+        if not directory.is_dir() or directory.is_symlink() or directory.resolve() != directory:
+            raise ValueError("evidence output directory must be an existing real directory")
     stamp = time.strftime("%Y%m%dT%H%M%SZ", time.gmtime())
     return directory / f"{prefix}-{stamp}-{os.getpid()}.zip"
 

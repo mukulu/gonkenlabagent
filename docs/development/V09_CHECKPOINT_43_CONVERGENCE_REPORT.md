@@ -72,3 +72,24 @@ A clean tagged RC1 archive was built from commit `d0c40d000699b7e6ec174df4cf5692
 ## Target boundary
 
 The next package may be called a qualified **Raspberry Pi release-candidate checkpoint**, not a stable or physically accepted release. The exact Pi campaign must still prove the service-account microphone/speaker path, `GonKen` wake transaction, real SHT31 behavior/placement, relay/fan electrical and motion behavior, reboot/no-login convergence and lifecycle operations. A failed target install should now return one combined evidence ZIP as the primary next-cycle input.
+
+## Final code-verification repair pass
+
+The mandatory final code-change verification reviewed the complete checkpoint-42-to-43 diff and found three issues worth repairing before final delivery rather than listing as residual risk:
+
+1. an explicit new `--output-dir` could have been created by a root/sudo collector, making the parent directory inaccessible even after the ZIP itself was returned to the invoking user;
+2. the new checkpoint-43 acceptance section repeated the current lab Bluetooth device address as a copy/paste example, contrary to the hardware-instance-agnostic design rule;
+3. readiness identity rejected stale boot/release/PID records but did not yet distinguish PID reuse or dependency-profile drift.
+
+The repair now requires explicit output directories to pre-exist, removes the target-specific Bluetooth identity from the new runbook, and binds readiness to release profile plus Linux process start ticks. New regression tests cover missing output-directory rejection, profile drift and process-start drift.
+
+Post-repair evidence:
+
+- focused evidence/readiness/voice/target-shadow/responsibility portfolio: **102/102 PASS**;
+- speech lifecycle: aggregate execution exceeded the interactive boundary, so already completed cases were preserved and unfinished cases were run independently; all **12/12 PASS**;
+- install-summary/Bluetooth remainder: **34/34 PASS**;
+- environment controller/profile/simulation/CLI/voice/acceptance remainder: **124/124 PASS**;
+- installer/uninstaller interruption/recovery: **12/12 PASS**;
+- `git diff --check`: **PASS**.
+
+This verification pass does not change the target boundary. The repaired exact package must still be rebuilt, qualified, extracted and rerun before handoff, and real Raspberry Pi evidence remains required for physical acceptance.

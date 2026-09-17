@@ -327,6 +327,8 @@ def _current_readiness() -> dict[str, object] | None:
     return {
         "status": status, "code": code, "component": component,
         "recoverable": bool(payload.get("recoverable")),
+        "release_profile": payload.get("release_profile") if isinstance(payload.get("release_profile"), str) else None,
+        "service_start_ticks": payload.get("service_start_ticks") if isinstance(payload.get("service_start_ticks"), int) else None,
         "observed_epoch": payload.get("observed_epoch") if isinstance(payload.get("observed_epoch"), int) else None,
     }
 

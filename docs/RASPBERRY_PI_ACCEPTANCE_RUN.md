@@ -620,11 +620,14 @@ Checkpoint 43 is the first package after the 2026-09-17 target attempt that reac
 
 Extract the delivered checkpoint-43 ZIP including `.git`, enter its repository root, and verify the documented SHA-256 from the checkpoint report. Use the local-checkpoint route so the target source record is bound to the exact delivered commit:
 
+If Bluetooth audio is intentionally selected, set the target's configured selector explicitly rather than copying a device identity from another installation:
+
 ```bash
-./bootstrap.sh --local-checkpoint --bluetooth-audio --bluetooth-device 41:42:06:42:05:80
+export GONKEN_BLUETOOTH_DEVICE="<YOUR-BLUETOOTH-DEVICE-MAC>"
+./bootstrap.sh --local-checkpoint --bluetooth-audio --bluetooth-device "$GONKEN_BLUETOOTH_DEVICE"
 ```
 
-If the target hardware selector differs, use the intended configured device rather than copying that example blindly. Preserve the same command for reruns.
+If Bluetooth is not part of the intended target profile, omit the Bluetooth options. Preserve the same resolved install command for reruns on that target.
 
 If the installer intentionally reports `I2C_REBOOT_REQUIRED`, reboot once, return to the same extracted checkpoint and rerun the exact same command. Do not delete install state, immutable releases or model files merely to make the rerun look clean.
 

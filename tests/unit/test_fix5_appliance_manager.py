@@ -30,7 +30,9 @@ class ApplianceManagerTests(unittest.TestCase):
                 "status": "READY", "code": "VOICE_RUNTIME_READY",
                 "wake_phrase": "Hey Gonken", "audio_backend": "alsa-usb",
                 "model": "qwen3.5:2b-q4_K_M", "release_commit": "fixture",
+                "release_profile": "development",
                 "boot_id": module.current_boot_id(), "service_pid": __import__("os").getpid(),
+                "service_start_ticks": module.process_start_ticks(__import__("os").getpid()),
                 "observed_epoch": 1,
             }
             path.write_text(__import__("json").dumps(payload) + "\n", encoding="utf-8")
@@ -49,19 +51,33 @@ class ApplianceManagerTests(unittest.TestCase):
             base = {
                 "status": "READY", "code": "VOICE_RUNTIME_READY", "wake_phrase": "GonKen",
                 "boot_id": module.current_boot_id(), "service_pid": __import__("os").getpid(),
-                "observed_epoch": 1,
+                "service_start_ticks": module.process_start_ticks(__import__("os").getpid()),
+                "release_profile": "fixture-profile", "observed_epoch": 1,
             }
             wrong = dict(base, release_commit=previous)
             path.write_text(__import__("json").dumps(wrong) + "\n", encoding="utf-8")
-            with mock.patch.object(module, "current_release_commit", return_value=current):
+            with mock.patch.object(module, "current_release_commit", return_value=current), \
+                 mock.patch.object(module, "current_release_profile", return_value="fixture-profile"):
                 self.assertIsNone(module.read_ready())
             good = dict(base, release_commit=current)
             path.write_text(__import__("json").dumps(good) + "\n", encoding="utf-8")
-            with mock.patch.object(module, "current_release_commit", return_value=current):
+            with mock.patch.object(module, "current_release_commit", return_value=current), \
+                 mock.patch.object(module, "current_release_profile", return_value="fixture-profile"):
                 self.assertEqual(module.read_ready()["release_commit"], current)
+            wrong_profile = dict(good, release_profile="other-profile")
+            path.write_text(__import__("json").dumps(wrong_profile) + "\n", encoding="utf-8")
+            with mock.patch.object(module, "current_release_commit", return_value=current), \
+                 mock.patch.object(module, "current_release_profile", return_value="fixture-profile"):
+                self.assertIsNone(module.read_ready())
+            stale_start = dict(good, service_start_ticks=good["service_start_ticks"] + 1)
+            path.write_text(__import__("json").dumps(stale_start) + "\n", encoding="utf-8")
+            with mock.patch.object(module, "current_release_commit", return_value=current), \
+                 mock.patch.object(module, "current_release_profile", return_value="fixture-profile"):
+                self.assertIsNone(module.read_ready())
             stale_boot = dict(good, boot_id="00000000-0000-0000-0000-000000000000")
             path.write_text(__import__("json").dumps(stale_boot) + "\n", encoding="utf-8")
-            with mock.patch.object(module, "current_release_commit", return_value=current):
+            with mock.patch.object(module, "current_release_commit", return_value=current), \
+                 mock.patch.object(module, "current_release_profile", return_value="fixture-profile"):
                 self.assertIsNone(module.read_ready())
 
     def test_pending_readiness_rejects_stale_process_and_exposes_causal_code(self) -> None:
@@ -72,8 +88,9 @@ class ApplianceManagerTests(unittest.TestCase):
             payload = {
                 "format": "gonken-voice-readiness-v1", "status": "WAITING",
                 "code": "AUDIO_CAPTURE_FAILED", "component": "audio_capture",
-                "recoverable": True, "release_commit": "development",
+                "recoverable": True, "release_commit": "development", "release_profile": "development",
                 "boot_id": module.current_boot_id(), "service_pid": __import__("os").getpid(),
+                "service_start_ticks": module.process_start_ticks(__import__("os").getpid()),
                 "observed_epoch": 1,
             }
             path.write_text(__import__("json").dumps(payload) + "\n", encoding="utf-8")

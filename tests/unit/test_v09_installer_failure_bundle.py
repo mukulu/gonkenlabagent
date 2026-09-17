@@ -36,7 +36,7 @@ class InstallerFailureBundleTests(unittest.TestCase):
                 "format":"gonken-target-preflight-v1","phase":"prerequisites","status":"WARN",
                 "required_failures":[],"warnings":["device:i2c-1"],"checks":[{"id":"device:i2c-1","required":False,"ok":False,"detail":"absent","remediation":"enable later"}],
             }), encoding="utf-8")
-            output = root / "failures"
+            output = root / "failures"; output.mkdir()
             with patch.object(bundle, "target_manifest", return_value={
                 "format": "gonken-target-hardware-manifest-v1",
                 "raspberry_pi": {"model": "Raspberry Pi 5 Model B"},
@@ -96,6 +96,7 @@ class InstallerFailureBundleTests(unittest.TestCase):
                 "runtime_bindings.json": {"status": "READY"},
                 "target_manifest.json": {"status": "READY", "physical_acceptance_claimed": False},
             }
+            (root / "out").mkdir()
             with patch.object(bundle, "_collect_support_payloads", return_value=(common, [])), \
                  patch.object(bundle, "_current_readiness", return_value={
                      "status": "WAITING", "code": "AUDIO_CAPTURE_FAILED",
@@ -114,6 +115,25 @@ class InstallerFailureBundleTests(unittest.TestCase):
             self.assertIn("configuration.json", names)
             self.assertEqual(failure["current_failure"]["runtime_readiness"]["code"], "AUDIO_CAPTURE_FAILED")
             self.assertEqual(index["omitted_sections"], [])
+
+
+    def test_explicit_output_dir_must_preexist(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            state = root / "state"; (state / "artifacts").mkdir(parents=True)
+            logs = root / "logs"; (logs / "events").mkdir(parents=True)
+            source = root / "source.record"
+            source.write_text(
+                "format=gonken-bootstrap-source-v1\nresolved_commit=" + "c"*40 + "\n"
+                "platform_mode=target\nsource_mode=local-checkpoint\n", encoding="utf-8"
+            )
+            missing = root / "operator-created-destination"
+            with self.assertRaisesRegex(ValueError, "existing real directory"):
+                bundle.create_bundle(
+                    state_dir=state, log_dir=logs, source_record=source,
+                    output_dir=missing, exit_code=75,
+                )
+            self.assertFalse(missing.exists())
 
 
 

@@ -90,7 +90,7 @@ class SupportTests(unittest.TestCase):
             "bluez_input.DEVICE.0",
         )
         self.assertEqual(
-            support._safe_audio_endpoint("bluez_output.41:42:06:42:05:80.1"),
+            support._safe_audio_endpoint("bluez_output.AA:BB:CC:DD:EE:FF.1"),
             "bluez_output.DEVICE.1",
         )
 

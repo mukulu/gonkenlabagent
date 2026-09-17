@@ -61,9 +61,8 @@ if [[ -n "$OUTPUT_DIR" ]]; then
     echo "[FAIL] --output-dir must be absolute" >&2
     exit 64
   fi
-  mkdir -p -- "$OUTPUT_DIR"
   if [[ ! -d "$OUTPUT_DIR" || -L "$OUTPUT_DIR" ]]; then
-    echo "[FAIL] --output-dir must resolve to a real directory" >&2
+    echo "[FAIL] --output-dir must be an existing real directory" >&2
     exit 64
   fi
   OUTPUT="$OUTPUT_DIR/gonken-support-$(date -u +%Y%m%dT%H%M%SZ)-$$.zip"

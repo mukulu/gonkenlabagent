@@ -97,6 +97,19 @@ def _boot_id() -> str:
     return value if re.fullmatch(r"[0-9a-f-]{36}", value) else "unknown"
 
 
+def _process_start_ticks(pid: int | None = None) -> int:
+    """Return Linux /proc process start ticks to make PID reuse detectable."""
+    process_id = os.getpid() if pid is None else pid
+    try:
+        text = Path(f"/proc/{process_id}/stat").read_text(encoding="ascii")
+        closing = text.rfind(")")
+        fields = text[closing + 2 :].split() if closing >= 0 else []
+        value = int(fields[19])
+    except (OSError, UnicodeError, ValueError, IndexError):
+        return 0
+    return value if value > 0 else 0
+
+
 def _readiness_component(code: str) -> str:
     if code.startswith(("AUDIO_", "PARECORD_")):
         return "audio_capture"
@@ -125,24 +138,39 @@ def _readiness_recoverable(code: str) -> bool:
     return code not in nonrecoverable
 
 
-def _runtime_release_commit() -> str:
-    """Return the immutable release identity executing this process.
-
-    Production executables resolve beneath ``.../releases/<40hex>/.venv``.
-    Development/test interpreters deliberately return ``development`` rather
-    than inventing a production identity.
-    """
+def _runtime_release_directory() -> Path | None:
     try:
         executable = Path(sys.executable).resolve(strict=True)
     except OSError:
-        return "development"
+        return None
     for parent in executable.parents:
-        if (
-            re.fullmatch(r"[0-9a-f]{40}", parent.name)
-            and parent.parent.name == "releases"
-        ):
-            return parent.name
-    return "development"
+        if re.fullmatch(r"[0-9a-f]{40}", parent.name) and parent.parent.name == "releases":
+            return parent
+    return None
+
+
+def _runtime_release_commit() -> str:
+    """Return the immutable release identity executing this process."""
+    release = _runtime_release_directory()
+    return release.name if release is not None else "development"
+
+
+def _runtime_release_profile() -> str:
+    """Return the validated immutable dependency profile for readiness binding."""
+    release = _runtime_release_directory()
+    if release is None:
+        return "development"
+    record = release / "release.record"
+    try:
+        if not record.is_file() or record.is_symlink() or record.stat().st_size > 16384:
+            return "unknown"
+        for line in record.read_text(encoding="utf-8").splitlines():
+            key, separator, value = line.partition("=")
+            if separator and key == "profile" and re.fullmatch(r"[a-z0-9][a-z0-9_.-]{0,63}", value):
+                return value
+    except (OSError, UnicodeError):
+        return "unknown"
+    return "unknown"
 
 
 class VoiceRuntimeError(RuntimeError):
@@ -1435,8 +1463,10 @@ class VoiceAppliance:
             "recoverable": bool(recoverable),
             "wake_phrase": self.config.extensions.wake_word.phrase,
             "release_commit": _runtime_release_commit(),
+            "release_profile": _runtime_release_profile(),
             "boot_id": _boot_id(),
             "service_pid": os.getpid(),
+            "service_start_ticks": _process_start_ticks(),
             "observed_epoch": int(time.time()),
         }
         temporary = self.READINESS_FILE.with_name(f".{self.READINESS_FILE.name}.{os.getpid()}")
@@ -1456,8 +1486,10 @@ class VoiceAppliance:
             "audio_backend": probe["audio"]["backend"],
             "model": probe["model"]["model"],
             "release_commit": _runtime_release_commit(),
+            "release_profile": _runtime_release_profile(),
             "boot_id": _boot_id(),
             "service_pid": os.getpid(),
+            "service_start_ticks": _process_start_ticks(),
             "observed_epoch": int(time.time()),
         }
         temporary = self.READY_FILE.with_name(f".{self.READY_FILE.name}.{os.getpid()}")
