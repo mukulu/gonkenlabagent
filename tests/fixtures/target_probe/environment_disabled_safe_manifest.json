@@ -1,0 +1,34 @@
+{
+  "captured_at": "2026-09-17T00:00:00+00:00",
+  "environment_profile": {
+    "enabled": true,
+    "name": "full-simulation",
+    "relay_backend": "simulated",
+    "relay_bcm": 23,
+    "safe_state": "off",
+    "sensor_backend": "simulated",
+    "simulation_runtime_control_enabled": true
+  },
+  "format": "gonken-target-hardware-manifest-v1",
+  "gpiochips": [],
+  "i2c": {
+    "devices": [],
+    "sht31_targeted_probe": {
+      "address": "0x44",
+      "bus": "/dev/i2c-1",
+      "status": "not_probed_non_actuating_manifest"
+    }
+  },
+  "physical_acceptance_claimed": false,
+  "privacy": {
+    "prompts_or_model_responses_included": false,
+    "raw_audio_included": false,
+    "transcripts_included": false
+  },
+  "target_shadow_requirements": {
+    "environment_profile": true,
+    "gpio_identity": false,
+    "i2c_sht31": false,
+    "privacy_boundary": true
+  }
+}

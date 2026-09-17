@@ -1742,3 +1742,17 @@ This compatibility is a migration mechanism, not a waiver. The goal is to move s
 - **Reason:** Exact archive integrity is a prerequisite for a reliable target campaign, but it does not exercise target installation, systemd, audio, GPIO actuation, SHT31 or voice behavior.
 - **Must avoid:** converting package cleanliness into `INSTALLATION_COMPLETE`, M10.24 PASS, `RELEASE_CANDIDATE` or `STABLE_FINAL_RELEASE`.
 - **Consequence:** the next remaining work is still host/target-shadow release-candidate completion, sanitized real-target manifests and the eventual real Pi M10.24 campaign.
+
+## 2026-09-17 — Checkpoint 40 I2C/environment target-shadow decisions
+
+### D40-01 — SHT31 readiness is replay-gated without live probe side effects
+- **Decision:** `target_probe.py --replay` supports an opt-in `i2c_sht31` requirement that validates `/dev/i2c-1`, supported SHT31 address evidence, heater-off status and planned `I2C_REBOOT_REQUIRED` pause handling from sanitized manifests.
+- **Reason:** A future target cycle can waste time if I2C reboot, absent sensor or ambiguous sensor state is discovered only after packaging. Replay fixtures can preserve those classes without scanning a live bus on the host.
+- **Must avoid:** making the live manifest collector probe SHT31 addresses, treating a replayed diagnostic summary as physical acceptance, or accepting unsupported SHT31 addresses.
+- **Consequence:** readiness now fails closed for absent/unresolved SHT31 and planned I2C reboot states while still preserving the non-actuating manifest boundary.
+
+### D40-02 — Environment profile replay binds profile names to required evidence
+- **Decision:** `target_probe.py --replay` supports an opt-in `environment_profile` requirement for the four governed profiles. Simulation profiles can pass without hardware readiness; real-sensor profiles require SHT31 replay readiness; libgpiod relay profiles require GPIO23 identity evidence; `full-real` requires simulation runtime control disabled.
+- **Reason:** Static profile drift can create false greens, especially when a profile name implies physical backends that the manifest does not actually support.
+- **Must avoid:** inferring relay or sensor readiness from a profile name alone, or making simulated profiles depend on unavailable physical devices.
+- **Consequence:** target-shadow replay can now distinguish safe simulation, real-sensor deferral and full-real prerequisites before any future candidate is offered to the Pi.

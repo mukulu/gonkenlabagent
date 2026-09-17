@@ -1,0 +1,119 @@
+{
+  "audio": {
+    "capture_routes": [],
+    "playback_routes": [],
+    "selected_route": {
+      "ambiguous": false,
+      "capture": {
+        "id": "usb-airhug-capture",
+        "status": "available",
+        "transport": "usb"
+      },
+      "playback": {
+        "hdmi": false,
+        "id": "usb-airhug-playback",
+        "status": "available",
+        "transport": "usb"
+      }
+    }
+  },
+  "captured_at": "2026-09-17T00:00:00+00:00",
+  "environment_profile": {
+    "enabled": true,
+    "i2c_address": "0x44",
+    "i2c_bus": 1,
+    "name": "full-real",
+    "relay_backend": "libgpiod",
+    "relay_bcm": 23,
+    "safe_state": "off",
+    "sensor_backend": "sht31",
+    "simulation_runtime_control_enabled": false
+  },
+  "format": "gonken-target-hardware-manifest-v1",
+  "gpiochips": [
+    {
+      "alias_paths": [
+        "/dev/gpiochip0"
+      ],
+      "canonical_chip_id": "char:254:0:/sys/devices/platform/rp1/gpiochip0",
+      "chip_info": {
+        "label": "pinctrl-rp1",
+        "name": "gpiochip0",
+        "num_lines": 54
+      },
+      "line_names": {
+        "2": "GPIO2",
+        "3": "GPIO3",
+        "17": "GPIO17",
+        "22": "GPIO22",
+        "23": "GPIO23",
+        "27": "GPIO27"
+      },
+      "path": "/dev/gpiochip0",
+      "stat": {
+        "kind": "char",
+        "major": 254,
+        "minor": 0
+      },
+      "sysfs_realpath": "/sys/devices/platform/rp1/gpiochip0"
+    }
+  ],
+  "i2c": {
+    "devices": [
+      "i2c-1"
+    ],
+    "sht31_targeted_probe": {
+      "address": "0x44",
+      "bus": "/dev/i2c-1",
+      "heater_enabled": false,
+      "status": "diagnostic_pass",
+      "valid_reads": 100
+    }
+  },
+  "identity": {
+    "operator_groups": [
+      "gpio"
+    ],
+    "service_users": {
+      "gonken-agent": {
+        "exists": true,
+        "groups": [
+          "audio",
+          "gpio"
+        ]
+      },
+      "gonken-env": {
+        "exists": true,
+        "groups": [
+          "gpio",
+          "i2c"
+        ]
+      }
+    }
+  },
+  "physical_acceptance_claimed": false,
+  "privacy": {
+    "prompts_or_model_responses_included": false,
+    "raw_audio_included": false,
+    "transcripts_included": false
+  },
+  "release": {
+    "current": "/usr/local/lib/gonken-agent/releases/72040b66e66d4f17a1d7773fa8d1c871ad97b393",
+    "current_status": "verified",
+    "installer_state": {
+      "dirty": false,
+      "exists": true,
+      "path": "/var/lib/gonken-agent/install",
+      "status": "complete"
+    }
+  },
+  "target_shadow_requirements": {
+    "audio_duplex": true,
+    "environment_profile": true,
+    "gpio_identity": true,
+    "i2c_sht31": true,
+    "privacy_boundary": true,
+    "release_state": true,
+    "service_identity": true
+  }
+}

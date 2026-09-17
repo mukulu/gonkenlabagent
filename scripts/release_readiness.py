@@ -27,7 +27,7 @@ REQUIRED_HOST_VERIFIED = {
     "M9.2", "M9.3", "M9.4", "M9.5",
     "M10.1", "M10.2", "M10.3", "M10.4", "M10.5", "M10.6",
     "M10.8", "M10.9", "M10.10", "M10.11", "M10.12", "M10.13", "M10.14", "M10.15",
-    "M10.16", "M10.17", "M10.18", "M10.19", "M10.20", "M10.21", "M10.22", "M10.23", "M10.25", "M10.26", "M10.27", "M10.28", "M10.29", "M10.30", "M10.31", "M10.32", "M10.33", "M10.34",
+    "M10.16", "M10.17", "M10.18", "M10.19", "M10.20", "M10.21", "M10.22", "M10.23", "M10.25", "M10.26", "M10.27", "M10.28", "M10.29", "M10.30", "M10.31", "M10.32", "M10.33", "M10.34", "M10.35",
 }
 TARGET_CAMPAIGN_ITEMS = {
     "M3.1", "M3.2", "M3.3", "M3.4", "M3.5", "M3.6",
@@ -83,6 +83,36 @@ REQUIRED_TARGET_SHADOW_FIXTURES = (
         "path": "tests/fixtures/target_probe/dirty_release_state_manifest.json",
         "expected_status": "FAIL",
         "expected_code": "RELEASE_STATE_UNSAFE",
+    },
+    {
+        "id": "i2c_sht31_ready_full_real",
+        "path": "tests/fixtures/target_probe/i2c_sht31_ready_full_real_manifest.json",
+        "expected_status": "PASS",
+        "expected_code": "TARGET_SHADOW_READY",
+    },
+    {
+        "id": "i2c_reboot_required_fail_closed",
+        "path": "tests/fixtures/target_probe/i2c_reboot_required_manifest.json",
+        "expected_status": "FAIL",
+        "expected_code": "I2C_REBOOT_REQUIRED",
+    },
+    {
+        "id": "sht31_absent_real_sensor_fail_closed",
+        "path": "tests/fixtures/target_probe/sht31_absent_real_sensor_manifest.json",
+        "expected_status": "FAIL",
+        "expected_code": "I2C_SHT31_UNRESOLVED",
+    },
+    {
+        "id": "environment_full_real_missing_relay_fail_closed",
+        "path": "tests/fixtures/target_probe/environment_full_real_missing_relay_manifest.json",
+        "expected_status": "FAIL",
+        "expected_code": "ENVIRONMENT_PROFILE_UNREADY",
+    },
+    {
+        "id": "environment_full_simulation_safe",
+        "path": "tests/fixtures/target_probe/environment_disabled_safe_manifest.json",
+        "expected_status": "PASS",
+        "expected_code": "TARGET_SHADOW_READY",
     },
 )
 READY_STATUS = "READY_FOR_HOST_TARGET_SHADOW_GATE"
@@ -208,7 +238,7 @@ def target_shadow_results() -> list[dict[str, Any]]:
             payload.get("code"),
             observed.get("code") if isinstance(observed, dict) else None,
         ]
-        for check_name in ("privacy_boundary", "audio_duplex", "service_identity", "release_state"):
+        for check_name in ("privacy_boundary", "audio_duplex", "service_identity", "release_state", "i2c_sht31", "environment_profile"):
             check = payload.get(check_name)
             if isinstance(check, dict):
                 observed_codes.append(check.get("code"))

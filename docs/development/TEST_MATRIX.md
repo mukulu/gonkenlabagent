@@ -1392,3 +1392,16 @@ Checkpoint 24 closes the host-side root cause and adds regression protection, bu
 | CP39-T210 | Exact checkpoint-38 archive qualification | `archive_qualifier.py ...checkpoint-38-package.zip --expected-commit 56ef389... --expected-tag checkpoint/v09-38-target-shadow-capability --json` | PASS | Qualifies prior archive integrity only; does not make it a Pi candidate. |
 | CP39-T211 | Immutable maintenance payload includes archive qualifier | `tests.unit.test_m3_3_release_manager...test_speech_and_service_maintenance_inputs_are_release_payload_contract` | PASS | Future releases carry the qualification helper. |
 | CP39-T212 | Static syntax and control sync | `compileall`; `milestone_status.py --check`; `git diff --check`; `./scripts/ci.sh --phase t0` | PASS | Host/static only. |
+
+## V09 checkpoint 40 — M10.35 I2C/SHT31 and environment profile target-shadow replay
+
+| ID | Scope | Command / artifact | Host result | Target boundary |
+|---|---|---|---:|---|
+| CP40-T213 | I2C/SHT31 replay contract | `scripts/target_probe.py`; `tests/unit/test_v09_target_probe.py` | PASS | Replay checks sanitized diagnostic summaries only; no live address scan or physical SHT31 acceptance. |
+| CP40-T214 | Full-real ready fixture | `tests/fixtures/target_probe/i2c_sht31_ready_full_real_manifest.json`; `target_probe.py --replay` | PASS | Proves replay semantics for full-real prerequisites only. |
+| CP40-T215 | Planned I2C reboot fail-closed fixture | `tests/fixtures/target_probe/i2c_reboot_required_manifest.json`; `target_probe.py --replay` | PASS — expected FAIL with exit 75 | Blocks candidate progress until reboot/resume is represented as complete evidence. |
+| CP40-T216 | Absent SHT31 fail-closed fixture | `tests/fixtures/target_probe/sht31_absent_real_sensor_manifest.json`; `target_probe.py --replay` | PASS — expected FAIL with exit 75 | Blocks real-sensor profile readiness when SHT31 evidence is absent. |
+| CP40-T217 | Full-real missing relay fail-closed fixture | `tests/fixtures/target_probe/environment_full_real_missing_relay_manifest.json`; `target_probe.py --replay` | PASS — expected FAIL with exit 75 | Blocks profile readiness when GPIO23 relay evidence is missing. |
+| CP40-T218 | Full-simulation safe profile fixture | `tests/fixtures/target_probe/environment_disabled_safe_manifest.json`; `target_probe.py --replay` | PASS | Simulation profile may remain hardware-free and cannot close physical gates. |
+| CP40-T219 | Release-readiness fixture matrix | `scripts/release_readiness.py`; `tests/unit/test_release_readiness.py` | PASS | Internal host/target-shadow status only; no Pi candidate. |
+| CP40-T220 | Static syntax and control sync | `compileall`; `milestone_status.py --check`; `git diff --check`; `./scripts/ci.sh --phase t0` | PASS | Host/static only. |

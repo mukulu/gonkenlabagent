@@ -111,6 +111,41 @@ class TargetProbeTests(unittest.TestCase):
         self.assertEqual(result["code"], "RELEASE_STATE_UNSAFE")
         self.assertIn("installer_dirty", result["release_state"]["detail"])
 
+    def test_i2c_sht31_ready_full_real_fixture_replays_full_gate(self):
+        result = target_probe.replay_manifest(self.fixture("i2c_sht31_ready_full_real_manifest.json"))
+        self.assertEqual(result["status"], "PASS")
+        self.assertEqual(result["code"], "TARGET_SHADOW_READY")
+        self.assertEqual(result["i2c_sht31"]["code"], "I2C_SHT31_READY")
+        self.assertEqual(result["environment_profile"]["code"], "ENVIRONMENT_PROFILE_READY")
+        self.assertEqual(result["environment_profile"]["profile"], "full-real")
+        self.assertFalse(result["physical_acceptance_claimed"])
+
+    def test_i2c_reboot_required_fixture_fails_closed(self):
+        result = target_probe.replay_manifest(self.fixture("i2c_reboot_required_manifest.json"))
+        self.assertEqual(result["status"], "FAIL")
+        self.assertEqual(result["code"], "I2C_REBOOT_REQUIRED")
+        self.assertEqual(result["i2c_sht31"]["detail"], "reboot_then_resume_same_installer")
+
+    def test_absent_sht31_fixture_fails_closed(self):
+        result = target_probe.replay_manifest(self.fixture("sht31_absent_real_sensor_manifest.json"))
+        self.assertEqual(result["status"], "FAIL")
+        self.assertEqual(result["code"], "I2C_SHT31_UNRESOLVED")
+        self.assertEqual(result["i2c_sht31"]["detail"], "sensor_not_found")
+
+    def test_full_real_environment_fixture_requires_relay_gpio23_even_when_gpio_is_not_top_level_required(self):
+        result = target_probe.replay_manifest(self.fixture("environment_full_real_missing_relay_manifest.json"))
+        self.assertEqual(result["status"], "FAIL")
+        self.assertEqual(result["code"], "ENVIRONMENT_PROFILE_UNREADY")
+        self.assertIn("relay_gpio23", result["environment_profile"]["detail"])
+
+    def test_full_simulation_environment_profile_does_not_require_physical_i2c_or_gpio(self):
+        result = target_probe.replay_manifest(self.fixture("environment_disabled_safe_manifest.json"))
+        self.assertEqual(result["status"], "PASS")
+        self.assertEqual(result["code"], "TARGET_SHADOW_READY")
+        self.assertEqual(result["environment_profile"]["profile"], "full-simulation")
+        self.assertEqual(result["i2c_sht31"]["status"], "FAIL")
+        self.assertFalse(result["requirements"]["i2c_sht31"])
+
     def test_manifest_capture_is_content_free_and_non_actuating(self):
         rp1 = [None] * 54
         for bcm in (2, 3, 17, 22, 23, 27):
@@ -168,6 +203,16 @@ class TargetProbeTests(unittest.TestCase):
         self.assertEqual(json.loads(ok.stdout)["code"], "TARGET_SHADOW_READY")
         self.assertEqual(failed.returncode, 75)
         self.assertEqual(json.loads(failed.stdout)["code"], "AUDIO_ROUTE_UNRESOLVED")
+
+    def test_cli_replay_exit_codes_for_i2c_environment_fixtures(self):
+        good = ROOT / "tests" / "fixtures" / "target_probe" / "i2c_sht31_ready_full_real_manifest.json"
+        bad = ROOT / "tests" / "fixtures" / "target_probe" / "i2c_reboot_required_manifest.json"
+        ok = subprocess.run([sys.executable, str(ROOT / "scripts" / "target_probe.py"), "--replay", str(good), "--json"], text=True, capture_output=True, check=False)
+        failed = subprocess.run([sys.executable, str(ROOT / "scripts" / "target_probe.py"), "--replay", str(bad), "--json"], text=True, capture_output=True, check=False)
+        self.assertEqual(ok.returncode, 0, ok.stderr)
+        self.assertEqual(json.loads(ok.stdout)["environment_profile"]["code"], "ENVIRONMENT_PROFILE_READY")
+        self.assertEqual(failed.returncode, 75)
+        self.assertEqual(json.loads(failed.stdout)["code"], "I2C_REBOOT_REQUIRED")
 
 
 if __name__ == "__main__":

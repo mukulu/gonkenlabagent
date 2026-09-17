@@ -41,12 +41,60 @@ TARGET_SHADOW_REQUIREMENTS = {
     "audio_duplex": False,
     "service_identity": False,
     "release_state": False,
+    "i2c_sht31": False,
+    "environment_profile": False,
 }
 SERVICE_IDENTITY_REQUIREMENTS = {
     "gonken-agent": frozenset({"audio", "gpio"}),
     "gonken-env": frozenset({"gpio", "i2c"}),
 }
 RELEASE_ROOT = "/usr/local/lib/gonken-agent/releases/"
+SHT31_READY_STATUSES = frozenset({"available", "ready", "observed", "present", "crc_valid", "diagnostic_pass"})
+SHT31_REBOOT_STATUSES = frozenset({"reboot_required", "i2c_reboot_required", "enabled_reboot_required"})
+SHT31_UNREADY_STATUSES = frozenset({
+    "",
+    "absent",
+    "disabled",
+    "missing",
+    "not_found",
+    "not_probed",
+    "not_probed_non_actuating_manifest",
+    "sensor_address_ambiguous",
+    "sensor_not_found",
+    "unavailable",
+})
+ENVIRONMENT_PROFILE_SPECS = {
+    "full-simulation": {
+        "enabled": True,
+        "sensor_backend": "simulated",
+        "relay_backend": "simulated",
+        "relay_bcm": 23,
+        "safe_state": "off",
+    },
+    "sensor-deferred-relay": {
+        "enabled": True,
+        "sensor_backend": "simulated",
+        "relay_backend": "libgpiod",
+        "relay_bcm": 23,
+        "safe_state": "off",
+    },
+    "real-sensor-simulated-actuator": {
+        "enabled": True,
+        "sensor_backend": "sht31",
+        "relay_backend": "simulated",
+        "relay_bcm": 23,
+        "safe_state": "off",
+    },
+    "full-real": {
+        "enabled": True,
+        "sensor_backend": "sht31",
+        "relay_backend": "libgpiod",
+        "relay_bcm": 23,
+        "safe_state": "off",
+    },
+}
+REAL_SENSOR_PROFILES = frozenset({"real-sensor-simulated-actuator", "full-real"})
+REAL_RELAY_PROFILES = frozenset({"sensor-deferred-relay", "full-real"})
 
 
 def _clean(value: object, limit: int = 240) -> str:
@@ -495,6 +543,100 @@ def replay_release_state(manifest: dict[str, object]) -> dict[str, object]:
     return {"status": "PASS", "code": "RELEASE_STATE_SAFE"}
 
 
+def _i2c_device_names(i2c: dict[str, object]) -> set[str]:
+    devices = i2c.get("devices")
+    if not isinstance(devices, list):
+        return set()
+    names = set()
+    for item in devices:
+        if not isinstance(item, str):
+            continue
+        names.add(item)
+        names.add(Path(item).name)
+    return names
+
+
+def _normalize_i2c_address(value: object) -> str:
+    if isinstance(value, int):
+        return f"0x{value:02x}"
+    text = str(value or "").strip().casefold()
+    if text in {"44", "0x44"}:
+        return "0x44"
+    if text in {"45", "0x45"}:
+        return "0x45"
+    return text
+
+
+def replay_i2c_sht31(manifest: dict[str, object]) -> dict[str, object]:
+    i2c = manifest.get("i2c")
+    if not isinstance(i2c, dict):
+        return {"status": "FAIL", "code": "I2C_SHT31_UNDECLARED", "detail": "i2c"}
+    probe = i2c.get("sht31_targeted_probe")
+    if not isinstance(probe, dict):
+        return {"status": "FAIL", "code": "I2C_SHT31_UNDECLARED", "detail": "sht31_targeted_probe"}
+    bus = str(probe.get("bus") or "/dev/i2c-1")
+    status = str(probe.get("status", "")).casefold()
+    if i2c.get("reboot_required") is True or status in SHT31_REBOOT_STATUSES:
+        return {"status": "FAIL", "code": "I2C_REBOOT_REQUIRED", "detail": "reboot_then_resume_same_installer"}
+    if Path(bus).name not in _i2c_device_names(i2c):
+        return {"status": "FAIL", "code": "I2C_BUS_UNREADY", "detail": bus}
+    address = _normalize_i2c_address(probe.get("address"))
+    if address not in {"0x44", "0x45"}:
+        return {"status": "FAIL", "code": "I2C_SHT31_UNRESOLVED", "detail": "address"}
+    if probe.get("heater_enabled") is True:
+        return {"status": "FAIL", "code": "I2C_SHT31_UNRESOLVED", "detail": "heater_enabled"}
+    if status in SHT31_READY_STATUSES:
+        result = {"status": "PASS", "code": "I2C_SHT31_READY", "bus": bus, "address": address, "probe_status": status}
+        if isinstance(probe.get("valid_reads"), int):
+            result["valid_reads"] = probe["valid_reads"]
+        return result
+    detail = status if status in SHT31_UNREADY_STATUSES else f"unsupported_status:{status}"
+    return {"status": "FAIL", "code": "I2C_SHT31_UNRESOLVED", "detail": detail}
+
+
+def _environment_payload(manifest: dict[str, object]) -> dict[str, object] | None:
+    profile = manifest.get("environment_profile")
+    if isinstance(profile, dict):
+        return profile
+    environment = manifest.get("environment")
+    if isinstance(environment, dict):
+        nested = environment.get("profile")
+        if isinstance(nested, dict):
+            return nested
+    return None
+
+
+def replay_environment_profile(manifest: dict[str, object], *, gpio: dict[str, object], i2c_sht31: dict[str, object]) -> dict[str, object]:
+    profile = _environment_payload(manifest)
+    if not isinstance(profile, dict):
+        return {"status": "FAIL", "code": "ENVIRONMENT_PROFILE_UNDECLARED", "detail": "environment_profile"}
+    name = str(profile.get("name") or profile.get("profile") or "")
+    expected = ENVIRONMENT_PROFILE_SPECS.get(name)
+    if expected is None:
+        return {"status": "FAIL", "code": "ENVIRONMENT_PROFILE_UNKNOWN", "detail": name}
+    problems = []
+    for key, expected_value in expected.items():
+        if profile.get(key) != expected_value:
+            problems.append(key)
+    if name in REAL_SENSOR_PROFILES:
+        if i2c_sht31.get("status") != "PASS":
+            problems.append("sht31")
+        address = _normalize_i2c_address(profile.get("i2c_address"))
+        if address not in {"0x44", "0x45"}:
+            problems.append("i2c_address")
+        if profile.get("i2c_bus") != 1:
+            problems.append("i2c_bus")
+    if name in REAL_RELAY_PROFILES:
+        lines = gpio.get("lines") if isinstance(gpio.get("lines"), dict) else {}
+        if not isinstance(lines, dict) or "GPIO23" not in lines:
+            problems.append("relay_gpio23")
+    if name == "full-real" and profile.get("simulation_runtime_control_enabled") is not False:
+        problems.append("simulation_runtime_control_enabled")
+    if problems:
+        return {"status": "FAIL", "code": "ENVIRONMENT_PROFILE_UNREADY", "detail": ",".join(sorted(problems))}
+    return {"status": "PASS", "code": "ENVIRONMENT_PROFILE_READY", "profile": name}
+
+
 def _first_failed_code(checks: Iterable[dict[str, object]]) -> str:
     for check in checks:
         if check.get("status") != "PASS":
@@ -513,6 +655,8 @@ def replay_manifest(manifest: dict[str, object], required_gpios: Iterable[int] =
     audio = replay_audio_duplex(manifest)
     identity = replay_service_identity(manifest)
     release = replay_release_state(manifest)
+    i2c_sht31 = replay_i2c_sht31(manifest)
+    environment = replay_environment_profile(manifest, gpio=gpio, i2c_sht31=i2c_sht31)
     required_checks = [format_check]
     if requirements["privacy_boundary"]:
         required_checks.append(privacy)
@@ -524,6 +668,10 @@ def replay_manifest(manifest: dict[str, object], required_gpios: Iterable[int] =
         required_checks.append(identity)
     if requirements["release_state"]:
         required_checks.append(release)
+    if requirements["i2c_sht31"]:
+        required_checks.append(i2c_sht31)
+    if requirements["environment_profile"]:
+        required_checks.append(environment)
     status = "PASS" if all(check.get("status") == "PASS" for check in required_checks) else "FAIL"
     return {
         "format": REPLAY_FORMAT,
@@ -536,6 +684,8 @@ def replay_manifest(manifest: dict[str, object], required_gpios: Iterable[int] =
         "audio_duplex": audio,
         "service_identity": identity,
         "release_state": release,
+        "i2c_sht31": i2c_sht31,
+        "environment_profile": environment,
         "physical_acceptance_claimed": False,
     }
 

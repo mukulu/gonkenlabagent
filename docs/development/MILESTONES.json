@@ -1,6 +1,6 @@
 {
   "baseline_commit": "6466f26a1a9cb97e4c24182505b37cefb766b3c3",
-  "checkpoint_scope": "V09 checkpoint 39 codifies exact archive qualification as a repeatable host/package gate. The new archive qualifier verifies safe zip structure, absence of Python cache artifacts, permission-preserving extraction, clean extracted Git state, expected commit/tag, git fsck, milestone sync, release readiness and T0 from the extracted archive. M10.34 is host-verified as package-integrity evidence only; no Raspberry Pi release candidate or physical acceptance is claimed. Real target manifest expansion, complete host/target-shadow release-candidate gating and the M10.24 hardware/voice/lifecycle campaign remain open.",
+  "checkpoint_scope": "V09 checkpoint 40 expands target-shadow replay to I2C/SHT31 and governed environment profiles. The gate now distinguishes ready full-real evidence from planned I2C reboot, absent SHT31, missing relay GPIO23 and simulation-safe profile states across 11 required fixtures. M10.35 is host-verified as replay/readiness evidence only; no Raspberry Pi release candidate or physical acceptance is claimed. Sanitized real-target manifests, complete host/target-shadow release-candidate gating and the M10.24 hardware/voice/lifecycle campaign remain open.",
   "milestones": [
     {
       "evidence": "TEST_MATRIX.md (M2.1)",
@@ -524,6 +524,14 @@
       "software": "host-verified",
       "target": "not-run",
       "title": "Exact archive qualification gate"
+    },
+    {
+      "evidence": "scripts/target_probe.py; scripts/release_readiness.py; tests/unit/test_v09_target_probe.py; tests/unit/test_release_readiness.py; tests/fixtures/target_probe/i2c_sht31_ready_full_real_manifest.json; tests/fixtures/target_probe/i2c_reboot_required_manifest.json; tests/fixtures/target_probe/sht31_absent_real_sensor_manifest.json; tests/fixtures/target_probe/environment_full_real_missing_relay_manifest.json; tests/fixtures/target_probe/environment_disabled_safe_manifest.json; docs/development/V09_CHECKPOINT_40_I2C_ENVIRONMENT_REPLAY_REPORT.md; docs/development/MASTER_BLUEPRINT.md; docs/development/DECISIONS.md; docs/development/TEST_MATRIX.md",
+      "id": "M10.35",
+      "remaining": "This checkpoint expands host/target-shadow replay only. Live target manifest capture remains non-actuating, and a real Raspberry Pi candidate remains blocked until sanitized real-target manifests, complete host/target-shadow release-candidate gating and M10.24 target execution are completed without deriving physical claims from replay checks.",
+      "software": "host-verified",
+      "target": "not-run",
+      "title": "I2C/SHT31 and environment profile target-shadow replay"
     }
   ],
   "schema_version": 1

@@ -1909,3 +1909,15 @@ Checkpoint 30 advanced materially on the real Raspberry Pi: the new strict relea
 **Host acceptance.** Host acceptance requires archive-qualifier unit tests, execution against the previous checkpoint package with expected commit/tag, maintenance-payload contract coverage, milestone/status synchronization, static syntax checks, T0 validation and final package qualification from a clean tagged clone.
 
 **Target acceptance.** M10.24/WP-L remains open. A future Raspberry Pi candidate may be prepared only after the broader host/target-shadow release-candidate gate is complete and the exact candidate archive passes this qualifier.
+
+#### M10.35 Target-shadow I2C/SHT31 and environment-profile replay expansion
+
+**Purpose.** Target-shadow replay SHALL cover the next room-environment classes that can block a reliable target cycle before integrated actuation: I2C bus readiness, planned I2C reboot pauses, SHT31 targeted diagnostic status and static environment profile consistency. These checks remain replay evidence and never replace live target SHT31, relay, fan or voice acceptance.
+
+**I2C/SHT31 replay.** Required replay fixtures SHALL distinguish a ready `/dev/i2c-1` plus exactly one supported SHT31 address from absent sensors, unsupported addresses, heater-on state and the governed `I2C_REBOOT_REQUIRED` pause. Live manifest capture remains non-actuating and does not probe the sensor address; replay fixtures may carry sanitized diagnostic summaries gathered separately under the target runbook.
+
+**Environment profile replay.** Required profile fixtures SHALL validate only governed profiles: `full-simulation`, `sensor-deferred-relay`, `real-sensor-simulated-actuator` and `full-real`. Simulation profiles may pass without physical I2C/GPIO. Real-sensor profiles require SHT31 replay readiness, and libgpiod relay profiles require resolved GPIO23 evidence. `full-real` must also disable simulation runtime control.
+
+**Host acceptance.** Host acceptance requires PASS and fail-closed fixtures for ready full-real, planned I2C reboot, absent SHT31, missing full-real relay evidence and simulation-safe profile handling; release-readiness inclusion of all required fixtures; focused target-probe/readiness tests; static syntax checks; milestone/status synchronization; T0 validation; and clean tagged archive qualification.
+
+**Target acceptance.** M10.24/WP-L remains open. A future Raspberry Pi candidate remains blocked until sanitized real-target manifests cover the exact hardware/service/release/profile state, the complete host/target-shadow release-candidate gate passes and the real Pi campaign reaches `INSTALLATION_COMPLETE` before integrated hardware evidence is claimed.
