@@ -1,6 +1,6 @@
 {
   "baseline_commit": "6466f26a1a9cb97e4c24182505b37cefb766b3c3",
-  "checkpoint_scope": "V09 checkpoint 34 strengthens checkpoint-33 convergence using fresh Raspberry Pi evidence: runtime Python cache trees are outside the authoritative immutable payload across digest/manifest/ownership/mode checks without in-place release repair; Bluetooth is only a preferred transport when deterministic direct USB/wired duplex audio is ready; Raspberry Pi 5 GPIO17/22/23/27 identity is resolved by a shared non-actuating resolver and proven before services start; and repeated local/curl installs remain bound to the current release rather than historical-release execution. M10.29 is host-verified; M10.24 physical acceptance remains open until exact checkpoint 34 reaches INSTALLATION_COMPLETE and the integrated hardware/voice campaign passes.",
+  "checkpoint_scope": "V09 post-checkpoint-34 reliability-first checkpoint replaces the next-candidate boundary with a host/target-shadow release-candidate gate, records the forensic failure chronology/capability matrix/state model/target manifest schema, and starts WP-C by adding canonical gpiochip identity plus alias deduplication before GPIO ambiguity decisions. M10.30 is host-verified; no Raspberry Pi release candidate or physical acceptance is claimed. M10.24 and the real install, reboot/no-login, SHT31, relay/fan, wake/voice, update/rollback/reinstall campaign remain open.",
   "milestones": [
     {
       "evidence": "TEST_MATRIX.md (M2.1)",
@@ -484,6 +484,14 @@
       "software": "host-verified",
       "target": "not-run",
       "title": "Authoritative runtime boundary, transport-neutral audio and early Pi5 GPIO identity convergence"
+    },
+    {
+      "evidence": "docs/development/V09_POST_CKPT34_RELIABILITY_FIRST_BLUEPRINT.md; docs/development/V09_CHECKPOINT_35_RELIABILITY_FIRST_REPORT.md; docs/development/MASTER_BLUEPRINT.md; docs/development/DECISIONS.md; docs/development/TEST_MATRIX.md; src/gonken_agent/gpio_resolver.py; scripts/gpio_identity_preflight.py; tests/unit/test_v09_gpio_identity_preflight.py; tests/unit/test_m5_1_ptt_runtime.py; tests/unit/test_v09_environment_hardware_adapters.py",
+      "id": "M10.30",
+      "remaining": "No Raspberry Pi candidate is produced from this checkpoint. Complete the reliability-first host/target-shadow gate, exact archive verification and then the real M10.24/WP-L Raspberry Pi campaign before using RELEASE_CANDIDATE or STABLE_FINAL_RELEASE status.",
+      "software": "host-verified",
+      "target": "not-run",
+      "title": "Post-checkpoint-34 reliability-first control plane and canonical GPIO alias identity"
     }
   ],
   "schema_version": 1

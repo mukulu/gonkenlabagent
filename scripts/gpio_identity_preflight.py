@@ -64,6 +64,8 @@ def probe(lines: tuple[int, ...], *, gpiod_module=None, chip_paths: tuple[str, .
             "chip_name": item.chip_name,
             "chip_label": item.chip_label,
             "resolution_basis": item.resolution_basis,
+            "canonical_chip_id": item.canonical_chip_id,
+            "alias_paths": list(item.alias_paths),
         }
     if errors:
         return {"format": FORMAT, "status": "FAIL", "code": "GPIO_HEADER_UNRESOLVED", "detail": ";".join(errors)[:900], "lines": resolved}

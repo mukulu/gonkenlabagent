@@ -1666,3 +1666,17 @@ This compatibility is a migration mechanism, not a waiver. The goal is to move s
 - **Reason:** Checkpoint 33 reached the live service but timed out because GPIO22 resolution remained ambiguous despite host RP1-label tests.
 - **Must avoid:** hard-coding gpiochip0, assuming BCM equals offset, or adding a special wake-only mapping rule.
 - **Consequence:** installer and runtime share one truth and target mapping defects surface before the final 180-second readiness wait.
+
+## 2026-09-17 — Post-checkpoint-34 reliability-first decisions
+
+### D35-01 — Do not issue a new Pi candidate until host/target-shadow gates are complete
+- **Decision:** Checkpoint 34 is no longer the next user-facing candidate boundary. The project first completes the reliability-first host/target-shadow gate recorded in `V09_POST_CKPT34_RELIABILITY_FIRST_BLUEPRINT.md`.
+- **Reason:** The checkpoint history shows a repeated pattern of packaging after the newest target error disappeared while newly reachable states remained untested.
+- **Must avoid:** calling an internal checkpoint final, producing a Pi candidate from a single fixed symptom, or treating host-only success as `INSTALLATION_COMPLETE`.
+- **Consequence:** internal checkpoints continue, but `RELEASE_CANDIDATE` and `STABLE_FINAL_RELEASE` wording remains blocked until the specified evidence tier exists.
+
+### D35-02 — Canonical gpiochip identity deduplicates aliases before ambiguity decisions
+- **Decision:** The shared GPIO resolver records character-device/sysfs canonical identity when available and deduplicates multiple `/dev/gpiochip*` paths that are aliases of the same kernel gpiochip before line ambiguity is evaluated.
+- **Reason:** The post-CKPT34 evidence reports duplicate gpiochip paths with the same RP1 identity for the project header lines. Path strings alone are not hardware identity.
+- **Must avoid:** first-path-wins selection, hard-coded gpiochip numbers, deduplicating distinct character devices, or actuator line requests during discovery.
+- **Consequence:** true aliases can resolve safely, while genuinely distinct plausible header controllers still fail closed for the affected feature/profile.

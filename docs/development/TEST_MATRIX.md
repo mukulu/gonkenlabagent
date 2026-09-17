@@ -1336,3 +1336,15 @@ Checkpoint 24 closes the host-side root cause and adds regression protection, bu
 | CP34-T179 | Speech lifecycle | `checkpoint34/final_speech_lifecycle_accounting.json`; `checkpoint34/speech_cases/` | PASS — 12/12 | Synthetic lifecycle only; physical microphone/speaker remains target gate. |
 | CP34-T180 | Release lifecycle | `checkpoint34/final_release_lifecycle_accounting.json`; `checkpoint34/release_cases/` | PASS — 12/12 | Includes same-commit runtime-cache repeat and previous-current non-execution. |
 | CP34-T181 | Exact checkpoint-34 Raspberry Pi install | exact delivered checkpoint 34 | NOT RUN / BLOCKED TARGET GATE | Must pass early GPIO identity and reach `INSTALLATION_COMPLETE`, then complete M10.24 integrated hardware/voice/lifecycle campaign. |
+
+## V09 post-checkpoint-34 reliability-first checkpoint — M10.30
+
+| ID | Scope | Command / artifact | Host result | Target boundary |
+|---|---|---|---:|---|
+| CP35-T182 | Reliability-first control-plane replacement | `docs/development/V09_POST_CKPT34_RELIABILITY_FIRST_BLUEPRINT.md`; `MASTER_BLUEPRINT.md`; `DECISIONS.md`; `MILESTONES.json` | PASS after document/status validation | Host/control evidence only; not a Pi candidate. |
+| CP35-T183 | Canonical gpiochip alias deduplication | `tests/unit/test_v09_gpio_identity_preflight.py::test_probe_deduplicates_duplicate_device_nodes_for_same_canonical_rp1_chip` | PASS | Exact real Pi alias behavior must still be captured in a target manifest before candidate acceptance. |
+| CP35-T184 | Distinct duplicate header controllers still fail closed | existing `test_probe_fails_closed_when_header_identity_remains_ambiguous` | PASS | Confirms alias repair does not become first-path-wins. |
+| CP35-T185 | Preflight evidence includes canonical identity and aliases | `scripts/gpio_identity_preflight.py` JSON assertions in CP35-T183 | PASS | Future support bundles must preserve these fields from target probes. |
+| CP35-T186 | Focused GPIO regression | `PYTHONPATH=src python -m unittest tests.unit.test_v09_gpio_identity_preflight tests.unit.test_m5_1_ptt_runtime tests.unit.test_v09_environment_hardware_adapters -v` | PASS | Host fake libgpiod only; no physical actuation. |
+| CP35-T187 | Static syntax and milestone/status synchronization | `compileall`; `python scripts/milestone_status.py --check`; `git diff --check` | PASS | T0 host only. |
+| CP35-T188 | Raspberry Pi candidate gate | host/target-shadow release-candidate gate from reliability blueprint | NOT RUN / BLOCKED TARGET GATE | No user-facing `RELEASE_CANDIDATE` until complete. |

@@ -16,6 +16,8 @@ No GPIO line is requested or written during discovery.
 
 from __future__ import annotations
 
+import os
+import stat
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Iterable
@@ -40,6 +42,8 @@ class GpioLineResolution:
     chip_name: str = ""
     chip_label: str = ""
     resolution_basis: str = "unique-line-name"
+    canonical_chip_id: str = ""
+    alias_paths: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -48,6 +52,8 @@ class _ChipSnapshot:
     chip_name: str
     chip_label: str
     line_names: tuple[str | None, ...]
+    canonical_chip_id: str = ""
+    alias_paths: tuple[str, ...] = ()
 
     @property
     def named_set(self) -> frozenset[str]:
@@ -85,6 +91,60 @@ def _sysfs_label(chip_path: str) -> str:
     return ""
 
 
+def _device_identity(chip_path: str) -> str:
+    """Return a canonical read-only identity for a gpiochip device node.
+
+    The path under ``/dev`` is not a stable Raspberry Pi 5 hardware identity.
+    When the node can be inspected, prefer character-device major/minor plus
+    the kernel's ``/sys/dev/char`` realpath.  If inspection fails, return an
+    empty identity and let the resolver fall back to metadata/topology without
+    deduplicating paths that may be distinct hardware.
+    """
+    try:
+        info = os.stat(chip_path)
+    except OSError:
+        return ""
+    mode = getattr(info, "st_mode", 0)
+    if not stat.S_ISCHR(mode):
+        return ""
+    rdev = getattr(info, "st_rdev", 0)
+    major = os.major(rdev)
+    minor = os.minor(rdev)
+    sysfs = Path("/sys/dev/char") / f"{major}:{minor}"
+    try:
+        sysfs_real = str(sysfs.resolve(strict=True))
+    except OSError:
+        sysfs_real = ""
+    return f"char:{major}:{minor}:{sysfs_real}"
+
+
+def _deduplicate_aliases(snapshots: list[_ChipSnapshot]) -> list[_ChipSnapshot]:
+    by_identity: dict[str, list[_ChipSnapshot]] = {}
+    output: list[_ChipSnapshot] = []
+    for snapshot in snapshots:
+        if snapshot.canonical_chip_id:
+            by_identity.setdefault(snapshot.canonical_chip_id, []).append(snapshot)
+        else:
+            output.append(snapshot)
+    for identity, group in by_identity.items():
+        if len(group) == 1:
+            output.append(group[0])
+            continue
+        paths = tuple(sorted(item.chip_path for item in group))
+        primary = sorted(group, key=lambda item: item.chip_path)[0]
+        output.append(
+            _ChipSnapshot(
+                chip_path=primary.chip_path,
+                chip_name=primary.chip_name,
+                chip_label=primary.chip_label,
+                line_names=primary.line_names,
+                canonical_chip_id=identity,
+                alias_paths=paths,
+            )
+        )
+    return sorted(output, key=lambda item: item.chip_path)
+
+
 def _scan(gpiod: Any, chip_paths: Iterable[str]) -> list[_ChipSnapshot]:
     snapshots: list[_ChipSnapshot] = []
     for chip_path in chip_paths:
@@ -101,6 +161,7 @@ def _scan(gpiod: Any, chip_paths: Iterable[str]) -> list[_ChipSnapshot]:
                 continue
             chip_name = _clean_metadata(getattr(info, "name", ""))
             chip_label = _clean_metadata(getattr(info, "label", "")) or _sysfs_label(chip_path)
+            canonical_chip_id = _device_identity(chip_path)
             names: list[str | None] = []
             for offset in range(count):
                 try:
@@ -109,12 +170,21 @@ def _scan(gpiod: Any, chip_paths: Iterable[str]) -> list[_ChipSnapshot]:
                 except Exception:
                     value = None
                 names.append(value if isinstance(value, str) and value else None)
-            snapshots.append(_ChipSnapshot(chip_path, chip_name, chip_label, tuple(names)))
+            snapshots.append(
+                _ChipSnapshot(
+                    chip_path,
+                    chip_name,
+                    chip_label,
+                    tuple(names),
+                    canonical_chip_id=canonical_chip_id,
+                    alias_paths=(chip_path,),
+                )
+            )
         finally:
             close = getattr(chip, "close", None)
             if callable(close):
                 close()
-    return snapshots
+    return _deduplicate_aliases(snapshots)
 
 
 def _rp1_metadata(snapshot: _ChipSnapshot) -> bool:
@@ -159,6 +229,8 @@ def resolve_named_gpio_line(
             chip_name=chip.chip_name,
             chip_label=chip.chip_label,
             resolution_basis=basis,
+            canonical_chip_id=chip.canonical_chip_id,
+            alias_paths=chip.alias_paths or (chip.chip_path,),
         )
 
     if len(matches) == 1:
