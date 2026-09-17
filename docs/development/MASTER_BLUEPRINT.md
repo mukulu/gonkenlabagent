@@ -1869,3 +1869,15 @@ Checkpoint 30 advanced materially on the real Raspberry Pi: the new strict relea
 **Host acceptance.** Host acceptance requires replay fixture tests, live-collection tests with fake libgpiod/stat metadata, CLI replay exit-code tests, atomic private output tests, release-maintenance inclusion tests, static syntax/compile checks, milestone/status synchronization and T0 validation.
 
 **Target acceptance.** Target acceptance remains blocked until a real Raspberry Pi runs the live probe, uploads the sanitized manifest, the manifest is reviewed for privacy, and the corresponding target-shadow fixture passes before any future Pi candidate package is produced.
+
+#### M10.32 Release-readiness target-shadow gate
+
+**Purpose.** Release readiness SHALL move from host-only milestone inspection to an explicit internal host/target-shadow gate. The gate may report `READY_FOR_HOST_TARGET_SHADOW_GATE` only when all required host milestones through the current reliability batch are host-verified, secret scanning is clean, the Git tree is clean or an explicit development override is used, and all required target-shadow fixtures replay with the expected PASS/FAIL outcomes.
+
+**Required replay fixtures.** The release-readiness gate SHALL execute `scripts/target_probe.py --replay --json` against the checkpoint-34 duplicate-RP1-alias manifest and the distinct-duplicate-header fail-closed manifest. The alias fixture must return PASS with `GPIO_HEADER_RESOLVED`; the distinct duplicate fixture must return exit 75 with `GPIO_HEADER_UNRESOLVED`. Both payloads must keep `physical_acceptance_claimed` false.
+
+**Readiness boundary.** `READY_FOR_HOST_TARGET_SHADOW_GATE` is an internal reliability status, not a Raspberry Pi candidate label and not target acceptance. It authorizes the next dependency-ready reliability work, including adding sanitized real-target manifests and exact-archive qualification. It does not authorize integrated relay, fan, SHT31, wake, speech, reboot, update, rollback or reinstall acceptance claims.
+
+**Host acceptance.** Host acceptance requires focused release-readiness tests, target-probe replay tests, milestone/status synchronization, static syntax checks, T0 validation, clean-diff review and package verification from a clean tagged clone. A missing, malformed, unexpected-status or physical-claiming replay fixture blocks readiness.
+
+**Target acceptance.** M10.24/WP-L remains open. A future Pi candidate may be prepared only after the host/target-shadow release-candidate gate is complete, exact-archive verification passes, and the candidate preserves the requirement to run `target_probe.py` before installation, reach `INSTALLATION_COMPLETE`, and then execute `docs/RASPBERRY_PI_ACCEPTANCE_RUN.md` on the real target.

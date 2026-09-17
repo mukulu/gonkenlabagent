@@ -1360,3 +1360,13 @@ Checkpoint 24 closes the host-side root cause and adds regression protection, bu
 | CP36-T193 | Release maintenance payload inclusion | `tests.unit.test_m3_3_release_manager...test_speech_and_service_maintenance_inputs_are_release_payload_contract` | PASS | Ensures installed releases carry the probe helper. |
 | CP36-T194 | Static syntax and control sync | `compileall`; `milestone_status.py --check`; `git diff --check`; `./scripts/ci.sh --phase t0` | PASS | Host/static only. |
 | CP36-T195 | Real Raspberry Pi target manifest | `target_probe.py --json --output ...` on target | NOT RUN / BLOCKED TARGET GATE | Required before any future user-facing Pi candidate. |
+
+## V09 checkpoint 37 — M10.32 release-readiness target-shadow gate
+
+| ID | Scope | Command / artifact | Host result | Target boundary |
+|---|---|---|---:|---|
+| CP37-T196 | Release readiness requires target-shadow replay | `scripts/release_readiness.py`; `tests/unit/test_release_readiness.py` | PASS | Internal host/target-shadow status only; no Pi candidate. |
+| CP37-T197 | Required replay fixture accounting | duplicate-RP1 alias PASS fixture and distinct-duplicate expected-FAIL fixture via `target_probe.py --replay --json` | PASS | Replays topology evidence but does not actuate hardware. |
+| CP37-T198 | Failure blocks readiness | `tests.unit.test_release_readiness.ReleaseReadinessTests.test_target_shadow_fixture_failure_blocks_readiness` | PASS | Missing/malformed/unexpected replay evidence cannot be waived into readiness. |
+| CP37-T199 | Static syntax and control sync | `compileall`; `milestone_status.py --check`; `git diff --check`; `./scripts/ci.sh --phase t0` | PASS | Host/static only. |
+| CP37-T200 | Real target manifest expansion and exact archive qualification | future sanitized manifests and clean tagged archive verification | NOT RUN / BLOCKED TARGET GATE | Required before any user-facing Raspberry Pi candidate. |

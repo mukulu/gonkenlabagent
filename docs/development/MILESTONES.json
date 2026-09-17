@@ -1,6 +1,6 @@
 {
   "baseline_commit": "6466f26a1a9cb97e4c24182505b37cefb766b3c3",
-  "checkpoint_scope": "V09 checkpoint 36 adds sanitized target-manifest capture and target-shadow GPIO replay on top of the checkpoint-35 reliability-first gate. The repository now contains a non-actuating target_probe tool, a checkpoint-34 duplicate-RP1-alias replay fixture, a distinct-duplicate fail-closed fixture, and release-maintenance inclusion for the probe. M10.31 is host-verified; no Raspberry Pi release candidate or physical acceptance is claimed. A real target manifest, target-shadow replay, host/target-shadow gate, exact archive qualification and the M10.24 hardware/voice/lifecycle campaign remain open.",
+  "checkpoint_scope": "V09 checkpoint 37 integrates target-shadow replay into release-readiness gating on top of checkpoint 36. The repository now requires replay of the duplicate-RP1-alias PASS fixture and distinct-duplicate expected-FAIL fixture before reporting READY_FOR_HOST_TARGET_SHADOW_GATE. M10.32 is host-verified as an internal reliability gate only; no Raspberry Pi release candidate or physical acceptance is claimed. A real target manifest expansion, exact archive qualification and the M10.24 hardware/voice/lifecycle campaign remain open.",
   "milestones": [
     {
       "evidence": "TEST_MATRIX.md (M2.1)",
@@ -500,6 +500,14 @@
       "software": "host-verified",
       "target": "not-run",
       "title": "Sanitized target manifest and target-shadow GPIO replay"
+    },
+    {
+      "evidence": "scripts/release_readiness.py; tests/unit/test_release_readiness.py; scripts/target_probe.py; tests/fixtures/target_probe/checkpoint34_duplicate_rp1_alias_manifest.json; tests/fixtures/target_probe/distinct_duplicate_header_manifest.json; docs/development/V09_CHECKPOINT_37_TARGET_SHADOW_READINESS_REPORT.md; docs/development/MASTER_BLUEPRINT.md; docs/development/DECISIONS.md; docs/development/TEST_MATRIX.md",
+      "id": "M10.32",
+      "remaining": "This checkpoint reaches only READY_FOR_HOST_TARGET_SHADOW_GATE. Add sanitized real-target manifests, expand target-shadow replay for audio fallback, service identity and dirty installer/release states, complete exact archive qualification, and then prepare a future Raspberry Pi RELEASE_CANDIDATE only after the host/target-shadow release-candidate gate is completely satisfied.",
+      "software": "host-verified",
+      "target": "not-run",
+      "title": "Release-readiness target-shadow gate"
     }
   ],
   "schema_version": 1

@@ -1694,3 +1694,17 @@ This compatibility is a migration mechanism, not a waiver. The goal is to move s
 - **Reason:** Checkpoint history shows that host mocks were too clean; replaying real target topology closes that gap without claiming physical relay/sensor/voice behavior.
 - **Must avoid:** relabelling replay PASS as physical PASS or weakening fail-closed behavior for distinct duplicate header controllers.
 - **Consequence:** the checkpoint-34 duplicate RP1 alias fixture is now a permanent host regression, and future Pi evidence should add more fixtures rather than replacing it.
+
+## 2026-09-17 — Checkpoint 37 release-readiness decisions
+
+### D37-01 — Release readiness must replay target-shadow fixtures
+- **Decision:** `scripts/release_readiness.py` reports readiness only after the required target-shadow fixtures replay with their expected status, GPIO identity code, exit code and `physical_acceptance_claimed=false` boundary.
+- **Reason:** A milestone ledger alone can drift from executable replay evidence. The release gate needs to exercise the same manifest path that future sanitized real-target fixtures will use.
+- **Must avoid:** allowing a missing fixture, malformed JSON, wrong exit code, wrong identity code or physical-acceptance claim to pass readiness.
+- **Consequence:** target-shadow replay failure blocks `READY_FOR_HOST_TARGET_SHADOW_GATE` and keeps the package below any Raspberry Pi candidate label.
+
+### D37-02 — `READY_FOR_HOST_TARGET_SHADOW_GATE` is internal reliability status
+- **Decision:** The readiness label is renamed away from target acceptance language. It means the current host/software and required target-shadow replay checks passed for this internal checkpoint.
+- **Reason:** The previous `READY_FOR_TARGET_ACCEPTANCE` wording was too easy to confuse with physical Raspberry Pi acceptance or permission to ship a user-facing candidate.
+- **Must avoid:** using this status as `RELEASE_CANDIDATE`, `STABLE_FINAL_RELEASE`, `INSTALLATION_COMPLETE` or M10.24 PASS evidence.
+- **Consequence:** the next action remains adding sanitized real-target manifests, broadening target-shadow coverage and qualifying an exact archive before any Pi candidate can be produced.

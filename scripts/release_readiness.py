@@ -1,4 +1,4 @@
-"""Report whether the repository can move to Raspberry Pi acceptance testing."""
+"""Report whether the repository can move through internal reliability gates."""
 
 from __future__ import annotations
 
@@ -8,6 +8,7 @@ import re
 import subprocess
 import sys
 from pathlib import Path
+from typing import Any
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -26,7 +27,7 @@ REQUIRED_HOST_VERIFIED = {
     "M9.2", "M9.3", "M9.4", "M9.5",
     "M10.1", "M10.2", "M10.3", "M10.4", "M10.5", "M10.6",
     "M10.8", "M10.9", "M10.10", "M10.11", "M10.12", "M10.13", "M10.14", "M10.15",
-    "M10.16", "M10.17", "M10.18", "M10.19", "M10.20", "M10.21", "M10.22", "M10.23", "M10.25", "M10.26", "M10.27", "M10.28", "M10.29",
+    "M10.16", "M10.17", "M10.18", "M10.19", "M10.20", "M10.21", "M10.22", "M10.23", "M10.25", "M10.26", "M10.27", "M10.28", "M10.29", "M10.30", "M10.31", "M10.32",
 }
 TARGET_CAMPAIGN_ITEMS = {
     "M3.1", "M3.2", "M3.3", "M3.4", "M3.5", "M3.6",
@@ -46,17 +47,39 @@ TEXT_EXTENSIONS = {
     ".py", ".sh", ".toml", ".md", ".json", ".cfg", ".ini", ".service", ".conf", ".txt"
 }
 SCAN_ROOTS = ("src", "scripts", "packaging", "requirements", "tests", "config", "README.md", "pyproject.toml", "AGENTS.md")
+REQUIRED_TARGET_SHADOW_FIXTURES = (
+    {
+        "id": "checkpoint34_duplicate_rp1_alias",
+        "path": "tests/fixtures/target_probe/checkpoint34_duplicate_rp1_alias_manifest.json",
+        "expected_status": "PASS",
+        "expected_code": "GPIO_HEADER_RESOLVED",
+    },
+    {
+        "id": "distinct_duplicate_header_fail_closed",
+        "path": "tests/fixtures/target_probe/distinct_duplicate_header_manifest.json",
+        "expected_status": "FAIL",
+        "expected_code": "GPIO_HEADER_UNRESOLVED",
+    },
+)
+READY_STATUS = "READY_FOR_HOST_TARGET_SHADOW_GATE"
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--json", action="store_true", dest="as_json")
-    parser.add_argument("--check", action="store_true", help="exit nonzero unless ready for target acceptance")
+    parser.add_argument("--check", action="store_true", help="exit nonzero unless the host/target-shadow gate is ready")
     parser.add_argument("--allow-dirty", action="store_true", help="ignore only uncommitted worktree changes")
     args = parser.parse_args()
     report = build_report()
-    if args.allow_dirty and report["git"]["dirty"] and not report["missing_milestones"] and not report["not_host_verified"] and not report["secret_findings"]:
-        report = {**report, "status": "READY_FOR_TARGET_ACCEPTANCE"}
+    if (
+        args.allow_dirty
+        and report["git"]["dirty"]
+        and not report["missing_milestones"]
+        and not report["not_host_verified"]
+        and not report["secret_findings"]
+        and not report["target_shadow_failures"]
+    ):
+        report = {**report, "status": READY_STATUS}
     if args.as_json:
         print(json.dumps(report, sort_keys=True, indent=2))
     else:
@@ -65,10 +88,11 @@ def main() -> int:
         print(f"Commit: {report['git']['commit']}")
         print(f"Dirty tree: {report['git']['dirty']}")
         print(f"Host verified required items: {len(report['host_verified'])}/{len(REQUIRED_HOST_VERIFIED)}")
+        print(f"Target-shadow fixtures: {len(report['target_shadow_passed'])}/{len(REQUIRED_TARGET_SHADOW_FIXTURES)}")
         print(f"Target gates remaining: {len(report['target_gates_remaining'])}")
         for gate in report["target_gates_remaining"][:12]:
             print(f"- {gate['id']}: {gate['title']}")
-    if args.check and report["status"] != "READY_FOR_TARGET_ACCEPTANCE":
+    if args.check and report["status"] != READY_STATUS:
         return 1
     return 0
 
@@ -93,9 +117,11 @@ def build_report() -> dict[str, object]:
         if row["id"] in TARGET_CAMPAIGN_ITEMS and row["target"] == "not-run"
     ]
     secrets = scan_secrets()
+    target_shadow = target_shadow_results()
+    target_shadow_failures = [item for item in target_shadow if item["status"] != "PASS"]
     git = git_state()
-    status = "READY_FOR_TARGET_ACCEPTANCE"
-    if missing or not_host_verified or secrets or git["dirty"]:
+    status = READY_STATUS
+    if missing or not_host_verified or secrets or git["dirty"] or target_shadow_failures:
         status = "NOT_READY"
     return {
         "schema": 1,
@@ -106,16 +132,67 @@ def build_report() -> dict[str, object]:
         "missing_milestones": missing,
         "not_host_verified": not_host_verified,
         "secret_findings": secrets,
+        "target_shadow_passed": [item for item in target_shadow if item["status"] == "PASS"],
+        "target_shadow_failures": target_shadow_failures,
         "target_gates_remaining": target_gates,
-        "readiness_scope": "host/software complete enough to begin the recorded Raspberry Pi target campaign; no target gate is implied PASS",
+        "readiness_scope": "host/software plus required target-shadow replay gate; no Raspberry Pi release candidate or target gate is implied PASS",
         "physical_acceptance_claimed": False,
         "next_action": (
-            "Verify the delivered comprehensive-closure checkpoint and install that exact clean commit with ./bootstrap.sh --local-checkpoint; "
-            "allow a governed I2C_REBOOT_REQUIRED stop to reboot and resume the same installer, but require INSTALLATION_COMPLETE before integrated hardware actuation; "
-            "then execute docs/RASPBERRY_PI_ACCEPTANCE_RUN.md through simulation, physical fan, real SHT31, full-real voice/fault/reboot/update/rollback stages; "
-            "collect the support ZIP plus M10.7/M10.24 private evidence and do not mark any remaining physical gate PASS without observed target evidence."
+            "Complete the remaining host/target-shadow release-candidate gate first: add real target manifests as sanitized fixtures, replay them, "
+            "run exact-archive verification, then only after that prepare a Raspberry Pi RELEASE_CANDIDATE. On the target, run target_probe.py before installation, "
+            "then install the exact candidate with ./bootstrap.sh --local-checkpoint, require INSTALLATION_COMPLETE before integrated hardware actuation, "
+            "and execute docs/RASPBERRY_PI_ACCEPTANCE_RUN.md through M10.7/M10.24 evidence without marking physical gates PASS from host or replay evidence."
         ),
     }
+
+
+def target_shadow_results() -> list[dict[str, Any]]:
+    results: list[dict[str, Any]] = []
+    for fixture in REQUIRED_TARGET_SHADOW_FIXTURES:
+        path = ROOT / fixture["path"]
+        result: dict[str, Any] = {
+            "id": fixture["id"],
+            "path": fixture["path"],
+            "status": "FAIL",
+            "expected_status": fixture["expected_status"],
+            "expected_code": fixture["expected_code"],
+            "observed_status": None,
+            "observed_code": None,
+            "detail": "",
+        }
+        if not path.is_file() or path.is_symlink():
+            result["detail"] = "fixture_missing"
+            results.append(result)
+            continue
+        try:
+            completed = subprocess.run(
+                [sys.executable, str(ROOT / "scripts" / "target_probe.py"), "--replay", str(path), "--json"],
+                cwd=ROOT,
+                check=False,
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+            payload = json.loads(completed.stdout)
+        except (OSError, subprocess.TimeoutExpired, json.JSONDecodeError) as exc:
+            result["detail"] = type(exc).__name__
+            results.append(result)
+            continue
+        observed = payload.get("gpio_identity", {}) if isinstance(payload, dict) else {}
+        result["observed_status"] = payload.get("status")
+        result["observed_code"] = observed.get("code") if isinstance(observed, dict) else None
+        exit_expected = 0 if fixture["expected_status"] == "PASS" else 75
+        if (
+            completed.returncode == exit_expected
+            and result["observed_status"] == fixture["expected_status"]
+            and result["observed_code"] == fixture["expected_code"]
+            and payload.get("physical_acceptance_claimed") is False
+        ):
+            result["status"] = "PASS"
+        else:
+            result["detail"] = f"exit={completed.returncode}"
+        results.append(result)
+    return results
 
 
 def git_state() -> dict[str, object]:
