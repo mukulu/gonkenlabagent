@@ -1443,6 +1443,6 @@ Checkpoint 24 closes the host-side root cause and adds regression protection, bu
 | CP43-T241 | Target-shadow readiness performance | `release_readiness.py --json --allow-dirty`; 23 required fixtures | PASS; measured host readiness about 0.75 s during implementation | Performance is host/checker evidence only. |
 | CP43-T242 | Downstream voice/speech/Ollama/environment convergence | bounded 249-test affected portfolio | PASS | Host/fake/process evidence; no physical audio, SHT31 or relay acceptance. |
 | CP43-T243 | Lifecycle/recovery/no-regression | release/install/restart/hotplug/update/rollback affected portfolio | PASS — release lifecycle decomposed case-by-case plus 12/12 install/uninstall lifecycle | Must be completed before checkpoint-43 package qualification. |
-| CP43-T244 | Docs, milestone, compile/static, readiness and T0 | checkpoint close gates | IN PROGRESS at ledger creation | Host/static only. |
+| CP43-T244 | Docs, milestone, compile/static, readiness and T0 | checkpoint close gates | PASS — docs validator, compileall, diff/milestone checks, 61/61 host-required readiness, 23/23 target-shadow, T0 | Host/static only. |
 | CP43-T245 | Exact tagged archive qualification and extracted rerun | `archive_qualifier.py` plus extracted focused/readiness tests | NOT RUN at ledger creation | Package integrity only; no Pi physical acceptance. |
 | CP43-T246 | Exact Raspberry Pi convergence campaign | checkpoint-43 target runbook | NOT RUN / BLOCKED TARGET GATE | Required to close M10.24 physical audio/SHT31/relay/fan/wake/reboot/lifecycle claims. |

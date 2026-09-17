@@ -50,9 +50,16 @@ The first new structural test asserted invented textual names (`gonken_preflight
 
 The broad release lifecycle campaign is intentionally expensive. Rather than repeating it unchanged, the run preserved completed cases and the remaining uncertain cases were isolated and executed independently. This follows the project's anti-hang/anti-loss policy and avoids converting tool/session boundaries into false product failures.
 
+## Final host/static gate before archive qualification
+
+- clean release readiness: **READY_FOR_HOST_TARGET_SHADOW_GATE**, host-required **61/61**, target-shadow **23/23**, tree clean;
+- `./scripts/ci.sh --phase t0`: **PASS**;
+- `compileall`, `git diff --check`, milestone synchronization and V09 documentation validator: **PASS**.
+
+The first readiness attempt in this closeout wrote its log inside the repository before running, making the tree dirty by construction. That false-red is retained as evidence; the gate was rerun from the unchanged commit with output outside the tree and passed.
+
 ## Remaining before package close
 
-- run compile/static/milestone/readiness/T0 and affected final verification from a clean committed tree;
 - mark M10.38 host-verified only after those gates pass;
 - create the final checkpoint commit/tag;
 - build a clean ZIP from that tag;

@@ -1,0 +1,19 @@
+Status: NOT_READY
+Branch: dev/v09-43-convergence-v2
+Commit: b52f3374273c15d1cfa7cc4fd03a0707e5bc9f56
+Dirty tree: True
+Host verified required items: 61/61
+Target-shadow fixtures: 23/23
+Target gates remaining: 26
+- M3.1: Bootstrap preflight
+- M3.2: Step engine and install state
+- M3.3: Immutable application release
+- M3.4: Ollama lifecycle and selected model
+- M3.5: Whisper and Piper artifacts
+- M3.6: Install summary
+- M4.1: Coordinator/state/health
+- M4.2: Audio discovery and recovery
+- M4.3: Resampling/STT/TTS lifecycle
+- M5.1: Push-to-talk and recording indication
+- M5.2: Offline boundary
+- M6.1: Application service
