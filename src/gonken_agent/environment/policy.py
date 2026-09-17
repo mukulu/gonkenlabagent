@@ -148,23 +148,56 @@ class PolicyStore:
         self.path = Path(path)
         self.bounds = bounds
 
+    def _permission_code(self) -> str:
+        parent = self.path.parent
+        while True:
+            try:
+                if parent.exists() and not os.access(parent, os.X_OK):
+                    return "ENV_POLICY_PARENT_PERMISSION_DENIED"
+            except OSError:
+                pass
+            if parent == parent.parent:
+                break
+            parent = parent.parent
+        return "ENV_POLICY_PERMISSION_DENIED"
+
+    def default_policy(self) -> EnvironmentPolicy:
+        """Return the governed default in memory without mutating persistent state."""
+        return EnvironmentPolicy.default().validated(bounds=self.bounds)
+
     def load(self) -> EnvironmentPolicy:
         try:
-            raw = json.loads(self.path.read_text(encoding="utf-8"))
+            text = self.path.read_text(encoding="utf-8")
         except FileNotFoundError as exc:
-            raise PolicyError("POLICY_MISSING", f"policy file does not exist: {self.path}") from exc
-        except (OSError, json.JSONDecodeError) as exc:
-            raise PolicyError("POLICY_INVALID", f"cannot read policy file: {self.path}") from exc
+            raise PolicyError("ENV_POLICY_MISSING", f"policy file does not exist: {self.path}") from exc
+        except PermissionError as exc:
+            raise PolicyError(self._permission_code(), f"cannot access policy file: {self.path}") from exc
+        except OSError as exc:
+            raise PolicyError("ENV_POLICY_READ_FAILED", f"cannot read policy file: {self.path}") from exc
+        try:
+            raw = json.loads(text)
+        except json.JSONDecodeError as exc:
+            raise PolicyError("ENV_POLICY_JSON_INVALID", f"policy JSON is invalid: {self.path}") from exc
         if not isinstance(raw, dict):
-            raise PolicyError("POLICY_INVALID", "policy root must be an object")
+            raise PolicyError("ENV_POLICY_JSON_INVALID", "policy root must be an object")
         return EnvironmentPolicy.from_mapping(raw, bounds=self.bounds)
 
-    def load_or_create_default(self) -> EnvironmentPolicy:
+    def validate_access(self) -> None:
+        """Validate existing policy readability without creating or rewriting state."""
+        if not self.path.exists():
+            return
+        self.load()
+
+    def initialize_default_if_missing(self) -> EnvironmentPolicy:
         if self.path.exists():
             return self.load()
-        policy = EnvironmentPolicy.default().validated(bounds=self.bounds)
+        policy = self.default_policy()
         self.save(policy)
         return policy
+
+    def load_or_create_default(self) -> EnvironmentPolicy:
+        """Backward-compatible mutating startup operation."""
+        return self.initialize_default_if_missing()
 
     def save(self, policy: EnvironmentPolicy) -> None:
         policy = policy.validated(bounds=self.bounds)
@@ -189,8 +222,10 @@ class PolicyStore:
             os.replace(temp_path, self.path)
             temp_path = None
             _fsync_dir(self.path.parent)
+        except PermissionError as exc:
+            raise PolicyError("ENV_POLICY_WRITE_PERMISSION_DENIED", f"cannot write policy file: {self.path}") from exc
         except OSError as exc:
-            raise PolicyError("POLICY_WRITE_FAILED", f"cannot write policy file: {self.path}") from exc
+            raise PolicyError("ENV_POLICY_ATOMIC_REPLACE_FAILED", f"cannot write policy file: {self.path}") from exc
         finally:
             if fd >= 0:
                 os.close(fd)

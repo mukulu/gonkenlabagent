@@ -470,3 +470,35 @@ The environment subsystem remains default-safe and must not be inferred from the
 - `full-real`: real SHT31 + real libgpiod relay, with simulation runtime control disabled.
 
 Use `scripts/environment_profile_manager.py` only as documented by the target runbook. A real-sensor profile can establish software/device readiness only after the SHT31 diagnostic succeeds; a real-actuator profile still does not prove relay polarity, PENGLIN wiring or fan blade motion. The ELUTENG room fan remains power ON/OFF only from software; `software_speed_control=false`. The Raspberry Pi Active Cooler is a separate CPU-cooling subsystem.
+
+## Checkpoint 44 V04 environment commissioning options
+
+Checkpoint 44 adds explicit environment commissioning to bootstrap. The default remains conservative:
+
+```bash
+./bootstrap.sh --local-checkpoint
+```
+
+This leaves the environment subsystem structurally installed but `NOT_COMMISSIONED` and reports that state independently from voice/Ollama readiness.
+
+For the current Raspberry Pi/SHT31 campaign, use the non-actuating room-fan profile:
+
+```bash
+./bootstrap.sh --local-checkpoint \
+  --environment-profile real-sensor-simulated-actuator \
+  --sensor-address 0x44
+```
+
+The installer then owns the following convergence work rather than requiring manual repair:
+
+- create/complete the exact managed environment-only site configuration when compatible;
+- reconcile package-owned environment state/cache/runtime directory metadata;
+- validate and repair safe `policy.json` mode/ownership drift;
+- remove only the exact known Checkpoint-43 temporary test drop-in;
+- preserve and fail closed on other administrator systemd drop-ins;
+- enable the environment service, reset a stale systemd failure-rate state, restart it, and verify enablement/liveness;
+- wait for passive daemon semantic health proving the selected sensor/actuator backends and a READY sensor before continuing to later model/service steps.
+
+`full-simulation` is also safe for automatic commissioning. `sensor-deferred-relay` and `full-real` contain a real relay backend and therefore stop at `ENVIRONMENT_PHYSICAL_COMMISSION_REQUIRED` for supervised Raspberry Pi commissioning instead of automatically starting GPIO23 room-fan control.
+
+At successful completion the installer prints independent `[COMPONENT]` lines. These distinguish voice, Ollama inference, environment controller, temperature/humidity sensor, room-fan control, and the future LLM/environment tool broker. In Checkpoint 44 the tool broker is deliberately `NOT_COMMISSIONED`; do not infer tool-calling support from voice/Ollama readiness.

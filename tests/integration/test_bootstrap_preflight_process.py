@@ -109,6 +109,8 @@ class BootstrapProcessTests(unittest.TestCase):
         self.assertIn("rpi_image_reference=not-applicable", content)
         self.assertIn("bluetooth_audio=disabled", content)
         self.assertIn("bluetooth_device=", content)
+        self.assertIn("environment_profile=none", content)
+        self.assertIn("environment_sensor_address=0x44", content)
         self.assertNotIn("M3_2_UNAVAILABLE", result.stderr)
 
     def test_bluetooth_audio_is_target_only_and_does_not_mutate_development_staging(self) -> None:
@@ -124,6 +126,36 @@ class BootstrapProcessTests(unittest.TestCase):
         )
         self.assertEqual(result.returncode, 64)
         self.assertIn("code=PREFLIGHT_BLUETOOTH", result.stderr)
+        self.assertEqual(list(self.staging_parent.iterdir()), [])
+
+    def test_environment_commissioning_is_target_only_and_does_not_mutate_development_staging(self) -> None:
+        source, _commit = self.make_source()
+        result = subprocess.run(
+            self.command(source, "--environment-profile", "real-sensor-simulated-actuator", "--preflight-only"),
+            cwd=ROOT,
+            env=self.environment(),
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=15,
+        )
+        self.assertEqual(result.returncode, 64)
+        self.assertIn("code=PREFLIGHT_ENVIRONMENT_PROFILE", result.stderr)
+        self.assertEqual(list(self.staging_parent.iterdir()), [])
+
+    def test_invalid_environment_profile_is_rejected_before_staging(self) -> None:
+        source, _commit = self.make_source()
+        result = subprocess.run(
+            self.command(source, "--environment-profile", "unsafe-custom-profile", "--preflight-only"),
+            cwd=ROOT,
+            env=self.environment(),
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=15,
+        )
+        self.assertEqual(result.returncode, 64)
+        self.assertIn("code=PREFLIGHT_ENVIRONMENT_PROFILE", result.stderr)
         self.assertEqual(list(self.staging_parent.iterdir()), [])
 
     def test_default_routes_to_release_manager_and_never_legacy_setup(self) -> None:

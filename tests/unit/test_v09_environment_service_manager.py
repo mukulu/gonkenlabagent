@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import importlib.util
 import os
 import stat
 import subprocess
@@ -35,8 +36,8 @@ class EnvironmentServiceFixture:
         path.chmod(0o755)
         return path
 
-    def command(self, action: str) -> list[str]:
-        return [
+    def command(self, action: str, *, profile: str | None = None) -> list[str]:
+        command = [
             sys.executable,
             str(MANAGER),
             action,
@@ -51,13 +52,16 @@ class EnvironmentServiceFixture:
             "--systemd-tmpfiles",
             str(self.tmpfiles),
         ]
+        if profile is not None:
+            command.extend(["--profile", profile])
+        return command
 
-    def run(self, action: str, *, tool_log: Path | None = None) -> subprocess.CompletedProcess[str]:
+    def run(self, action: str, *, tool_log: Path | None = None, profile: str | None = None) -> subprocess.CompletedProcess[str]:
         environment = os.environ.copy()
         environment["GONKEN_ENABLE_TEST_FAILURES"] = "1"
         environment["GONKEN_FAKE_TOOL_LOG"] = str(tool_log or self.systemctl_log)
         return subprocess.run(
-            self.command(action),
+            self.command(action, profile=profile),
             cwd=ROOT,
             env=environment,
             check=False,
@@ -148,6 +152,74 @@ class EnvironmentServiceManagerTests(unittest.TestCase):
         conflict = fixture.run("install")
         self.assertEqual(conflict.returncode, 75)
         self.assertIn("code=ENV_SERVICE_CONFLICT", conflict.stderr)
+
+    def test_non_actuating_profile_converges_enable_reset_restart_and_metadata(self) -> None:
+        fixture = self.fixture()
+        self.assertEqual(fixture.run("install").returncode, 0)
+        policy = fixture.system_root / "var/lib/gonken-environment/policy.json"
+        policy.parent.mkdir(parents=True, exist_ok=True)
+        policy.write_text('{"schema_version": 1}\n', encoding="utf-8")
+        policy.chmod(0o600)
+        result = fixture.run("converge", profile="real-sensor-simulated-actuator")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("ENV_SERVICE_COMMISSIONED", result.stdout)
+        self.assertEqual(stat.S_IMODE(policy.stat().st_mode), 0o640)
+        log = fixture.systemctl_log.read_text(encoding="utf-8")
+        self.assertIn("enable gonken-environment.service", log)
+        self.assertIn("reset-failed gonken-environment.service", log)
+        self.assertIn("restart gonken-environment.service", log)
+
+
+
+    def test_commissioned_status_rejects_owner_group_drift_not_only_mode_drift(self) -> None:
+        fixture = self.fixture()
+        self.assertEqual(fixture.run("install").returncode, 0)
+        self.assertEqual(fixture.run("converge", profile="real-sensor-simulated-actuator").returncode, 0)
+        spec = importlib.util.spec_from_file_location("gonken_env_service_manager_test", MANAGER)
+        self.assertIsNotNone(spec)
+        self.assertIsNotNone(spec.loader)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        original = module._ownership
+        module._ownership = lambda _root: (os.getuid() + 1000, os.getgid() + 1000, os.getgid() + 1001)
+        try:
+            with self.assertRaises(module.EnvironmentServiceError) as caught:
+                module.validate_runtime_state(fixture.system_root)
+        finally:
+            module._ownership = original
+        self.assertEqual(caught.exception.code, "ENV_STATE_METADATA_DRIFT")
+
+    def test_known_checkpoint43_temporary_dropin_is_removed_but_unknown_is_preserved_and_blocks(self) -> None:
+        fixture = self.fixture()
+        self.assertEqual(fixture.run("install").returncode, 0)
+        dropins = fixture.system_root / "etc/systemd/system/gonken-environment.service.d"
+        dropins.mkdir(parents=True)
+        known = dropins / "10-environment-test.conf"
+        known.write_text(
+            "[Service]\nEnvironment=GONKEN_EXTENSIONS_ENVIRONMENT_ENABLED=true\n"
+            "Environment=GONKEN_EXTENSIONS_ENVIRONMENT_RELAY_BACKEND=simulated\n",
+            encoding="utf-8",
+        )
+        ok = fixture.run("converge", profile="real-sensor-simulated-actuator")
+        self.assertEqual(ok.returncode, 0, ok.stderr)
+        self.assertFalse(known.exists())
+
+        unknown = dropins / "90-admin.conf"
+        dropins.mkdir(parents=True, exist_ok=True)
+        unknown.write_text("[Service]\nEnvironment=ADMIN_VALUE=1\n", encoding="utf-8")
+        blocked = fixture.run("converge", profile="real-sensor-simulated-actuator")
+        self.assertEqual(blocked.returncode, 75)
+        self.assertIn("ENV_SERVICE_DROPIN_CONFLICT", blocked.stderr)
+        self.assertTrue(unknown.exists())
+
+    def test_real_actuator_profile_requires_supervised_physical_commissioning(self) -> None:
+        fixture = self.fixture()
+        self.assertEqual(fixture.run("install").returncode, 0)
+        result = fixture.run("converge", profile="full-real")
+        self.assertEqual(result.returncode, 78)
+        self.assertIn("ENVIRONMENT_PHYSICAL_COMMISSION_REQUIRED", result.stderr)
+        log = fixture.systemctl_log.read_text(encoding="utf-8")
+        self.assertNotIn("restart gonken-environment.service", log)
 
 
 if __name__ == "__main__":

@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import importlib.util
+import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -102,6 +104,55 @@ class EnvironmentProfileManagerTests(unittest.TestCase):
             result = profile_manager.ensure_sensor_deferred(site, group="ignored")
             self.assertEqual(result, "CREATED")
             self.assertTrue(profile_manager.exact_profile(site))
+
+    def test_checkpoint43_manual_partial_environment_config_is_safely_completed(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            site = Path(temporary) / "config.toml"
+            site.write_text(
+                "[extensions.environment]\n"
+                "enabled = true\n"
+                'sensor_backend = "sht31"\n'
+                'relay_backend = "simulated"\n'
+                "relay_bcm = 23\n"
+                "relay_active_high = true\n"
+                'safe_state = "off"\n',
+                encoding="utf-8",
+            )
+            result = profile_manager.ensure_profile(
+                site, name="real-sensor-simulated-actuator", group="ignored", sensor_address=0x44
+            )
+            self.assertEqual(result, "MERGED_COMPATIBLE_PARTIAL")
+            self.assertTrue(profile_manager.exact_profile(site, "real-sensor-simulated-actuator", sensor_address=0x44))
+
+    def test_partial_environment_config_with_conflicting_value_fails_closed(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            site = Path(temporary) / "config.toml"
+            original = '[extensions.environment]\nenabled = true\nsensor_backend = "sht31"\nrelay_backend = "libgpiod"\n'
+            site.write_text(original, encoding="utf-8")
+            with self.assertRaises(profile_manager.ProfileError) as raised:
+                profile_manager.ensure_profile(site, name="real-sensor-simulated-actuator", group="ignored")
+            self.assertEqual(raised.exception.code, "ENV_PROFILE_CONFLICT")
+            self.assertEqual(site.read_text(encoding="utf-8"), original)
+
+    def test_status_can_require_exact_profile_without_mutating_site(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            site = Path(temporary) / "config.toml"
+            profile_manager.ensure_profile(site, name="real-sensor-simulated-actuator", group="ignored")
+            before = site.read_bytes()
+            ok = subprocess.run(
+                [sys.executable, str(ROOT / "scripts/environment_profile_manager.py"), "status",
+                 "--site", str(site), "--expect-profile", "real-sensor-simulated-actuator"],
+                check=False, capture_output=True, text=True, timeout=10,
+            )
+            self.assertEqual(ok.returncode, 0, ok.stderr)
+            wrong = subprocess.run(
+                [sys.executable, str(ROOT / "scripts/environment_profile_manager.py"), "status",
+                 "--site", str(site), "--expect-profile", "full-real"],
+                check=False, capture_output=True, text=True, timeout=10,
+            )
+            self.assertEqual(wrong.returncode, 75)
+            self.assertIn("ENV_PROFILE_DRIFT", wrong.stderr)
+            self.assertEqual(site.read_bytes(), before)
 
 
 if __name__ == "__main__":

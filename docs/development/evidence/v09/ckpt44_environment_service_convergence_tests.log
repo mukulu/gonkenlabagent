@@ -1,0 +1,13 @@
+test_conflicting_environment_unit_fails_closed (tests.unit.test_v09_environment_service_manager.EnvironmentServiceManagerTests.test_conflicting_environment_unit_fails_closed) ... ok
+test_environment_unit_is_local_only_least_privilege_and_independent (tests.unit.test_v09_environment_service_manager.EnvironmentServiceManagerTests.test_environment_unit_is_local_only_least_privilege_and_independent) ... ok
+test_install_status_remove_are_structural_and_do_not_enable_or_start (tests.unit.test_v09_environment_service_manager.EnvironmentServiceManagerTests.test_install_status_remove_are_structural_and_do_not_enable_or_start) ... ok
+test_known_checkpoint43_temporary_dropin_is_removed_but_unknown_is_preserved_and_blocks (tests.unit.test_v09_environment_service_manager.EnvironmentServiceManagerTests.test_known_checkpoint43_temporary_dropin_is_removed_but_unknown_is_preserved_and_blocks) ... ok
+test_non_actuating_profile_converges_enable_reset_restart_and_metadata (tests.unit.test_v09_environment_service_manager.EnvironmentServiceManagerTests.test_non_actuating_profile_converges_enable_reset_restart_and_metadata) ... ok
+test_real_actuator_profile_requires_supervised_physical_commissioning (tests.unit.test_v09_environment_service_manager.EnvironmentServiceManagerTests.test_real_actuator_profile_requires_supervised_physical_commissioning) ... ok
+test_tmpfiles_contract_uses_separate_state_and_socket_client_group (tests.unit.test_v09_environment_service_manager.EnvironmentServiceManagerTests.test_tmpfiles_contract_uses_separate_state_and_socket_client_group) ... ok
+test_voice_service_has_soft_environment_dependency_only (tests.unit.test_v09_environment_service_manager.EnvironmentServiceManagerTests.test_voice_service_has_soft_environment_dependency_only) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 7.627s
+
+OK

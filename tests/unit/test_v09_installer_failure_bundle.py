@@ -25,7 +25,9 @@ class InstallerFailureBundleTests(unittest.TestCase):
             source.write_text(
                 "format=gonken-bootstrap-source-v1\nresolved_commit=" + "a"*40 + "\nplatform_mode=target\n"
                 "source_mode=local-checkpoint\narchitecture=aarch64\nos_version_id=13\nos_codename=trixie\n"
-                "bluetooth_audio=requested\nbluetooth_device=SECRET-DEVICE\nsource_url=https://secret.invalid/repo\n",
+                "bluetooth_audio=requested\nbluetooth_device=SECRET-DEVICE\n"
+                "environment_profile=real-sensor-simulated-actuator\nenvironment_sensor_address=0x44\n"
+                "source_url=https://secret.invalid/repo\n",
                 encoding="utf-8",
             )
             (events / "1.event").write_text(
@@ -110,10 +112,12 @@ class InstallerFailureBundleTests(unittest.TestCase):
                 names = zf.namelist()
                 index = json.loads(zf.read("evidence_index.json"))
                 failure = json.loads(zf.read("installer/failure.json"))
+                source_payload = json.loads(zf.read("installer/source.json"))
             self.assertEqual(names.count("target_manifest.json"), 1)
             self.assertIn("installer/source.json", names)
             self.assertIn("configuration.json", names)
             self.assertEqual(failure["current_failure"]["runtime_readiness"]["code"], "AUDIO_CAPTURE_FAILED")
+            self.assertIsNone(source_payload.get("environment_profile"))
             self.assertEqual(index["omitted_sections"], [])
 
 

@@ -139,38 +139,23 @@ def _readiness_recoverable(code: str) -> bool:
 
 
 def _runtime_release_directory() -> Path | None:
-    try:
-        executable = Path(sys.executable).resolve(strict=True)
-    except OSError:
-        return None
-    for parent in executable.parents:
-        if re.fullmatch(r"[0-9a-f]{40}", parent.name) and parent.parent.name == "releases":
-            return parent
-    return None
+    from .release_identity import runtime_release_identity
+
+    return runtime_release_identity().release_dir
 
 
 def _runtime_release_commit() -> str:
-    """Return the immutable release identity executing this process."""
-    release = _runtime_release_directory()
-    return release.name if release is not None else "development"
+    """Return the immutable release identity executing this package."""
+    from .release_identity import runtime_release_identity
+
+    return runtime_release_identity().commit
 
 
 def _runtime_release_profile() -> str:
     """Return the validated immutable dependency profile for readiness binding."""
-    release = _runtime_release_directory()
-    if release is None:
-        return "development"
-    record = release / "release.record"
-    try:
-        if not record.is_file() or record.is_symlink() or record.stat().st_size > 16384:
-            return "unknown"
-        for line in record.read_text(encoding="utf-8").splitlines():
-            key, separator, value = line.partition("=")
-            if separator and key == "profile" and re.fullmatch(r"[a-z0-9][a-z0-9_.-]{0,63}", value):
-                return value
-    except (OSError, UnicodeError):
-        return "unknown"
-    return "unknown"
+    from .release_identity import runtime_release_identity
+
+    return runtime_release_identity().profile
 
 
 class VoiceRuntimeError(RuntimeError):

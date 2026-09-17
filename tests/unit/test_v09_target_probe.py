@@ -304,6 +304,43 @@ class TargetProbeTests(unittest.TestCase):
         self.assertEqual(failed.returncode, 75)
         self.assertEqual(json.loads(failed.stdout)["code"], "SYSTEMD_RUNTIME_UNREADY")
 
+    def test_checkpoint43_readiness_identity_mismatch_fixture_fails_closed(self):
+        fixture = ROOT / "tests" / "fixtures" / "target_probe" / "ckpt43_20260917_readiness_identity_mismatch_manifest.json"
+        result = subprocess.run(
+            [sys.executable, str(ROOT / "scripts" / "target_probe.py"), "--replay", str(fixture), "--json"],
+            text=True, capture_output=True, check=False, timeout=10,
+        )
+        self.assertEqual(result.returncode, 75, result.stderr)
+        payload = json.loads(result.stdout)
+        self.assertEqual(payload["code"], "READINESS_IDENTITY_MISMATCH")
+        self.assertEqual(payload["readiness_identity"]["code"], "READINESS_IDENTITY_MISMATCH")
+
+    def test_readiness_identity_accepts_current_release_and_profile(self):
+        commit = "1" * 40
+        manifest = {
+            "format": target_probe.FORMAT,
+            "physical_acceptance_claimed": False,
+            "release": {
+                "current": f"/usr/local/lib/gonken-agent/releases/{commit}",
+                "current_commit": commit,
+                "profile": "core-pi-trixie-py313",
+            },
+            "voice_readiness": {
+                "status": "READY",
+                "code": "VOICE_RUNTIME_READY",
+                "release_commit": commit,
+                "release_profile": "core-pi-trixie-py313",
+            },
+            "target_shadow_requirements": {
+                "gpio_identity": False,
+                "privacy_boundary": False,
+                "readiness_identity": True,
+            },
+        }
+        payload = target_probe.replay_manifest(manifest)
+        self.assertEqual(payload["status"], "PASS")
+        self.assertEqual(payload["readiness_identity"]["code"], "READINESS_IDENTITY_MATCH")
+
 
 if __name__ == "__main__":
     unittest.main()

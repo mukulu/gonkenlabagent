@@ -31,6 +31,8 @@ EXISTING_CHECKOUT=""
 EXISTING_CHECKOUT_EXPLICIT=0
 BLUETOOTH_AUDIO="disabled"
 BLUETOOTH_DEVICE=""
+ENVIRONMENT_PROFILE="none"
+ENVIRONMENT_SENSOR_ADDRESS="0x44"
 
 usage() {
   cat <<'EOF'
@@ -58,6 +60,14 @@ Options:
   --bluetooth-device VALUE Optional Bluetooth name substring or exact MAC.
                            Without it, exactly one unpaired audio device must
                            appear during the guided pairing checkpoint.
+  --environment-profile P Commission an explicit room-environment profile.
+                           Choices: none, full-simulation,
+                           real-sensor-simulated-actuator,
+                           sensor-deferred-relay, full-real.
+                           The default is none; real relay profiles require a
+                           later supervised physical-commissioning gate.
+  --sensor-address ADDR    SHT31 address for real-sensor profiles: 0x44 or 0x45
+                           (default: 0x44).
   -h, --help               Show this help.
 EOF
 }
@@ -80,7 +90,7 @@ while (($#)); do
       BLUETOOTH_AUDIO="requested"
       shift
       ;;
-    --source-url|--ref|--existing-checkout|--staging-parent|--bluetooth-device)
+    --source-url|--ref|--existing-checkout|--staging-parent|--bluetooth-device|--environment-profile|--sensor-address)
       option="$1"
       (($# >= 2)) || {
         usage >&2
@@ -100,6 +110,8 @@ while (($#)); do
           BLUETOOTH_DEVICE="$value"
           BLUETOOTH_AUDIO="requested"
           ;;
+        --environment-profile) ENVIRONMENT_PROFILE="$value" ;;
+        --sensor-address) ENVIRONMENT_SENSOR_ADDRESS="$value" ;;
       esac
       shift 2
       ;;
@@ -136,6 +148,24 @@ fi
 
 if [[ "$PLATFORM_MODE" != "target" && "$BLUETOOTH_AUDIO" == "requested" ]]; then
   gonken_error "PREFLIGHT_BLUETOOTH" "Bluetooth audio setup is target-only" "omit Bluetooth options on development hosts" || true
+  exit 64
+fi
+case "$ENVIRONMENT_PROFILE" in
+  none|full-simulation|real-sensor-simulated-actuator|sensor-deferred-relay|full-real) ;;
+  *)
+    gonken_error "PREFLIGHT_ENVIRONMENT_PROFILE" "unsupported environment profile: $ENVIRONMENT_PROFILE" "choose a profile listed by ./bootstrap.sh --help" || true
+    exit 64
+    ;;
+esac
+case "$ENVIRONMENT_SENSOR_ADDRESS" in
+  0x44|0x45) ;;
+  *)
+    gonken_error "PREFLIGHT_ENVIRONMENT_SENSOR" "unsupported SHT31 address: $ENVIRONMENT_SENSOR_ADDRESS" "use 0x44 or 0x45" || true
+    exit 64
+    ;;
+esac
+if [[ "$PLATFORM_MODE" != "target" && "$ENVIRONMENT_PROFILE" != "none" ]]; then
+  gonken_error "PREFLIGHT_ENVIRONMENT_PROFILE" "environment commissioning is target-only" "use profile none on development hosts" || true
   exit 64
 fi
 if [[ -n "$BLUETOOTH_DEVICE" ]]; then
@@ -263,7 +293,9 @@ gonken_create_staging "$STAGING_PARENT" \
   "observed_epoch=$clock_epoch" \
   "existing_checkout=$EXISTING_CHECKOUT" \
   "bluetooth_audio=$BLUETOOTH_AUDIO" \
-  "bluetooth_device=$BLUETOOTH_DEVICE" || exit 73
+  "bluetooth_device=$BLUETOOTH_DEVICE" \
+  "environment_profile=$ENVIRONMENT_PROFILE" \
+  "environment_sensor_address=$ENVIRONMENT_SENSOR_ADDRESS" || exit 73
 
 printf '[OK] code=PREFLIGHT_COMPLETE staging=%s\n' "$GONKEN_STAGING_DIR"
 printf '[OK] source_commit=%s source_mode=%s privilege_mode=%s platform_mode=%s\n' \

@@ -1447,3 +1447,21 @@ Checkpoint 24 closes the host-side root cause and adds regression protection, bu
 | CP43-T245 | Exact tagged archive qualification and extracted rerun | RC1 exact archive `ff6f9699...` plus `archive_qualifier.py` | PASS — structure, clean Git, exact commit/tag, fsck, milestone sync, readiness and extracted T0 | Package integrity only; no Pi physical acceptance. |
 | CP43-T246 | Exact Raspberry Pi convergence campaign | checkpoint-43 target runbook | NOT RUN / BLOCKED TARGET GATE | Required to close M10.24 physical audio/SHT31/relay/fan/wake/reboot/lifecycle claims. |
 | CP43-T247 | Final code-change verification repair pass | explicit output-dir, readiness identity, portability and affected regression portfolios | PASS — 102 focused + 12 speech lifecycle + 34 Bluetooth/install-summary + 124 environment + 12 install/uninstall | Host/process evidence only; final exact archive still requires rebuild/qualification and physical target gates remain not-run. |
+
+## V09 checkpoint 44 — M10.39 V04 component/readiness and environment-convergence foundation
+
+| ID | Scope | Command / artifact | Host result | Target boundary |
+|---|---|---|---:|---|
+| CP44-T248 | Symlinked-venv release identity regression | `src/gonken_agent/release_identity.py`; `tests/unit/test_v09_release_identity.py` | PASS | Host path-shape regression; exact Pi process identity still target-run. |
+| CP44-T249 | Current-vs-historical component readiness | `src/gonken_agent/readiness.py`; appliance level-triggered tests | PASS | Host semantics only; no acoustic transaction. |
+| CP44-T250 | Checkpoint-43 readiness identity target-shadow fixture | `ckpt43_20260917_readiness_identity_mismatch_manifest.json`; `target_probe.py --replay` | PASS — expected FAIL with `READINESS_IDENTITY_MISMATCH` | Sanitized target replay; no service started on host. |
+| CP44-T251 | Non-mutating environment check + policy error taxonomy | environment policy/daemon/CLI focused tests | PASS | No real sensor/GPIO acceptance. |
+| CP44-T252 | Compatible Checkpoint-43 site-config convergence | `environment_profile_manager.py`; profile-manager tests | PASS | Host filesystem model only; target config provenance must be verified. |
+| CP44-T253 | Environment ownership/drop-in/restart-state convergence | `environment_service_manager.py`; service-manager tests | PASS | Host redirected root/fake systemctl; target must prove real uid/gid/systemd behavior. |
+| CP44-T254 | Safe environment semantic readiness | `environment_readiness.py`; readiness tests | PASS | Host fake-agent contract; real SHT31 service health remains target-run. |
+| CP44-T255 | Bootstrap → source-record environment option contract | `bootstrap.sh`; `install_engine.sh`; bootstrap integration tests | PASS | Development-host rejection/defaults verified; target options require Pi run. |
+| CP44-T256 | Installer dependency/safety graph and component output | `scripts/install.sh`; `test_v09_install_dependency_graph.py` | PASS | Real-relay profiles remain planned physical pause. |
+| CP44-T257 | Expanded target-shadow release-readiness matrix | 24 required fixtures; `test_release_readiness.py` | PASS | Host/target-shadow only. |
+| CP44-T258 | Affected component/environment/install portfolio | checkpoint-44 focused logs | PASS — 114/114 and 119/119 affected slices | Host/fake/process evidence only. |
+| CP44-T259 | Final checkpoint close and exact archive | compile/docs/milestone/readiness/T0/code-verification plus post-tag archive qualification/extracted rerun | PASS — source close gates; exact tagged archive qualification is recorded in external delivery evidence | Package integrity only; never physical acceptance. |
+| CP44-T260 | Environment owner/group/mode postcondition and setgid ordering | `test_commissioned_status_rejects_owner_group_drift_not_only_mode_drift`; post-fix permission regression | PASS | Host filesystem metadata test only; target must still prove real service identities and permissions. |

@@ -178,7 +178,7 @@ gonken_load_source_record() {
     rpi_image_reference pi_model pid1 systemd_version free_kib memory_kib
     observed_epoch existing_checkout
   )
-  local -a optional_fields=(bluetooth_audio bluetooth_device source_mode)
+  local -a optional_fields=(bluetooth_audio bluetooth_device source_mode environment_profile environment_sensor_address)
   local -a fields=("${required_fields[@]}" "${optional_fields[@]}")
   gonken_validate_absolute_path "$path" "source record" || return 65
   gonken_read_record "$path" fields GONKEN_SOURCE_RECORD || return $?
@@ -191,6 +191,8 @@ gonken_load_source_record() {
   GONKEN_SOURCE_RECORD[bluetooth_audio]="${GONKEN_SOURCE_RECORD[bluetooth_audio]:-disabled}"
   GONKEN_SOURCE_RECORD[bluetooth_device]="${GONKEN_SOURCE_RECORD[bluetooth_device]:-}"
   GONKEN_SOURCE_RECORD[source_mode]="${GONKEN_SOURCE_RECORD[source_mode]:-remote}"
+  GONKEN_SOURCE_RECORD[environment_profile]="${GONKEN_SOURCE_RECORD[environment_profile]:-none}"
+  GONKEN_SOURCE_RECORD[environment_sensor_address]="${GONKEN_SOURCE_RECORD[environment_sensor_address]:-0x44}"
   [[ "${GONKEN_SOURCE_RECORD[format]}" == "gonken-bootstrap-source-v1" ]] || {
     gonken_error "INSTALL_RECORD_VERSION" "unsupported source record format" "rerun the matching supported bootstrap"
     return 65
@@ -223,6 +225,25 @@ gonken_load_source_record() {
       || [[ "${GONKEN_SOURCE_RECORD[bluetooth_device]}" == *$'\n'* \
         || "${GONKEN_SOURCE_RECORD[bluetooth_device]}" == *$'\r'* ]]; then
     gonken_error "INSTALL_RECORD" "recorded Bluetooth selector is unsafe" "rerun bootstrap with a short name or MAC selector"
+    return 65
+  fi
+  case "${GONKEN_SOURCE_RECORD[environment_profile]}" in
+    none|full-simulation|real-sensor-simulated-actuator|sensor-deferred-relay|full-real) ;;
+    *)
+      gonken_error "INSTALL_RECORD" "source record has an invalid environment profile" "rerun bootstrap with a supported --environment-profile"
+      return 65
+      ;;
+  esac
+  case "${GONKEN_SOURCE_RECORD[environment_sensor_address]}" in
+    0x44|0x45) ;;
+    *)
+      gonken_error "INSTALL_RECORD" "source record has an invalid SHT31 address" "rerun bootstrap with --sensor-address 0x44 or 0x45"
+      return 65
+      ;;
+  esac
+  if [[ "${GONKEN_SOURCE_RECORD[environment_profile]}" != "none" \
+      && "${GONKEN_SOURCE_RECORD[platform_mode]}" != "target" ]]; then
+    gonken_error "INSTALL_RECORD" "environment commissioning is target-only" "use environment profile none on development hosts"
     return 65
   fi
   [[ "${GONKEN_SOURCE_RECORD[invoking_user]}" =~ ^(root|[a-z_][a-z0-9_-]*[$]?)$ ]] || {

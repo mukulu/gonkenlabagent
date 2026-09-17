@@ -674,3 +674,70 @@ For a real SHT31, run the governed targeted diagnostic and record the proven `0x
 For the exact checkpoint-43 archive, record separate results for: fresh/dirty-state install convergence; immediate same-commit rerun; reboot/no-login at least three times; USB capture/playback; configured Bluetooth preference plus deterministic direct fallback; wake/listen/STT/model/TTS transaction; SHT31 campaign; relay/fan cycles; MANUAL/SEMI/AUTOMATIC/DISABLED semantics; sensor unplug/recovery; service restart; audio hotplug/re-enumeration; update/rollback/reinstall when a suitable prior/newer governed release is available; and the final support/evidence ZIP privacy/integrity review.
 
 Host, simulation and target-shadow PASS rows do not close these physical gates.
+
+## Checkpoint 44 V04 foundation target campaign
+
+Checkpoint 44 supersedes the Checkpoint-43 package for the next target run. It remains a **target-testing checkpoint**, not physical acceptance. Its primary goal is to prove that the package itself now converges the release-readiness identity and environment configuration/permission state that previously required manual intervention.
+
+### A. Recommended first run: real SHT31, simulated room-fan actuator
+
+Use the exact qualified Checkpoint-44 archive and verify its delivered commit/tag/SHA before running. From the clean extracted repository:
+
+```bash
+./bootstrap.sh --local-checkpoint \
+  --environment-profile real-sensor-simulated-actuator \
+  --sensor-address 0x44
+```
+
+If Bluetooth is intentionally required, add only the target's own selector:
+
+```bash
+export GONKEN_BLUETOOTH_DEVICE="<YOUR-BLUETOOTH-DEVICE-MAC>"
+./bootstrap.sh --local-checkpoint \
+  --environment-profile real-sensor-simulated-actuator \
+  --sensor-address 0x44 \
+  --bluetooth-audio --bluetooth-device "$GONKEN_BLUETOOTH_DEVICE"
+```
+
+Do **not** pre-create `/etc/gonken-agent/config.toml`, run `chown`/`chmod` on the environment policy, delete the prior Checkpoint-43 test drop-in, run `systemctl reset-failed`, or manually enable/restart `gonken-environment.service` before this test. Those are now package responsibilities and the target run must prove that convergence.
+
+If the installer reports `I2C_REBOOT_REQUIRED`, reboot once and rerun the exact same command from the exact same package. Preserve installer state.
+
+### B. Expected independent component reporting
+
+A successful safe-profile install should report voice and inference independently from environment/sensor/fan/tool status. For this profile, expected semantics are broadly:
+
+```text
+[COMPONENT] id=voice_conversation status=READY ...
+[COMPONENT] id=ollama_inference status=READY ...
+[COMPONENT] id=environment_controller status=READY profile=real-sensor-simulated-actuator ...
+[COMPONENT] id=temperature_humidity_sensor status=READY backend=sht31 ... physical_acceptance=false
+[COMPONENT] id=room_fan_control status=NOT_TESTED ... backend=simulated ...
+[COMPONENT] id=llm_environment_tool_broker status=NOT_COMMISSIONED ...
+[READY] code=INSTALLATION_COMPLETE ...
+```
+
+The room fan must remain untouched by this profile. `NOT_TESTED` for physical room-fan control is correct, not a failure.
+
+### C. Post-install checks for this checkpoint
+
+After `INSTALLATION_COMPLETE`, verify the independently commissioned sensor path:
+
+```bash
+systemctl is-enabled gonken-environment.service
+gonken-agent env status
+gonken-agent env health
+gonken-agent env temperature
+gonken-agent env humidity
+gonken-agent env watch --interval 2 --count 10
+```
+
+The environment service should be enabled/active and the commands should return daemon-owned SHT31 state. This still does not establish sensor placement accuracy or physical room-fan acceptance.
+
+### D. Real relay/fan remains a separate supervised gate
+
+Do not change the first run to `full-real` merely to make the fan participate. If a real-relay profile is selected before supervised commissioning, Checkpoint 44 is expected to pause with `ENVIRONMENT_PHYSICAL_COMMISSION_REQUIRED`. Later V04 work must complete the typed tool broker and the supervised GPIO23/PENGLIN/ELUTENG acceptance sequence before physical fan control can be promoted.
+
+### E. Failure evidence
+
+If any step fails, upload the **single combined evidence ZIP** printed by the installer. Do not manually repair the target and then report only the post-repair state; the failure archive is needed to test whether Checkpoint 44 correctly localized the remaining dependency.

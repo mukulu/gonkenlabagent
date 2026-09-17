@@ -1840,3 +1840,42 @@ This compatibility is a migration mechanism, not a waiver. The goal is to move s
 - **Decision:** Checkpoint-43 operator documentation uses an explicit operator-supplied Bluetooth selector placeholder rather than embedding the device address observed on the current lab target.
 - **Rationale:** The repair must generalize by capability and governed configuration, not encode the current hardware instance as universal product identity.
 - **Consequence:** The exact target may reuse its configured selector during its own campaign, while the distributed package remains portable to another supported audio device/target.
+
+## 2026-09-18 — Checkpoint 44 V04 foundation decisions
+
+### D44-01 — Immutable package location, not resolved venv interpreter, owns runtime release identity
+- **Decision:** Semantic readiness derives release identity from the installed `gonken_agent` package anchor. A venv Python symlink that resolves to `/usr/bin/python*` cannot downgrade an immutable target runtime to `development`.
+- **Reason:** Fresh Checkpoint-43 target evidence showed `VOICE_RUNTIME_READY` under the correct immutable process but readiness recorded `development/development`, producing a false installer timeout.
+
+### D44-02 — Current component state is independent from historical event counts
+- **Decision:** Historical/recovered errors may be retained as provenance but do not override a fresh READY state bound to the current boot/process/release/profile.
+- **Consequence:** Readiness checks are level-triggered from current state rather than waiting for a new connection/event merely because the checker started later.
+
+### D44-03 — Environment commissioning is an explicit bootstrap/source-record choice
+- **Decision:** `--environment-profile` defaults to `none`; the canonical profile names are `full-simulation`, `real-sensor-simulated-actuator`, `sensor-deferred-relay`, and `full-real`. `--sensor-address` is limited to 0x44/0x45.
+- **Reason:** “Installed” and “commissioned/expected to run” were previously conflated.
+
+### D44-04 — Real-sensor/simulated-actuator is the next target default for environment convergence testing
+- **Decision:** The next Pi campaign should select `real-sensor-simulated-actuator`, proving SHT31, daemon, IPC, configuration and permissions before the package is allowed to control the real relay.
+- **Consequence:** Generic installation of a real-relay profile pauses with exit 78 for supervised commissioning.
+
+### D44-05 — Diagnostic checks do not create daemon-owned state
+- **Decision:** `env serve --check` validates a prospective default policy in memory when policy state is absent. Persistent default initialization is reserved for the real daemon/service identity or an explicit governed initialization path.
+- **Reason:** The Checkpoint-43 sudo diagnostic path could create root-owned `policy.json` and subsequently prevent `gonken-env` from starting.
+
+### D44-06 — Safe permission drift is reconciled; ambiguous administrator state fails closed
+- **Decision:** Known environment state/policy metadata is normalized only after path/type/JSON safety checks. The exact known temporary Checkpoint-43 test drop-in may be removed automatically; other drop-ins remain untouched and block commissioning.
+- **Reason:** Reliability requires repairing known package-owned drift without silently overwriting administrator intent.
+
+### D44-07 — systemd active is not environment semantic readiness
+- **Decision:** Safe commissioned profiles must pass daemon-owned `env health` semantics and exact backend checks before downstream model provisioning.
+- **Consequence:** A live but sensor-unready environment fails early and specifically rather than surfacing after expensive later steps.
+
+### D44-08 — Checkpoint 44 reports incomplete V04 tool integration explicitly
+- **Decision:** Installation output independently reports subsystem states. The LLM/environment tool broker is `NOT_COMMISSIONED` in this checkpoint rather than being implied READY by successful voice or Ollama operation.
+- **Consequence:** Checkpoint 44 is a foundation package, not completion of V04 multi-model/tool integration or physical acceptance.
+
+### D44-09 — Environment ownership is a postcondition, not merely a repair action
+- **Decision:** Managed environment reconciliation applies service/control ownership before the final governed mode and `commissioned-status` verifies owner, group, and mode for state, cache, runtime and policy paths.
+- **Reason:** Checkpoint-43 target recovery proved that a root-owned `policy.json` can block the daemon even when content and mode look otherwise valid. Verification also identified a false-green path where reconciliation changed ownership but the postcondition checked only modes.
+- **Consequence:** A later ownership drift cannot satisfy the installer step merely because the service is currently alive, and the setgid runtime-directory mode is re-applied after ownership changes.

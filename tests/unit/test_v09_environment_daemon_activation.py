@@ -153,7 +153,7 @@ class EnvironmentDaemonActivationTests(unittest.TestCase):
                     sensor_factory=lambda _env: FakeSensor(),
                     actuator_factory=lambda _env: FakeActuator(),
                 )
-            self.assertEqual(caught.exception.code, "POLICY_INVALID")
+            self.assertEqual(caught.exception.code, "ENV_POLICY_JSON_INVALID")
             self.assertEqual(policy_path.read_text(encoding="utf-8"), "not-json")
 
     def test_disabled_config_refuses_core_build(self) -> None:
@@ -214,6 +214,28 @@ class EnvironmentDaemonActivationTests(unittest.TestCase):
             self.assertFalse(payload["physical_evidence"])
             self.assertFalse(payload["hardware_toggled"])
             self.assertFalse(Path(tempdir, "control.sock").exists())
+
+    def test_cli_env_serve_check_is_side_effect_free_when_policy_is_missing(self) -> None:
+        with tempfile.TemporaryDirectory() as tempdir:
+            site = Path(tempdir) / "site.toml"
+            policy = Path(tempdir) / "policy.json"
+            socket = Path(tempdir) / "control.sock"
+            site.write_text(
+                "[extensions.environment]\n"
+                "enabled = true\n"
+                f"socket_path = \"{socket}\"\n"
+                f"policy_path = \"{policy}\"\n",
+                encoding="utf-8",
+            )
+            stdout = io.StringIO()
+            stderr = io.StringIO()
+            with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
+                result = cli.main(["env", "serve", "--site", str(site), "--check", "--json"])
+            self.assertEqual(result, 0, stderr.getvalue())
+            payload = json.loads(stdout.getvalue())
+            self.assertEqual(payload["code"], "ENVIRONMENT_DAEMON_CONFIG_OK")
+            self.assertFalse(policy.exists(), "--check must not create production policy state")
+            self.assertFalse(socket.exists(), "--check must not create the daemon socket")
 
 
 if __name__ == "__main__":

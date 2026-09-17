@@ -1,0 +1,21 @@
+{
+  "captured_at": "2026-09-17T18:13:16+00:00",
+  "format": "gonken-target-hardware-manifest-v1",
+  "physical_acceptance_claimed": false,
+  "release": {
+    "current": "/usr/local/lib/gonken-agent/releases/14c0438e84e7ba61f57290d3facaa05e8fd91cac",
+    "current_commit": "14c0438e84e7ba61f57290d3facaa05e8fd91cac",
+    "profile": "core-pi-trixie-py313"
+  },
+  "target_shadow_requirements": {
+    "gpio_identity": false,
+    "privacy_boundary": false,
+    "readiness_identity": true
+  },
+  "voice_readiness": {
+    "status": "READY",
+    "code": "VOICE_RUNTIME_READY",
+    "release_commit": "development",
+    "release_profile": "development"
+  }
+}

@@ -93,6 +93,10 @@ def safe_source(path: Path) -> dict[str, object]:
         "pi_model": fields.get("pi_model", "")[:160],
         "rpi_image_reference": fields.get("rpi_image_reference", "")[:160],
         "bluetooth_audio": fields.get("bluetooth_audio") if fields.get("bluetooth_audio") in {"disabled", "requested"} else None,
+        "environment_profile": fields.get("environment_profile") if fields.get("environment_profile") in {
+            "none", "full-simulation", "real-sensor-simulated-actuator", "sensor-deferred-relay", "full-real"
+        } else None,
+        "environment_sensor_address": fields.get("environment_sensor_address") if fields.get("environment_sensor_address") in {"0x44", "0x45"} else None,
     }
 
 

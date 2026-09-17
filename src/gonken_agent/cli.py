@@ -568,7 +568,7 @@ def _run_environment_daemon(args: argparse.Namespace) -> int:
     try:
         from .environment import EnvironmentDaemon, EnvironmentDaemonError, build_environment_service_core
         if getattr(args, "check", False):
-            core = build_environment_service_core(env)
+            core = build_environment_service_core(env, initialize_policy=False)
             payload = {
                 "status": "READY",
                 "code": "ENVIRONMENT_DAEMON_CONFIG_OK",

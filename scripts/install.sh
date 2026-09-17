@@ -690,6 +690,32 @@ gonken_environment_service_manager() {
   printf '%s\n' "$RELEASE_ROOT/current/maintenance/environment_service_manager.py"
 }
 
+gonken_environment_profile_manager() {
+  printf '%s\n' "$RELEASE_ROOT/current/maintenance/environment_profile_manager.py"
+}
+
+gonken_environment_readiness_manager() {
+  printf '%s\n' "$RELEASE_ROOT/current/maintenance/environment_readiness.py"
+}
+
+gonken_environment_profile_postcondition() {
+  local profile="${GONKEN_SOURCE_RECORD[environment_profile]}"
+  [[ "$profile" != "none" ]] || return 1
+  python3 "$(gonken_environment_profile_manager)" status \
+    --site /etc/gonken-agent/config.toml \
+    --expect-profile "$profile" \
+    --sensor-address "${GONKEN_SOURCE_RECORD[environment_sensor_address]}" >/dev/null 2>&1 || return 1
+  GONKEN_STEP_EVIDENCE="environment_profile_${profile}_exact_site_config"
+}
+
+gonken_environment_profile_action() {
+  local profile="${GONKEN_SOURCE_RECORD[environment_profile]}"
+  [[ "$profile" != "none" ]] || return 64
+  python3 "$(gonken_environment_profile_manager)" "$profile" \
+    --site /etc/gonken-agent/config.toml \
+    --sensor-address "${GONKEN_SOURCE_RECORD[environment_sensor_address]}"
+}
+
 gonken_environment_service_unit_template() {
   printf '%s\n' "$RELEASE_ROOT/current/maintenance/packaging/systemd/gonken-environment.service"
 }
@@ -715,6 +741,77 @@ gonken_environment_service_action() {
     --tmpfiles-template "$(gonken_environment_service_tmpfiles_template)" \
     --systemctl /usr/bin/systemctl \
     --systemd-tmpfiles /usr/bin/systemd-tmpfiles
+}
+
+gonken_environment_commissioning_postcondition() {
+  local profile="${GONKEN_SOURCE_RECORD[environment_profile]}"
+  [[ "$profile" != "none" ]] || return 1
+  python3 "$(gonken_environment_service_manager)" commissioned-status \
+    --profile "$profile" \
+    --system-root / \
+    --unit-template "$(gonken_environment_service_unit_template)" \
+    --tmpfiles-template "$(gonken_environment_service_tmpfiles_template)" \
+    --systemctl /usr/bin/systemctl \
+    --systemd-tmpfiles /usr/bin/systemd-tmpfiles >/dev/null 2>&1 || return 1
+  GONKEN_STEP_EVIDENCE="gonken_environment_service_commissioned_profile_${profile}"
+}
+
+gonken_environment_commissioning_action() {
+  local profile="${GONKEN_SOURCE_RECORD[environment_profile]}"
+  [[ "$profile" != "none" ]] || return 64
+  python3 "$(gonken_environment_service_manager)" converge \
+    --profile "$profile" \
+    --system-root / \
+    --unit-template "$(gonken_environment_service_unit_template)" \
+    --tmpfiles-template "$(gonken_environment_service_tmpfiles_template)" \
+    --systemctl /usr/bin/systemctl \
+    --systemd-tmpfiles /usr/bin/systemd-tmpfiles
+}
+
+gonken_environment_readiness_postcondition() {
+  local profile="${GONKEN_SOURCE_RECORD[environment_profile]}"
+  [[ "$profile" != "none" ]] || return 1
+  python3 "$(gonken_environment_readiness_manager)" \
+    --agent "$RELEASE_ROOT/current/.venv/bin/gonken-agent" \
+    --profile "$profile" --timeout 3 --interval 0.25 >/dev/null 2>&1 || return 1
+  GONKEN_STEP_EVIDENCE="environment_semantic_ready_profile_${profile}_physical_evidence_false"
+}
+
+gonken_environment_readiness_action() {
+  local profile="${GONKEN_SOURCE_RECORD[environment_profile]}"
+  [[ "$profile" != "none" ]] || return 64
+  python3 "$(gonken_environment_readiness_manager)" \
+    --agent "$RELEASE_ROOT/current/.venv/bin/gonken-agent" \
+    --profile "$profile" --timeout 30 --interval 1
+}
+
+gonken_print_component_summary() {
+  local profile="${GONKEN_SOURCE_RECORD[environment_profile]:-none}"
+  printf '[COMPONENT] id=voice_conversation status=READY required=true evidence=semantic_runtime physical_acceptance=false\n'
+  printf '[COMPONENT] id=ollama_inference status=READY required=true evidence=installer_model_transaction model=%s physical_acceptance=false\n' "$OLLAMA_MODEL"
+  case "$profile" in
+    none)
+      printf '[COMPONENT] id=environment_controller status=NOT_COMMISSIONED required=false profile=none\n'
+      printf '[COMPONENT] id=temperature_humidity_sensor status=NOT_COMMISSIONED required=false profile=none\n'
+      printf '[COMPONENT] id=room_fan_control status=NOT_COMMISSIONED required=false physical_motion_observed=false software_speed_control=false\n'
+      ;;
+    full-simulation)
+      printf '[COMPONENT] id=environment_controller status=READY required=true profile=full-simulation evidence=simulation\n'
+      printf '[COMPONENT] id=temperature_humidity_sensor status=READY required=true backend=simulated evidence=simulation physical_acceptance=false\n'
+      printf '[COMPONENT] id=room_fan_control status=READY required=true backend=simulated evidence=simulation physical_motion_observed=false software_speed_control=false\n'
+      ;;
+    real-sensor-simulated-actuator)
+      printf '[COMPONENT] id=environment_controller status=READY required=true profile=real-sensor-simulated-actuator evidence=target_runtime_nonacceptance\n'
+      printf '[COMPONENT] id=temperature_humidity_sensor status=READY required=true backend=sht31 evidence=daemon_semantic_health physical_acceptance=false\n'
+      printf '[COMPONENT] id=room_fan_control status=NOT_TESTED required=false backend=simulated physical_motion_observed=false software_speed_control=false\n'
+      ;;
+    *)
+      printf '[COMPONENT] id=environment_controller status=BLOCKED required=true profile=%s code=ENVIRONMENT_PHYSICAL_COMMISSION_REQUIRED\n' "$profile"
+      printf '[COMPONENT] id=temperature_humidity_sensor status=UNKNOWN required=true profile=%s physical_acceptance=false\n' "$profile"
+      printf '[COMPONENT] id=room_fan_control status=BLOCKED required=true profile=%s code=ENVIRONMENT_PHYSICAL_COMMISSION_REQUIRED physical_motion_observed=false software_speed_control=false\n' "$profile"
+      ;;
+  esac
+  printf '[COMPONENT] id=llm_environment_tool_broker status=NOT_COMMISSIONED required=false code=V04_TOOL_INTEGRATION_PENDING\n'
 }
 
 gonken_bluetooth_manager() {
@@ -1171,9 +1268,34 @@ if ((ENGINE_ONLY == 0)); then
       "install_structural_service_files_without_enable_or_start" \
       "generic_upgrade_does_not_actuate_or_claim_physical_acceptance" || exit $?
 
+    environment_downstream_postcondition="gonken_environment_service_postcondition"
+    if [[ "${GONKEN_SOURCE_RECORD[environment_profile]}" != "none" ]]; then
+      gonken_register_step \
+        "environment_profile" "1" \
+        "gonken_environment_service_postcondition" "gonken_environment_profile_action" "gonken_environment_profile_postcondition" \
+        "exact_managed_site_configuration_for_${GONKEN_SOURCE_RECORD[environment_profile]}" \
+        "create_or_merge_only_compatible_environment_only_site_config_without_hardware_actuation" \
+        "unrelated_or_conflicting_administrator_configuration_fails_closed" || exit $?
+
+      gonken_register_step \
+        "environment_commissioning" "1" \
+        "gonken_environment_profile_postcondition" "gonken_environment_commissioning_action" "gonken_environment_commissioning_postcondition" \
+        "profile_service_enablement_runtime_ownership_and_restart_state_converged" \
+        "safe_profiles_enable_reset_failed_restart_and_verify_while_real_relay_profiles_pause_for_supervision" \
+        "generic_install_never_auto_actuates_real_room_fan_gpio" || exit $?
+
+      gonken_register_step \
+        "environment_readiness" "1" \
+        "gonken_environment_commissioning_postcondition" "gonken_environment_readiness_action" "gonken_environment_readiness_postcondition" \
+        "daemon_ipc_sensor_and_simulated_actuator_semantic_readiness_for_selected_safe_profile" \
+        "poll_passive_env_health_until_profile_backends_and_sensor_quality_are_ready" \
+        "does_not_directly_read_i2c_write_gpio_or_claim_physical_acceptance" || exit $?
+      environment_downstream_postcondition="gonken_environment_readiness_postcondition"
+    fi
+
     gonken_register_step \
       "ollama_account_and_store" "1" \
-      "gonken_environment_service_postcondition" "gonken_ollama_account_action" "gonken_ollama_account_postcondition" \
+      "$environment_downstream_postcondition" "gonken_ollama_account_action" "gonken_ollama_account_postcondition" \
       "dedicated_ollama_account_and_private_model_store" \
       "accept_only_exact_existing_identity_or_create_once" \
       "existing_accounts_and_model_blobs_are_never_deleted" || exit $?
@@ -1325,6 +1447,7 @@ printf '[OK] code=M6_2_SERVICE_COMPLETE status=READY ready=true autostart=enable
 if [[ "${GONKEN_SOURCE_RECORD[bluetooth_audio]:-disabled}" == "requested" ]]; then
   printf '[OK] code=X4_BLUETOOTH_SETUP status=READY paired=true autoconnect=true usb_fallback=true\n'
 fi
+gonken_print_component_summary
 printf '[READY] code=INSTALLATION_COMPLETE service=gonken-agent.service autostart=enabled reboot_required=false wake_phrase=GonKen\n'
 if [[ "${GONKEN_SOURCE_RECORD[invoking_user]}" != "root" ]]; then
   printf '[INFO] code=ENV_OPERATOR_SESSION_REFRESH operator=%s group=gonken-envctl action=disconnect_and_reconnect_before_running_gonken-agent_env_commands\n' \

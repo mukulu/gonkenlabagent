@@ -5,6 +5,7 @@ import os
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 from gonken_agent.environment import (
     EnvironmentMode,
@@ -106,7 +107,7 @@ class EnvironmentPolicyTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary:
             path = Path(temporary) / "policy.json"
             path.write_text("{not json", encoding="utf-8")
-            with self.assertRaisesRegex(PolicyError, "POLICY_INVALID"):
+            with self.assertRaisesRegex(PolicyError, "ENV_POLICY_JSON_INVALID"):
                 PolicyStore(path, bounds=self.bounds).load()
 
     def test_policy_store_preserves_old_generation_when_new_policy_is_invalid(self) -> None:
@@ -117,6 +118,23 @@ class EnvironmentPolicyTests(unittest.TestCase):
             with self.assertRaises(PolicyError):
                 store.save(old.updated(bounds=self.bounds, start_c=26.0, stop_c=26.0))
             self.assertEqual(json.loads(path.read_text(encoding="utf-8"))["generation"], old.generation)
+
+    def test_nonmutating_default_and_access_validation_do_not_create_policy(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            path = Path(temporary) / "policy.json"
+            store = PolicyStore(path, bounds=self.bounds)
+            self.assertEqual(store.default_policy(), EnvironmentPolicy.default())
+            store.validate_access()
+            self.assertFalse(path.exists())
+
+    def test_permission_error_is_not_mislabeled_invalid_json(self) -> None:
+        store = PolicyStore(Path("/fixture/policy.json"), bounds=self.bounds)
+        with mock.patch.object(Path, "read_text", side_effect=PermissionError("denied")), \
+             mock.patch.object(Path, "exists", return_value=True), \
+             mock.patch("gonken_agent.environment.policy.os.access", return_value=True):
+            with self.assertRaises(PolicyError) as caught:
+                store.load()
+        self.assertEqual(caught.exception.code, "ENV_POLICY_PERMISSION_DENIED")
 
 
 if __name__ == "__main__":

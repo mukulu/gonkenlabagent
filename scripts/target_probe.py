@@ -49,6 +49,7 @@ TARGET_SHADOW_REQUIREMENTS = {
     "release_lifecycle": False,
     "resource_capacity": False,
     "model_finalization": False,
+    "readiness_identity": False,
 }
 SERVICE_IDENTITY_REQUIREMENTS = {
     "gonken-agent": frozenset({"audio", "gpio"}),
@@ -627,6 +628,34 @@ def replay_release_state(manifest: dict[str, object]) -> dict[str, object]:
     return {"status": "PASS", "code": "RELEASE_STATE_SAFE"}
 
 
+def replay_readiness_identity(manifest: dict[str, object]) -> dict[str, object]:
+    release = manifest.get("release")
+    readiness = manifest.get("voice_readiness")
+    if not isinstance(release, dict) or not isinstance(readiness, dict):
+        return {"status": "FAIL", "code": "READINESS_IDENTITY_UNDECLARED", "detail": "release,voice_readiness"}
+    current = str(release.get("current", ""))
+    current_commit = str(release.get("current_commit") or _release_commit_from_current(current))
+    current_profile = str(release.get("profile") or release.get("release_profile") or "")
+    ready_commit = str(readiness.get("release_commit") or "")
+    ready_profile = str(readiness.get("release_profile") or "")
+    status = str(readiness.get("status") or "").upper()
+    problems = []
+    if status != "READY":
+        problems.append(f"status={status or 'missing'}")
+    if not current_commit or ready_commit != current_commit:
+        problems.append(f"commit={ready_commit or 'missing'}!={current_commit or 'missing'}")
+    if not current_profile or ready_profile != current_profile:
+        problems.append(f"profile={ready_profile or 'missing'}!={current_profile or 'missing'}")
+    if problems:
+        return {"status": "FAIL", "code": "READINESS_IDENTITY_MISMATCH", "detail": ";".join(problems)}
+    return {
+        "status": "PASS",
+        "code": "READINESS_IDENTITY_MATCH",
+        "release_commit": current_commit,
+        "release_profile": current_profile,
+    }
+
+
 def replay_systemd_runtime(manifest: dict[str, object]) -> dict[str, object]:
     systemd = manifest.get("systemd")
     if not isinstance(systemd, dict):
@@ -884,6 +913,7 @@ def replay_manifest(manifest: dict[str, object], required_gpios: Iterable[int] =
     lifecycle = replay_release_lifecycle(manifest)
     resources = replay_resource_capacity(manifest)
     model = replay_model_finalization(manifest)
+    readiness_identity = replay_readiness_identity(manifest)
     required_checks = [format_check]
     if requirements["privacy_boundary"]:
         required_checks.append(privacy)
@@ -911,6 +941,8 @@ def replay_manifest(manifest: dict[str, object], required_gpios: Iterable[int] =
         required_checks.append(resources)
     if requirements["model_finalization"]:
         required_checks.append(model)
+    if requirements["readiness_identity"]:
+        required_checks.append(readiness_identity)
     status = "PASS" if all(check.get("status") == "PASS" for check in required_checks) else "FAIL"
     return {
         "format": REPLAY_FORMAT,
@@ -928,6 +960,7 @@ def replay_manifest(manifest: dict[str, object], required_gpios: Iterable[int] =
         "environment_profile": environment,
         "operator_identity": operator,
         "systemd_runtime": systemd,
+        "readiness_identity": readiness_identity,
         "release_lifecycle": lifecycle,
         "resource_capacity": resources,
         "model_finalization": model,

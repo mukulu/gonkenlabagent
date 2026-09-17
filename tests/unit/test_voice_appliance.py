@@ -32,22 +32,6 @@ from gonken_agent.voice_runtime import (
 )
 
 
-class RuntimeIdentityTests(unittest.TestCase):
-    def test_runtime_release_commit_is_derived_only_from_immutable_release_path(self) -> None:
-        with tempfile.TemporaryDirectory() as temporary:
-            root = Path(temporary)
-            commit = "c" * 40
-            executable = root / "releases" / commit / ".venv" / "bin" / "python"
-            executable.parent.mkdir(parents=True)
-            executable.write_text("fixture\n", encoding="utf-8")
-            with mock.patch("gonken_agent.voice_runtime.sys.executable", str(executable)):
-                self.assertEqual(_runtime_release_commit(), commit)
-            outside = root / "python"
-            outside.write_text("fixture\n", encoding="utf-8")
-            with mock.patch("gonken_agent.voice_runtime.sys.executable", str(outside)):
-                self.assertEqual(_runtime_release_commit(), "development")
-
-
 class VoiceWakeTests(unittest.TestCase):
     def test_wake_phrase_matches_punctuation_and_one_edit_for_long_brand_token(self) -> None:
         self.assertEqual(_wake_remainder("Hey, GonKen! What time is it?", "Hey Gonken"), "what time is it")

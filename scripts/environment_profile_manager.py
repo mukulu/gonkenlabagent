@@ -152,6 +152,28 @@ def read_environment(path: Path) -> dict[str, object]:
     return environment
 
 
+
+
+def compatible_environment_only_profile(path: Path, name: str, *, sensor_address: int = 0x44) -> bool:
+    """Return true for a safe partial environment-only config matching ``name``.
+
+    This admits the exact manual Checkpoint-43 repair shape: only the
+    ``extensions.environment`` table is present, every supplied key agrees with
+    the governed target profile, and missing keys can therefore be filled without
+    overwriting unrelated administrator configuration.
+    """
+    payload = _load(path)
+    if set(payload) != {"extensions"} or not isinstance(payload.get("extensions"), dict):
+        return False
+    extensions = payload["extensions"]
+    if set(extensions) != {"environment"} or not isinstance(extensions.get("environment"), dict):
+        return False
+    environment = extensions["environment"]
+    target = profile_spec(name, sensor_address=sensor_address)
+    if not environment or any(key not in target for key in environment):
+        return False
+    return all(target[key] == value for key, value in environment.items())
+
 def detect_managed_profile_details(path: Path) -> tuple[str, int | None] | None:
     payload = _load(path)
     # Managed profile files contain only the exact extensions.environment table.
@@ -222,7 +244,12 @@ def ensure_profile(path: Path, *, name: str, group: str, sensor_address: int = 0
         if current is not None and read_environment(path) == target_spec:
             return "ALREADY_CONFIGURED"
         if current is None:
-            fail("ENV_PROFILE_CONFLICT", "existing site configuration is not an exact managed environment profile", "review and merge administrator configuration manually; no file was changed", 75)
+            if compatible_environment_only_profile(path, name, sensor_address=sensor_address):
+                _atomic_write(path, target_text, group=group)
+                if read_environment(path) != target_spec:
+                    fail("ENV_PROFILE_VERIFY", "merged site configuration did not verify", "inspect the managed file and restore the prior profile", 74)
+                return "MERGED_COMPATIBLE_PARTIAL"
+            fail("ENV_PROFILE_CONFLICT", "existing site configuration is not an exact or compatible managed environment profile", "review administrator configuration; unrelated or conflicting values are never overwritten", 75)
         _atomic_write(path, target_text, group=group)
         if read_environment(path) != target_spec:
             fail("ENV_PROFILE_VERIFY", "transitioned site configuration did not verify", "inspect the managed file and restore the prior profile", 74)
@@ -249,6 +276,7 @@ def parser() -> argparse.ArgumentParser:
     result.add_argument("--site", default="/etc/gonken-agent/config.toml")
     result.add_argument("--group", default="gonken-envctl")
     result.add_argument("--sensor-address", default="0x44", choices=("0x44", "0x45"), help="real SHT31 address; ignored only when left at default for simulated-sensor profiles")
+    result.add_argument("--expect-profile", choices=tuple(PROFILE_SPECS), help="with status, require this exact managed profile")
     return result
 
 
@@ -262,9 +290,17 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "status":
             if not path.exists() and not path.is_symlink():
                 status = "ABSENT"
+                selected = None
             else:
                 selected = detect_managed_profile(path)
                 status = PROFILE_CODES[selected] if selected else "OTHER_ADMIN_CONFIG"
+            if args.expect_profile is not None and selected != args.expect_profile:
+                fail(
+                    "ENV_PROFILE_DRIFT",
+                    f"site configuration profile differs: expected={args.expect_profile} observed={selected or status}",
+                    "rerun managed environment profile reconciliation or review administrator configuration",
+                    75,
+                )
             print(f"[OK] code=ENV_PROFILE_STATUS status={status} path={path}")
             return 0
         sensor_address = int(args.sensor_address, 0)

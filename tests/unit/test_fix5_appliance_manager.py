@@ -154,6 +154,23 @@ class ApplianceManagerTests(unittest.TestCase):
         self.assertIn(("reset-failed", module.SERVICE), calls)
         self.assertIn(("restart", module.SERVICE), calls)
 
+    def test_activate_is_level_triggered_when_ready_exists_on_first_poll(self) -> None:
+        module = load_module()
+
+        def fake_systemctl(*args, check=True):
+            return SimpleNamespace(returncode=0, stdout="", stderr="")
+
+        ready = {"wake_phrase": "GonKen", "model": "qwen", "audio_backend": "fixture"}
+        with tempfile.TemporaryDirectory() as temporary, \
+             mock.patch.object(module.os, "geteuid", return_value=0), \
+             mock.patch.object(module, "READY_FILE", Path(temporary) / "ready.json"), \
+             mock.patch.object(module, "READINESS_FILE", Path(temporary) / "readiness.json"), \
+             mock.patch.object(module, "systemctl", side_effect=fake_systemctl), \
+             mock.patch.object(module, "read_ready", return_value=ready) as read_ready, \
+             mock.patch.object(module, "bounded_failure", side_effect=AssertionError("history must not override current READY")):
+            module.activate(30)
+        self.assertEqual(read_ready.call_count, 1)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -76,6 +76,19 @@ This binds the install to the exact checkpoint commit. See the
 [Raspberry Pi acceptance runbook](docs/RASPBERRY_PI_ACCEPTANCE_RUN.md) before
 running target evidence collection.
 
+Checkpoint 44 and later checkpoints can commission an explicit governed room-
+environment profile during installation. The current safe SHT31 validation
+profile keeps room-fan GPIO simulated:
+
+```bash
+./bootstrap.sh --local-checkpoint \
+  --environment-profile real-sensor-simulated-actuator \
+  --sensor-address 0x44
+```
+
+The default profile is `none`. Real-relay profiles are not auto-actuated by the
+generic installer; they stop at a supervised physical-commissioning boundary.
+
 ## 3. Wait for READY
 
 A successful appliance installation ends with output similar to:

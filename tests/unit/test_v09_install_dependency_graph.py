@@ -32,6 +32,9 @@ class TargetInstallDependencyGraphTests(unittest.TestCase):
             "target_runtime_bindings",
             "target_gpio_identity",
             "environment_service",
+            "environment_profile",
+            "environment_commissioning",
+            "environment_readiness",
             "ollama_account_and_store",
             "ollama_binary",
             "ollama_service",
@@ -66,6 +69,29 @@ class TargetInstallDependencyGraphTests(unittest.TestCase):
         ]
         self.assertIn("disabled_autostart", registration)
         self.assertIn("does_not_actuate", registration)
+
+    def test_environment_profile_and_commissioning_are_explicit_optional_boundaries(self) -> None:
+        self.assertLess(self.position("environment_service"), self.position("environment_profile"))
+        self.assertLess(self.position("environment_profile"), self.position("environment_commissioning"))
+        self.assertLess(self.position("environment_commissioning"), self.position("environment_readiness"))
+        self.assertLess(self.position("environment_readiness"), self.position("ollama_account_and_store"))
+        region = self.text[self.position("environment_service"):self.position("ollama_account_and_store")]
+        self.assertIn('GONKEN_SOURCE_RECORD[environment_profile]', region)
+        self.assertIn("real_relay_profiles_pause_for_supervision", region)
+        self.assertIn("generic_install_never_auto_actuates_real_room_fan_gpio", region)
+
+    def test_install_completion_reports_independent_component_truth(self) -> None:
+        for component in (
+            "voice_conversation",
+            "ollama_inference",
+            "environment_controller",
+            "temperature_humidity_sensor",
+            "room_fan_control",
+            "llm_environment_tool_broker",
+        ):
+            self.assertIn(f"id={component}", self.text)
+        self.assertIn("physical_motion_observed=false software_speed_control=false", self.text)
+        self.assertIn("V04_TOOL_INTEGRATION_PENDING", self.text)
 
     def test_bluetooth_capture_route_is_proven_before_appliance_readiness(self) -> None:
         self.assertLess(self.position("bluetooth_audio_pairing"), self.position("appliance_readiness"))

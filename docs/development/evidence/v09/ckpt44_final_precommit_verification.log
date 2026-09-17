@@ -1,0 +1,34 @@
+== post-fix focused ==
+test_commissioned_status_rejects_owner_group_drift_not_only_mode_drift (tests.unit.test_v09_environment_service_manager.EnvironmentServiceManagerTests.test_commissioned_status_rejects_owner_group_drift_not_only_mode_drift) ... ok
+test_conflicting_environment_unit_fails_closed (tests.unit.test_v09_environment_service_manager.EnvironmentServiceManagerTests.test_conflicting_environment_unit_fails_closed) ... ok
+test_environment_unit_is_local_only_least_privilege_and_independent (tests.unit.test_v09_environment_service_manager.EnvironmentServiceManagerTests.test_environment_unit_is_local_only_least_privilege_and_independent) ... ok
+test_install_status_remove_are_structural_and_do_not_enable_or_start (tests.unit.test_v09_environment_service_manager.EnvironmentServiceManagerTests.test_install_status_remove_are_structural_and_do_not_enable_or_start) ... ok
+test_known_checkpoint43_temporary_dropin_is_removed_but_unknown_is_preserved_and_blocks (tests.unit.test_v09_environment_service_manager.EnvironmentServiceManagerTests.test_known_checkpoint43_temporary_dropin_is_removed_but_unknown_is_preserved_and_blocks) ... ok
+test_non_actuating_profile_converges_enable_reset_restart_and_metadata (tests.unit.test_v09_environment_service_manager.EnvironmentServiceManagerTests.test_non_actuating_profile_converges_enable_reset_restart_and_metadata) ... ok
+test_real_actuator_profile_requires_supervised_physical_commissioning (tests.unit.test_v09_environment_service_manager.EnvironmentServiceManagerTests.test_real_actuator_profile_requires_supervised_physical_commissioning) ... ok
+test_tmpfiles_contract_uses_separate_state_and_socket_client_group (tests.unit.test_v09_environment_service_manager.EnvironmentServiceManagerTests.test_tmpfiles_contract_uses_separate_state_and_socket_client_group) ... ok
+test_voice_service_has_soft_environment_dependency_only (tests.unit.test_v09_environment_service_manager.EnvironmentServiceManagerTests.test_voice_service_has_soft_environment_dependency_only) ... ok
+test_speech_and_service_maintenance_inputs_are_release_payload_contract (tests.unit.test_m3_3_release_manager.IntegrityAndPrivilegeTests.test_speech_and_service_maintenance_inputs_are_release_payload_contract) ... ok
+test_human_report_has_exact_boundary_language (tests.unit.test_release_readiness.ReleaseReadinessTests.test_human_report_has_exact_boundary_language) ... ok
+test_report_is_ready_for_target_acceptance_from_clean_tree (tests.unit.test_release_readiness.ReleaseReadinessTests.test_report_is_ready_for_target_acceptance_from_clean_tree) ... ok
+test_target_acceptance_runbook_is_user_facing (tests.unit.test_release_readiness.ReleaseReadinessTests.test_target_acceptance_runbook_is_user_facing) ... ok
+test_target_shadow_fixture_failure_blocks_readiness (tests.unit.test_release_readiness.ReleaseReadinessTests.test_target_shadow_fixture_failure_blocks_readiness) ... ok
+
+----------------------------------------------------------------------
+Ran 14 tests in 9.419s
+
+OK
+== compileall ==
+== docs ==
+      "id": "control-no-stale-plan:M10.15",
+      "message": "M10.15 has no stale PLANNED / NOT_RUN plan rows",
+      "status": "PASS"
+    }
+  ],
+  "schema": "gonken-v09-docs-validation-v1",
+  "status": "PASS"
+}
+== milestone ==
+== diff check ==
+== portable runbook identity scan ==
+portable_runbook=PASS

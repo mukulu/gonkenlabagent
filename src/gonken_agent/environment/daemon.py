@@ -92,6 +92,7 @@ def build_environment_service_core(
     sensor_factory: SensorFactory | None = None,
     actuator_factory: ActuatorFactory | None = None,
     policy_store_factory: PolicyStoreFactory | None = None,
+    initialize_policy: bool = True,
 ) -> EnvironmentServiceCore:
     """Build the daemon core from static config and daemon-owned policy.
 
@@ -111,7 +112,12 @@ def build_environment_service_core(
     store_factory = PolicyStore if policy_store_factory is None else policy_store_factory
     store = store_factory(Path(str(env_config.policy_path)), bounds=bounds)
     try:
-        policy = store.load_or_create_default()
+        if initialize_policy:
+            policy = store.initialize_default_if_missing()
+        elif store.path.exists():
+            policy = store.load()
+        else:
+            policy = store.default_policy()
     except PolicyError as exc:
         raise EnvironmentDaemonError(exc.code, _public_message(exc)) from exc
     if not isinstance(policy, EnvironmentPolicy):
