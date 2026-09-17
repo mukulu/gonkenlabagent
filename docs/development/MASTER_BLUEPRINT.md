@@ -1895,3 +1895,17 @@ Checkpoint 30 advanced materially on the real Raspberry Pi: the new strict relea
 **Host acceptance.** Host acceptance requires PASS and fail-closed fixtures for the expanded capability matrix, release-readiness inclusion of all required fixtures, focused target-probe/readiness tests, static syntax checks, milestone/status synchronization, T0 validation and clean tagged package verification.
 
 **Target acceptance.** M10.24/WP-L remains open. Real microphone/speaker behavior, Bluetooth runtime behavior, service start/restart, current-release installation, `INSTALLATION_COMPLETE`, relay/fan, SHT31, voice/wake, reboot/no-login and update/rollback/reinstall still require the real Raspberry Pi campaign.
+
+#### M10.34 Exact archive qualification gate
+
+**Purpose.** Exact archive qualification SHALL become a repeatable host gate rather than an informal packaging ritual. The gate verifies that the delivered zip archive extracts to the intended Git commit and tag, preserves executable modes, contains no Python cache artifacts, has a clean worktree, passes repository integrity checks, passes milestone/status synchronization, passes release readiness and passes T0 from the extracted copy.
+
+**Archive safety.** `scripts/archive_qualifier.py` SHALL reject archives with multiple roots, unsafe paths, symlinks, `__pycache__`, `.pyc` or `.pyo` content. Extraction SHALL preserve stored Unix executable permissions so the extracted archive is evaluated as it would be delivered, not as a mode-mutated local approximation.
+
+**Readiness boundary.** A qualified archive remains an internal host/package artifact. Qualification can prove exact package integrity and replay readiness, but it cannot prove Raspberry Pi installation, service operation, physical audio, relay/fan behavior, SHT31 readings, wake/voice, reboot/no-login, update, rollback or reinstall acceptance.
+
+**Release payload.** `archive_qualifier.py` SHALL be included in immutable release maintenance payloads so future installed/extracted release contexts carry the same qualification helper.
+
+**Host acceptance.** Host acceptance requires archive-qualifier unit tests, execution against the previous checkpoint package with expected commit/tag, maintenance-payload contract coverage, milestone/status synchronization, static syntax checks, T0 validation and final package qualification from a clean tagged clone.
+
+**Target acceptance.** M10.24/WP-L remains open. A future Raspberry Pi candidate may be prepared only after the broader host/target-shadow release-candidate gate is complete and the exact candidate archive passes this qualifier.

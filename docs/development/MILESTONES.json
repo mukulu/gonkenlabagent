@@ -1,6 +1,6 @@
 {
   "baseline_commit": "6466f26a1a9cb97e4c24182505b37cefb766b3c3",
-  "checkpoint_scope": "V09 checkpoint 38 expands target-shadow replay beyond GPIO identity into explicit opt-in checks for duplex audio capability, service identity and release-state cleanliness. Release readiness now requires six replay fixtures: legacy GPIO alias/duplicate coverage plus full capability PASS, ambiguous audio expected FAIL, missing service identity expected FAIL and dirty release-state expected FAIL. M10.33 is host-verified as internal replay evidence only; no Raspberry Pi release candidate or physical acceptance is claimed. Real target manifest expansion, exact archive qualification and the M10.24 hardware/voice/lifecycle campaign remain open.",
+  "checkpoint_scope": "V09 checkpoint 39 codifies exact archive qualification as a repeatable host/package gate. The new archive qualifier verifies safe zip structure, absence of Python cache artifacts, permission-preserving extraction, clean extracted Git state, expected commit/tag, git fsck, milestone sync, release readiness and T0 from the extracted archive. M10.34 is host-verified as package-integrity evidence only; no Raspberry Pi release candidate or physical acceptance is claimed. Real target manifest expansion, complete host/target-shadow release-candidate gating and the M10.24 hardware/voice/lifecycle campaign remain open.",
   "milestones": [
     {
       "evidence": "TEST_MATRIX.md (M2.1)",
@@ -516,6 +516,14 @@
       "software": "host-verified",
       "target": "not-run",
       "title": "Target-shadow capability and state replay expansion"
+    },
+    {
+      "evidence": "scripts/archive_qualifier.py; tests/unit/test_v09_archive_qualifier.py; scripts/release_manager.py; tests/unit/test_m3_3_release_manager.py; docs/development/V09_CHECKPOINT_39_EXACT_ARCHIVE_QUALIFICATION_REPORT.md; docs/development/MASTER_BLUEPRINT.md; docs/development/DECISIONS.md; docs/development/TEST_MATRIX.md",
+      "id": "M10.34",
+      "remaining": "This checkpoint qualifies exact archives as host/package evidence only. A real Raspberry Pi candidate remains blocked until sanitized real-target manifests, complete host/target-shadow release-candidate gating and M10.24 target execution are completed without deriving physical claims from archive checks.",
+      "software": "host-verified",
+      "target": "not-run",
+      "title": "Exact archive qualification gate"
     }
   ],
   "schema_version": 1

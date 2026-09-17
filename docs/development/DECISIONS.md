@@ -1728,3 +1728,17 @@ This compatibility is a migration mechanism, not a waiver. The goal is to move s
 - **Reason:** Earlier failures came from wrong execution identities, partial installer states, stale release coupling and current-release invalidation after runtime activity.
 - **Must avoid:** accepting root/operator success as service-user success, accepting stale/paused installer state as complete, or treating invalid current-release state as candidate-ready.
 - **Consequence:** target-shadow replay can now block readiness before another target cycle spends time on known downstream failure classes.
+
+## 2026-09-17 — Checkpoint 39 exact-archive qualification decisions
+
+### D39-01 — Archive qualification is a first-class release gate
+- **Decision:** Add `scripts/archive_qualifier.py` as the repeatable gate for delivered checkpoint zip archives. It verifies safe archive structure, no Python cache artifacts, preserved executable permissions, clean extracted Git state, expected commit/tag, `git fsck --strict`, milestone synchronization, release readiness and T0.
+- **Reason:** Manual package verification is necessary but too easy to perform inconsistently. The project needs a deterministic check that evaluates the delivered archive, not only the source worktree.
+- **Must avoid:** qualifying an archive that differs from the tested tag, contains runtime cache artifacts, loses executable permissions, has unsafe paths/symlinks, or relies on a dirty extracted state.
+- **Consequence:** future archive handoffs can attach a machine-readable qualification report, while still remaining below physical Raspberry Pi acceptance.
+
+### D39-02 — Archive qualification is not a Raspberry Pi candidate label
+- **Decision:** The qualifier reports `physical_acceptance_claimed=false` and `raspberry_pi_candidate=false`; passing it does not authorize integrated hardware claims.
+- **Reason:** Exact archive integrity is a prerequisite for a reliable target campaign, but it does not exercise target installation, systemd, audio, GPIO actuation, SHT31 or voice behavior.
+- **Must avoid:** converting package cleanliness into `INSTALLATION_COMPLETE`, M10.24 PASS, `RELEASE_CANDIDATE` or `STABLE_FINAL_RELEASE`.
+- **Consequence:** the next remaining work is still host/target-shadow release-candidate completion, sanitized real-target manifests and the eventual real Pi M10.24 campaign.

@@ -1382,3 +1382,13 @@ Checkpoint 24 closes the host-side root cause and adds regression protection, bu
 | CP38-T205 | Dirty release-state fail-closed fixture | `dirty_release_state_manifest.json`; `target_probe.py --replay` | PASS — expected FAIL with exit 75 | Blocks paused/dirty/invalid release state evidence. |
 | CP38-T206 | Release-readiness fixture matrix | `scripts/release_readiness.py`; `tests/unit/test_release_readiness.py` | PASS | Internal host/target-shadow status only; no Pi candidate. |
 | CP38-T207 | Static syntax and control sync | `compileall`; `milestone_status.py --check`; `git diff --check`; `./scripts/ci.sh --phase t0` | PASS | Host/static only. |
+
+## V09 checkpoint 39 — M10.34 exact archive qualification gate
+
+| ID | Scope | Command / artifact | Host result | Target boundary |
+|---|---|---|---:|---|
+| CP39-T208 | Archive structure and extraction safety | `scripts/archive_qualifier.py`; `tests/unit/test_v09_archive_qualifier.py` | PASS | Host/archive only; no physical acceptance. |
+| CP39-T209 | Permission-preserving archive extraction | `test_extract_zip_preserves_executable_permissions` | PASS | Prevents false dirty trees caused by verifier extraction. |
+| CP39-T210 | Exact checkpoint-38 archive qualification | `archive_qualifier.py ...checkpoint-38-package.zip --expected-commit 56ef389... --expected-tag checkpoint/v09-38-target-shadow-capability --json` | PASS | Qualifies prior archive integrity only; does not make it a Pi candidate. |
+| CP39-T211 | Immutable maintenance payload includes archive qualifier | `tests.unit.test_m3_3_release_manager...test_speech_and_service_maintenance_inputs_are_release_payload_contract` | PASS | Future releases carry the qualification helper. |
+| CP39-T212 | Static syntax and control sync | `compileall`; `milestone_status.py --check`; `git diff --check`; `./scripts/ci.sh --phase t0` | PASS | Host/static only. |

@@ -414,6 +414,7 @@ class IntegrityAndPrivilegeTests(unittest.TestCase):
             '"service_manager.py"',
             '"environment_service_manager.py"',
             '"environment_profile_manager.py"',
+            '"archive_qualifier.py"',
             '"target_probe.py"',
             '"i2c_manager.py"',
             '"sht31_diagnostic.py"',

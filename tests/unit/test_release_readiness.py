@@ -37,6 +37,7 @@ class ReleaseReadinessTests(unittest.TestCase):
         self.assertIn("M10.31", report["host_verified"])
         self.assertIn("M10.32", report["host_verified"])
         self.assertIn("M10.33", report["host_verified"])
+        self.assertIn("M10.34", report["host_verified"])
         self.assertIn("M10.26", report["host_verified"])
         self.assertIn("M10.28", report["host_verified"])
         self.assertFalse(report["physical_acceptance_claimed"])
