@@ -245,9 +245,13 @@ transcripts, prompts, answers, pairing secrets and raw audio. Debug snapshots
 include bounded ALSA and PipeWire/Pulse route metadata so capture-routing failures
 can be diagnosed without storing speech content.
 
-When diagnosing an installer failure, also preserve the exact terminal error;
-the installer keeps structured state/events under the root-owned
-`/var/lib/gonken-agent/install` tree.
+The ZIP also includes a sanitized non-actuating target manifest, platform and
+resource inventory, bounded service-event code counts and an evidence index when
+the packaged maintenance helpers are present. When diagnosing an installer
+failure, upload the installer-owned failure ZIP printed by the installer; it is
+designed to carry the same one-upload evidence role even before activation.
+Preserve the exact terminal error when convenient, but do not create a second
+diagnostic package for information the ZIP already records.
 
 ## Updating
 

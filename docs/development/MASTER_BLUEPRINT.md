@@ -1933,3 +1933,17 @@ Checkpoint 30 advanced materially on the real Raspberry Pi: the new strict relea
 **Host acceptance.** Host acceptance requires focused target-probe/readiness tests, release-readiness inclusion of all required fixtures, static syntax checks, milestone/status synchronization, T0 validation, clean Git state and exact archive qualification from a clean tagged clone.
 
 **Target acceptance.** M10.24/WP-L remains open. These replay checks improve confidence that the next package will be usable on the Raspberry Pi, but they still do not prove physical SHT31 reads, fan motion, audio behavior, wake/voice performance, reboot/no-login persistence, update, rollback or reinstall acceptance.
+
+#### M10.37 Single-ZIP target evidence and failure-bundle completeness
+
+**Purpose.** The host development platform SHALL not depend on direct access to the real Raspberry Pi environment. Future target troubleshooting and package improvement SHALL depend on one comprehensive, content-free ZIP produced on the target. The ZIP must carry enough hardware, runtime, installer, service and log-code evidence for host-side diagnosis without requiring a second status report package merely to understand the failure.
+
+**Support ZIP contract.** `collect-support.sh` SHALL automatically run the non-actuating `target_probe.py` when it is available and include the resulting sanitized target manifest inside the normal support ZIP. The support ZIP SHALL also include an evidence index, platform/resource inventory, runtime binding evidence, install-event summaries, service journal code counts, environment diagnostics, health, configuration and telemetry summaries. It SHALL continue to exclude raw audio, transcripts, prompts, model responses, credentials, Wi-Fi passphrases and arbitrary raw journal text.
+
+**Installer-failure ZIP contract.** Early installer failures SHALL produce a single installer-owned failure ZIP that includes source/install provenance, target preflight summaries, event records, platform/resource inventory, bounded service journal code counts and a sanitized target manifest when `target_probe.py` can run. This ensures failures before immutable release activation still return decisive evidence for the next package cycle.
+
+**Operational boundary.** A complete ZIP can establish target topology, service/runtime state, installer provenance, resource constraints and bounded failure codes. It cannot by itself prove fan blade motion, acoustic quality, SHT31 physical placement or human-observed wake behavior. Those observations must be recorded as target evidence when relevant, but package construction must not be blocked merely because this platform cannot directly run the physical environment.
+
+**Host acceptance.** Host acceptance requires support-export unit tests for the expanded members and privacy rejection, installer-failure bundle tests for single-ZIP completeness, installed maintenance wrapper integration tests proving automatic target-manifest inclusion, static syntax checks, milestone/status synchronization, T0 validation and clean tagged archive qualification.
+
+**Target acceptance.** M10.24/WP-L remains evidence-collected on the real Raspberry Pi. The next target cycle should upload the single support or installer-failure ZIP first. If physical observations are not machine-readable, they may accompany the ZIP as notes, but the ZIP is the primary source for host-side repair.

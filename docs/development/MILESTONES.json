@@ -1,6 +1,6 @@
 {
   "baseline_commit": "6466f26a1a9cb97e4c24182505b37cefb766b3c3",
-  "checkpoint_scope": "V09 checkpoint 41 expands target-shadow replay to lifecycle, runtime, resource and model-finalization states across 22 required fixtures. The gate blocks current-release drift, partial installer state, stale temp artifacts, wrong-release support evidence, old managed systemd units, restart failure, low disk, interrupted model finalization and missing operator control-group readiness, while allowing noncurrent corrupt historical releases when the current release is exact. M10.36 is host-verified as replay/readiness evidence only; no Raspberry Pi release candidate or physical acceptance is claimed. Sanitized real-target manifests, remaining host/target-shadow release-candidate gating and the M10.24 hardware/voice/lifecycle campaign remain open.",
+  "checkpoint_scope": "V09 checkpoint 42 makes one comprehensive target evidence ZIP the required handoff unit for future build cycles. Normal support export and installer-failure bundles now include a sanitized non-actuating target manifest, platform/resource inventory, bounded service-event codes, installer provenance, preflight summaries and an evidence index while preserving content-free privacy boundaries. M10.37 is host-verified as support/failure-bundle evidence infrastructure only; the platform still does not directly run physical hardware, and M10.24 physical observations remain target-collected evidence carried by the ZIP.",
   "milestones": [
     {
       "evidence": "TEST_MATRIX.md (M2.1)",
@@ -540,6 +540,14 @@
       "software": "host-verified",
       "target": "not-run",
       "title": "Lifecycle, runtime, resource and model-finalization target-shadow replay"
+    },
+    {
+      "evidence": "src/gonken_agent/support.py; src/gonken_agent/operations.py; scripts/collect-support.sh; scripts/installer_failure_bundle.py; tests/unit/test_support_export.py; tests/unit/test_v09_installer_failure_bundle.py; tests/integration/test_support_collection_process.py; docs/development/V09_CHECKPOINT_42_SINGLE_ZIP_TARGET_EVIDENCE_REPORT.md; docs/development/MASTER_BLUEPRINT.md; docs/development/DECISIONS.md; docs/development/TEST_MATRIX.md",
+      "id": "M10.37",
+      "remaining": "Future target troubleshooting should upload the single support or installer-failure ZIP produced by the package. That ZIP now carries hardware/runtime topology and bounded diagnostic evidence for host-side repair. Physical fan motion, acoustic quality, SHT31 placement and manual observations still must be recorded by the target operator and cannot be inferred merely from ZIP structure.",
+      "software": "host-verified",
+      "target": "not-run",
+      "title": "Single-ZIP target evidence and failure-bundle completeness"
     }
   ],
   "schema_version": 1

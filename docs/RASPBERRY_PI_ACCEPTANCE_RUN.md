@@ -499,25 +499,28 @@ MiB over a representative 30-minute steady run. Wake, STT/TTS and LLM latency
 must be measured on the real Pi rather than inferred from host tests. A threshold
 miss triggers diagnosis; do not weaken the criterion merely to obtain PASS.
 
-## 15. Support/evidence bundle to upload
+## 15. Single support/evidence ZIP to upload
 
-Collect the standard support bundle:
+Collect the standard support bundle. From checkpoint 42 onward this is the
+primary target handoff artifact: it includes the ordinary support data plus a
+sanitized non-actuating target manifest, platform/resource inventory, bounded
+service-event code summaries and an evidence index.
 
 ```bash
 sudo /usr/local/lib/gonken-agent/current/maintenance/collect-support.sh
 ```
 
-Upload the following after the campaign, without editing them to make results
-look cleaner:
+If installation fails before the current release is usable, upload the
+installer-owned failure ZIP printed by the installer instead. It carries the
+same one-upload purpose for early failures: source/install provenance, target
+preflight summaries, platform/resource inventory, bounded event summaries and
+the target manifest when it can be collected.
 
-1. the support ZIP printed by the collector;
-2. `m10_7_evidence_manifest.json`;
-3. `m10_7_private_evidence_ledger.csv`;
-4. the `private_evidence/` directory (ZIP it if convenient);
-5. GPIO mapping output for GPIO17/22/23/27;
-6. exact checkpoint commit and installed release path;
-7. manual observation notes for wake/audio/PTT/LED/relay/fan/sensor/reboot;
-8. exact error output for every FAIL/BLOCKED/NEEDS_MANUAL_REVIEW item.
+Upload the ZIP without editing it to make results look cleaner. If a fact is
+inherently manual, such as visible fan blade motion, relay indicator behavior,
+sensor placement, wake recognition quality or reboot/no-login observation, add
+short notes beside the ZIP. Do not create a second diagnostic package merely to
+carry information that the collector now records automatically.
 
 Raw audio is not required by default. Do not upload credentials, Wi-Fi
 passphrases, or unrelated personal data.

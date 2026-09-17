@@ -44,6 +44,7 @@ def add_commands(subparsers):
     support.add_argument('--index',type=Path)
     support.add_argument('--telemetry',type=Path)
     support.add_argument('--startup-snapshot',type=Path)
+    support.add_argument('--target-manifest',type=Path)
     doctor=subparsers.add_parser('doctor',help='report software/voice readiness without mutation')
     config_arguments(doctor)
     doctor.add_argument('--index',type=Path)
@@ -203,7 +204,15 @@ def execute(args):
         effective_config=load_config(**kw)
         ids=[]
         if args.index:ids=[c['id'] for c in load(args.index,corpus)['chunks']]
-        result=create_bundle(args.output,effective_config,doctor(config,args.index),args.telemetry,ids,args.startup_snapshot)
+        result=create_bundle(
+            args.output,
+            effective_config,
+            doctor(config,args.index),
+            args.telemetry,
+            ids,
+            args.startup_snapshot,
+            args.target_manifest,
+        )
         print(json.dumps(result,sort_keys=True))
         return 0
     if args.command=='index':

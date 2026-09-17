@@ -29,6 +29,16 @@ INSTALL_EVENTS_DIR = Path("/var/lib/gonken-agent/install/logs/events")
 SERVICE_UNITS = ("gonken-agent.service", "gonken-environment.service")
 BINDING_PACKAGES = ("python3-libgpiod",)
 BINDING_MANIFEST = Path(sys.prefix).parent / "share/gonken-agent/hardware-bindings.json"
+TARGET_MANIFEST_FORMAT = "gonken-target-hardware-manifest-v1"
+
+
+def _bounded_json_file(path: Path, *, max_bytes: int = 1024 * 1024) -> object | None:
+    try:
+        if path.is_symlink() or not path.is_file() or path.stat().st_size > max_bytes:
+            return None
+        return json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError):
+        return None
 
 
 def _safe_release_identity() -> dict[str, object]:
@@ -351,7 +361,152 @@ def _service_event_codes(limit: int = 200) -> dict[str, object]:
     return {"status": "READY", "units": units}
 
 
-def create_bundle(output, effective_config, health, telemetry_path=None, allowed_source_ids=(), startup_snapshot=None):
+def _memory_inventory() -> dict[str, object]:
+    keys = {"MemTotal", "MemAvailable", "SwapTotal", "SwapFree"}
+    values: dict[str, int] = {}
+    try:
+        for line in Path("/proc/meminfo").read_text(encoding="utf-8", errors="replace").splitlines():
+            key, _, remainder = line.partition(":")
+            if key in keys:
+                number = remainder.strip().split(" ", 1)[0]
+                if number.isdigit():
+                    values[f"{key.lower()}_kib"] = int(number)
+    except OSError:
+        pass
+    return values
+
+
+def _command_inventory() -> dict[str, bool]:
+    commands = (
+        "arecord",
+        "aplay",
+        "bluetoothctl",
+        "gpiodetect",
+        "gpioinfo",
+        "i2cdetect",
+        "journalctl",
+        "ollama",
+        "systemctl",
+        "vcgencmd",
+    )
+    return {name: shutil.which(name) is not None for name in commands}
+
+
+def _safe_command_output(command: list[str], *, timeout: float = 3.0, limit: int = 160) -> dict[str, object]:
+    try:
+        result = subprocess.run(command, check=False, capture_output=True, text=True, timeout=timeout)
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        return {"status": "UNAVAILABLE", "exit": None, "summary": type(exc).__name__}
+    text = " ".join((result.stdout or result.stderr or "").replace("\x00", "").split())[:limit]
+    return {"status": "READY" if result.returncode == 0 else "DEGRADED", "exit": result.returncode, "summary": text}
+
+
+def _platform_inventory() -> dict[str, object]:
+    root = shutil.disk_usage("/")
+    var = shutil.disk_usage("/var") if Path("/var").exists() else root
+    payload: dict[str, object] = {
+        "schema": 1,
+        "content_logging": False,
+        "python": platform.python_version(),
+        "system": platform.system(),
+        "kernel": platform.release(),
+        "architecture": platform.machine(),
+        "disk": {
+            "root_total_kib": root.total // 1024,
+            "root_free_kib": root.free // 1024,
+            "var_total_kib": var.total // 1024,
+            "var_free_kib": var.free // 1024,
+        },
+        "memory": _memory_inventory(),
+        "commands": _command_inventory(),
+        "release": _safe_release_identity(),
+        "load_average": list(os.getloadavg()) if hasattr(os, "getloadavg") else [],
+    }
+    if shutil.which("vcgencmd"):
+        payload["throttled"] = _safe_command_output(["vcgencmd", "get_throttled"], timeout=3, limit=80)
+    else:
+        payload["throttled"] = {"status": "UNAVAILABLE", "exit": None, "summary": "vcgencmd_missing"}
+    return payload
+
+
+def _target_manifest_member(path: Path | None) -> dict[str, object]:
+    if path is None:
+        return {
+            "status": "UNAVAILABLE",
+            "format": TARGET_MANIFEST_FORMAT,
+            "detail": "target_probe_manifest_not_supplied",
+            "physical_acceptance_claimed": False,
+            "privacy": {
+                "raw_audio_included": False,
+                "transcripts_included": False,
+                "prompts_or_model_responses_included": False,
+            },
+        }
+    payload = _bounded_json_file(path)
+    if not isinstance(payload, dict) or payload.get("format") != TARGET_MANIFEST_FORMAT:
+        return {
+            "status": "INVALID",
+            "format": TARGET_MANIFEST_FORMAT,
+            "detail": "target_probe_manifest_invalid_or_unreadable",
+            "physical_acceptance_claimed": False,
+        }
+    if payload.get("physical_acceptance_claimed") is not False:
+        return {
+            "status": "INVALID",
+            "format": TARGET_MANIFEST_FORMAT,
+            "detail": "target_probe_manifest_claims_physical_acceptance",
+            "physical_acceptance_claimed": False,
+        }
+    privacy = payload.get("privacy")
+    if not isinstance(privacy, dict) or any(
+        privacy.get(key) is not False
+        for key in ("raw_audio_included", "transcripts_included", "prompts_or_model_responses_included")
+    ):
+        return {
+            "status": "INVALID",
+            "format": TARGET_MANIFEST_FORMAT,
+            "detail": "target_probe_manifest_privacy_boundary_invalid",
+            "physical_acceptance_claimed": False,
+        }
+    result = dict(payload)
+    result["support_member_status"] = "READY"
+    return result
+
+
+def _evidence_index(files: dict[str, object]) -> dict[str, object]:
+    return {
+        "schema": 1,
+        "format": "gonken-support-evidence-index-v1",
+        "content_logging": False,
+        "physical_acceptance_claimed": False,
+        "diagnostic_package_role": (
+            "single-upload target evidence bundle for host-side troubleshooting and next-package construction"
+        ),
+        "members": sorted(files),
+        "privacy_exclusions": [
+            "raw audio",
+            "conversation transcripts",
+            "prompts or model responses",
+            "credentials",
+            "Wi-Fi passphrases",
+            "arbitrary raw journal text",
+        ],
+        "interpretation": (
+            "The bundle can establish target topology, runtime state, logs-by-code and failure provenance. "
+            "It does not by itself prove physical fan blade motion, acoustic quality or sensor placement."
+        ),
+    }
+
+
+def create_bundle(
+    output,
+    effective_config,
+    health,
+    telemetry_path=None,
+    allowed_source_ids=(),
+    startup_snapshot=None,
+    target_manifest=None,
+):
     output=Path(output).absolute()
     if output.exists() or output.is_symlink() or output.parent.resolve()!=output.parent:
         raise ValueError('support output must be a new file in a safe directory')
@@ -386,6 +541,8 @@ def create_bundle(output, effective_config, health, telemetry_path=None, allowed
         'telemetry.json':{'content_logging':False,'events':events},
         'environment_control.json': collect_environment_diagnostics(effective_config.config, mode='production'),
         'runtime_bindings.json': _runtime_binding_health(),
+        'platform_inventory.json': _platform_inventory(),
+        'target_manifest.json': _target_manifest_member(Path(target_manifest) if target_manifest is not None else None),
         'install_events.json': _install_events(),
         'service_events.json': _service_event_codes(),
     }
@@ -394,6 +551,7 @@ def create_bundle(output, effective_config, health, telemetry_path=None, allowed
         files['environment_health.json'] = environment_health
     if startup_snapshot is not None:
         files['startup_snapshot.json']=load_snapshot(startup_snapshot)
+    files['evidence_index.json'] = _evidence_index(files)
     fd,temporary=tempfile.mkstemp(prefix='.support-',dir=output.parent)
     os.close(fd)
     try:

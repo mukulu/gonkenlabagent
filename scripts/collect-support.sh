@@ -3,9 +3,11 @@ set -Eeuo pipefail
 
 usage() {
   cat <<'USAGE'
-Usage: collect-support.sh [--output PATH] [--site PATH] [--index PATH] [--telemetry PATH] [--startup-snapshot PATH]
+Usage: collect-support.sh [--output PATH] [--site PATH] [--index PATH] [--telemetry PATH] [--startup-snapshot PATH] [--target-manifest PATH]
 
 Create a private, content-free GonKenLab Agent support ZIP for upload and review.
+When target_probe.py is available, the ZIP also includes a sanitized
+non-actuating target hardware/runtime manifest.
 The output path must not already exist.
 USAGE
 }
@@ -25,6 +27,15 @@ SITE="/etc/gonken-agent/config.toml"
 INDEX=""
 TELEMETRY="/var/lib/gonken-agent/runtime/telemetry.jsonl"
 STARTUP_SNAPSHOT="/var/lib/gonken-agent/runtime/startup/latest.json"
+TARGET_MANIFEST=""
+SUPPORT_TEMP_DIR=""
+
+cleanup() {
+  if [[ -n "$SUPPORT_TEMP_DIR" && -d "$SUPPORT_TEMP_DIR" ]]; then
+    rm -rf "$SUPPORT_TEMP_DIR"
+  fi
+}
+trap cleanup EXIT
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -33,6 +44,7 @@ while [[ $# -gt 0 ]]; do
     --index) INDEX="${2:-}"; shift 2 ;;
     --telemetry) TELEMETRY="${2:-}"; shift 2 ;;
     --startup-snapshot) STARTUP_SNAPSHOT="${2:-}"; shift 2 ;;
+    --target-manifest) TARGET_MANIFEST="${2:-}"; shift 2 ;;
     -h|--help) usage; exit 0 ;;
     *) echo "[FAIL] unknown argument: $1" >&2; usage >&2; exit 64 ;;
   esac
@@ -58,6 +70,15 @@ if [[ -f "$SITE" ]]; then args+=(--site "$SITE"); else args+=(--no-site); fi
 if [[ -n "$INDEX" ]]; then args+=(--index "$INDEX"); fi
 if [[ -f "$TELEMETRY" ]]; then args+=(--telemetry "$TELEMETRY"); fi
 if [[ -f "$STARTUP_SNAPSHOT" ]]; then args+=(--startup-snapshot "$STARTUP_SNAPSHOT"); fi
+if [[ -z "$TARGET_MANIFEST" && -x "$SCRIPT_DIR/target_probe.py" ]]; then
+  SUPPORT_TEMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/gonken-support.XXXXXXXX")"
+  chmod 700 "$SUPPORT_TEMP_DIR"
+  TARGET_MANIFEST="$SUPPORT_TEMP_DIR/target-manifest.json"
+  if ! python3 "$SCRIPT_DIR/target_probe.py" --json --output "$TARGET_MANIFEST" >/dev/null 2>&1; then
+    TARGET_MANIFEST=""
+  fi
+fi
+if [[ -f "$TARGET_MANIFEST" ]]; then args+=(--target-manifest "$TARGET_MANIFEST"); fi
 
 "$GONKEN_AGENT" "${args[@]}"
 if ((DEFAULT_OUTPUT == 1)) && [[ -n "${SUDO_UID:-}" && -n "${SUDO_GID:-}" && -f "$OUTPUT" ]]; then

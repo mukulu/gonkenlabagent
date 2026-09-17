@@ -6,6 +6,7 @@ import tempfile
 import unittest
 import zipfile
 from pathlib import Path
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[2]
 SPEC = importlib.util.spec_from_file_location("installer_failure_bundle", ROOT / "scripts" / "installer_failure_bundle.py")
@@ -36,15 +37,43 @@ class InstallerFailureBundleTests(unittest.TestCase):
                 "required_failures":[],"warnings":["device:i2c-1"],"checks":[{"id":"device:i2c-1","required":False,"ok":False,"detail":"absent","remediation":"enable later"}],
             }), encoding="utf-8")
             output = root / "failures"
-            path = bundle.create_bundle(state_dir=state, log_dir=logs, source_record=source, output_dir=output, exit_code=74)
+            with patch.object(bundle, "target_manifest", return_value={
+                "format": "gonken-target-hardware-manifest-v1",
+                "raspberry_pi": {"model": "Raspberry Pi 5 Model B"},
+                "privacy": {
+                    "raw_audio_included": False,
+                    "transcripts_included": False,
+                    "prompts_or_model_responses_included": False,
+                },
+                "physical_acceptance_claimed": False,
+                "failure_bundle_member_status": "READY",
+            }), patch.object(bundle, "platform_inventory", return_value={
+                "schema": 1,
+                "content_logging": False,
+                "commands": {"gpioinfo": True, "i2cdetect": True},
+            }), patch.object(bundle, "service_event_codes", return_value={
+                "status": "READY",
+                "units": {"gonken-agent.service": {"status": "DEGRADED", "codes": {"WAKE_LED_GPIO_LINE_AMBIGUOUS": 2}}},
+            }):
+                path = bundle.create_bundle(state_dir=state, log_dir=logs, source_record=source, output_dir=output, exit_code=74)
             self.assertEqual(path.stat().st_mode & 0o777, 0o600)
             with zipfile.ZipFile(path) as zf:
                 names = set(zf.namelist())
                 text = "\n".join(zf.read(name).decode() for name in names)
+                index = json.loads(zf.read("evidence_index.json"))
+                target = json.loads(zf.read("target_manifest.json"))
+                service = json.loads(zf.read("service_events.json"))
             self.assertIn("failure.json", names)
+            self.assertIn("platform_inventory.json", names)
+            self.assertIn("target_manifest.json", names)
+            self.assertIn("service_events.json", names)
+            self.assertIn("evidence_index.json", names)
             self.assertIn("preflight-prerequisites.json", names)
             self.assertIn("INSTALL_ACTION", text)
             self.assertIn("device:i2c-1", text)
+            self.assertIn("target_manifest.json", index["members"])
+            self.assertEqual(target["raspberry_pi"]["model"], "Raspberry Pi 5 Model B")
+            self.assertEqual(service["units"]["gonken-agent.service"]["codes"]["WAKE_LED_GPIO_LINE_AMBIGUOUS"], 2)
             self.assertNotIn("SECRET-DEVICE", text)
             self.assertNotIn("secret.invalid", text)
             self.assertNotIn("do-not-copy", text)

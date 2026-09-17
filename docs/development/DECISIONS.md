@@ -1770,3 +1770,17 @@ This compatibility is a migration mechanism, not a waiver. The goal is to move s
 - **Reason:** These states can make a package appear installed while services, model smoke or operator control remain unusable.
 - **Must avoid:** treating a successful host archive as enough when target service restart, model record, disk headroom or operator control evidence is unsafe.
 - **Consequence:** the internal gate becomes stricter where failure is operationally meaningful, while still remaining below physical Raspberry Pi acceptance.
+
+## 2026-09-17 — Checkpoint 42 single-ZIP target evidence decisions
+
+### D42-01 — Host repair cycles depend on one complete target ZIP, not live device access
+- **Decision:** The supported target handoff unit is now one comprehensive support or installer-failure ZIP containing sanitized target manifest, platform/resource inventory, installer provenance, bounded event summaries and evidence-index metadata.
+- **Reason:** This platform will not have direct access to the physical Raspberry Pi. Requiring separate status reports or ad hoc copied terminal output has repeatedly left decisive hardware/runtime facts outside the package used for repair.
+- **Must avoid:** blocking host-side package improvement merely because live hardware is unavailable here, or accepting an incomplete failure ZIP that omits board, GPIO/I2C/audio/service/resource context.
+- **Consequence:** future target runs should upload the single generated ZIP first; package repair work can then replay and inspect the contained evidence without asking for a second bundle unless a human physical observation is genuinely missing.
+
+### D42-02 — Completeness does not weaken the privacy or physical-acceptance boundary
+- **Decision:** Expanded ZIP contents remain content-free and allow-listed: no raw audio, transcripts, prompts, model responses, credentials, Wi-Fi passphrases, source URLs, Bluetooth selectors or arbitrary raw journal text.
+- **Reason:** The project needs richer machine-readable device evidence, not broader copying of private user content or noisy logs.
+- **Must avoid:** treating ZIP completeness as fan-motion, acoustic-quality, SHT31-placement or wake-recognition proof.
+- **Consequence:** a complete ZIP can drive development and troubleshooting, while physical observations remain target-collected evidence rather than host-inferred claims.

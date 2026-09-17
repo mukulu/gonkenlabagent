@@ -26,11 +26,30 @@ class SupportTests(unittest.TestCase):
         create_bundle(output,self.config,self.health,telemetry)
         with zipfile.ZipFile(output) as z:
             self.assertIsNone(z.testzip())
-            self.assertEqual(set(z.namelist()),{'environment.json','configuration.json','health.json','telemetry.json','environment_control.json','environment_health.json','runtime_bindings.json','install_events.json','service_events.json'})
+            self.assertEqual(set(z.namelist()),{
+                'configuration.json',
+                'environment.json',
+                'environment_control.json',
+                'environment_health.json',
+                'evidence_index.json',
+                'health.json',
+                'install_events.json',
+                'platform_inventory.json',
+                'runtime_bindings.json',
+                'service_events.json',
+                'target_manifest.json',
+                'telemetry.json',
+            })
             raw=b''.join(z.read(name) for name in z.namelist())
         self.assertNotIn(b'private-person',raw);self.assertNotIn(b'private-token',raw)
         self.assertNotIn(str(self.root).encode(),raw)
         self.assertEqual(output.stat().st_mode&0o777,0o600)
+        with zipfile.ZipFile(output) as z:
+            index=json.loads(z.read('evidence_index.json'))
+            target=json.loads(z.read('target_manifest.json'))
+        self.assertIn('target_manifest.json', index['members'])
+        self.assertEqual(target['status'], 'UNAVAILABLE')
+        self.assertFalse(index['physical_acceptance_claimed'])
 
     def test_bundle_preserves_allow_listed_health_reason_codes(self):
         output=self.root/'support-codes.zip'
@@ -56,6 +75,44 @@ class SupportTests(unittest.TestCase):
         self.assertNotIn('stdout', json.dumps(payload))
         self.assertIn('gpio_platform', payload)
         self.assertIn('runtime_context', payload)
+
+    def test_target_manifest_member_embeds_valid_non_actuating_manifest(self):
+        manifest=self.root/'target-manifest.json'
+        manifest.write_text(json.dumps({
+            'format': 'gonken-target-hardware-manifest-v1',
+            'raspberry_pi': {'model': 'Raspberry Pi 5 Model B', 'revision': 'd04170'},
+            'privacy': {
+                'raw_audio_included': False,
+                'transcripts_included': False,
+                'prompts_or_model_responses_included': False,
+            },
+            'physical_acceptance_claimed': False,
+        }), encoding='utf-8')
+        output=self.root/'support-target.zip'
+        create_bundle(output,self.config,self.health,target_manifest=manifest)
+        with zipfile.ZipFile(output) as z:
+            payload=json.loads(z.read('target_manifest.json'))
+        self.assertEqual(payload['support_member_status'], 'READY')
+        self.assertEqual(payload['raspberry_pi']['model'], 'Raspberry Pi 5 Model B')
+        self.assertFalse(payload['physical_acceptance_claimed'])
+
+    def test_target_manifest_member_rejects_privacy_boundary_violation(self):
+        manifest=self.root/'target-manifest-bad.json'
+        manifest.write_text(json.dumps({
+            'format': 'gonken-target-hardware-manifest-v1',
+            'privacy': {
+                'raw_audio_included': True,
+                'transcripts_included': False,
+                'prompts_or_model_responses_included': False,
+            },
+            'physical_acceptance_claimed': False,
+        }), encoding='utf-8')
+        output=self.root/'support-target-bad.zip'
+        create_bundle(output,self.config,self.health,target_manifest=manifest)
+        with zipfile.ZipFile(output) as z:
+            payload=json.loads(z.read('target_manifest.json'))
+        self.assertEqual(payload['status'], 'INVALID')
+        self.assertEqual(payload['detail'], 'target_probe_manifest_privacy_boundary_invalid')
 
     def test_gpio_platform_export_is_allowlisted_and_drops_raw_command_text(self):
         fake = Mock(returncode=0, stdout='gpiochip0 23\t"GPIO23"         output consumer=secret-name\n', stderr='private')

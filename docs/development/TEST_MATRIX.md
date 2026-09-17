@@ -1419,3 +1419,13 @@ Checkpoint 24 closes the host-side root cause and adds regression protection, bu
 | CP41-T227 | Noncurrent corrupt history fixture | `corrupt_historical_noncurrent_manifest.json`; `target_probe.py --replay` | PASS | Confirms historical noise alone does not block a clean current release. |
 | CP41-T228 | Release-readiness fixture matrix | `scripts/release_readiness.py`; `tests/unit/test_release_readiness.py` | PASS | Internal host/target-shadow status only; no Pi candidate. |
 | CP41-T229 | Static syntax and control sync | `compileall`; `milestone_status.py --check`; `git diff --check`; `./scripts/ci.sh --phase t0` | PASS | Host/static only. |
+
+## V09 checkpoint 42 — M10.37 single-ZIP target evidence and failure-bundle completeness
+
+| ID | Scope | Command / artifact | Host result | Target boundary |
+|---|---|---|---:|---|
+| CP42-T230 | Normal support ZIP target evidence completeness | `src/gonken_agent/support.py`; `tests/unit/test_support_export.py` | PASS | ZIP embeds sanitized target manifest when supplied and marks unavailable otherwise; no physical acceptance. |
+| CP42-T231 | Installer-failure ZIP single-upload completeness | `scripts/installer_failure_bundle.py`; `tests/unit/test_v09_installer_failure_bundle.py` | PASS | Early failure bundles include platform inventory, target manifest, bounded service codes and evidence index without raw logs. |
+| CP42-T232 | Installed maintenance wrapper auto-captures target manifest | `scripts/collect-support.sh`; `tests/integration/test_support_collection_process.py` | PASS | Running the target collector automatically invokes non-actuating `target_probe.py` when packaged. |
+| CP42-T233 | Privacy boundary for expanded evidence | support/failure bundle tests | PASS | Rejects privacy-violating target manifests and excludes credentials, raw journal text, audio and transcripts. |
+| CP42-T234 | Milestone/readiness synchronization | `MILESTONES.json`; `release_readiness.py`; `tests/unit/test_release_readiness.py` | PASS | M10.37 is host-verified evidence infrastructure only; target physical evidence remains operator-collected. |
