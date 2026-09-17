@@ -27,7 +27,7 @@ REQUIRED_HOST_VERIFIED = {
     "M9.2", "M9.3", "M9.4", "M9.5",
     "M10.1", "M10.2", "M10.3", "M10.4", "M10.5", "M10.6",
     "M10.8", "M10.9", "M10.10", "M10.11", "M10.12", "M10.13", "M10.14", "M10.15",
-    "M10.16", "M10.17", "M10.18", "M10.19", "M10.20", "M10.21", "M10.22", "M10.23", "M10.25", "M10.26", "M10.27", "M10.28", "M10.29", "M10.30", "M10.31", "M10.32",
+    "M10.16", "M10.17", "M10.18", "M10.19", "M10.20", "M10.21", "M10.22", "M10.23", "M10.25", "M10.26", "M10.27", "M10.28", "M10.29", "M10.30", "M10.31", "M10.32", "M10.33",
 }
 TARGET_CAMPAIGN_ITEMS = {
     "M3.1", "M3.2", "M3.3", "M3.4", "M3.5", "M3.6",
@@ -59,6 +59,30 @@ REQUIRED_TARGET_SHADOW_FIXTURES = (
         "path": "tests/fixtures/target_probe/distinct_duplicate_header_manifest.json",
         "expected_status": "FAIL",
         "expected_code": "GPIO_HEADER_UNRESOLVED",
+    },
+    {
+        "id": "capability_ready_audio_identity_release",
+        "path": "tests/fixtures/target_probe/capability_ready_audio_identity_release_manifest.json",
+        "expected_status": "PASS",
+        "expected_code": "TARGET_SHADOW_READY",
+    },
+    {
+        "id": "ambiguous_audio_route_fail_closed",
+        "path": "tests/fixtures/target_probe/ambiguous_audio_route_manifest.json",
+        "expected_status": "FAIL",
+        "expected_code": "AUDIO_ROUTE_UNRESOLVED",
+    },
+    {
+        "id": "missing_service_identity_fail_closed",
+        "path": "tests/fixtures/target_probe/missing_service_identity_manifest.json",
+        "expected_status": "FAIL",
+        "expected_code": "SERVICE_IDENTITY_UNRESOLVED",
+    },
+    {
+        "id": "dirty_release_state_fail_closed",
+        "path": "tests/fixtures/target_probe/dirty_release_state_manifest.json",
+        "expected_status": "FAIL",
+        "expected_code": "RELEASE_STATE_UNSAFE",
     },
 )
 READY_STATUS = "READY_FOR_HOST_TARGET_SHADOW_GATE"
@@ -180,12 +204,20 @@ def target_shadow_results() -> list[dict[str, Any]]:
             continue
         observed = payload.get("gpio_identity", {}) if isinstance(payload, dict) else {}
         result["observed_status"] = payload.get("status")
-        result["observed_code"] = observed.get("code") if isinstance(observed, dict) else None
+        observed_codes = [
+            payload.get("code"),
+            observed.get("code") if isinstance(observed, dict) else None,
+        ]
+        for check_name in ("privacy_boundary", "audio_duplex", "service_identity", "release_state"):
+            check = payload.get(check_name)
+            if isinstance(check, dict):
+                observed_codes.append(check.get("code"))
+        result["observed_code"] = next((code for code in observed_codes if code == fixture["expected_code"]), observed_codes[0])
         exit_expected = 0 if fixture["expected_status"] == "PASS" else 75
         if (
             completed.returncode == exit_expected
             and result["observed_status"] == fixture["expected_status"]
-            and result["observed_code"] == fixture["expected_code"]
+            and fixture["expected_code"] in observed_codes
             and payload.get("physical_acceptance_claimed") is False
         ):
             result["status"] = "PASS"

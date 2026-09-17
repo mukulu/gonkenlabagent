@@ -1708,3 +1708,23 @@ This compatibility is a migration mechanism, not a waiver. The goal is to move s
 - **Reason:** The previous `READY_FOR_TARGET_ACCEPTANCE` wording was too easy to confuse with physical Raspberry Pi acceptance or permission to ship a user-facing candidate.
 - **Must avoid:** using this status as `RELEASE_CANDIDATE`, `STABLE_FINAL_RELEASE`, `INSTALLATION_COMPLETE` or M10.24 PASS evidence.
 - **Consequence:** the next action remains adding sanitized real-target manifests, broadening target-shadow coverage and qualifying an exact archive before any Pi candidate can be produced.
+
+## 2026-09-17 — Checkpoint 38 target-shadow capability decisions
+
+### D38-01 — Expanded replay checks are explicit fixture contracts
+- **Decision:** `target_probe.py --replay` supports opt-in `target_shadow_requirements` for privacy, GPIO identity, duplex audio, service identity and release state.
+- **Reason:** Historical fixtures must retain their original evidentiary meaning, while new fixtures need stronger replay gates for the failure classes that surfaced after checkpoint 31.
+- **Must avoid:** silently applying new strict checks to old evidence, or letting old narrow evidence satisfy a future full-capability gate.
+- **Consequence:** readiness now requires a mixed fixture set: legacy GPIO fixtures plus explicit PASS/fail-closed capability fixtures.
+
+### D38-02 — Audio fallback is capability evidence, not transport success
+- **Decision:** A target-shadow audio PASS requires one selected capture route and one selected non-HDMI playback route with no ambiguity. A direct USB/wired fallback may satisfy audio capability while Bluetooth remains unavailable.
+- **Reason:** Previous target runs showed Bluetooth preference could block progress even when AIRHUG USB capture/playback was available.
+- **Must avoid:** treating HDMI playback as headset fallback, guessing among ambiguous capture/playback routes, or claiming Bluetooth success from direct-audio fallback.
+- **Consequence:** ambiguous audio fixtures fail closed and future real-target manifests must distinguish preferred transport from usable audio capability.
+
+### D38-03 — Service identity and release state can block replay readiness
+- **Decision:** Required service identity fixtures must prove service users and group memberships; required release-state fixtures must reject dirty installer state, paused/invalid current state and unsafe current paths.
+- **Reason:** Earlier failures came from wrong execution identities, partial installer states, stale release coupling and current-release invalidation after runtime activity.
+- **Must avoid:** accepting root/operator success as service-user success, accepting stale/paused installer state as complete, or treating invalid current-release state as candidate-ready.
+- **Consequence:** target-shadow replay can now block readiness before another target cycle spends time on known downstream failure classes.

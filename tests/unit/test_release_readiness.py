@@ -27,7 +27,7 @@ class ReleaseReadinessTests(unittest.TestCase):
         self.assertFalse(report["secret_findings"])
         self.assertFalse(report["missing_milestones"])
         self.assertFalse(report["not_host_verified"])
-        self.assertEqual(len(report["target_shadow_passed"]), 2)
+        self.assertEqual(len(report["target_shadow_passed"]), 6)
         self.assertFalse(report["target_shadow_failures"])
         remaining = {gate["id"] for gate in report["target_gates_remaining"]}
         self.assertIn("M9.1", remaining)
@@ -36,6 +36,7 @@ class ReleaseReadinessTests(unittest.TestCase):
         self.assertIn("M10.30", report["host_verified"])
         self.assertIn("M10.31", report["host_verified"])
         self.assertIn("M10.32", report["host_verified"])
+        self.assertIn("M10.33", report["host_verified"])
         self.assertIn("M10.26", report["host_verified"])
         self.assertIn("M10.28", report["host_verified"])
         self.assertFalse(report["physical_acceptance_claimed"])
@@ -59,7 +60,7 @@ class ReleaseReadinessTests(unittest.TestCase):
         )
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("Status: READY_FOR_HOST_TARGET_SHADOW_GATE", result.stdout)
-        self.assertIn("Target-shadow fixtures: 2/2", result.stdout)
+        self.assertIn("Target-shadow fixtures: 6/6", result.stdout)
         self.assertIn("Target gates remaining:", result.stdout)
 
     def test_target_shadow_fixture_failure_blocks_readiness(self) -> None:

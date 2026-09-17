@@ -1,0 +1,77 @@
+{
+  "audio": {
+    "capture_routes": [
+      {
+        "id": "usb-a-capture",
+        "status": "observed"
+      },
+      {
+        "id": "usb-b-capture",
+        "status": "observed"
+      }
+    ],
+    "playback_routes": [
+      {
+        "hdmi": false,
+        "id": "usb-a-playback",
+        "status": "observed"
+      }
+    ],
+    "selected_route": {
+      "ambiguous": true,
+      "capture": {
+        "id": "usb-a-capture",
+        "status": "available",
+        "transport": "usb"
+      },
+      "playback": {
+        "hdmi": false,
+        "id": "usb-a-playback",
+        "status": "available",
+        "transport": "usb"
+      },
+      "selection_basis": "ambiguous-direct-capture"
+    }
+  },
+  "captured_at": "2026-09-17T00:00:00+00:00",
+  "format": "gonken-target-hardware-manifest-v1",
+  "gpiochips": [
+    {
+      "alias_paths": [
+        "/dev/gpiochip0"
+      ],
+      "canonical_chip_id": "char:254:0:/sys/devices/platform/rp1/gpiochip0",
+      "chip_info": {
+        "label": "pinctrl-rp1",
+        "name": "gpiochip0",
+        "num_lines": 54
+      },
+      "line_names": {
+        "2": "GPIO2",
+        "3": "GPIO3",
+        "17": "GPIO17",
+        "22": "GPIO22",
+        "23": "GPIO23",
+        "27": "GPIO27"
+      },
+      "path": "/dev/gpiochip0",
+      "stat": {
+        "kind": "char",
+        "major": 254,
+        "minor": 0
+      },
+      "sysfs_realpath": "/sys/devices/platform/rp1/gpiochip0"
+    }
+  ],
+  "physical_acceptance_claimed": false,
+  "privacy": {
+    "prompts_or_model_responses_included": false,
+    "raw_audio_included": false,
+    "transcripts_included": false
+  },
+  "target_shadow_requirements": {
+    "audio_duplex": true,
+    "gpio_identity": true,
+    "privacy_boundary": true
+  }
+}

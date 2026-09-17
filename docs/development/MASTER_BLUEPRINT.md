@@ -1881,3 +1881,17 @@ Checkpoint 30 advanced materially on the real Raspberry Pi: the new strict relea
 **Host acceptance.** Host acceptance requires focused release-readiness tests, target-probe replay tests, milestone/status synchronization, static syntax checks, T0 validation, clean-diff review and package verification from a clean tagged clone. A missing, malformed, unexpected-status or physical-claiming replay fixture blocks readiness.
 
 **Target acceptance.** M10.24/WP-L remains open. A future Pi candidate may be prepared only after the host/target-shadow release-candidate gate is complete, exact-archive verification passes, and the candidate preserves the requirement to run `target_probe.py` before installation, reach `INSTALLATION_COMPLETE`, and then execute `docs/RASPBERRY_PI_ACCEPTANCE_RUN.md` on the real target.
+
+#### M10.33 Target-shadow capability and state replay expansion
+
+**Purpose.** Target-shadow replay SHALL broaden from GPIO identity alone to the next known classes that repeatedly changed the target failure surface: usable non-HDMI duplex audio, service-user identity/group readiness and current-release/installer state cleanliness. These checks remain replay evidence and do not replace live target operation.
+
+**Opt-in replay contracts.** Sanitized manifests MAY declare `target_shadow_requirements`. Legacy GPIO fixtures keep their historical scope. Capability fixtures can require `audio_duplex`, `service_identity` and `release_state` so each check is explicit, reviewable and independently testable.
+
+**Audio capability replay.** A required audio fixture must prove one selected capture route and one selected non-HDMI playback route, with no ambiguity flag. Bluetooth may be unavailable when a deterministic direct USB/wired route is selected; replay must not claim Bluetooth success from fallback evidence.
+
+**Identity and release-state replay.** A required identity fixture must prove `gonken-agent` has `audio` and `gpio` groups and `gonken-env` has `gpio` and `i2c`. A required release-state fixture must reject dirty installer state, non-complete paused state, invalid current status and unsafe current-release paths.
+
+**Host acceptance.** Host acceptance requires PASS and fail-closed fixtures for the expanded capability matrix, release-readiness inclusion of all required fixtures, focused target-probe/readiness tests, static syntax checks, milestone/status synchronization, T0 validation and clean tagged package verification.
+
+**Target acceptance.** M10.24/WP-L remains open. Real microphone/speaker behavior, Bluetooth runtime behavior, service start/restart, current-release installation, `INSTALLATION_COMPLETE`, relay/fan, SHT31, voice/wake, reboot/no-login and update/rollback/reinstall still require the real Raspberry Pi campaign.

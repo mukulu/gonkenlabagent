@@ -1,6 +1,6 @@
 {
   "baseline_commit": "6466f26a1a9cb97e4c24182505b37cefb766b3c3",
-  "checkpoint_scope": "V09 checkpoint 37 integrates target-shadow replay into release-readiness gating on top of checkpoint 36. The repository now requires replay of the duplicate-RP1-alias PASS fixture and distinct-duplicate expected-FAIL fixture before reporting READY_FOR_HOST_TARGET_SHADOW_GATE. M10.32 is host-verified as an internal reliability gate only; no Raspberry Pi release candidate or physical acceptance is claimed. A real target manifest expansion, exact archive qualification and the M10.24 hardware/voice/lifecycle campaign remain open.",
+  "checkpoint_scope": "V09 checkpoint 38 expands target-shadow replay beyond GPIO identity into explicit opt-in checks for duplex audio capability, service identity and release-state cleanliness. Release readiness now requires six replay fixtures: legacy GPIO alias/duplicate coverage plus full capability PASS, ambiguous audio expected FAIL, missing service identity expected FAIL and dirty release-state expected FAIL. M10.33 is host-verified as internal replay evidence only; no Raspberry Pi release candidate or physical acceptance is claimed. Real target manifest expansion, exact archive qualification and the M10.24 hardware/voice/lifecycle campaign remain open.",
   "milestones": [
     {
       "evidence": "TEST_MATRIX.md (M2.1)",
@@ -508,6 +508,14 @@
       "software": "host-verified",
       "target": "not-run",
       "title": "Release-readiness target-shadow gate"
+    },
+    {
+      "evidence": "scripts/target_probe.py; scripts/release_readiness.py; tests/unit/test_v09_target_probe.py; tests/unit/test_release_readiness.py; tests/fixtures/target_probe/capability_ready_audio_identity_release_manifest.json; tests/fixtures/target_probe/ambiguous_audio_route_manifest.json; tests/fixtures/target_probe/missing_service_identity_manifest.json; tests/fixtures/target_probe/dirty_release_state_manifest.json; docs/development/V09_CHECKPOINT_38_TARGET_SHADOW_CAPABILITY_REPORT.md; docs/development/MASTER_BLUEPRINT.md; docs/development/DECISIONS.md; docs/development/TEST_MATRIX.md",
+      "id": "M10.33",
+      "remaining": "This checkpoint expands host/target-shadow replay only. A real Raspberry Pi must still capture sanitized target manifests for the exact hardware/service/release state, exact archive qualification remains open, and no Raspberry Pi RELEASE_CANDIDATE may be prepared until the complete host/target-shadow release-candidate gate is satisfied.",
+      "software": "host-verified",
+      "target": "not-run",
+      "title": "Target-shadow capability and state replay expansion"
     }
   ],
   "schema_version": 1

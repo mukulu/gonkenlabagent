@@ -35,6 +35,18 @@ SERVICE_UNITS = (
     "bluetooth.service",
     "gonken-bluetooth-autoconnect.service",
 )
+TARGET_SHADOW_REQUIREMENTS = {
+    "gpio_identity": True,
+    "privacy_boundary": True,
+    "audio_duplex": False,
+    "service_identity": False,
+    "release_state": False,
+}
+SERVICE_IDENTITY_REQUIREMENTS = {
+    "gonken-agent": frozenset({"audio", "gpio"}),
+    "gonken-env": frozenset({"gpio", "i2c"}),
+}
+RELEASE_ROOT = "/usr/local/lib/gonken-agent/releases/"
 
 
 def _clean(value: object, limit: int = 240) -> str:
@@ -375,13 +387,155 @@ def replay_gpio_identity(manifest: dict[str, object], required_gpios: Iterable[i
     return {"status": "PASS", "code": "GPIO_HEADER_RESOLVED", "chip_path": next(iter(chip_paths)), "lines": resolved}
 
 
+def _manifest_requirements(manifest: dict[str, object]) -> dict[str, bool]:
+    requirements = dict(TARGET_SHADOW_REQUIREMENTS)
+    requested = manifest.get("target_shadow_requirements")
+    if isinstance(requested, dict):
+        for key in requirements:
+            value = requested.get(key)
+            if isinstance(value, bool):
+                requirements[key] = value
+    return requirements
+
+
+def replay_privacy_boundary(manifest: dict[str, object]) -> dict[str, object]:
+    privacy = manifest.get("privacy")
+    if not isinstance(privacy, dict):
+        return {"status": "FAIL", "code": "PRIVACY_BOUNDARY_UNDECLARED", "detail": "privacy"}
+    unsafe = []
+    for field in ("raw_audio_included", "transcripts_included", "prompts_or_model_responses_included"):
+        if privacy.get(field) is not False:
+            unsafe.append(field)
+    if manifest.get("physical_acceptance_claimed") is not False:
+        unsafe.append("physical_acceptance_claimed")
+    if unsafe:
+        return {"status": "FAIL", "code": "PRIVACY_BOUNDARY_FAILED", "detail": ",".join(sorted(unsafe))}
+    return {"status": "PASS", "code": "PRIVACY_BOUNDARY_CONTENT_FREE"}
+
+
+def _route_status(route: object) -> str:
+    return str(route.get("status", "") if isinstance(route, dict) else "").casefold()
+
+
+def replay_audio_duplex(manifest: dict[str, object]) -> dict[str, object]:
+    audio = manifest.get("audio")
+    if not isinstance(audio, dict):
+        return {"status": "FAIL", "code": "AUDIO_ROUTE_UNDECLARED", "detail": "audio"}
+    selected = audio.get("selected_route")
+    if not isinstance(selected, dict):
+        return {"status": "FAIL", "code": "AUDIO_ROUTE_UNRESOLVED", "detail": "selected_route"}
+    capture = selected.get("capture")
+    playback = selected.get("playback")
+    problems = []
+    if not isinstance(capture, dict) or _route_status(capture) not in {"available", "ready", "observed"}:
+        problems.append("capture")
+    if not isinstance(playback, dict) or _route_status(playback) not in {"available", "ready", "observed"}:
+        problems.append("playback")
+    if isinstance(playback, dict) and playback.get("hdmi") is True:
+        problems.append("hdmi-playback")
+    if selected.get("ambiguous") is True:
+        problems.append("ambiguous")
+    if problems:
+        return {"status": "FAIL", "code": "AUDIO_ROUTE_UNRESOLVED", "detail": ",".join(sorted(problems))}
+    return {
+        "status": "PASS",
+        "code": "AUDIO_DUPLEX_ROUTE_RESOLVED",
+        "capture": capture.get("id", "") if isinstance(capture, dict) else "",
+        "playback": playback.get("id", "") if isinstance(playback, dict) else "",
+        "selection_basis": selected.get("selection_basis", ""),
+    }
+
+
+def replay_service_identity(manifest: dict[str, object]) -> dict[str, object]:
+    identity = manifest.get("identity")
+    if not isinstance(identity, dict):
+        return {"status": "FAIL", "code": "SERVICE_IDENTITY_UNDECLARED", "detail": "identity"}
+    service_users = identity.get("service_users")
+    if not isinstance(service_users, dict):
+        return {"status": "FAIL", "code": "SERVICE_IDENTITY_UNDECLARED", "detail": "service_users"}
+    missing = []
+    for user, required_groups in SERVICE_IDENTITY_REQUIREMENTS.items():
+        payload = service_users.get(user)
+        if not isinstance(payload, dict) or payload.get("exists") is not True:
+            missing.append(user)
+            continue
+        groups = {str(group) for group in payload.get("groups", []) if isinstance(group, str)}
+        missing_groups = sorted(required_groups - groups)
+        if missing_groups:
+            missing.append(f"{user}:{','.join(missing_groups)}")
+    if missing:
+        return {"status": "FAIL", "code": "SERVICE_IDENTITY_UNRESOLVED", "detail": ";".join(missing)}
+    return {"status": "PASS", "code": "SERVICE_IDENTITY_RESOLVED"}
+
+
+def replay_release_state(manifest: dict[str, object]) -> dict[str, object]:
+    release = manifest.get("release")
+    if not isinstance(release, dict):
+        return {"status": "FAIL", "code": "RELEASE_STATE_UNDECLARED", "detail": "release"}
+    current = str(release.get("current", ""))
+    installer = release.get("installer_state")
+    problems = []
+    if not current.startswith(RELEASE_ROOT) or ".." in Path(current).parts:
+        problems.append("current")
+    current_status = str(release.get("current_status", "")).casefold()
+    if current_status and current_status not in {"verified", "none"}:
+        problems.append("current_status")
+    if not isinstance(installer, dict):
+        problems.append("installer_state")
+    else:
+        if installer.get("dirty") is True:
+            problems.append("installer_dirty")
+        status = str(installer.get("status", "")).casefold()
+        if status and status not in {"complete", "none"}:
+            problems.append("installer_status")
+        if str(installer.get("path", "")) != "/var/lib/gonken-agent/install":
+            problems.append("installer_path")
+    if problems:
+        return {"status": "FAIL", "code": "RELEASE_STATE_UNSAFE", "detail": ",".join(sorted(problems))}
+    return {"status": "PASS", "code": "RELEASE_STATE_SAFE"}
+
+
+def _first_failed_code(checks: Iterable[dict[str, object]]) -> str:
+    for check in checks:
+        if check.get("status") != "PASS":
+            return str(check.get("code") or "TARGET_SHADOW_FAILED")
+    return "TARGET_SHADOW_READY"
+
+
 def replay_manifest(manifest: dict[str, object], required_gpios: Iterable[int] = DEFAULT_REQUIRED_GPIOS) -> dict[str, object]:
+    requirements = _manifest_requirements(manifest)
     gpio = replay_gpio_identity(manifest, required_gpios)
+    format_check = {
+        "status": "PASS" if manifest.get("format") == FORMAT else "FAIL",
+        "code": "MANIFEST_FORMAT_VALID" if manifest.get("format") == FORMAT else "MANIFEST_FORMAT_INVALID",
+    }
+    privacy = replay_privacy_boundary(manifest)
+    audio = replay_audio_duplex(manifest)
+    identity = replay_service_identity(manifest)
+    release = replay_release_state(manifest)
+    required_checks = [format_check]
+    if requirements["privacy_boundary"]:
+        required_checks.append(privacy)
+    if requirements["gpio_identity"]:
+        required_checks.append(gpio)
+    if requirements["audio_duplex"]:
+        required_checks.append(audio)
+    if requirements["service_identity"]:
+        required_checks.append(identity)
+    if requirements["release_state"]:
+        required_checks.append(release)
+    status = "PASS" if all(check.get("status") == "PASS" for check in required_checks) else "FAIL"
     return {
         "format": REPLAY_FORMAT,
         "manifest_format": manifest.get("format"),
-        "status": "PASS" if manifest.get("format") == FORMAT and gpio["status"] == "PASS" else "FAIL",
+        "status": status,
+        "code": "TARGET_SHADOW_READY" if status == "PASS" else _first_failed_code(required_checks),
+        "requirements": requirements,
         "gpio_identity": gpio,
+        "privacy_boundary": privacy,
+        "audio_duplex": audio,
+        "service_identity": identity,
+        "release_state": release,
         "physical_acceptance_claimed": False,
     }
 

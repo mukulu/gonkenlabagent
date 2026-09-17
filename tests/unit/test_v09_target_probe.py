@@ -83,6 +83,34 @@ class TargetProbeTests(unittest.TestCase):
         self.assertEqual(result["status"], "FAIL")
         self.assertEqual(result["gpio_identity"]["code"], "GPIO_HEADER_UNRESOLVED")
 
+    def test_capability_ready_fixture_replays_full_target_shadow_gate(self):
+        result = target_probe.replay_manifest(self.fixture("capability_ready_audio_identity_release_manifest.json"))
+        self.assertEqual(result["status"], "PASS")
+        self.assertEqual(result["code"], "TARGET_SHADOW_READY")
+        self.assertEqual(result["audio_duplex"]["code"], "AUDIO_DUPLEX_ROUTE_RESOLVED")
+        self.assertEqual(result["service_identity"]["code"], "SERVICE_IDENTITY_RESOLVED")
+        self.assertEqual(result["release_state"]["code"], "RELEASE_STATE_SAFE")
+        self.assertFalse(result["physical_acceptance_claimed"])
+
+    def test_ambiguous_audio_fixture_fails_closed(self):
+        result = target_probe.replay_manifest(self.fixture("ambiguous_audio_route_manifest.json"))
+        self.assertEqual(result["status"], "FAIL")
+        self.assertEqual(result["code"], "AUDIO_ROUTE_UNRESOLVED")
+        self.assertEqual(result["audio_duplex"]["status"], "FAIL")
+
+    def test_missing_service_identity_fixture_fails_closed(self):
+        result = target_probe.replay_manifest(self.fixture("missing_service_identity_manifest.json"))
+        self.assertEqual(result["status"], "FAIL")
+        self.assertEqual(result["code"], "SERVICE_IDENTITY_UNRESOLVED")
+        self.assertIn("gonken-agent:gpio", result["service_identity"]["detail"])
+        self.assertIn("gonken-env:i2c", result["service_identity"]["detail"])
+
+    def test_dirty_release_state_fixture_fails_closed(self):
+        result = target_probe.replay_manifest(self.fixture("dirty_release_state_manifest.json"))
+        self.assertEqual(result["status"], "FAIL")
+        self.assertEqual(result["code"], "RELEASE_STATE_UNSAFE")
+        self.assertIn("installer_dirty", result["release_state"]["detail"])
+
     def test_manifest_capture_is_content_free_and_non_actuating(self):
         rp1 = [None] * 54
         for bcm in (2, 3, 17, 22, 23, 27):
@@ -130,6 +158,16 @@ class TargetProbeTests(unittest.TestCase):
         self.assertEqual(json.loads(ok.stdout)["status"], "PASS")
         self.assertEqual(failed.returncode, 75)
         self.assertEqual(json.loads(failed.stdout)["status"], "FAIL")
+
+    def test_cli_replay_exit_codes_for_capability_fixtures(self):
+        good = ROOT / "tests" / "fixtures" / "target_probe" / "capability_ready_audio_identity_release_manifest.json"
+        bad = ROOT / "tests" / "fixtures" / "target_probe" / "ambiguous_audio_route_manifest.json"
+        ok = subprocess.run([sys.executable, str(ROOT / "scripts" / "target_probe.py"), "--replay", str(good), "--json"], text=True, capture_output=True, check=False)
+        failed = subprocess.run([sys.executable, str(ROOT / "scripts" / "target_probe.py"), "--replay", str(bad), "--json"], text=True, capture_output=True, check=False)
+        self.assertEqual(ok.returncode, 0, ok.stderr)
+        self.assertEqual(json.loads(ok.stdout)["code"], "TARGET_SHADOW_READY")
+        self.assertEqual(failed.returncode, 75)
+        self.assertEqual(json.loads(failed.stdout)["code"], "AUDIO_ROUTE_UNRESOLVED")
 
 
 if __name__ == "__main__":

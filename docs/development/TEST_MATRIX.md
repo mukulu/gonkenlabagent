@@ -1370,3 +1370,15 @@ Checkpoint 24 closes the host-side root cause and adds regression protection, bu
 | CP37-T198 | Failure blocks readiness | `tests.unit.test_release_readiness.ReleaseReadinessTests.test_target_shadow_fixture_failure_blocks_readiness` | PASS | Missing/malformed/unexpected replay evidence cannot be waived into readiness. |
 | CP37-T199 | Static syntax and control sync | `compileall`; `milestone_status.py --check`; `git diff --check`; `./scripts/ci.sh --phase t0` | PASS | Host/static only. |
 | CP37-T200 | Real target manifest expansion and exact archive qualification | future sanitized manifests and clean tagged archive verification | NOT RUN / BLOCKED TARGET GATE | Required before any user-facing Raspberry Pi candidate. |
+
+## V09 checkpoint 38 — M10.33 target-shadow capability and state replay expansion
+
+| ID | Scope | Command / artifact | Host result | Target boundary |
+|---|---|---|---:|---|
+| CP38-T201 | Opt-in expanded replay contract | `target_shadow_requirements` in target-probe fixtures | PASS | Fixture replay only; no physical acceptance. |
+| CP38-T202 | Full capability-ready replay fixture | `capability_ready_audio_identity_release_manifest.json`; `target_probe.py --replay` | PASS | Proves replay semantics only; no real audio/service/release operation. |
+| CP38-T203 | Ambiguous audio fail-closed fixture | `ambiguous_audio_route_manifest.json`; `target_probe.py --replay` | PASS — expected FAIL with exit 75 | Blocks guessed capture/playback route selection. |
+| CP38-T204 | Service identity fail-closed fixture | `missing_service_identity_manifest.json`; `target_probe.py --replay` | PASS — expected FAIL with exit 75 | Blocks missing service-user group evidence. |
+| CP38-T205 | Dirty release-state fail-closed fixture | `dirty_release_state_manifest.json`; `target_probe.py --replay` | PASS — expected FAIL with exit 75 | Blocks paused/dirty/invalid release state evidence. |
+| CP38-T206 | Release-readiness fixture matrix | `scripts/release_readiness.py`; `tests/unit/test_release_readiness.py` | PASS | Internal host/target-shadow status only; no Pi candidate. |
+| CP38-T207 | Static syntax and control sync | `compileall`; `milestone_status.py --check`; `git diff --check`; `./scripts/ci.sh --phase t0` | PASS | Host/static only. |
