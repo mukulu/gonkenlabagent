@@ -1853,3 +1853,19 @@ Checkpoint 30 advanced materially on the real Raspberry Pi: the new strict relea
 **Host acceptance.** Host acceptance requires a regression proving duplicate `/dev/gpiochip*` paths with the same canonical RP1 identity deduplicate and pass, a regression proving distinct complete header-like controllers still fail, preflight JSON evidence fields for canonical ID/alias paths, focused GPIO unit tests, static syntax/compile checks, milestone/status synchronization and dirty-worktree review.
 
 **Target acceptance.** Physical acceptance remains M10.24/WP-L. The exact future Pi candidate must capture a target hardware manifest before installation, replay it as a target-shadow fixture, pass early `target_gpio_identity`, reach `INSTALLATION_COMPLETE`, and then complete real fan, SHT31, voice, reboot/no-login, fault, update/rollback/reinstall and final support/privacy gates.
+
+#### M10.31 Sanitized target manifest and target-shadow GPIO replay
+
+**Purpose.** The reliability-first gate requires target evidence to become replayable host evidence. A successful Pi probe should produce a content-free, non-actuating manifest that can be committed as a sanitized fixture and used to replay topology-specific failure classes before another package is handed to the Raspberry Pi.
+
+**Target manifest tool.** `scripts/target_probe.py` SHALL collect a `gonken-target-hardware-manifest-v1` JSON document containing platform/kernel/OS/Python/libgpiod facts, gpiochip stat/sysfs/chip/line metadata, I2C device inventory, non-content audio route inventory, Bluetooth inventory, systemd unit state, service identity groups, current release state and privacy flags. The live probe SHALL NOT request GPIO lines, toggle the relay or LEDs, scan arbitrary I2C addresses, read audio content, include transcripts/prompts/model responses, or claim physical acceptance.
+
+**Target-shadow replay.** The same tool SHALL support `--replay <manifest>` and validate GPIO17/22/23/27 identity using the same reliability semantics as the resolver: canonical alias deduplication first, then line-name/RP1/header-topology resolution, with fail-closed behavior for genuinely distinct plausible header controllers. Replay PASS is host/target-shadow evidence only; it does not establish physical relay, sensor or voice acceptance.
+
+**Fixtures.** The repository SHALL include a checkpoint-34 duplicate-RP1-alias manifest fixture that replays PASS and a distinct-duplicate-header fixture that replays FAIL. These fixtures prevent the alias repair from regressing into either false ambiguity or first-path-wins behavior.
+
+**Release payload.** `target_probe.py` SHALL be copied into immutable release maintenance payloads so installed targets can capture/replay the same manifest shape without relying on a source checkout.
+
+**Host acceptance.** Host acceptance requires replay fixture tests, live-collection tests with fake libgpiod/stat metadata, CLI replay exit-code tests, atomic private output tests, release-maintenance inclusion tests, static syntax/compile checks, milestone/status synchronization and T0 validation.
+
+**Target acceptance.** Target acceptance remains blocked until a real Raspberry Pi runs the live probe, uploads the sanitized manifest, the manifest is reviewed for privacy, and the corresponding target-shadow fixture passes before any future Pi candidate package is produced.

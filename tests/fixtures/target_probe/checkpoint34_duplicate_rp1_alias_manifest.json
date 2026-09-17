@@ -1,0 +1,114 @@
+{
+  "audio": {
+    "capture_routes": [],
+    "playback_routes": [],
+    "selected_route": null
+  },
+  "bluetooth": {
+    "controller": "",
+    "devices": []
+  },
+  "captured_at": "2026-09-17T00:00:00+00:00",
+  "commit": "f8fb2e700000000000000000000000000000000",
+  "format": "gonken-target-hardware-manifest-v1",
+  "gpiochips": [
+    {
+      "alias_paths": [
+        "/dev/gpiochip0",
+        "/dev/gpiochip4"
+      ],
+      "canonical_chip_id": "char:254:0:/sys/devices/platform/rp1/gpiochip0",
+      "chip_info": {
+        "label": "pinctrl-rp1",
+        "name": "gpiochip0",
+        "num_lines": 54
+      },
+      "line_names": {
+        "2": "GPIO2",
+        "3": "GPIO3",
+        "17": "GPIO17",
+        "22": "GPIO22",
+        "23": "GPIO23",
+        "27": "GPIO27"
+      },
+      "path": "/dev/gpiochip0",
+      "stat": {
+        "kind": "char",
+        "major": 254,
+        "minor": 0
+      },
+      "sysfs_realpath": "/sys/devices/platform/rp1/gpiochip0"
+    },
+    {
+      "alias_paths": [
+        "/dev/gpiochip0",
+        "/dev/gpiochip4"
+      ],
+      "canonical_chip_id": "char:254:0:/sys/devices/platform/rp1/gpiochip0",
+      "chip_info": {
+        "label": "pinctrl-rp1",
+        "name": "gpiochip0",
+        "num_lines": 54
+      },
+      "line_names": {
+        "2": "GPIO2",
+        "3": "GPIO3",
+        "17": "GPIO17",
+        "22": "GPIO22",
+        "23": "GPIO23",
+        "27": "GPIO27"
+      },
+      "path": "/dev/gpiochip4",
+      "stat": {
+        "kind": "char",
+        "major": 254,
+        "minor": 0
+      },
+      "sysfs_realpath": "/sys/devices/platform/rp1/gpiochip0"
+    }
+  ],
+  "i2c": {
+    "devices": [
+      "i2c-1"
+    ],
+    "sht31_targeted_probe": {
+      "address": "0x44",
+      "bus": "/dev/i2c-1",
+      "status": "not_probed_non_actuating_manifest"
+    }
+  },
+  "identity": {
+    "operator_groups": [],
+    "service_users": {}
+  },
+  "physical_acceptance_claimed": false,
+  "privacy": {
+    "prompts_or_model_responses_included": false,
+    "raw_audio_included": false,
+    "transcripts_included": false
+  },
+  "python": {
+    "executable": "/usr/bin/python3",
+    "libgpiod": "available",
+    "version": "3.13"
+  },
+  "raspberry_pi": {
+    "kernel": "6.18.39+rpt-rpi-2712",
+    "model": "Raspberry Pi 5 Model B",
+    "os_release": {
+      "VERSION_CODENAME": "trixie"
+    },
+    "revision": ""
+  },
+  "release": {
+    "current": "",
+    "installer_state": {
+      "exists": false,
+      "path": "/var/lib/gonken-agent/install"
+    }
+  },
+  "systemd": {
+    "units": {},
+    "version": ""
+  }
+}

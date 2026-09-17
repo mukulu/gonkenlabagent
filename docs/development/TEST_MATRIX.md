@@ -1348,3 +1348,15 @@ Checkpoint 24 closes the host-side root cause and adds regression protection, bu
 | CP35-T186 | Focused GPIO regression | `PYTHONPATH=src python -m unittest tests.unit.test_v09_gpio_identity_preflight tests.unit.test_m5_1_ptt_runtime tests.unit.test_v09_environment_hardware_adapters -v` | PASS | Host fake libgpiod only; no physical actuation. |
 | CP35-T187 | Static syntax and milestone/status synchronization | `compileall`; `python scripts/milestone_status.py --check`; `git diff --check` | PASS | T0 host only. |
 | CP35-T188 | Raspberry Pi candidate gate | host/target-shadow release-candidate gate from reliability blueprint | NOT RUN / BLOCKED TARGET GATE | No user-facing `RELEASE_CANDIDATE` until complete. |
+
+## V09 checkpoint 36 — M10.31 sanitized target manifest and target-shadow replay
+
+| ID | Scope | Command / artifact | Host result | Target boundary |
+|---|---|---|---:|---|
+| CP36-T189 | Target manifest tool | `scripts/target_probe.py` | PASS by unit tests | Live real-Pi manifest capture remains target-run work. |
+| CP36-T190 | Checkpoint-34 duplicate RP1 alias replay | `tests/fixtures/target_probe/checkpoint34_duplicate_rp1_alias_manifest.json`; `target_probe.py --replay` | PASS | Host/target-shadow only; no physical acceptance. |
+| CP36-T191 | Distinct duplicate header replay | `tests/fixtures/target_probe/distinct_duplicate_header_manifest.json`; `target_probe.py --replay` | PASS — expected FAIL with exit 75 | Confirms fail-closed boundary is preserved. |
+| CP36-T192 | Target probe unit suite | `PYTHONPATH=src python3 -m unittest tests.unit.test_v09_target_probe -v` | PASS — 6 tests | Fake libgpiod/stat metadata only. |
+| CP36-T193 | Release maintenance payload inclusion | `tests.unit.test_m3_3_release_manager...test_speech_and_service_maintenance_inputs_are_release_payload_contract` | PASS | Ensures installed releases carry the probe helper. |
+| CP36-T194 | Static syntax and control sync | `compileall`; `milestone_status.py --check`; `git diff --check`; `./scripts/ci.sh --phase t0` | PASS | Host/static only. |
+| CP36-T195 | Real Raspberry Pi target manifest | `target_probe.py --json --output ...` on target | NOT RUN / BLOCKED TARGET GATE | Required before any future user-facing Pi candidate. |

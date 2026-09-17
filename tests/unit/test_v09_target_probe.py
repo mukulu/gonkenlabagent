@@ -1,0 +1,136 @@
+from __future__ import annotations
+
+import importlib.util
+import json
+import os
+import stat
+import subprocess
+import sys
+import tempfile
+import unittest
+from pathlib import Path
+from types import SimpleNamespace
+from unittest import mock
+
+ROOT = Path(__file__).resolve().parents[2]
+SPEC = importlib.util.spec_from_file_location("target_probe", ROOT / "scripts" / "target_probe.py")
+assert SPEC and SPEC.loader
+target_probe = importlib.util.module_from_spec(SPEC)
+sys.modules[SPEC.name] = target_probe
+SPEC.loader.exec_module(target_probe)
+
+
+class FakeChip:
+    def __init__(self, lines, *, label="pinctrl-rp1", name="gpiochip0"):
+        self.lines = list(lines)
+        self.label = label
+        self.name = name
+        self.closed = False
+
+    def get_info(self):
+        return SimpleNamespace(num_lines=len(self.lines), label=self.label, name=self.name)
+
+    def get_line_info(self, offset):
+        return SimpleNamespace(name=self.lines[offset])
+
+    def close(self):
+        self.closed = True
+
+
+class FakeGpiod:
+    def __init__(self, chips):
+        self.chips = chips
+
+    def Chip(self, path):
+        return FakeChip(self.chips[path])
+
+
+def fake_stat_for_same_device(path):
+    return SimpleNamespace(st_mode=stat.S_IFCHR | 0o600, st_rdev=os.makedev(254, 0))
+
+
+class TargetProbeTests(unittest.TestCase):
+    def fixture(self, name: str) -> dict[str, object]:
+        path = ROOT / "tests" / "fixtures" / "target_probe" / name
+        return json.loads(path.read_text(encoding="utf-8"))
+
+    def test_live_gpio_collection_records_canonical_identity_and_alias_paths(self):
+        rp1 = [None] * 54
+        for bcm in (2, 3, 17, 22, 23, 27):
+            rp1[bcm] = f"GPIO{bcm}"
+        chips = target_probe._collect_gpiochips(
+            gpiod_module=FakeGpiod({"/dev/gpiochip0": rp1, "/dev/gpiochip4": list(rp1)}),
+            chip_paths=("/dev/gpiochip0", "/dev/gpiochip4"),
+            stat_func=fake_stat_for_same_device,
+        )
+        self.assertEqual(len(chips), 2)
+        for chip in chips:
+            self.assertTrue(str(chip["canonical_chip_id"]).startswith("char:254:0:"))
+            self.assertEqual(chip["alias_paths"], ["/dev/gpiochip0", "/dev/gpiochip4"])
+            self.assertEqual(chip["line_names"]["23"], "GPIO23")
+
+    def test_checkpoint34_duplicate_rp1_alias_fixture_replays_pass(self):
+        result = target_probe.replay_manifest(self.fixture("checkpoint34_duplicate_rp1_alias_manifest.json"))
+        self.assertEqual(result["status"], "PASS")
+        gpio = result["gpio_identity"]
+        self.assertEqual(gpio["status"], "PASS")
+        self.assertEqual(gpio["code"], "GPIO_HEADER_RESOLVED")
+        self.assertEqual(gpio["lines"]["GPIO23"]["alias_paths"], ["/dev/gpiochip0", "/dev/gpiochip4"])
+        self.assertFalse(result["physical_acceptance_claimed"])
+
+    def test_distinct_duplicate_header_fixture_fails_closed(self):
+        result = target_probe.replay_manifest(self.fixture("distinct_duplicate_header_manifest.json"))
+        self.assertEqual(result["status"], "FAIL")
+        self.assertEqual(result["gpio_identity"]["code"], "GPIO_HEADER_UNRESOLVED")
+
+    def test_manifest_capture_is_content_free_and_non_actuating(self):
+        rp1 = [None] * 54
+        for bcm in (2, 3, 17, 22, 23, 27):
+            rp1[bcm] = f"GPIO{bcm}"
+        with mock.patch.object(target_probe, "_git_commit", return_value="a" * 40), \
+             mock.patch.object(target_probe, "_pi_model", return_value={"model": "fixture", "revision": "", "kernel": "test", "os_release": {}}), \
+             mock.patch.object(target_probe, "_python_info", return_value={"version": "3.13", "executable": "/usr/bin/python3", "libgpiod": "available"}), \
+             mock.patch.object(target_probe, "_audio_inventory", return_value={"capture_routes": [], "playback_routes": [], "selected_route": None}), \
+             mock.patch.object(target_probe, "_bluetooth_inventory", return_value={"controller": "", "devices": []}), \
+             mock.patch.object(target_probe, "_unit_state", return_value={"active": "unknown"}), \
+             mock.patch.object(target_probe, "_systemd_version", return_value="systemd 999"), \
+             mock.patch.object(target_probe, "_identity", return_value={"service_users": {}, "operator_groups": []}), \
+             mock.patch.object(target_probe, "_release_state", return_value={"current": "", "installer_state": {}}):
+            manifest = target_probe.collect_manifest(
+                gpiod_module=FakeGpiod({"/dev/gpiochip0": rp1}),
+                chip_paths=("/dev/gpiochip0",),
+                stat_func=fake_stat_for_same_device,
+            )
+        self.assertEqual(manifest["format"], target_probe.FORMAT)
+        self.assertFalse(manifest["physical_acceptance_claimed"])
+        self.assertEqual(manifest["privacy"]["raw_audio_included"], False)
+        self.assertEqual(manifest["privacy"]["transcripts_included"], False)
+        self.assertEqual(manifest["i2c"]["sht31_targeted_probe"]["status"], "not_probed_non_actuating_manifest")
+
+    def test_atomic_output_is_private_and_replaced(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            path = Path(temporary) / "target-manifest.json"
+            target_probe.atomic_json(path, {"format": target_probe.FORMAT, "status": "PASS"})
+            first = json.loads(path.read_text(encoding="utf-8"))
+            mode = path.stat().st_mode & 0o777
+            target_probe.atomic_json(path, {"format": target_probe.FORMAT, "status": "FAIL"})
+            second = json.loads(path.read_text(encoding="utf-8"))
+            leftovers = list(path.parent.glob(f".{path.name}.*"))
+        self.assertEqual(first["status"], "PASS")
+        self.assertEqual(second["status"], "FAIL")
+        self.assertEqual(mode, 0o600)
+        self.assertEqual(leftovers, [])
+
+    def test_cli_replay_exit_codes(self):
+        good = ROOT / "tests" / "fixtures" / "target_probe" / "checkpoint34_duplicate_rp1_alias_manifest.json"
+        bad = ROOT / "tests" / "fixtures" / "target_probe" / "distinct_duplicate_header_manifest.json"
+        ok = subprocess.run([sys.executable, str(ROOT / "scripts" / "target_probe.py"), "--replay", str(good), "--json"], text=True, capture_output=True, check=False)
+        failed = subprocess.run([sys.executable, str(ROOT / "scripts" / "target_probe.py"), "--replay", str(bad), "--json"], text=True, capture_output=True, check=False)
+        self.assertEqual(ok.returncode, 0, ok.stderr)
+        self.assertEqual(json.loads(ok.stdout)["status"], "PASS")
+        self.assertEqual(failed.returncode, 75)
+        self.assertEqual(json.loads(failed.stdout)["status"], "FAIL")
+
+
+if __name__ == "__main__":
+    unittest.main()

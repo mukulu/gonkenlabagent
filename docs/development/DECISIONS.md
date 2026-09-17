@@ -1680,3 +1680,17 @@ This compatibility is a migration mechanism, not a waiver. The goal is to move s
 - **Reason:** The post-CKPT34 evidence reports duplicate gpiochip paths with the same RP1 identity for the project header lines. Path strings alone are not hardware identity.
 - **Must avoid:** first-path-wins selection, hard-coded gpiochip numbers, deduplicating distinct character devices, or actuator line requests during discovery.
 - **Consequence:** true aliases can resolve safely, while genuinely distinct plausible header controllers still fail closed for the affected feature/profile.
+
+## 2026-09-17 — Checkpoint 36 target-shadow decisions
+
+### D36-01 — Target manifests are content-free, non-actuating evidence
+- **Decision:** Use `scripts/target_probe.py` to capture sanitized target manifests. The probe records platform, gpiochip, I2C, audio-route, Bluetooth, systemd, identity and release-state metadata, but never requests GPIO lines, toggles hardware, scans arbitrary I2C addresses, captures audio, or includes transcripts/prompts/model responses.
+- **Reason:** The project needs real target topology evidence that can be replayed in host tests without converting a probe into physical acceptance.
+- **Must avoid:** treating a manifest capture as fan/sensor/voice success, leaking private content, or requiring source-checkout-only tooling on the installed target.
+- **Consequence:** target manifests can become permanent regression fixtures after privacy review.
+
+### D36-02 — Target-shadow replay is a release-candidate prerequisite, not final acceptance
+- **Decision:** `target_probe.py --replay` validates saved manifests against GPIO identity rules and returns failure for unresolved/ambiguous required GPIO lines. Replay PASS is required before another Pi candidate but remains below real hardware acceptance.
+- **Reason:** Checkpoint history shows that host mocks were too clean; replaying real target topology closes that gap without claiming physical relay/sensor/voice behavior.
+- **Must avoid:** relabelling replay PASS as physical PASS or weakening fail-closed behavior for distinct duplicate header controllers.
+- **Consequence:** the checkpoint-34 duplicate RP1 alias fixture is now a permanent host regression, and future Pi evidence should add more fixtures rather than replacing it.
