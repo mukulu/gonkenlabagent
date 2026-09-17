@@ -62,12 +62,13 @@ The first readiness attempt in this closeout wrote its log inside the repository
 
 A clean tagged RC1 archive was built from commit `d0c40d000699b7e6ec174df4cf569281cd77bd4e` at tag `checkpoint/v09-43-semantic-convergence-rc1`. Archive SHA-256 was `ff6f9699d064dbbd6351fa5f261dcdb35edabb72090ad7b790d3065669170b53`. `archive_qualifier.py` passed archive structure, clean extracted Git status, exact commit, exact tag, `git fsck --strict`, milestone synchronization, release readiness and T0 from the extracted archive. This closes the host/package evidence needed to mark M10.38 host-verified.
 
-## Remaining before final handoff
+## Source-checkpoint closeout and packaging boundary
 
-- create the final checkpoint commit/tag containing this qualification record and host-verified milestone state;
-- build and qualify the final exact ZIP again;
-- rerun the focused evidence/readiness slice from that exact final extraction;
-- provide final SHA-256 and target continuation command.
+Checkpoint 43 source implementation is **host-verified and closed for source-level work**. The authoritative handoff source is the exact Git tag `checkpoint/v09-43-semantic-convergence`; consumers must verify the tag/commit from the extracted repository rather than relying on a copied commit string in prose. Repository-internal gates are complete: milestone synchronization, documentation validation, release readiness, T0, focused regression portfolios and the post-verification repair campaign all pass.
+
+The immutable distribution ZIP is necessarily created **after** the source tag exists. Therefore its ZIP SHA-256 and the archive-qualifier result are external handoff evidence and are intentionally not embedded in this source report: embedding the final archive hash inside the archive would change the archive itself. Before user handoff, the operator/automation MUST build from a fresh clone of the exact tag, run `scripts/archive_qualifier.py` against that exact ZIP, extract it afresh, rerun the focused evidence/readiness portfolio, verify ZIP integrity, and record the resulting SHA-256 in the accompanying handoff artifact.
+
+The next dependency-ready work after a qualified archive is the real Raspberry Pi campaign described in `docs/RASPBERRY_PI_ACCEPTANCE_RUN.md`. No further host refactoring is required merely to proceed to that campaign.
 
 ## Target boundary
 

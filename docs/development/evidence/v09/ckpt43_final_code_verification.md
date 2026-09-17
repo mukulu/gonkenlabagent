@@ -32,3 +32,7 @@ New or strengthened regression assertions cover:
 ## Residual boundary
 
 Host, simulation, process and target-shadow evidence remain below real Raspberry Pi acceptance. Service-user microphone/speaker behavior, acoustic wake/interaction, SHT31 placement/read quality, relay/fan electrical behavior and blade motion, and reboot/no-login lifecycle remain target-run gates for the final exact archive.
+
+## Source-handoff consistency closeout
+
+Final handoff review found that the convergence report still described immutable packaging as future work. That wording was correct when the report was first written but would be stale inside the delivered checkpoint. The report now closes source-level work explicitly and treats the final ZIP hash/archive qualification as external handoff evidence, which avoids a self-referential archive-hash problem. This is documentation/control-plane only and does not alter runtime behavior.
