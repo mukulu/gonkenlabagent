@@ -1120,7 +1120,7 @@ class ConversationBrain:
 
     def reply(self, question: str, stop: threading.Event) -> str:
         turn_started = time.monotonic_ns()
-        self.last_metrics = {"route": "unknown", "model": self.client.model, "content_logged": False}
+        self.last_metrics = {"route": "unknown", "model": str(getattr(self.client, "model", "compatibility-adapter")), "content_logged": False}
         question = " ".join(question.split())
         if not question or len(question) > 4096:
             raise VoiceRuntimeError("VOICE_QUESTION_INVALID")

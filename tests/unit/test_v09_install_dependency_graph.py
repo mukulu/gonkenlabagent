@@ -185,7 +185,7 @@ class TargetInstallDependencyGraphTests(unittest.TestCase):
         summary = (ROOT / "scripts" / "install_summary.py").read_text(encoding="utf-8")
         self.assertIn('"release_commit": _runtime_release_commit()', runtime)
         self.assertIn('recorded = value.get("release_commit")', appliance)
-        self.assertIn('validate_appliance(root, commit)', summary)
+        self.assertIn('validate_appliance(root, commit, str(roster["active_model"]))', summary)
 
 
 if __name__ == "__main__":
