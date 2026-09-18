@@ -155,14 +155,18 @@ def _requested_fan_power(text: str) -> str | None:
     if _asks_fan_status(text):
         return None
     on_patterns = (
-        r"\b(?:turn|switch|start|run|enable)\s+(?:the\s+)?(?:room\s+)?fan\s+on\b",
-        r"\b(?:turn|switch)\s+on\s+(?:the\s+)?(?:room\s+)?fan\b",
+        r"\b(?:turn|switch|start|run|enable|power)\s+(?:the\s+)?(?:room\s+)?fan\s+on\b",
+        r"\b(?:turn|switch|power)\s+on\s+(?:the\s+)?(?:room\s+)?fan\b",
+        r"\b(?:start|run|enable)\s+(?:the\s+)?(?:room\s+)?fan\b",
+        r"\bget\s+(?:the\s+)?(?:room\s+)?fan\s+(?:going|running)\b",
+        r"\bstart\s+(?:some\s+)?air\s+(?:moving|circulating|circulation)\b",
         r"\b(?:room\s+)?fan\s+on\b",
     )
     off_patterns = (
-        r"\b(?:turn|switch|shut|power|stop)\s+(?:the\s+)?(?:room\s+)?fan\s+off\b",
+        r"\b(?:turn|switch|shut|power|stop|disable)\s+(?:the\s+)?(?:room\s+)?fan\s+off\b",
         r"\b(?:turn|switch|shut|power)\s+off\s+(?:the\s+)?(?:room\s+)?fan\b",
-        r"\b(?:stop|shut)\s+(?:the\s+)?(?:room\s+)?fan\b",
+        r"\b(?:stop|shut|disable)\s+(?:the\s+)?(?:room\s+)?fan\b",
+        r"\bstop\s+(?:the\s+)?air\s+(?:movement|circulation|circulating)\b",
         r"\b(?:room\s+)?fan\s+off\b",
     )
     if any(re.search(pattern, text) for pattern in on_patterns):
@@ -173,7 +177,14 @@ def _requested_fan_power(text: str) -> str | None:
 
 
 def _asks_temperature(text: str) -> bool:
-    return _contains_any(text, ("temperature", "temp", "how hot", "room heat"))
+    return _contains_any(
+        text,
+        (
+            "temperature", "temp", "how hot", "room heat", "how warm",
+            "how cold", "how cool", "warm is the room", "degrees in the room",
+            "degrees is the room", "room temperature",
+        ),
+    )
 
 
 def _asks_humidity(text: str) -> bool:
@@ -181,7 +192,7 @@ def _asks_humidity(text: str) -> bool:
 
 
 def _asks_fan_status(text: str) -> bool:
-    if not _contains_any(text, ("fan", "room fan")):
+    if not _contains_any(text, ("fan", "room fan", "air circulation")):
         return False
     return _contains_any(text, ("status", "state", "on", "off", "running", "power")) and _contains_any(
         text,
@@ -218,7 +229,10 @@ def _has_unsafe_action_shape(text: str) -> bool:
 
 
 def _is_environment_related(text: str) -> bool:
-    return _contains_any(text, ("environment", "temperature", "humidity", "fan", "room fan", "relay"))
+    return _contains_any(
+        text,
+        ("environment", "temperature", "humidity", "fan", "room fan", "relay", "air circulation"),
+    )
 
 
 def _contains_any(text: str, needles: ModeOrPowerTerms) -> bool:

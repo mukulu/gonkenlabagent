@@ -41,6 +41,8 @@ from .environment import (
     parse_environment_intent,
 )
 from .llm.ollama import OllamaClient, OllamaError
+from .llm.models import active_model
+from .tool_broker import ToolBroker, ToolBrokerError, direct_clock_intent
 from .interaction.gpiod_ptt import GpiodPushToTalkHardware, GpiodWakeMonitoringLed
 from .interaction.push_to_talk import PushToTalk
 
@@ -1088,7 +1090,8 @@ class ConversationBrain:
     """Small in-memory local conversation with deterministic environment actions."""
 
     def __init__(self, config, *, environment_client_factory=None):
-        self.client = OllamaClient(config.llm, timeout=90)
+        selected_model = active_model(config.llm.model)
+        self.client = OllamaClient(config.llm, timeout=90, model=selected_model)
         prompt_path = Path(config.paths.local_prompt)
         if not prompt_path.is_file() or prompt_path.is_symlink() or prompt_path.stat().st_size > 32768:
             raise VoiceRuntimeError("LOCAL_PROMPT_MISSING")
@@ -1101,6 +1104,7 @@ class ConversationBrain:
             if environment_client_factory is not None
             else lambda: EnvironmentClient(config.extensions.environment.socket_path, timeout_seconds=2.0)
         )
+        self.tool_broker = ToolBroker(self.environment_client_factory)
 
     def probe(self, stop: threading.Event) -> dict[str, str]:
         identity = self.client.model_identity(stop)
@@ -1118,6 +1122,10 @@ class ConversationBrain:
         if not question or len(question) > 4096:
             raise VoiceRuntimeError("VOICE_QUESTION_INVALID")
 
+        clock_reply = direct_clock_intent(question)
+        if clock_reply is not None:
+            return clock_reply
+
         environment_result = parse_environment_intent(question)
         if isinstance(environment_result, EnvironmentClarification):
             return environment_result.message
@@ -1132,9 +1140,29 @@ class ConversationBrain:
             messages = [{"role": "system", "content": self.system_prompt}, *self.history,
                         {"role": "user", "content": question}]
         try:
-            answer = self.client.chat_text(messages, stop)
+            broker = getattr(self, "tool_broker", None)
+            if broker is not None and hasattr(self.client, "chat_message"):
+                response = self.client.chat_message(
+                    messages, stop, tools=broker.schemas, think=False
+                )
+                raw_calls = response.get("tool_calls", [])
+                if isinstance(raw_calls, list) and raw_calls:
+                    try:
+                        answer = broker.execute_calls(raw_calls, user_text=question)
+                    except ToolBrokerError:
+                        answer = (
+                            "I did not perform that operation because the proposed tool action "
+                            "was not independently authorized by your request."
+                        )
+                else:
+                    answer = response.get("content", "")
+            else:
+                # Compatibility path for test doubles and older adapters.
+                answer = self.client.chat_text(messages, stop)
         except OllamaError as exc:
             raise VoiceRuntimeError("LOCAL_MODEL_RESPONSE_FAILED") from exc
+        if not isinstance(answer, str):
+            raise VoiceRuntimeError("LOCAL_MODEL_RESPONSE_INVALID")
         answer = " ".join(answer.split())
         if not answer or len(answer) > 4096:
             raise VoiceRuntimeError("LOCAL_MODEL_RESPONSE_INVALID")
@@ -1146,7 +1174,10 @@ class ConversationBrain:
         return answer
 
     def is_fast_deterministic(self, question: str) -> bool:
-        result = parse_environment_intent(" ".join(question.split()))
+        normalized = " ".join(question.split())
+        if direct_clock_intent(normalized) is not None:
+            return True
+        result = parse_environment_intent(normalized)
         return isinstance(result, (EnvironmentClarification, EnvironmentIntent))
 
     def _environment_reply(self, intent: EnvironmentIntent) -> str:
