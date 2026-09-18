@@ -741,3 +741,72 @@ Do not change the first run to `full-real` merely to make the fan participate. I
 ### E. Failure evidence
 
 If any step fails, upload the **single combined evidence ZIP** printed by the installer. Do not manually repair the target and then report only the post-repair state; the failure archive is needed to test whether Checkpoint 44 correctly localized the remaining dependency.
+
+## Checkpoint 45 V04 three-model and typed-tool target campaign
+
+Checkpoint 45 supersedes Checkpoint 44 for the next software/tool target run. Continue to keep the room-fan actuator simulated until the separate supervised WP-45C gate.
+
+Install the exact extracted package with:
+
+```bash
+./bootstrap.sh --local-checkpoint \
+  --environment-profile real-sensor-simulated-actuator \
+  --sensor-address 0x44 \
+  --model-provision-mode online
+```
+
+After `INSTALLATION_COMPLETE`, disconnect/reconnect SSH if the installer requests an operator group refresh, then collect the independent state:
+
+```bash
+gonken-agent components --json
+gonken-agent llm status --json
+ollama list
+gonken-agent env health
+gonken-agent env read
+gonken-agent env watch --once --health
+```
+
+The governed roster must contain `qwen3:0.6b`, `lfm2.5-thinking:1.2b`, and `qwen3.5:0.8b`; `qwen3:0.6b` is the initial selected model. The older `qwen3.5:2b-q4_K_M` may still be present as rollback material and is not part of the three-model governed roster.
+
+Run the non-executing semantic tool matrix for all admitted models:
+
+```bash
+gonken-agent llm capabilities --all --json
+```
+
+This command may ask the models fixed synthetic tool-selection questions, but it does **not** execute any returned tool proposal. A model that fails this matrix must not be promoted for environment/fan tool use.
+
+Collect content-free latency/resource measurements:
+
+```bash
+gonken-agent llm benchmark --model qwen3:0.6b --iterations 3 --json
+gonken-agent llm benchmark --model qwen3.5:0.8b --iterations 3 --json
+gonken-agent llm benchmark --model lfm2.5-thinking:1.2b --iterations 3 --json
+gonken-agent llm benchmark --model lfm2.5-thinking:1.2b --iterations 3 --thinking --json
+```
+
+Then test voice/natural-language behavior while the actuator is still simulated:
+
+```text
+GonKen -> What time is it?
+GonKen -> How warm is the room?
+GonKen -> What's the humidity in here?
+GonKen -> Is the room fan on?
+GonKen -> Please turn the room fan on.
+GonKen -> Is the room fan on?
+GonKen -> Turn the room fan off.
+```
+
+Verify with `gonken-agent env status` that only the simulated actuator changed. The physical ELUTENG fan must not be used as evidence in this tranche.
+
+Exercise one model switch and rollback-safe persistence before reboot:
+
+```bash
+sudo gonken-agent llm switch qwen3.5:0.8b
+gonken-agent llm status --json
+sudo reboot
+```
+
+After reboot/no-login convergence, reconnect and verify `gonken-agent components --json` and `gonken-agent llm status --json` still identify the selected admitted model. Switch back to the desired default with `sudo gonken-agent llm switch qwen3:0.6b` after the comparison campaign.
+
+If any installation, model, tool, service or reboot step fails, use the single installer-failure/support ZIP produced by the package. Do not manually toggle GPIO23 during this campaign. Real relay/PENGLIN/ELUTENG actuation begins only at supervised WP-45C.

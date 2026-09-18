@@ -1,6 +1,6 @@
 {
   "baseline_commit": "6466f26a1a9cb97e4c24182505b37cefb766b3c3",
-  "checkpoint_scope": "V09 checkpoint 44 begins the V04 full-component-convergence cycle from exact checkpoint 43. It fixes immutable runtime readiness identity, introduces component-readiness v2 foundations, makes environment checks non-mutating, integrates canonical environment profile/address selection into bootstrap/source-record/install, reconciles known environment ownership/drop-in/restart drift, requires semantic sensor/backend readiness for non-actuating commissioned profiles, and adds the checkpoint-43 readiness-identity target-shadow regression. M10.39 is host-verified only after checkpoint-close gates; multi-model/tool-broker expansion and M10.24 physical Pi acceptance remain open.",
+  "checkpoint_scope": "V09 checkpoint 45 completes the dependency-ready V04 host/package convergence tranche after Checkpoint 44: it ingests the successful real-SHT31/simulated-actuator Pi observation, adds the governed three-model roster and switch/benchmark lifecycle, typed LLM tool broker plus deterministic clock/environment fast paths, independent component/operator observability, richer passive environment watch, phase-aware causal one-ZIP evidence, and content-free latency/resource instrumentation. M10.40 is host-verified only after checkpoint-close gates; exact-package three-model/tool target validation, reboot/soak, and supervised real GPIO23/ELUTENG fan acceptance remain open.",
   "milestones": [
     {
       "evidence": "TEST_MATRIX.md (M2.1)",
@@ -564,6 +564,14 @@
       "software": "host-verified",
       "target": "not-run",
       "title": "V04 component readiness, release identity and environment commissioning foundation"
+    },
+    {
+      "id": "M10.40",
+      "title": "V04 multi-model, typed-tool and causal-evidence convergence",
+      "software": "host-verified",
+      "target": "not-run",
+      "evidence": "src/gonken_agent/llm/models.py; src/gonken_agent/llm/admin.py; src/gonken_agent/llm/ollama.py; src/gonken_agent/tool_broker.py; src/gonken_agent/component_status.py; src/gonken_agent/voice_runtime.py; src/gonken_agent/support.py; scripts/model_roster_manager.py; packaging/ollama-model-roster.toml; tests/unit/test_v09_multimodel_tools.py; tests/unit/test_v09_llm_admin_components.py; tests/unit/test_v09_model_roster_manager.py; tests/unit/test_support_export.py; docs/development/V09_CHECKPOINT_45_MULTIMODEL_TOOL_CONVERGENCE_REPORT.md; docs/development/evidence/v09/checkpoint45/checkpoint44_target_hybrid_observation.json",
+      "remaining": "Run the exact checkpoint-45 package on Raspberry Pi 5 to pull/validate all three admitted models, execute per-model semantic tool and latency/resource benchmarks, exercise local time/date and real-SHT31/simulated-fan voice tools, verify reboot/no-login/model-selection persistence, and only then proceed to separately supervised WP-45C real GPIO23/ELUTENG fan actuation."
     }
   ],
   "schema_version": 1

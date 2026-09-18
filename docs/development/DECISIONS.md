@@ -1879,3 +1879,31 @@ This compatibility is a migration mechanism, not a waiver. The goal is to move s
 - **Decision:** Managed environment reconciliation applies service/control ownership before the final governed mode and `commissioned-status` verifies owner, group, and mode for state, cache, runtime and policy paths.
 - **Reason:** Checkpoint-43 target recovery proved that a root-owned `policy.json` can block the daemon even when content and mode look otherwise valid. Verification also identified a false-green path where reconciliation changed ownership but the postcondition checked only modes.
 - **Consequence:** A later ownership drift cannot satisfy the installer step merely because the service is currently alive, and the setgid runtime-directory mode is re-applied after ownership changes.
+
+
+## Checkpoint 45 V04 multi-model/tool convergence decisions
+
+### D45-01 — Three admitted small models, one normally loaded
+- **Decision:** Govern exactly `qwen3:0.6b`, `lfm2.5-thinking:1.2b`, and `qwen3.5:0.8b`; first commissioning selects `qwen3:0.6b`, while an admitted operator selection persists across installer reruns.
+- **Reason:** The Checkpoint-44 Pi still used the 1.9 GB legacy 2B model and interaction remained slow.
+- **Boundary:** Host tests establish lifecycle logic only; the exact Pi must still prove runtime compatibility and performance.
+
+### D45-02 — The model proposes typed tools; the broker owns authority
+- **Decision:** Ollama may propose only a fixed typed schema. The broker validates schema and explicit user mutation authorization and is the only layer allowed to call environment IPC.
+- **Consequence:** No model output can directly run shell/systemctl, access raw GPIO/I2C, files or the network.
+
+### D45-03 — Deterministic fast paths remain preferred
+- **Decision:** Local date/time and common environment/fan intents bypass the LLM. Typed model tools are a semantic fallback, not the default for simple deterministic operations.
+- **Reason:** This reduces latency and the action surface while retaining flexible paraphrase handling.
+
+### D45-04 — Real-sensor/simulated-actuator remains the next package default
+- **Decision:** The next Pi campaign continues with the real SHT31 and simulated room-fan actuator. Natural-language fan mutation is therefore safe to test without touching GPIO23.
+- **Consequence:** Real room-fan actuation remains WP-45C and cannot be inferred from simulated fan state.
+
+### D45-05 — Diagnostic probe context is first-class evidence
+- **Decision:** A direct operator-process audio probe that fails while the service has current semantic READY remains DEGRADED diagnostic evidence but does not overwrite service-runtime truth.
+- **Reason:** The Checkpoint-44 target produced exactly this state.
+
+### D45-06 — Evidence precedence is current state, same-boot history, then install history
+- **Decision:** Support evidence binds the current boot/release/readiness and latest install run ID; repeated journal reason codes are bounded aggregates without raw content.
+- **Consequence:** Historical recovered failures remain visible but cannot masquerade as the current cause.

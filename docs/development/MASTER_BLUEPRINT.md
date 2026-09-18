@@ -1993,3 +1993,22 @@ Checkpoint 30 advanced materially on the real Raspberry Pi: the new strict relea
 **Host acceptance.** Focused release-identity, appliance, environment policy/daemon/profile/service/readiness, bootstrap/source-record, installer graph, target-probe/readiness and release-manager tests must pass; compile/static/docs/milestone/T0 gates and exact archive qualification must pass before packaging.
 
 **Target boundary.** Host verification does not establish real SHT31 placement/quality, physical relay/fan behavior, wake/audio quality, no-login reboot, or LLM-to-hardware tool transactions. The first recommended target profile is `real-sensor-simulated-actuator` so sensor/service/permissions can be validated independently before real GPIO23 actuation.
+
+
+#### M10.40 Checkpoint-45 V04 multi-model, typed-tool and causal-evidence convergence
+
+**Purpose.** Convert the Checkpoint-44 foundation into an operator-usable three-model assistant with safe semantic tools, independent component truth and causal support evidence while preserving the real-sensor/simulated-actuator safety boundary.
+
+**Model lifecycle.** The governed roster SHALL contain exactly `qwen3:0.6b`, `lfm2.5-thinking:1.2b`, and `qwen3.5:0.8b`. First commissioning selects `qwen3:0.6b`; an admitted later selection SHALL survive idempotent installer reruns. Provisioning SHALL support online and preseeded-offline modes, validate catalog identity/quantization, preserve rollback material, enforce one-loaded-model policy and fail without destroying prior working state.
+
+**Tool authority.** Common clock/environment operations SHALL use deterministic fast paths. Semantic fallback MAY use Ollama typed tool calls, but the model only proposes operations. A broker SHALL validate a fixed schema, explicit mutation authorization, call-count bounds and mutation serialization. Shell, systemctl, raw GPIO, raw I2C, arbitrary files/network and arbitrary Python SHALL never be model tools.
+
+**Tool truth.** Sensor reads and fan state/actions SHALL go through the sole environment daemon owner. Tool results SHALL ground spoken output. Simulated fan commands SHALL never be described as physical blade motion, and the room fan SHALL not claim RPM.
+
+**Operator observability.** `components`, `llm status/models/capabilities/benchmark/switch`, richer passive `env watch`, and support evidence SHALL expose voice, model, environment controller, sensor, actuator and tool-broker state independently. Direct diagnostic-probe context SHALL not overwrite current semantic service readiness.
+
+**Causal evidence.** The one-ZIP architecture SHALL include latest install run ID, boot/release/readiness identity, current component state, bounded same-boot reason-code aggregates, permission/systemd/config provenance, Ollama roster/loaded model, tool policy, collection errors and diagnostic findings. Raw transcripts, model answers, audio and raw journals remain excluded.
+
+**Host acceptance.** Focused model/tool/voice/environment/install/support tests, broad affected regression, compile/static/docs/milestone/T0 gates, release readiness, exact tagged archive qualification and fresh-extraction reruns SHALL pass before packaging.
+
+**Target boundary.** Checkpoint-44 target evidence establishes a working real SHT31 path with simulated actuator, but Checkpoint 45 itself remains target-unverified until the exact package installs/qualifies all three models and exercises tool/latency/reboot gates. Real GPIO23/ELUTENG actuation remains a separate supervised WP-45C gate.

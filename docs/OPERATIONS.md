@@ -501,4 +501,41 @@ The installer then owns the following convergence work rather than requiring man
 
 `full-simulation` is also safe for automatic commissioning. `sensor-deferred-relay` and `full-real` contain a real relay backend and therefore stop at `ENVIRONMENT_PHYSICAL_COMMISSION_REQUIRED` for supervised Raspberry Pi commissioning instead of automatically starting GPIO23 room-fan control.
 
-At successful completion the installer prints independent `[COMPONENT]` lines. These distinguish voice, Ollama inference, environment controller, temperature/humidity sensor, room-fan control, and the future LLM/environment tool broker. In Checkpoint 44 the tool broker is deliberately `NOT_COMMISSIONED`; do not infer tool-calling support from voice/Ollama readiness.
+At successful completion the installer prints independent `[COMPONENT]` lines. These distinguish voice, Ollama inference/roster, environment controller, temperature/humidity sensor, room-fan control, and the typed LLM/environment tool broker. Checkpoint 45 commissions the bounded tool broker, but real GPIO23/ELUTENG fan actuation remains separately target-gated.
+
+## Checkpoint 45 V04 model, tool and component operations
+
+Checkpoint 45 commissions the governed three-model roster after the legacy rollback model has been preserved. The active model is selected independently of the static fallback configuration.
+
+Read-only model/component checks:
+
+```bash
+gonken-agent components
+gonken-agent components --json
+gonken-agent llm status --json
+gonken-agent llm models --json
+gonken-agent llm capabilities --all --json
+gonken-agent llm benchmark --model qwen3:0.6b --iterations 3 --json
+```
+
+An optional reasoning benchmark is explicit and is not the default voice path:
+
+```bash
+gonken-agent llm benchmark --model lfm2.5-thinking:1.2b --iterations 3 --thinking --json
+```
+
+Model switching is a governed root action because it changes persistent appliance state and restarts the voice service:
+
+```bash
+sudo gonken-agent llm switch qwen3:0.6b
+sudo gonken-agent llm switch lfm2.5-thinking:1.2b
+sudo gonken-agent llm switch qwen3.5:0.8b
+```
+
+The switch preflights typed-tool capability, atomically changes the selection, restarts `gonken-agent.service`, and waits for a semantic READY record naming the requested model. If convergence fails it restores the previous selection and restarts the prior model. An admitted selection is preserved by later idempotent installer reruns.
+
+The voice path uses deterministic local fast paths for current date/time and common environment/fan requests. Less direct paraphrases may be classified by the selected Ollama model, but the model receives only the fixed typed tool schema. The broker—not model output—validates mutation authority and calls environment IPC. There is no model shell, systemctl, raw GPIO, raw I2C, arbitrary file or arbitrary network tool.
+
+With the recommended `real-sensor-simulated-actuator` profile, fan ON/OFF requests change only the simulated actuator. They do not toggle GPIO23 or establish physical ELUTENG fan motion. Use `gonken-agent env status`, `env read`, and `env watch --once --health` to distinguish real sensor state from simulated actuator state.
+
+A direct `gonken-agent doctor --probe-audio` runs in the invoking operator process. If that direct probe cannot open the audio route while the systemd voice service already has current semantic READY, the doctor output reports the context difference rather than replacing service-runtime truth. Use `gonken-agent components` and the one-ZIP support bundle for the combined view.

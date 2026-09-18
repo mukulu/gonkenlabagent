@@ -1,0 +1,70 @@
+{
+  "acceptance_boundaries": {
+    "eluteng_fan_motion_acceptance": false,
+    "final_sht31_placement_acceptance": false,
+    "llm_tool_hil_acceptance": false,
+    "real_gpio23_actuation": false,
+    "real_sht31_runtime_observed": true,
+    "reboot_no_login_acceptance": false,
+    "three_model_target_validation": false
+  },
+  "environment": {
+    "actuator_backend": "simulated",
+    "actuator_simulated": true,
+    "controller": "ACTIVE",
+    "evidence_mode": "TARGET_HYBRID_ACTUATOR_SIMULATED",
+    "fan_commanded_power": "off",
+    "i2c_address": "0x44",
+    "i2c_bus": 1,
+    "observed_humidity_pct_range": [
+      56.2,
+      56.3
+    ],
+    "observed_temperature_c": 27.5,
+    "overall": "READY",
+    "physical_fan_motion_observed": false,
+    "sensor_backend": "sht31",
+    "sensor_quality": "ready",
+    "sensor_simulated": false,
+    "software_speed_control": false
+  },
+  "evidence_class": "OBSERVED_TARGET_RUNTIME",
+  "installation": {
+    "environment_profile": "real-sensor-simulated-actuator",
+    "sensor_address": "0x44",
+    "status": "READY"
+  },
+  "ollama": {
+    "installed_models": [
+      {
+        "id_prefix": "124a03c34777",
+        "reported_size": "1.9 GB",
+        "tag": "qwen3.5:2b-q4_K_M"
+      }
+    ],
+    "three_model_roster_not_yet_installed": true
+  },
+  "platform": {
+    "architecture": "aarch64",
+    "kernel": "6.18.50+rpt-rpi-2712",
+    "raspberry_pi": true
+  },
+  "privacy": {
+    "network_identifiers_included": false,
+    "raw_audio_included": false,
+    "transcripts_included": false
+  },
+  "schema": 1,
+  "source_checkpoint": {
+    "commit": "e04af9d9977a192fd58e53c50392c74b7dc8b85b",
+    "local_tag_observed": false,
+    "tag_expected": "checkpoint/v09-44-v4-foundation"
+  },
+  "voice": {
+    "direct_doctor_audio_probe": "DEGRADED_PHYSICAL_AUDIO_UNAVAILABLE",
+    "human_interaction_success_previously_observed": true,
+    "interpretation": "operator-process direct probe differed from already-ready service runtime",
+    "runtime": "ready",
+    "wake_phrase": "GonKen"
+  }
+}

@@ -1465,3 +1465,20 @@ Checkpoint 24 closes the host-side root cause and adds regression protection, bu
 | CP44-T258 | Affected component/environment/install portfolio | checkpoint-44 focused logs | PASS — 114/114 and 119/119 affected slices | Host/fake/process evidence only. |
 | CP44-T259 | Final checkpoint close and exact archive | compile/docs/milestone/readiness/T0/code-verification plus post-tag archive qualification/extracted rerun | PASS — source close gates; exact tagged archive qualification is recorded in external delivery evidence | Package integrity only; never physical acceptance. |
 | CP44-T260 | Environment owner/group/mode postcondition and setgid ordering | `test_commissioned_status_rejects_owner_group_drift_not_only_mode_drift`; post-fix permission regression | PASS | Host filesystem metadata test only; target must still prove real service identities and permissions. |
+
+
+## V09 checkpoint 45 — M10.40 V04 multi-model, typed-tool and causal-evidence convergence
+
+| ID | Scope | Command / artifact | Host result | Target boundary |
+|---|---|---|---:|---|
+| CP45-T261 | Fresh Checkpoint-44 Pi evidence ingestion | `checkpoint44_target_hybrid_observation.json`; checkpoint-45 report | OBSERVED / recorded | Real SHT31 through daemon observed; simulated actuator only; not full HIL acceptance. |
+| CP45-T262 | Three-model roster and provisioning lifecycle | `model_roster_manager.py`; roster manifest; model-roster tests | PASS focused | Exact model downloads, runtime compatibility and resource behavior require Pi. |
+| CP45-T263 | Active-model admin/switch/rollback/persistence | `llm/admin.py`; admin tests; install-summary tests | PASS focused | Real service restart/model warmup persistence requires Pi/reboot. |
+| CP45-T264 | Typed tool broker and deterministic route equivalence | `tool_broker.py`; `voice_runtime.py`; multimodel tool tests | PASS focused | Real sensor tool transaction and simulated-fan voice transaction require exact package on Pi. |
+| CP45-T265 | Multi-model semantic tool-quality and thinking policy | `gonken-agent llm capabilities`; admin tests | PASS host/mocked | All three real local models must pass the non-executing matrix on Pi. |
+| CP45-T266 | Component/env operator observability | `components`; `env watch`; environment CLI tests | PASS focused | Target must verify outputs against real service state. |
+| CP45-T267 | Phase-aware causal one-ZIP evidence | `support.py`; support/failure-bundle tests | PASS focused | Target failure/recovery ZIP must prove forensic usefulness. |
+| CP45-T268 | Latency/resource instrumentation | content-free voice metrics; `llm benchmark` | PASS host contract | Pi latency, RAM and thermal measurements remain unclaimed until target benchmark. |
+| CP45-T269 | Broad regression and checkpoint-close static gates | checkpoint-45 evidence logs | PENDING until final close | Host/package only. |
+| CP45-T270 | Exact tagged archive + fresh extraction | checkpoint-45 qualification artifacts | PENDING until final close | Package integrity only; no physical acceptance. |
+| CP45-T271 | Supervised real GPIO23/ELUTENG actuation | WP-45C runbook | NOT RUN / BLOCKED TARGET GATE | Must not be inferred from simulated actuator results. |

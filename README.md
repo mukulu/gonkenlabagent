@@ -119,7 +119,11 @@ To check readiness from SSH:
 ```bash
 gonken-agent status
 gonken-agent wake status --json
+gonken-agent components --json
+gonken-agent llm status --json
 ```
+
+Checkpoint 45 provisions the governed small-model roster (`qwen3:0.6b`, `lfm2.5-thinking:1.2b`, and `qwen3.5:0.8b`) and adds typed local date/time and environment/fan tool routing. With the recommended `real-sensor-simulated-actuator` profile, fan commands remain simulated; real GPIO23/ELUTENG actuation is a later supervised acceptance gate.
 
 For manual foreground operation, one-turn testing, service start/stop/restart,
 logs, `doctor`, and support collection, see
@@ -151,4 +155,4 @@ project provenance, not as the supported appliance entry point.
 Project policy currently prohibits redistribution unless that policy is
 explicitly changed by the project owner.
 
-Checkpoint 34 is the current target-acceptance candidate. It strengthens same-commit runtime integrity, treats usable USB/wired audio as sufficient when preferred Bluetooth is unavailable, and proves Pi 5 GPIO17/22/23/27 identity with the same non-actuating resolver used by PTT, wake indication and the room-fan relay before services start. Use the [Raspberry Pi acceptance runbook](docs/RASPBERRY_PI_ACCEPTANCE_RUN.md) to install the exact downloaded checkpoint and execute the staged target campaign. The staged full-simulation and sensor-deferred environment sequence remains in [docs/USER_SIMULATION_HIL_HANDOFF.md](docs/USER_SIMULATION_HIL_HANDOFF.md).
+Checkpoint 45 is the current V04 software/tool target-testing candidate; it is not yet a physical-acceptance release. It strengthens same-commit runtime integrity, treats usable USB/wired audio as sufficient when preferred Bluetooth is unavailable, and proves Pi 5 GPIO17/22/23/27 identity with the same non-actuating resolver used by PTT, wake indication and the room-fan relay before services start. Use the [Raspberry Pi acceptance runbook](docs/RASPBERRY_PI_ACCEPTANCE_RUN.md) to install the exact downloaded checkpoint and execute the staged target campaign. The staged full-simulation and sensor-deferred environment sequence remains in [docs/USER_SIMULATION_HIL_HANDOFF.md](docs/USER_SIMULATION_HIL_HANDOFF.md).

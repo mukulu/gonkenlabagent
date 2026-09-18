@@ -108,3 +108,29 @@ turn it on at 28 and off at 26.5
 ```
 
 Ambiguous phrases such as “set the temperature to 25” require clarification.
+
+## 7. Checkpoint 45 typed semantic tool boundary
+
+Checkpoint 45 keeps the deterministic parser as the preferred fast path and adds a bounded semantic fallback for natural paraphrases. The admitted model may propose only these operations:
+
+```text
+system_get_local_datetime
+environment_read_sensor
+environment_get_status
+environment_set_fan_power(power=on|off)
+```
+
+Temperature/humidity and fan status/results come from `gonken-environment.service`; the model never reads I2C or GPIO itself. Read-only proposals may share a bounded concurrent transaction. Fan mutation is serialized and requires an independently recognizable present-tense user instruction; negated, quoted, hypothetical and explanatory phrases cannot authorize a mutation.
+
+Examples intended to work without exposing raw execution authority include:
+
+```text
+what time is it?
+how warm is the room?
+what's the humidity in here?
+is the room fan powered on?
+please start the room fan
+turn the room fan off
+```
+
+When `relay_backend=simulated`, a successful fan command means only that simulated commanded power changed. It is not physical fan-motion evidence.
