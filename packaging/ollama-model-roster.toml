@@ -1,0 +1,39 @@
+format = "gonken-ollama-model-roster-v1"
+default_model = "qwen3:0.6b"
+verified_at = "2026-09-18"
+
+[[models]]
+tag = "qwen3:0.6b"
+digest_prefix = "7df6b6e09427"
+quantization = "Q4_K_M"
+parameter_size = "0.6B"
+display_size_mib = 523
+license = "Apache-2.0"
+source = "https://ollama.com/library/qwen3:0.6b"
+tools = true
+thinking = true
+role = "default-low-latency"
+
+[[models]]
+tag = "lfm2.5-thinking:1.2b"
+digest_prefix = "95bd9d45385f"
+quantization = "Q4_K_M"
+parameter_size = "1.17B"
+display_size_mib = 731
+license = "LFM-Open-License-1.0"
+source = "https://ollama.com/library/lfm2.5-thinking:1.2b"
+tools = true
+thinking = true
+role = "reasoning-alternate"
+
+[[models]]
+tag = "qwen3.5:0.8b"
+digest_prefix = "f3817196d142"
+quantization = "Q8_0"
+parameter_size = "0.8B"
+display_size_mib = 1024
+license = "Apache-2.0"
+source = "https://ollama.com/library/qwen3.5:0.8b"
+tools = true
+thinking = true
+role = "modern-alternate"

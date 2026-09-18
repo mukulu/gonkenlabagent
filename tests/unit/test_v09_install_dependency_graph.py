@@ -39,6 +39,7 @@ class TargetInstallDependencyGraphTests(unittest.TestCase):
             "ollama_binary",
             "ollama_service",
             "ollama_model",
+            "ollama_model_roster",
             "whisper_runtime",
             "piper_runtime",
             "speech_models",
@@ -91,7 +92,8 @@ class TargetInstallDependencyGraphTests(unittest.TestCase):
         ):
             self.assertIn(f"id={component}", self.text)
         self.assertIn("physical_motion_observed=false software_speed_control=false", self.text)
-        self.assertIn("V04_TOOL_INTEGRATION_PENDING", self.text)
+        self.assertIn("V04_TYPED_TOOL_BROKER_READY", self.text)
+        self.assertIn("raw_shell=false raw_gpio=false raw_i2c=false", self.text)
 
     def test_bluetooth_capture_route_is_proven_before_appliance_readiness(self) -> None:
         self.assertLess(self.position("bluetooth_audio_pairing"), self.position("appliance_readiness"))

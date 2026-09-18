@@ -627,6 +627,14 @@ gonken_ollama_manifest() {
   printf '%s\n' "$RELEASE_ROOT/current/maintenance/packaging/ollama-artifacts.toml"
 }
 
+gonken_model_roster_manager() {
+  printf '%s\n' "$RELEASE_ROOT/current/maintenance/model_roster_manager.py"
+}
+
+gonken_model_roster_manifest() {
+  printf '%s\n' "$RELEASE_ROOT/current/maintenance/packaging/ollama-model-roster.toml"
+}
+
 gonken_speech_manager() {
   printf '%s\n' "$RELEASE_ROOT/current/maintenance/speech_manager.py"
 }
@@ -788,7 +796,8 @@ gonken_environment_readiness_action() {
 gonken_print_component_summary() {
   local profile="${GONKEN_SOURCE_RECORD[environment_profile]:-none}"
   printf '[COMPONENT] id=voice_conversation status=READY required=true evidence=semantic_runtime physical_acceptance=false\n'
-  printf '[COMPONENT] id=ollama_inference status=READY required=true evidence=installer_model_transaction model=%s physical_acceptance=false\n' "$OLLAMA_MODEL"
+  OLLAMA_ACTIVE_MODEL="${OLLAMA_ACTIVE_MODEL:-$(python3 -c 'import json; print(json.load(open("/var/lib/gonken-agent/ollama/active-model.json"))["model"])' 2>/dev/null || printf '%s' "$OLLAMA_MODEL")}"
+  printf '[COMPONENT] id=ollama_inference status=READY required=true evidence=three_model_roster model=%s physical_acceptance=false\n' "$OLLAMA_ACTIVE_MODEL"
   case "$profile" in
     none)
       printf '[COMPONENT] id=environment_controller status=NOT_COMMISSIONED required=false profile=none\n'
@@ -811,7 +820,7 @@ gonken_print_component_summary() {
       printf '[COMPONENT] id=room_fan_control status=BLOCKED required=true profile=%s code=ENVIRONMENT_PHYSICAL_COMMISSION_REQUIRED physical_motion_observed=false software_speed_control=false\n' "$profile"
       ;;
   esac
-  printf '[COMPONENT] id=llm_environment_tool_broker status=NOT_COMMISSIONED required=false code=V04_TOOL_INTEGRATION_PENDING\n'
+  printf '[COMPONENT] id=llm_environment_tool_broker status=READY required=true code=V04_TYPED_TOOL_BROKER_READY raw_shell=false raw_gpio=false raw_i2c=false\n'
 }
 
 gonken_bluetooth_manager() {
@@ -884,6 +893,26 @@ gonken_ollama_model_action() {
   python3 "$(gonken_ollama_manager)" provision-model \
     --manifest "$(gonken_ollama_manifest)" --system-root / \
     "${arguments[@]}" --model "$OLLAMA_MODEL"
+}
+
+gonken_model_roster_postcondition() {
+  gonken_load_effective_ollama_config || return 65
+  python3 "$(gonken_model_roster_manager)" status \
+    --manifest "$(gonken_model_roster_manifest)" \
+    --system-root / --endpoint "$OLLAMA_ENDPOINT" \
+    --context-tokens "$OLLAMA_CONTEXT_TOKENS" >/dev/null 2>&1 || return 1
+  OLLAMA_ACTIVE_MODEL="$(python3 -c 'import json; print(json.load(open("/var/lib/gonken-agent/ollama/active-model.json"))["model"])' 2>/dev/null)" || return 1
+  [[ -n "$OLLAMA_ACTIVE_MODEL" ]] || return 1
+  GONKEN_STEP_EVIDENCE="ollama_roster_three_models_default_${OLLAMA_ACTIVE_MODEL}"
+}
+
+gonken_model_roster_action() {
+  gonken_load_effective_ollama_config || return 65
+  python3 "$(gonken_model_roster_manager)" provision \
+    --manifest "$(gonken_model_roster_manifest)" \
+    --system-root / --endpoint "$OLLAMA_ENDPOINT" \
+    --context-tokens "$OLLAMA_CONTEXT_TOKENS" \
+    --mode "${GONKEN_SOURCE_RECORD[model_provision_mode]}"
 }
 
 
@@ -1317,12 +1346,19 @@ if ((ENGINE_ONLY == 0)); then
     gonken_register_step \
       "ollama_model" "1" \
       "gonken_ollama_service_postcondition" "gonken_ollama_model_action" "gonken_ollama_model_postcondition" \
-      "authoritative_tag_full_digest_and_deterministic_smoke_record" \
+      "legacy_working_model_retained_for_rollback" \
       "resume_blob_pull_then_require_digest_prefix_and_inference" \
       "existing_model_blobs_are_retained_and_tag_drift_fails_closed" || exit $?
 
+    gonken_register_step \
+      "ollama_model_roster" "1" \
+      "gonken_ollama_model_postcondition" "gonken_model_roster_action" "gonken_model_roster_postcondition" \
+      "three_admitted_models_validated_and_low_latency_default_selected" \
+      "resume_each_pull_or_validate_preseeded_offline_then_smoke_inference_and_tools" \
+      "legacy_model_is_retained_and_failed_roster_never_overwrites_active_selection" || exit $?
+
     if ((OLLAMA_ONLY == 0)); then
-      gonken_register_step         "whisper_runtime" "1"         "gonken_ollama_model_postcondition" "gonken_whisper_action" "gonken_whisper_postcondition"         "immutable_whisper_cpp_release_and_stable_cli"         "rebuild_only_checked_runtime_when_identity_or_arch_probe_fails"         "unverified_whisper_binary_never_reaches_stable_entrypoint" || exit $?
+      gonken_register_step         "whisper_runtime" "1"         "gonken_model_roster_postcondition" "gonken_whisper_action" "gonken_whisper_postcondition"         "immutable_whisper_cpp_release_and_stable_cli"         "rebuild_only_checked_runtime_when_identity_or_arch_probe_fails"         "unverified_whisper_binary_never_reaches_stable_entrypoint" || exit $?
 
       gonken_register_step         "piper_runtime" "1"         "gonken_whisper_postcondition" "gonken_piper_action" "gonken_piper_postcondition"         "separate_piper_cli_venv_from_exact_hash_lock"         "reinstall_only_checked_runtime_when_identity_or_arch_probe_fails"         "application_release_venv_is_not_reused_for_gpl_tts_runtime" || exit $?
 
@@ -1423,7 +1459,9 @@ gonken_load_effective_ollama_config || {
   exit 65
 }
 
-printf '[OK] code=M3_4_OLLAMA_COMPLETE model=%s endpoint=%s\n' "$OLLAMA_MODEL" "$OLLAMA_ENDPOINT"
+gonken_model_roster_postcondition || { gonken_error "MODEL_ROSTER" "three-model roster postcondition failed" "rerun the roster provisioning step"; exit 75; }
+
+printf '[OK] code=M3_4_OLLAMA_COMPLETE model=%s roster=3 endpoint=%s\n' "$OLLAMA_ACTIVE_MODEL" "$OLLAMA_ENDPOINT"
 if ((OLLAMA_ONLY == 1)); then
   exit 0
 fi

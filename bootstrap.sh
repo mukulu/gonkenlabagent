@@ -33,6 +33,7 @@ BLUETOOTH_AUDIO="disabled"
 BLUETOOTH_DEVICE=""
 ENVIRONMENT_PROFILE="none"
 ENVIRONMENT_SENSOR_ADDRESS="0x44"
+MODEL_PROVISION_MODE="online"
 
 usage() {
   cat <<'EOF'
@@ -68,6 +69,8 @@ Options:
                            later supervised physical-commissioning gate.
   --sensor-address ADDR    SHT31 address for real-sensor profiles: 0x44 or 0x45
                            (default: 0x44).
+  --model-provision-mode M V04 model roster mode: online or preseeded-offline
+                           (default: online).
   -h, --help               Show this help.
 EOF
 }
@@ -90,7 +93,7 @@ while (($#)); do
       BLUETOOTH_AUDIO="requested"
       shift
       ;;
-    --source-url|--ref|--existing-checkout|--staging-parent|--bluetooth-device|--environment-profile|--sensor-address)
+    --source-url|--ref|--existing-checkout|--staging-parent|--bluetooth-device|--environment-profile|--sensor-address|--model-provision-mode)
       option="$1"
       (($# >= 2)) || {
         usage >&2
@@ -112,6 +115,7 @@ while (($#)); do
           ;;
         --environment-profile) ENVIRONMENT_PROFILE="$value" ;;
         --sensor-address) ENVIRONMENT_SENSOR_ADDRESS="$value" ;;
+        --model-provision-mode) MODEL_PROVISION_MODE="$value" ;;
       esac
       shift 2
       ;;
@@ -295,7 +299,8 @@ gonken_create_staging "$STAGING_PARENT" \
   "bluetooth_audio=$BLUETOOTH_AUDIO" \
   "bluetooth_device=$BLUETOOTH_DEVICE" \
   "environment_profile=$ENVIRONMENT_PROFILE" \
-  "environment_sensor_address=$ENVIRONMENT_SENSOR_ADDRESS" || exit 73
+  "environment_sensor_address=$ENVIRONMENT_SENSOR_ADDRESS" \
+  "model_provision_mode=$MODEL_PROVISION_MODE" || exit 73
 
 printf '[OK] code=PREFLIGHT_COMPLETE staging=%s\n' "$GONKEN_STAGING_DIR"
 printf '[OK] source_commit=%s source_mode=%s privilege_mode=%s platform_mode=%s\n' \

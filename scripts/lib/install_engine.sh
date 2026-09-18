@@ -178,7 +178,7 @@ gonken_load_source_record() {
     rpi_image_reference pi_model pid1 systemd_version free_kib memory_kib
     observed_epoch existing_checkout
   )
-  local -a optional_fields=(bluetooth_audio bluetooth_device source_mode environment_profile environment_sensor_address)
+  local -a optional_fields=(bluetooth_audio bluetooth_device source_mode environment_profile environment_sensor_address model_provision_mode)
   local -a fields=("${required_fields[@]}" "${optional_fields[@]}")
   gonken_validate_absolute_path "$path" "source record" || return 65
   gonken_read_record "$path" fields GONKEN_SOURCE_RECORD || return $?
@@ -193,6 +193,7 @@ gonken_load_source_record() {
   GONKEN_SOURCE_RECORD[source_mode]="${GONKEN_SOURCE_RECORD[source_mode]:-remote}"
   GONKEN_SOURCE_RECORD[environment_profile]="${GONKEN_SOURCE_RECORD[environment_profile]:-none}"
   GONKEN_SOURCE_RECORD[environment_sensor_address]="${GONKEN_SOURCE_RECORD[environment_sensor_address]:-0x44}"
+  GONKEN_SOURCE_RECORD[model_provision_mode]="${GONKEN_SOURCE_RECORD[model_provision_mode]:-online}"
   [[ "${GONKEN_SOURCE_RECORD[format]}" == "gonken-bootstrap-source-v1" ]] || {
     gonken_error "INSTALL_RECORD_VERSION" "unsupported source record format" "rerun the matching supported bootstrap"
     return 65
@@ -238,6 +239,13 @@ gonken_load_source_record() {
     0x44|0x45) ;;
     *)
       gonken_error "INSTALL_RECORD" "source record has an invalid SHT31 address" "rerun bootstrap with --sensor-address 0x44 or 0x45"
+      return 65
+      ;;
+  esac
+  case "${GONKEN_SOURCE_RECORD[model_provision_mode]}" in
+    online|preseeded-offline) ;;
+    *)
+      gonken_error "INSTALL_RECORD" "source record has an invalid model provisioning mode" "rerun bootstrap with --model-provision-mode online or preseeded-offline"
       return 65
       ;;
   esac
