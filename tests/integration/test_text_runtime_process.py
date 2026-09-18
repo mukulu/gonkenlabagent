@@ -74,32 +74,32 @@ class LocalNetworkTests(unittest.TestCase):
             with self.subTest(endpoint=endpoint):
                 with self.assertRaises(ValueError):OllamaClient(replace(self.config,base_url=endpoint))
         self.api.status=302
-        with self.assertRaises(OllamaError):OllamaClient(self.config).chat([],threading.Event())
+        with self.assertRaises(OllamaError):OllamaClient(self.config).chat([{'role':'user','content':'test'}],threading.Event())
         self.assertEqual(len(self.api.requests),1)
     def test_cancel_timeout_overload_and_single_request_lock(self):
         self.api.delay=.5
         client=OllamaClient(self.config,timeout=2)
         cancel=threading.Event();errors=[]
         def request():
-            try:client.chat([],cancel)
+            try:client.chat([{'role':'user','content':'test'}],cancel)
             except Exception as exc:errors.append(exc)
         worker=threading.Thread(target=request);worker.start()
         self.assertTrue(self.api.entered.wait(1))
-        with self.assertRaisesRegex(OllamaError,'BUSY'):client.chat([],threading.Event())
+        with self.assertRaisesRegex(OllamaError,'BUSY'):client.chat([{'role':'user','content':'test'}],threading.Event())
         cancel.set();worker.join(1)
         self.assertFalse(worker.is_alive());self.assertIsInstance(errors[0],Cancelled)
         client.close()
         short=OllamaClient(self.config,timeout=.05)
-        with self.assertRaisesRegex(OllamaError,'TIMEOUT'):short.chat([],threading.Event())
+        with self.assertRaisesRegex(OllamaError,'TIMEOUT'):short.chat([{'role':'user','content':'test'}],threading.Event())
         short.close()
         self.api.delay=0;self.api.status=503
-        with self.assertRaisesRegex(OllamaError,'OVERLOADED'):OllamaClient(self.config).chat([],threading.Event())
+        with self.assertRaisesRegex(OllamaError,'OVERLOADED'):OllamaClient(self.config).chat([{'role':'user','content':'test'}],threading.Event())
     def test_cancellation_after_connection_close_response_headers(self):
         # HTTP/1.0 makes HTTPConnection detach its socket before body consumption.
         self.api.delay_body=.5;self.api.body_headers_sent=threading.Event()
         client=OllamaClient(self.config,timeout=2);cancel=threading.Event();errors=[]
         def request():
-            try:client.chat([],cancel)
+            try:client.chat([{'role':'user','content':'test'}],cancel)
             except Exception as exc:errors.append(exc)
         worker=threading.Thread(target=request);worker.start()
         self.assertTrue(self.api.body_headers_sent.wait(1))
