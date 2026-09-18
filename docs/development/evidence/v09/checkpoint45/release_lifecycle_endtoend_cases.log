@@ -1,0 +1,9 @@
+=== test_release_only_builds_activates_and_freezes_release ===
+test_release_only_builds_activates_and_freezes_release (tests.integration.test_release_lifecycle_process.EndToEndReleaseTests.test_release_only_builds_activates_and_freezes_release) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 20.532s
+
+OK
+=== test_release_only_repeat_is_idempotent ===
+test_release_only_repeat_is_idempotent (tests.integration.test_release_lifecycle_process.EndToEndReleaseTests.test_release_only_repeat_is_idempotent) ...

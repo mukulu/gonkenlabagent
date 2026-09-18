@@ -23,7 +23,7 @@ class ReleaseReadinessTests(unittest.TestCase):
         )
         self.assertEqual(result.returncode, 0, result.stderr)
         report = json.loads(result.stdout)
-        self.assertEqual(report["status"], "READY_FOR_HOST_TARGET_SHADOW_GATE")
+        self.assertEqual(report["status"], "READY_FOR_TARGET_CAMPAIGN")
         self.assertFalse(report["secret_findings"])
         self.assertFalse(report["missing_milestones"])
         self.assertFalse(report["not_host_verified"])
@@ -50,9 +50,9 @@ class ReleaseReadinessTests(unittest.TestCase):
         self.assertIn("target-shadow", report["readiness_scope"])
         self.assertIn("no Raspberry Pi release candidate", report["readiness_scope"])
         self.assertIn("./bootstrap.sh --local-checkpoint", report["next_action"])
-        self.assertIn("docs/RASPBERRY_PI_ACCEPTANCE_RUN.md", report["next_action"])
-        self.assertIn("M10.7", report["next_action"])
-        self.assertIn("M10.24", report["next_action"])
+        self.assertIn("governed three-model roster", report["next_action"])
+        self.assertIn("real-SHT31/simulated-fan", report["next_action"])
+        self.assertIn("WP-45C", report["next_action"])
         self.assertIn("INSTALLATION_COMPLETE", report["next_action"])
         self.assertIn("target_probe.py", report["next_action"])
 
@@ -66,7 +66,7 @@ class ReleaseReadinessTests(unittest.TestCase):
             timeout=10,
         )
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("Status: READY_FOR_HOST_TARGET_SHADOW_GATE", result.stdout)
+        self.assertIn("Status: READY_FOR_TARGET_CAMPAIGN", result.stdout)
         self.assertIn("Target-shadow fixtures: 24/24", result.stdout)
         self.assertIn("Target gates remaining:", result.stdout)
 

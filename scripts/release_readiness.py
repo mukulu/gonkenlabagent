@@ -201,7 +201,7 @@ REQUIRED_TARGET_SHADOW_FIXTURES = (
         "expected_code": "MODEL_FINALIZATION_UNREADY",
     },
 )
-READY_STATUS = "READY_FOR_HOST_TARGET_SHADOW_GATE"
+READY_STATUS = "READY_FOR_TARGET_CAMPAIGN"
 
 
 def main() -> int:
@@ -278,10 +278,10 @@ def build_report() -> dict[str, object]:
         "readiness_scope": "host/software plus required target-shadow replay gate; no Raspberry Pi release candidate or target gate is implied PASS",
         "physical_acceptance_claimed": False,
         "next_action": (
-            "Complete the remaining host/target-shadow release-candidate gate first: add real target manifests as sanitized fixtures, replay them, "
-            "and run exact-archive verification without treating host or replay evidence as physical acceptance. On the target, run target_probe.py before installation, "
-            "then install the exact archive with ./bootstrap.sh --local-checkpoint --environment-profile real-sensor-simulated-actuator --sensor-address 0x44, require INSTALLATION_COMPLETE before integrated hardware actuation, "
-            "and execute docs/RASPBERRY_PI_ACCEPTANCE_RUN.md through M10.7/M10.24 evidence without marking physical gates PASS from host or replay evidence."
+            "Host/software and required target-shadow replay gates are ready. Qualify the exact tagged archive, then on the Raspberry Pi run target_probe.py before installation and install that exact archive with "
+            "./bootstrap.sh --local-checkpoint --environment-profile real-sensor-simulated-actuator --sensor-address 0x44. Require INSTALLATION_COMPLETE, verify the governed three-model roster and active model, "
+            "exercise local time/date plus real-SHT31/simulated-fan tool transactions, measure latency/resource behavior, and verify reboot/no-login/model-selection persistence. "
+            "Do not enable real GPIO23/ELUTENG actuation until the separately supervised WP-45C gate, and do not mark physical acceptance PASS from host or replay evidence."
         ),
     }
 

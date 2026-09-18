@@ -1,0 +1,11 @@
+test_launcher_help_is_non_mutating_and_documents_bootstrap_passthrough (tests.integration.test_first_install_launcher.FirstInstallLauncherTests.test_launcher_help_is_non_mutating_and_documents_bootstrap_passthrough) ... ok
+test_readme_primary_install_is_one_command_and_manual_bootstrap_is_short (tests.integration.test_first_install_launcher.FirstInstallLauncherTests.test_readme_primary_install_is_one_command_and_manual_bootstrap_is_short) ... ok
+test_standard_bootstrap_has_official_source_and_main_defaults (tests.integration.test_first_install_launcher.FirstInstallLauncherTests.test_standard_bootstrap_has_official_source_and_main_defaults) ... ok
+test_stream_launcher_prepares_checkout_and_forwards_bluetooth_parameters (tests.integration.test_first_install_launcher.FirstInstallLauncherTests.test_stream_launcher_prepares_checkout_and_forwards_bluetooth_parameters) ... ok
+test_installed_maintenance_wrapper_uses_local_packaging_templates (tests.integration.test_uninstall_lifecycle_process.UninstallLifecycleProcessTests.test_installed_maintenance_wrapper_uses_local_packaging_templates) ... ok
+test_wrapper_removes_project_owned_installation_and_keeps_data (tests.integration.test_uninstall_lifecycle_process.UninstallLifecycleProcessTests.test_wrapper_removes_project_owned_installation_and_keeps_data) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 2.452s
+
+OK

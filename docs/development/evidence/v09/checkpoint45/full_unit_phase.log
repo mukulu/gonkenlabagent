@@ -1,0 +1,121 @@
+[T1] unit suite (bounded per module)
+[RUN] module=tests.unit.test_bounded_unittest_runner timeout=180s log=/mnt/data/gonken_v04_ckpt45_finalwork/gonkenlabagent-v09-v4-foundation-checkpoint-44/build/ci-logs/unit/tests_unit_test_bounded_unittest_runner.log
+[PASS] module=tests.unit.test_bounded_unittest_runner seconds=11.4
+[RUN] module=tests.unit.test_diagnostics_snapshot timeout=180s log=/mnt/data/gonken_v04_ckpt45_finalwork/gonkenlabagent-v09-v4-foundation-checkpoint-44/build/ci-logs/unit/tests_unit_test_diagnostics_snapshot.log
+[PASS] module=tests.unit.test_diagnostics_snapshot seconds=1.5
+[RUN] module=tests.unit.test_fix5_appliance_manager timeout=180s log=/mnt/data/gonken_v04_ckpt45_finalwork/gonkenlabagent-v09-v4-foundation-checkpoint-44/build/ci-logs/unit/tests_unit_test_fix5_appliance_manager.log
+[PASS] module=tests.unit.test_fix5_appliance_manager seconds=1.0
+[RUN] module=tests.unit.test_grounding_observability timeout=180s log=/mnt/data/gonken_v04_ckpt45_finalwork/gonkenlabagent-v09-v4-foundation-checkpoint-44/build/ci-logs/unit/tests_unit_test_grounding_observability.log
+[PASS] module=tests.unit.test_grounding_observability seconds=1.3
+[RUN] module=tests.unit.test_legacy_router timeout=180s log=/mnt/data/gonken_v04_ckpt45_finalwork/gonkenlabagent-v09-v4-foundation-checkpoint-44/build/ci-logs/unit/tests_unit_test_legacy_router.log
+[PASS] module=tests.unit.test_legacy_router seconds=2.5
+[RUN] module=tests.unit.test_m2_1 timeout=180s log=/mnt/data/gonken_v04_ckpt45_finalwork/gonkenlabagent-v09-v4-foundation-checkpoint-44/build/ci-logs/unit/tests_unit_test_m2_1.log
+[PASS] module=tests.unit.test_m2_1 seconds=3.1
+[RUN] module=tests.unit.test_m2_2_config timeout=180s log=/mnt/data/gonken_v04_ckpt45_finalwork/gonkenlabagent-v09-v4-foundation-checkpoint-44/build/ci-logs/unit/tests_unit_test_m2_2_config.log
+[PASS] module=tests.unit.test_m2_2_config seconds=1.2
+[RUN] module=tests.unit.test_m2_3_dependencies timeout=180s log=/mnt/data/gonken_v04_ckpt45_finalwork/gonkenlabagent-v09-v4-foundation-checkpoint-44/build/ci-logs/unit/tests_unit_test_m2_3_dependencies.log
+[PASS] module=tests.unit.test_m2_3_dependencies seconds=3.0
+[RUN] module=tests.unit.test_m3_1_preflight timeout=180s log=/mnt/data/gonken_v04_ckpt45_finalwork/gonkenlabagent-v09-v4-foundation-checkpoint-44/build/ci-logs/unit/tests_unit_test_m3_1_preflight.log
+[PASS] module=tests.unit.test_m3_1_preflight seconds=1.9
+[RUN] module=tests.unit.test_m3_2_install_engine timeout=180s log=/mnt/data/gonken_v04_ckpt45_finalwork/gonkenlabagent-v09-v4-foundation-checkpoint-44/build/ci-logs/unit/tests_unit_test_m3_2_install_engine.log
+[PASS] module=tests.unit.test_m3_2_install_engine seconds=1.8
+[RUN] module=tests.unit.test_m3_3_release_manager timeout=180s log=/mnt/data/gonken_v04_ckpt45_finalwork/gonkenlabagent-v09-v4-foundation-checkpoint-44/build/ci-logs/unit/tests_unit_test_m3_3_release_manager.log
+[PASS] module=tests.unit.test_m3_3_release_manager seconds=6.3
+[RUN] module=tests.unit.test_m3_4_ollama_manager timeout=180s log=/mnt/data/gonken_v04_ckpt45_finalwork/gonkenlabagent-v09-v4-foundation-checkpoint-44/build/ci-logs/unit/tests_unit_test_m3_4_ollama_manager.log
+[PASS] module=tests.unit.test_m3_4_ollama_manager seconds=1.5
+[RUN] module=tests.unit.test_m3_5_speech_manager timeout=180s log=/mnt/data/gonken_v04_ckpt45_finalwork/gonkenlabagent-v09-v4-foundation-checkpoint-44/build/ci-logs/unit/tests_unit_test_m3_5_speech_manager.log
+[PASS] module=tests.unit.test_m3_5_speech_manager seconds=1.6
+[RUN] module=tests.unit.test_m3_6_install_summary timeout=180s log=/mnt/data/gonken_v04_ckpt45_finalwork/gonkenlabagent-v09-v4-foundation-checkpoint-44/build/ci-logs/unit/tests_unit_test_m3_6_install_summary.log
+[PASS] module=tests.unit.test_m3_6_install_summary seconds=1.8
+[RUN] module=tests.unit.test_m5_1_ptt_runtime timeout=180s log=/mnt/data/gonken_v04_ckpt45_finalwork/gonkenlabagent-v09-v4-foundation-checkpoint-44/build/ci-logs/unit/tests_unit_test_m5_1_ptt_runtime.log
+[PASS] module=tests.unit.test_m5_1_ptt_runtime seconds=1.4
+[RUN] module=tests.unit.test_m6_service_manager timeout=180s log=/mnt/data/gonken_v04_ckpt45_finalwork/gonkenlabagent-v09-v4-foundation-checkpoint-44/build/ci-logs/unit/tests_unit_test_m6_service_manager.log
+[WAIT] module=tests.unit.test_m6_service_manager elapsed=15.1s tail=test_conflicting_installed_unit_fails_closed (tests.unit.test_m6_service_manager.ServiceManagerTests.test_conflicting_installed_unit_fails_closed) ... ok | test_fix6_managed_unit_is_upgraded_to_generated_runtime_environment (tests.unit.test_m6_service_manager.ServiceManagerTests.test_fix6_managed_unit_is_upgraded_to_generated_runtime_environment) ... ok
+[PASS] module=tests.unit.test_m6_service_manager seconds=22.0
+[RUN] module=tests.unit.test_m8_uninstall_manager timeout=180s log=/mnt/data/gonken_v04_ckpt45_finalwork/gonkenlabagent-v09-v4-foundation-checkpoint-44/build/ci-logs/unit/tests_unit_test_m8_uninstall_manager.log
+[PASS] module=tests.unit.test_m8_uninstall_manager seconds=8.2
+[RUN] module=tests.unit.test_m8_update_manager timeout=180s log=/mnt/data/gonken_v04_ckpt45_finalwork/gonkenlabagent-v09-v4-foundation-checkpoint-44/build/ci-logs/unit/tests_unit_test_m8_update_manager.log
+[PASS] module=tests.unit.test_m8_update_manager seconds=1.2
+[RUN] module=tests.unit.test_qwen_runtime_contract timeout=180s log=/mnt/data/gonken_v04_ckpt45_finalwork/gonkenlabagent-v09-v4-foundation-checkpoint-44/build/ci-logs/unit/tests_unit_test_qwen_runtime_contract.log
+[PASS] module=tests.unit.test_qwen_runtime_contract seconds=0.9
+[RUN] module=tests.unit.test_release_readiness timeout=180s log=/mnt/data/gonken_v04_ckpt45_finalwork/gonkenlabagent-v09-v4-foundation-checkpoint-44/build/ci-logs/unit/tests_unit_test_release_readiness.log
+[PASS] module=tests.unit.test_release_readiness seconds=4.1
+[RUN] module=tests.unit.test_runtime_audio timeout=180s log=/mnt/data/gonken_v04_ckpt45_finalwork/gonkenlabagent-v09-v4-foundation-checkpoint-44/build/ci-logs/unit/tests_unit_test_runtime_audio.log
+[PASS] module=tests.unit.test_runtime_audio seconds=3.5
+[RUN] module=tests.unit.test_support_export timeout=180s log=/mnt/data/gonken_v04_ckpt45_finalwork/gonkenlabagent-v09-v4-foundation-checkpoint-44/build/ci-logs/unit/tests_unit_test_support_export.log
+[PASS] module=tests.unit.test_support_export seconds=9.4
+[RUN] module=tests.unit.test_test_architecture timeout=180s log=/mnt/data/gonken_v04_ckpt45_finalwork/gonkenlabagent-v09-v4-foundation-checkpoint-44/build/ci-logs/unit/tests_unit_test_test_architecture.log
+[PASS] module=tests.unit.test_test_architecture seconds=3.7
+[RUN] module=tests.unit.test_v09_archive_qualifier timeout=180s log=/mnt/data/gonken_v04_ckpt45_finalwork/gonkenlabagent-v09-v4-foundation-checkpoint-44/build/ci-logs/unit/tests_unit_test_v09_archive_qualifier.log
+[PASS] module=tests.unit.test_v09_archive_qualifier seconds=1.0
+[RUN] module=tests.unit.test_v09_component_readiness timeout=180s log=/mnt/data/gonken_v04_ckpt45_finalwork/gonkenlabagent-v09-v4-foundation-checkpoint-44/build/ci-logs/unit/tests_unit_test_v09_component_readiness.log
+[PASS] module=tests.unit.test_v09_component_readiness seconds=0.9
+[RUN] module=tests.unit.test_v09_doctor_context timeout=180s log=/mnt/data/gonken_v04_ckpt45_finalwork/gonkenlabagent-v09-v4-foundation-checkpoint-44/build/ci-logs/unit/tests_unit_test_v09_doctor_context.log
+[PASS] module=tests.unit.test_v09_doctor_context seconds=0.9
+[RUN] module=tests.unit.test_v09_documentation_hardening timeout=180s log=/mnt/data/gonken_v04_ckpt45_finalwork/gonkenlabagent-v09-v4-foundation-checkpoint-44/build/ci-logs/unit/tests_unit_test_v09_documentation_hardening.log
+[PASS] module=tests.unit.test_v09_documentation_hardening seconds=3.3
+[RUN] module=tests.unit.test_v09_environment_acceptance_runner timeout=180s log=/mnt/data/gonken_v04_ckpt45_finalwork/gonkenlabagent-v09-v4-foundation-checkpoint-44/build/ci-logs/unit/tests_unit_test_v09_environment_acceptance_runner.log
+[WAIT] module=tests.unit.test_v09_environment_acceptance_runner elapsed=15.1s tail=test_default_collection_is_non_destructive_and_blocks_fan_cycle (tests.unit.test_v09_environment_acceptance_runner.EnvironmentAcceptanceRunnerTests.test_default_collection_is_non_destructive_and_blocks_fan_cycle) ... ok
+[WAIT] module=tests.unit.test_v09_environment_acceptance_runner elapsed=30.1s tail=test_default_collection_is_non_destructive_and_blocks_fan_cycle (tests.unit.test_v09_environment_acceptance_runner.EnvironmentAcceptanceRunnerTests.test_default_collection_is_non_destructive_and_blocks_fan_cycle) ... ok | test_explicit_actuation_runs_fan_cycle_commands_but_still_claims_no_acceptance (tests.unit.test_v09_environment_acceptance_runner.EnvironmentAcceptanceRunnerTests.test_explicit_actuation_runs_fan_cycle_commands_but_still_claims_no_acceptance) ... ok
+[PASS] module=tests.unit.test_v09_environment_acceptance_runner seconds=35.8
+[RUN] module=tests.unit.test_v09_environment_cli timeout=180s log=/mnt/data/gonken_v04_ckpt45_finalwork/gonkenlabagent-v09-v4-foundation-checkpoint-44/build/ci-logs/unit/tests_unit_test_v09_environment_cli.log
+[PASS] module=tests.unit.test_v09_environment_cli seconds=1.5
+[RUN] module=tests.unit.test_v09_environment_config timeout=180s log=/mnt/data/gonken_v04_ckpt45_finalwork/gonkenlabagent-v09-v4-foundation-checkpoint-44/build/ci-logs/unit/tests_unit_test_v09_environment_config.log
+[PASS] module=tests.unit.test_v09_environment_config seconds=1.1
+[RUN] module=tests.unit.test_v09_environment_controller timeout=180s log=/mnt/data/gonken_v04_ckpt45_finalwork/gonkenlabagent-v09-v4-foundation-checkpoint-44/build/ci-logs/unit/tests_unit_test_v09_environment_controller.log
+[PASS] module=tests.unit.test_v09_environment_controller seconds=1.1
+[RUN] module=tests.unit.test_v09_environment_daemon_activation timeout=180s log=/mnt/data/gonken_v04_ckpt45_finalwork/gonkenlabagent-v09-v4-foundation-checkpoint-44/build/ci-logs/unit/tests_unit_test_v09_environment_daemon_activation.log
+[PASS] module=tests.unit.test_v09_environment_daemon_activation seconds=1.6
+[RUN] module=tests.unit.test_v09_environment_hardware_adapters timeout=180s log=/mnt/data/gonken_v04_ckpt45_finalwork/gonkenlabagent-v09-v4-foundation-checkpoint-44/build/ci-logs/unit/tests_unit_test_v09_environment_hardware_adapters.log
+[PASS] module=tests.unit.test_v09_environment_hardware_adapters seconds=0.9
+[RUN] module=tests.unit.test_v09_environment_ipc timeout=180s log=/mnt/data/gonken_v04_ckpt45_finalwork/gonkenlabagent-v09-v4-foundation-checkpoint-44/build/ci-logs/unit/tests_unit_test_v09_environment_ipc.log
+[PASS] module=tests.unit.test_v09_environment_ipc seconds=2.4
+[RUN] module=tests.unit.test_v09_environment_policy timeout=180s log=/mnt/data/gonken_v04_ckpt45_finalwork/gonkenlabagent-v09-v4-foundation-checkpoint-44/build/ci-logs/unit/tests_unit_test_v09_environment_policy.log
+[PASS] module=tests.unit.test_v09_environment_policy seconds=0.9
+[RUN] module=tests.unit.test_v09_environment_polling_loop timeout=180s log=/mnt/data/gonken_v04_ckpt45_finalwork/gonkenlabagent-v09-v4-foundation-checkpoint-44/build/ci-logs/unit/tests_unit_test_v09_environment_polling_loop.log
+[PASS] module=tests.unit.test_v09_environment_polling_loop seconds=0.9
+[RUN] module=tests.unit.test_v09_environment_profile_manager timeout=180s log=/mnt/data/gonken_v04_ckpt45_finalwork/gonkenlabagent-v09-v4-foundation-checkpoint-44/build/ci-logs/unit/tests_unit_test_v09_environment_profile_manager.log
+[PASS] module=tests.unit.test_v09_environment_profile_manager seconds=2.6
+[RUN] module=tests.unit.test_v09_environment_readiness timeout=180s log=/mnt/data/gonken_v04_ckpt45_finalwork/gonkenlabagent-v09-v4-foundation-checkpoint-44/build/ci-logs/unit/tests_unit_test_v09_environment_readiness.log
+[PASS] module=tests.unit.test_v09_environment_readiness seconds=0.9
+[RUN] module=tests.unit.test_v09_environment_service_manager timeout=180s log=/mnt/data/gonken_v04_ckpt45_finalwork/gonkenlabagent-v09-v4-foundation-checkpoint-44/build/ci-logs/unit/tests_unit_test_v09_environment_service_manager.log
+[PASS] module=tests.unit.test_v09_environment_service_manager seconds=13.0
+[RUN] module=tests.unit.test_v09_environment_simulation timeout=180s log=/mnt/data/gonken_v04_ckpt45_finalwork/gonkenlabagent-v09-v4-foundation-checkpoint-44/build/ci-logs/unit/tests_unit_test_v09_environment_simulation.log
+[PASS] module=tests.unit.test_v09_environment_simulation seconds=2.2
+[RUN] module=tests.unit.test_v09_environment_voice_intents timeout=180s log=/mnt/data/gonken_v04_ckpt45_finalwork/gonkenlabagent-v09-v4-foundation-checkpoint-44/build/ci-logs/unit/tests_unit_test_v09_environment_voice_intents.log
+[PASS] module=tests.unit.test_v09_environment_voice_intents seconds=0.9
+[RUN] module=tests.unit.test_v09_gpio_identity_preflight timeout=180s log=/mnt/data/gonken_v04_ckpt45_finalwork/gonkenlabagent-v09-v4-foundation-checkpoint-44/build/ci-logs/unit/tests_unit_test_v09_gpio_identity_preflight.log
+[PASS] module=tests.unit.test_v09_gpio_identity_preflight seconds=0.9
+[RUN] module=tests.unit.test_v09_i2c_manager timeout=180s log=/mnt/data/gonken_v04_ckpt45_finalwork/gonkenlabagent-v09-v4-foundation-checkpoint-44/build/ci-logs/unit/tests_unit_test_v09_i2c_manager.log
+[PASS] module=tests.unit.test_v09_i2c_manager seconds=0.9
+[RUN] module=tests.unit.test_v09_install_dependency_graph timeout=180s log=/mnt/data/gonken_v04_ckpt45_finalwork/gonkenlabagent-v09-v4-foundation-checkpoint-44/build/ci-logs/unit/tests_unit_test_v09_install_dependency_graph.log
+[PASS] module=tests.unit.test_v09_install_dependency_graph seconds=0.9
+[RUN] module=tests.unit.test_v09_installer_failure_bundle timeout=180s log=/mnt/data/gonken_v04_ckpt45_finalwork/gonkenlabagent-v09-v4-foundation-checkpoint-44/build/ci-logs/unit/tests_unit_test_v09_installer_failure_bundle.log
+[PASS] module=tests.unit.test_v09_installer_failure_bundle seconds=0.9
+[RUN] module=tests.unit.test_v09_llm_admin_components timeout=180s log=/mnt/data/gonken_v04_ckpt45_finalwork/gonkenlabagent-v09-v4-foundation-checkpoint-44/build/ci-logs/unit/tests_unit_test_v09_llm_admin_components.log
+[PASS] module=tests.unit.test_v09_llm_admin_components seconds=0.9
+[RUN] module=tests.unit.test_v09_model_roster_manager timeout=180s log=/mnt/data/gonken_v04_ckpt45_finalwork/gonkenlabagent-v09-v4-foundation-checkpoint-44/build/ci-logs/unit/tests_unit_test_v09_model_roster_manager.log
+[PASS] module=tests.unit.test_v09_model_roster_manager seconds=0.9
+[RUN] module=tests.unit.test_v09_multimodel_tools timeout=180s log=/mnt/data/gonken_v04_ckpt45_finalwork/gonkenlabagent-v09-v4-foundation-checkpoint-44/build/ci-logs/unit/tests_unit_test_v09_multimodel_tools.log
+[PASS] module=tests.unit.test_v09_multimodel_tools seconds=0.9
+[RUN] module=tests.unit.test_v09_release_identity timeout=180s log=/mnt/data/gonken_v04_ckpt45_finalwork/gonkenlabagent-v09-v4-foundation-checkpoint-44/build/ci-logs/unit/tests_unit_test_v09_release_identity.log
+[PASS] module=tests.unit.test_v09_release_identity seconds=1.0
+[RUN] module=tests.unit.test_v09_responsibility_boundaries timeout=180s log=/mnt/data/gonken_v04_ckpt45_finalwork/gonkenlabagent-v09-v4-foundation-checkpoint-44/build/ci-logs/unit/tests_unit_test_v09_responsibility_boundaries.log
+[PASS] module=tests.unit.test_v09_responsibility_boundaries seconds=1.0
+[RUN] module=tests.unit.test_v09_runtime_context_preflight timeout=180s log=/mnt/data/gonken_v04_ckpt45_finalwork/gonkenlabagent-v09-v4-foundation-checkpoint-44/build/ci-logs/unit/tests_unit_test_v09_runtime_context_preflight.log
+[PASS] module=tests.unit.test_v09_runtime_context_preflight seconds=1.1
+[RUN] module=tests.unit.test_v09_sht31_diagnostic timeout=180s log=/mnt/data/gonken_v04_ckpt45_finalwork/gonkenlabagent-v09-v4-foundation-checkpoint-44/build/ci-logs/unit/tests_unit_test_v09_sht31_diagnostic.log
+[PASS] module=tests.unit.test_v09_sht31_diagnostic seconds=0.9
+[RUN] module=tests.unit.test_v09_target_preflight timeout=180s log=/mnt/data/gonken_v04_ckpt45_finalwork/gonkenlabagent-v09-v4-foundation-checkpoint-44/build/ci-logs/unit/tests_unit_test_v09_target_preflight.log
+[PASS] module=tests.unit.test_v09_target_preflight seconds=0.9
+[RUN] module=tests.unit.test_v09_target_probe timeout=180s log=/mnt/data/gonken_v04_ckpt45_finalwork/gonkenlabagent-v09-v4-foundation-checkpoint-44/build/ci-logs/unit/tests_unit_test_v09_target_probe.log
+[PASS] module=tests.unit.test_v09_target_probe seconds=8.9
+[RUN] module=tests.unit.test_v09_user_test_readiness timeout=180s log=/mnt/data/gonken_v04_ckpt45_finalwork/gonkenlabagent-v09-v4-foundation-checkpoint-44/build/ci-logs/unit/tests_unit_test_v09_user_test_readiness.log
+[PASS] module=tests.unit.test_v09_user_test_readiness seconds=0.9
+[RUN] module=tests.unit.test_voice_appliance timeout=180s log=/mnt/data/gonken_v04_ckpt45_finalwork/gonkenlabagent-v09-v4-foundation-checkpoint-44/build/ci-logs/unit/tests_unit_test_voice_appliance.log
+[PASS] module=tests.unit.test_voice_appliance seconds=1.0
+[RUN] module=tests.unit.test_x4_bluetooth_manager timeout=180s log=/mnt/data/gonken_v04_ckpt45_finalwork/gonkenlabagent-v09-v4-foundation-checkpoint-44/build/ci-logs/unit/tests_unit_test_x4_bluetooth_manager.log
+[WAIT] module=tests.unit.test_x4_bluetooth_manager elapsed=15.0s tail=ok | test_pairing_busy_bluetooth_without_direct_audio_still_fails (tests.unit.test_x4_bluetooth_manager.BluetoothManagerTests.test_pairing_busy_bluetooth_without_direct_audio_still_fails) ... [RUNNING] code=BLUETOOTH_PAIR address=41:42:06:42:05:80 name=AIRHUG 01
+[PASS] module=tests.unit.test_x4_bluetooth_manager seconds=21.0
+[SUMMARY] label=unit result=PASS modules=57 manifest=/mnt/data/gonken_v04_ckpt45_finalwork/gonkenlabagent-v09-v4-foundation-checkpoint-44/build/ci-logs/unit_manifest.json
+Selected T0/T1 checks passed: unit

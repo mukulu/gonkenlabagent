@@ -1,0 +1,103 @@
+SETUP_START
+SETUP_DONE
+FIRST 20.384 0
+eating build/bdist.linux-x86_64/wheel/gonkenlab_agent-0.2.0.dev0.data/data
+creating build/bdist.linux-x86_64/wheel/gonkenlab_agent-0.2.0.dev0.data/data/share/gonken-agent
+copying config/defaults.toml -> build/bdist.linux-x86_64/wheel/gonkenlab_agent-0.2.0.dev0.data/data/share/gonken-agent
+copying config/local_soul.md -> build/bdist.linux-x86_64/wheel/gonkenlab_agent-0.2.0.dev0.data/data/share/gonken-agent
+running install_egg_info
+running egg_info
+creating src/gonkenlab_agent.egg-info
+writing src/gonkenlab_agent.egg-info/PKG-INFO
+writing dependency_links to src/gonkenlab_agent.egg-info/dependency_links.txt
+writing entry points to src/gonkenlab_agent.egg-info/entry_points.txt
+writing requirements to src/gonkenlab_agent.egg-info/requires.txt
+writing top-level names to src/gonkenlab_agent.egg-info/top_level.txt
+writing manifest file 'src/gonkenlab_agent.egg-info/SOURCES.txt'
+reading manifest file 'src/gonkenlab_agent.egg-info/SOURCES.txt'
+writing manifest file 'src/gonkenlab_agent.egg-info/SOURCES.txt'
+Copying src/gonkenlab_agent.egg-info to build/bdist.linux-x86_64/wheel/./gonkenlab_agent-0.2.0.dev0-py3.13.egg-info
+running install_scripts
+creating build/bdist.linux-x86_64/wheel/gonkenlab_agent-0.2.0.dev0.dist-info/WHEEL
+creating '/tmp/tmpzlz597sw/diagnose-repeat/usr/local/lib/gonken-agent/releases/.candidate.d6333d31e8e14e0c1081653a6bdd321a4444f6dd.8woj05pd/wheels/.tmp-mcmnx4sn/gonkenlab_agent-0.2.0.dev0-py3-none-any.whl' and adding 'build/bdist.linux-x86_64/wheel' to it
+adding 'gonken_agent/__init__.py'
+adding 'gonken_agent/__main__.py'
+adding 'gonken_agent/cli.py'
+adding 'gonken_agent/compat.py'
+adding 'gonken_agent/component_status.py'
+adding 'gonken_agent/config.py'
+adding 'gonken_agent/dashboard.py'
+adding 'gonken_agent/diagnostics.py'
+adding 'gonken_agent/evidence.py'
+adding 'gonken_agent/gpio_resolver.py'
+adding 'gonken_agent/health.py'
+adding 'gonken_agent/identity.py'
+adding 'gonken_agent/operations.py'
+adding 'gonken_agent/readiness.py'
+adding 'gonken_agent/release_identity.py'
+adding 'gonken_agent/runtime.py'
+adding 'gonken_agent/state.py'
+adding 'gonken_agent/support.py'
+adding 'gonken_agent/telemetry.py'
+adding 'gonken_agent/text_pipeline.py'
+adding 'gonken_agent/tool_broker.py'
+adding 'gonken_agent/voice_runtime.py'
+adding 'gonken_agent/audio/__init__.py'
+adding 'gonken_agent/audio/capture.py'
+adding 'gonken_agent/audio/devices.py'
+adding 'gonken_agent/audio/process.py'
+adding 'gonken_agent/audio/resample.py'
+adding 'gonken_agent/audio/speech.py'
+adding 'gonken_agent/environment/__init__.py'
+adding 'gonken_agent/environment/client.py'
+adding 'gonken_agent/environment/controller.py'
+adding 'gonken_agent/environment/daemon.py'
+adding 'gonken_agent/environment/domain.py'
+adding 'gonken_agent/environment/intents.py'
+adding 'gonken_agent/environment/policy.py'
+adding 'gonken_agent/environment/protocol.py'
+adding 'gonken_agent/environment/responses.py'
+adding 'gonken_agent/environment/server.py'
+adding 'gonken_agent/environment/service.py'
+adding 'gonken_agent/environment/simulation.py'
+adding 'gonken_agent/environment/actuators/__init__.py'
+adding 'gonken_agent/environment/actuators/base.py'
+adding 'gonken_agent/environment/actuators/gpiod_relay.py'
+adding 'gonken_agent/environment/actuators/simulated.py'
+adding 'gonken_agent/environment/sensors/__init__.py'
+adding 'gonken_agent/environment/sensors/base.py'
+adding 'gonken_agent/environment/sensors/sht31.py'
+adding 'gonken_agent/environment/sensors/simulated.py'
+adding 'gonken_agent/extensions/__init__.py'
+adding 'gonken_agent/interaction/__init__.py'
+adding 'gonken_agent/interaction/gpiod_ptt.py'
+adding 'gonken_agent/interaction/push_to_talk.py'
+adding 'gonken_agent/llm/__init__.py'
+adding 'gonken_agent/llm/admin.py'
+adding 'gonken_agent/llm/models.py'
+adding 'gonken_agent/llm/ollama.py'
+adding 'gonken_agent/llm/prompts.py'
+adding 'gonken_agent/retrieval/__init__.py'
+adding 'gonken_agent/retrieval/index.py'
+adding 'gonkenlab_agent-0.2.0.dev0.data/data/share/gonken-agent/defaults.toml'
+adding 'gonkenlab_agent-0.2.0.dev0.data/data/share/gonken-agent/local_soul.md'
+adding 'gonkenlab_agent-0.2.0.dev0.dist-info/METADATA'
+adding 'gonkenlab_agent-0.2.0.dev0.dist-info/WHEEL'
+adding 'gonkenlab_agent-0.2.0.dev0.dist-info/entry_points.txt'
+adding 'gonkenlab_agent-0.2.0.dev0.dist-info/top_level.txt'
+adding 'gonkenlab_agent-0.2.0.dev0.dist-info/RECORD'
+removing build/bdist.linux-x86_64/wheel
+[OK] code=RELEASE_BUILT commit=d6333d31e8e14e0c1081653a6bdd321a4444f6dd size_kib=6042 required_headroom_kib=524288
+[OK] code=INSTALL_STEP_COMPLETE step=immutable_release version=1
+[RUNNING] code=INSTALL_STEP_ACTION step=activate_release version=1
+[OK] code=ACTIVATION_EMPTY
+[OK] code=ACTIVATION_COMPLETE commit=d6333d31e8e14e0c1081653a6bdd321a4444f6dd previous=none
+[OK] code=INSTALL_STEP_COMPLETE step=activate_release version=1
+[OK] code=M3_3_RELEASE_COMPLETE commit=d6333d31e8e14e0c1081653a6bdd321a4444f6dd release_root=/tmp/tmpzlz597sw/diagnose-repeat/usr/local/lib/gonken-agent
+
+warning: build_py: byte-compiling is disabled, skipping.
+
+warning: install_lib: byte-compiling is disabled, skipping.
+
+
+SECOND_START

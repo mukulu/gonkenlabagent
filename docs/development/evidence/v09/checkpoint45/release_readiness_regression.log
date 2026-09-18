@@ -1,0 +1,9 @@
+test_human_report_has_exact_boundary_language (tests.unit.test_release_readiness.ReleaseReadinessTests.test_human_report_has_exact_boundary_language) ... ok
+test_report_is_ready_for_target_acceptance_from_clean_tree (tests.unit.test_release_readiness.ReleaseReadinessTests.test_report_is_ready_for_target_acceptance_from_clean_tree) ... ok
+test_target_acceptance_runbook_is_user_facing (tests.unit.test_release_readiness.ReleaseReadinessTests.test_target_acceptance_runbook_is_user_facing) ... ok
+test_target_shadow_fixture_failure_blocks_readiness (tests.unit.test_release_readiness.ReleaseReadinessTests.test_target_shadow_fixture_failure_blocks_readiness) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 1.850s
+
+OK

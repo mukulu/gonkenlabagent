@@ -1,0 +1,20 @@
+[FINAL_STATIC] git diff --check
+[FINAL_STATIC] compileall
+[FINAL_STATIC] shell syntax
+[FINAL_STATIC] milestone sync
+[FINAL_STATIC] release readiness unit
+test_human_report_has_exact_boundary_language (tests.unit.test_release_readiness.ReleaseReadinessTests.test_human_report_has_exact_boundary_language) ... ok
+test_report_is_ready_for_target_acceptance_from_clean_tree (tests.unit.test_release_readiness.ReleaseReadinessTests.test_report_is_ready_for_target_acceptance_from_clean_tree) ... ok
+test_target_acceptance_runbook_is_user_facing (tests.unit.test_release_readiness.ReleaseReadinessTests.test_target_acceptance_runbook_is_user_facing) ... ok
+test_target_shadow_fixture_failure_blocks_readiness (tests.unit.test_release_readiness.ReleaseReadinessTests.test_target_shadow_fixture_failure_blocks_readiness) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 2.092s
+
+OK
+[FINAL_STATIC] T0
+[T0] dependency lock drift
+verified 5 installable dependency profiles
+[T0] source/config syntax
+[T0] V09 documentation/evidence boundary
+Selected T0/T1 checks passed: t0

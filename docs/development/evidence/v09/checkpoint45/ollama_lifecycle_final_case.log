@@ -1,0 +1,6 @@
+test_representative_download_extract_readiness_pull_and_smoke_boundary_recovers (tests.integration.test_ollama_lifecycle_process.OllamaLifecycleProcessTests.test_representative_download_extract_readiness_pull_and_smoke_boundary_recovers) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 21.647s
+
+OK

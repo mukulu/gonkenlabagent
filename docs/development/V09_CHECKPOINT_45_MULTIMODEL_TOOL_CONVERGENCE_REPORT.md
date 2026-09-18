@@ -34,7 +34,23 @@ Checkpoint 45 does not automatically commission the real relay. With `real-senso
 
 ## Verification state
 
-Implementation has been validated incrementally in committed batches. Final broad regression, release-readiness, T0, exact tagged archive qualification and fresh-extraction reruns are required before this report may be treated as checkpoint-close evidence. Their final results are appended during checkpoint close.
+Checkpoint-close host verification is complete for the source tree. Evidence is retained under `docs/development/evidence/v09/checkpoint45/`, with `checkpoint45_host_verification_summary.json` as the compact ledger.
+
+- Focused V04 convergence: **85/85 PASS**.
+- Full unit phase: **57/57 modules, 603/603 tests PASS**.
+- CLI process: **5/5 PASS**.
+- Text-runtime process: **9/9 PASS** after adapting three network-harness calls to the new non-empty bounded-message contract; the production validation was not weakened. The initial failures and the corrected rerun are both retained.
+- Bootstrap preflight: **6/6 PASS**.
+- Install-engine lifecycle: **10/10 PASS**.
+- Support collection: **4/4 PASS**.
+- Ollama lifecycle: **5/5 PASS** across bounded runs.
+- First-install launcher: **4/4 PASS**.
+- Uninstall lifecycle: **2/2 PASS**.
+- Release lifecycle: **12/12 PASS** across bounded/polled runs. The same-commit repeat case was diagnosed as slow immutable-release validation rather than a deadlock and completed successfully in approximately 35.7 seconds; acceptance criteria were not weakened.
+- Speech lifecycle: **12/12 PASS**.
+- Static/control gates: `git diff --check`, Python compilation, installer/bootstrap shell syntax, milestone synchronization and T0 all PASS.
+
+The source-close gate does **not** establish Raspberry Pi acceptance for Checkpoint 45. Post-tag exact-archive qualification and a fresh-extraction focused rerun are delivery gates and are recorded in the external Checkpoint-45 handoff/qualification artifacts after the source commit/tag is sealed.
 
 ## Remaining target work
 

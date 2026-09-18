@@ -1,0 +1,116 @@
+{
+  "base_commit": "e04af9d9977a192fd58e53c50392c74b7dc8b85b",
+  "branch": "dev/v09-45-v4-multimodel-tools",
+  "checkpoint": 45,
+  "fresh_target_observation": {
+    "actuator": "simulated only",
+    "checkpoint45_target_acceptance": false,
+    "environment_profile": "real-sensor-simulated-actuator",
+    "physical_fan_acceptance": false,
+    "real_sensor": "SHT31 bus 1 address 0x44 observed READY through daemon",
+    "source": "checkpoint44_target_hybrid_observation.json",
+    "status": "OBSERVED_PREDECESSOR_PACKAGE"
+  },
+  "known_interrupted_or_diagnostic_logs": [
+    "process_integration_a.log",
+    "text_network_failures_isolated.log",
+    "process_integration_b.log",
+    "release_lifecycle_process.log",
+    "release_lifecycle_repeat_case.log",
+    "release_repeat_diagnosis2.log"
+  ],
+  "open_target_gates": [
+    "exact checkpoint-45 Pi three-model provisioning and compatibility smoke",
+    "per-model semantic tool quality and latency/memory/thermal measurements",
+    "real-SHT31 plus simulated-fan natural voice tool transactions",
+    "reboot/no-login/model-selection persistence",
+    "supervised real GPIO23/ELUTENG fan actuation (WP-45C)",
+    "full update/rollback/reinstall/soak target campaign"
+  ],
+  "scope": "V04 multi-model, typed-tool, component observability, causal-evidence convergence",
+  "verification": {
+    "bootstrap_preflight_process": {
+      "log": "bootstrap_preflight_process.log",
+      "status": "PASS",
+      "tests": 6
+    },
+    "cli_process": {
+      "evidence": "process_integration_a.log before later harness failure",
+      "status": "PASS",
+      "tests": 5
+    },
+    "first_install_launcher": {
+      "log": "process_integration_c.log",
+      "status": "PASS",
+      "tests": 4
+    },
+    "focused_v04_convergence": {
+      "log": "focused_v04_convergence.log",
+      "status": "PASS",
+      "tests": 85
+    },
+    "install_engine_process": {
+      "log": "process_integration_b.log",
+      "status": "PASS",
+      "tests": 10
+    },
+    "ollama_lifecycle_process": {
+      "logs": [
+        "process_integration_b.log",
+        "ollama_lifecycle_final_case.log",
+        "ollama_service_conflict_final.log"
+      ],
+      "status": "PASS",
+      "tests": 5
+    },
+    "release_lifecycle_process": {
+      "logs": [
+        "release_lifecycle_process.log",
+        "release_lifecycle_endtoend_cases.log",
+        "release_repeat_diagnosis2.log",
+        "release_lifecycle_remaining.log"
+      ],
+      "note": "repeat/idempotency case observed slow validate-static work, not deadlock; completed in 35.707 s",
+      "status": "PASS",
+      "tests": 12
+    },
+    "speech_lifecycle_process": {
+      "log": "speech_lifecycle_process.log",
+      "status": "PASS",
+      "tests": 12
+    },
+    "static_controls": {
+      "checks": [
+        "git diff --check",
+        "compileall",
+        "bash -n installer/bootstrap scripts",
+        "milestone synchronization",
+        "T0"
+      ],
+      "log": "static_control_gates.log",
+      "status": "PASS"
+    },
+    "support_collection_process": {
+      "log": "process_integration_b.log",
+      "status": "PASS",
+      "tests": 4
+    },
+    "text_runtime_process": {
+      "log": "text_runtime_final.log",
+      "note": "three LocalNetwork tests initially hit the new bounded-message contract; harness updated without weakening product validation",
+      "status": "PASS",
+      "tests": 9
+    },
+    "uninstall_lifecycle_process": {
+      "log": "process_integration_c.log",
+      "status": "PASS",
+      "tests": 2
+    },
+    "unit_phase": {
+      "log": "full_unit_phase.log",
+      "modules": 57,
+      "status": "PASS",
+      "tests": 603
+    }
+  }
+}

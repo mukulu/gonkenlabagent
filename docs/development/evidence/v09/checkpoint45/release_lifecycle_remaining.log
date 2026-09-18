@@ -1,0 +1,14 @@
+test_same_commit_repeat_ignores_standard_runtime_cache_without_repairing_release (tests.integration.test_release_lifecycle_process.EndToEndReleaseTests.test_same_commit_repeat_ignores_standard_runtime_cache_without_repairing_release) ... ok
+test_default_install_after_release_boundary_stops_before_target_only_steps (tests.integration.test_release_lifecycle_process.EndToEndReleaseTests.test_default_install_after_release_boundary_stops_before_target_only_steps) ... ok
+test_low_space_never_creates_or_switches_release (tests.integration.test_release_lifecycle_process.EndToEndReleaseTests.test_low_space_never_creates_or_switches_release) ... ok
+test_process_activation_does_not_execute_or_revalidate_previous_current_release (tests.integration.test_release_lifecycle_process.TargetBridgeUpgradeCompatibilityTests.test_process_activation_does_not_execute_or_revalidate_previous_current_release) ... ok
+test_process_activation_does_not_fail_after_success_when_older_stale_release_is_pre_bridge (tests.integration.test_release_lifecycle_process.TargetBridgeUpgradeCompatibilityTests.test_process_activation_does_not_fail_after_success_when_older_stale_release_is_pre_bridge)
+Reproduce checkpoint-30 Pi: stale legacy A, active legacy B, new strict C. ... ok
+test_process_activation_migrates_from_post_verified_pre_bridge_target_release (tests.integration.test_release_lifecycle_process.TargetBridgeUpgradeCompatibilityTests.test_process_activation_migrates_from_post_verified_pre_bridge_target_release)
+Exact checkpoint-29 target failure: reconcile old active, then activate bridge release. ... ok
+test_candidate_finalize_boundaries_leave_recoverable_old_or_new_state (tests.integration.test_release_lifecycle_process.FinalizationInterruptionTests.test_candidate_finalize_boundaries_leave_recoverable_old_or_new_state) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 84.126s
+
+OK

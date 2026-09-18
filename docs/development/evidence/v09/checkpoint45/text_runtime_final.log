@@ -1,0 +1,14 @@
+test_routes_host_origin_content_and_no_mutations (tests.integration.test_text_runtime_process.DashboardHTTPTests.test_routes_host_origin_content_and_no_mutations) ... ok
+test_cancel_timeout_overload_and_single_request_lock (tests.integration.test_text_runtime_process.LocalNetworkTests.test_cancel_timeout_overload_and_single_request_lock) ... ok
+test_cancellation_after_connection_close_response_headers (tests.integration.test_text_runtime_process.LocalNetworkTests.test_cancellation_after_connection_close_response_headers) ... ok
+test_non_loopback_hostname_redirect_path_and_credentials_refused (tests.integration.test_text_runtime_process.LocalNetworkTests.test_non_loopback_hostname_redirect_path_and_credentials_refused) ... ok
+test_response_limit_and_malformed_model_identity (tests.integration.test_text_runtime_process.LocalNetworkTests.test_response_limit_and_malformed_model_identity) ... ok
+test_works_when_dns_proxy_and_external_connections_forbidden (tests.integration.test_text_runtime_process.LocalNetworkTests.test_works_when_dns_proxy_and_external_connections_forbidden) ... ok
+test_build_verify_ask_unknown_doctor_and_no_content_telemetry (tests.integration.test_text_runtime_process.TextCLIProcessTests.test_build_verify_ask_unknown_doctor_and_no_content_telemetry) ... ok
+test_invalid_index_and_calibration_fail_categorically (tests.integration.test_text_runtime_process.TextCLIProcessTests.test_invalid_index_and_calibration_fail_categorically) ... ok
+test_text_session_multiple_lines_eof_and_signal_shutdown (tests.integration.test_text_runtime_process.TextCLIProcessTests.test_text_session_multiple_lines_eof_and_signal_shutdown) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 13.636s
+
+OK

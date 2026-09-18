@@ -1,0 +1,46 @@
+test_non_loopback_hostname_redirect_path_and_credentials_refused (tests.integration.test_text_runtime_process.LocalNetworkTests.test_non_loopback_hostname_redirect_path_and_credentials_refused) ... ERROR
+test_cancel_timeout_overload_and_single_request_lock (tests.integration.test_text_runtime_process.LocalNetworkTests.test_cancel_timeout_overload_and_single_request_lock) ... FAIL
+test_cancellation_after_connection_close_response_headers (tests.integration.test_text_runtime_process.LocalNetworkTests.test_cancellation_after_connection_close_response_headers) ... FAIL
+
+======================================================================
+ERROR: test_non_loopback_hostname_redirect_path_and_credentials_refused (tests.integration.test_text_runtime_process.LocalNetworkTests.test_non_loopback_hostname_redirect_path_and_credentials_refused)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/data/gonken_v04_ckpt45_finalwork/gonkenlabagent-v09-v4-foundation-checkpoint-44/tests/integration/test_text_runtime_process.py", line 77, in test_non_loopback_hostname_redirect_path_and_credentials_refused
+    with self.assertRaises(OllamaError):OllamaClient(self.config).chat([],threading.Event())
+                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/data/gonken_v04_ckpt45_finalwork/gonkenlabagent-v09-v4-foundation-checkpoint-44/src/gonken_agent/llm/ollama.py", line 337, in chat
+    return self._chat_result(messages, cancel, structured=True)
+           ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/data/gonken_v04_ckpt45_finalwork/gonkenlabagent-v09-v4-foundation-checkpoint-44/src/gonken_agent/llm/ollama.py", line 325, in _chat_result
+    "POST", "/api/chat", self._chat_payload(messages, structured=structured), cancel
+                         ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/data/gonken_v04_ckpt45_finalwork/gonkenlabagent-v09-v4-foundation-checkpoint-44/src/gonken_agent/llm/ollama.py", line 241, in _chat_payload
+    "messages": self._validate_messages(messages),
+                ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/mnt/data/gonken_v04_ckpt45_finalwork/gonkenlabagent-v09-v4-foundation-checkpoint-44/src/gonken_agent/llm/ollama.py", line 191, in _validate_messages
+    raise ValueError("bounded chat messages required")
+ValueError: bounded chat messages required
+
+======================================================================
+FAIL: test_cancel_timeout_overload_and_single_request_lock (tests.integration.test_text_runtime_process.LocalNetworkTests.test_cancel_timeout_overload_and_single_request_lock)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/data/gonken_v04_ckpt45_finalwork/gonkenlabagent-v09-v4-foundation-checkpoint-44/tests/integration/test_text_runtime_process.py", line 87, in test_cancel_timeout_overload_and_single_request_lock
+    self.assertTrue(self.api.entered.wait(1))
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_cancellation_after_connection_close_response_headers (tests.integration.test_text_runtime_process.LocalNetworkTests.test_cancellation_after_connection_close_response_headers)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/data/gonken_v04_ckpt45_finalwork/gonkenlabagent-v09-v4-foundation-checkpoint-44/tests/integration/test_text_runtime_process.py", line 105, in test_cancellation_after_connection_close_response_headers
+    self.assertTrue(self.api.body_headers_sent.wait(1))
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true
+
+----------------------------------------------------------------------
+Ran 3 tests in 2.136s
+
+FAILED (failures=2, errors=1)

@@ -1,0 +1,17 @@
+test_full_lifecycle_repeat_status_and_private_record (tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_full_lifecycle_repeat_status_and_private_record) ... ok
+test_interrupt_piper_finalize_during_converges_on_rerun (tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_interrupt_piper_finalize_during_converges_on_rerun) ... ok
+test_interrupt_piper_install_during_converges_on_rerun (tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_interrupt_piper_install_during_converges_on_rerun) ... ok
+test_interrupt_piper_pair_download_during_converges_on_rerun (tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_interrupt_piper_pair_download_during_converges_on_rerun) ... ok
+test_interrupt_piper_pair_finalize_during_converges_on_rerun (tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_interrupt_piper_pair_finalize_during_converges_on_rerun) ... ok
+test_interrupt_whisper_finalize_during_converges_on_rerun (tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_interrupt_whisper_finalize_during_converges_on_rerun) ... ok
+test_interrupt_whisper_model_download_during_converges_on_rerun (tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_interrupt_whisper_model_download_during_converges_on_rerun) ... ok
+test_interrupt_whisper_source_before_converges_on_rerun (tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_interrupt_whisper_source_before_converges_on_rerun) ... ok
+test_interrupt_whisper_source_during_converges_on_rerun (tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_interrupt_whisper_source_during_converges_on_rerun) ... ok
+test_smoke_failure_does_not_create_success_record_and_reruns (tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_smoke_failure_does_not_create_success_record_and_reruns) ... ok
+test_wrong_architecture_native_payload_is_rejected_and_repaired (tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_wrong_architecture_native_payload_is_rejected_and_repaired) ... ok
+test_zero_byte_bad_checksum_and_missing_pair_repair (tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_zero_byte_bad_checksum_and_missing_pair_repair) ... ok
+
+----------------------------------------------------------------------
+Ran 12 tests in 100.986s
+
+OK

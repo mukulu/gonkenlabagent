@@ -1479,6 +1479,6 @@ Checkpoint 24 closes the host-side root cause and adds regression protection, bu
 | CP45-T266 | Component/env operator observability | `components`; `env watch`; environment CLI tests | PASS focused | Target must verify outputs against real service state. |
 | CP45-T267 | Phase-aware causal one-ZIP evidence | `support.py`; support/failure-bundle tests | PASS focused | Target failure/recovery ZIP must prove forensic usefulness. |
 | CP45-T268 | Latency/resource instrumentation | content-free voice metrics; `llm benchmark` | PASS host contract | Pi latency, RAM and thermal measurements remain unclaimed until target benchmark. |
-| CP45-T269 | Broad regression and checkpoint-close static gates | checkpoint-45 evidence logs | PENDING until final close | Host/package only. |
-| CP45-T270 | Exact tagged archive + fresh extraction | checkpoint-45 qualification artifacts | PENDING until final close | Package integrity only; no physical acceptance. |
+| CP45-T269 | Broad regression and checkpoint-close static gates | `checkpoint45_host_verification_summary.json`; checkpoint-45 logs | PASS — 85 focused; 603 unit tests across 57 modules; process/lifecycle portfolios fully accounted | Host/package only; no physical acceptance. |
+| CP45-T270 | Exact tagged archive + fresh extraction | checkpoint-45 qualification artifacts | POST-TAG DELIVERY GATE — recorded externally after immutable source tag | Package integrity only; no physical acceptance. |
 | CP45-T271 | Supervised real GPIO23/ELUTENG actuation | WP-45C runbook | NOT RUN / BLOCKED TARGET GATE | Must not be inferred from simulated actuator results. |

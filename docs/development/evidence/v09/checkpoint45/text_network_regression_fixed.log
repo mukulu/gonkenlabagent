@@ -1,0 +1,8 @@
+test_non_loopback_hostname_redirect_path_and_credentials_refused (tests.integration.test_text_runtime_process.LocalNetworkTests.test_non_loopback_hostname_redirect_path_and_credentials_refused) ... ok
+test_cancel_timeout_overload_and_single_request_lock (tests.integration.test_text_runtime_process.LocalNetworkTests.test_cancel_timeout_overload_and_single_request_lock) ... ok
+test_cancellation_after_connection_close_response_headers (tests.integration.test_text_runtime_process.LocalNetworkTests.test_cancellation_after_connection_close_response_headers) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.150s
+
+OK
