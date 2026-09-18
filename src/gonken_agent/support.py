@@ -421,13 +421,21 @@ def _read_event(path: Path) -> dict[str, object] | None:
     code = fields.get("code", "")
     step = fields.get("step_id", "")
     message = fields.get("message", "")
+    run_id = fields.get("run_id", "")
+    sequence = fields.get("sequence", "")
+    observed_epoch = fields.get("observed_epoch", "")
     if level not in {"info", "error"} or not SAFE_CODE_RE.fullmatch(code):
         return None
     if not re.fullmatch(r"[a-z0-9_.-]{1,64}|none", step):
         return None
     if not re.fullmatch(r"[A-Za-z0-9_.-]{1,128}", message):
         return None
-    return {"level": level, "code": code, "step_id": step, "message": message}
+    if not re.fullmatch(r"[0-9.]{3,64}", run_id) or not sequence.isdigit() or not observed_epoch.isdigit():
+        return None
+    return {
+        "run_id": run_id, "sequence": int(sequence), "observed_epoch": int(observed_epoch),
+        "level": level, "code": code, "step_id": step, "message": message,
+    }
 
 
 def _install_events(limit: int = 40) -> dict[str, object]:
@@ -438,7 +446,13 @@ def _install_events(limit: int = 40) -> dict[str, object]:
         event = _read_event(path)
         if event is not None:
             events.append(event)
-    return {"status": "READY", "events": events}
+    latest_run_id = events[-1]["run_id"] if events else None
+    latest_run = [event for event in events if event.get("run_id") == latest_run_id] if latest_run_id else []
+    return {
+        "status": "READY", "events": events, "latest_run_id": latest_run_id,
+        "latest_run_event_count": len(latest_run),
+        "latest_run_last_code": latest_run[-1]["code"] if latest_run else None,
+    }
 
 
 def _service_event_codes(limit: int = 200) -> dict[str, object]:
@@ -488,18 +502,20 @@ def _boot_id() -> str | None:
     return value if re.fullmatch(r"[0-9a-f-]{36}", value) else None
 
 
-def _evidence_phase_context() -> dict[str, object]:
+def _evidence_phase_context(install_events: dict[str, object] | None = None) -> dict[str, object]:
     release = _safe_release_identity()
     readiness = _bounded_json_file(Path("/run/gonken-agent/readiness.json"), max_bytes=8192)
     ready = _bounded_json_file(Path("/run/gonken-agent/ready.json"), max_bytes=8192)
+    install_events = install_events if isinstance(install_events, dict) else {}
     return {
         "status": "READY",
         "phase": "runtime_support_collection",
+        "install_run_id": install_events.get("latest_run_id"),
         "boot_id": _boot_id(),
         "release": release,
         "voice_readiness": readiness if isinstance(readiness, dict) else {"status": "UNAVAILABLE"},
         "voice_ready": ready if isinstance(ready, dict) else {"status": "UNAVAILABLE"},
-        "precedence": "current_runtime_state_over_historical_event_counts",
+        "precedence": "current_runtime_state_over_same_boot_history_over_install_history",
         "physical_acceptance_claimed": False,
     }
 
@@ -846,7 +862,7 @@ def create_bundle(
             collection_errors.append({'section': name, 'error_type': code})
 
     collect_optional('component_readiness.json', lambda: collect_component_status(effective_config.config))
-    collect_optional('evidence_phase.json', _evidence_phase_context)
+    collect_optional('evidence_phase.json', lambda: _evidence_phase_context(files.get('install_events.json') if isinstance(files.get('install_events.json'), dict) else None))
     collect_optional('permissions.json', lambda: _permissions_manifest(effective_config.config))
     collect_optional('systemd_effective.json', _systemd_effective_state)
     collect_optional('configuration_provenance.json', lambda: _configuration_provenance(effective_config))

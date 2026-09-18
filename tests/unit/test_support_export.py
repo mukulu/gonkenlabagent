@@ -187,11 +187,16 @@ class SupportTests(unittest.TestCase):
             payload = support._install_events()
         self.assertEqual(payload['status'], 'READY')
         self.assertEqual(payload['events'], [{
+            'run_id': '1.2',
+            'sequence': 1,
+            'observed_epoch': 1,
             'level': 'error',
             'code': 'INSTALL_ACTION',
             'step_id': 'appliance_readiness',
             'message': 'action_failed_exit_75',
         }])
+        self.assertEqual(payload['latest_run_id'], '1.2')
+        self.assertEqual(payload['latest_run_last_code'], 'INSTALL_ACTION')
 
     def test_service_event_export_counts_codes_without_exporting_journal_text(self):
         fake = Mock(returncode=0, stdout=(
@@ -252,6 +257,16 @@ class SupportTests(unittest.TestCase):
         with patch('gonken_agent.support.RELEASE_ROOT', release_root):
             payload = support._safe_release_identity()
         self.assertEqual(payload['status'], 'UNAVAILABLE')
+
+    def test_evidence_phase_binds_latest_install_run_without_raw_content(self):
+        phase = support._evidence_phase_context({
+            "status": "READY", "latest_run_id": "1700000000.123",
+            "latest_run_event_count": 4, "latest_run_last_code": "INSTALL_COMPLETE",
+        })
+        self.assertEqual(phase["install_run_id"], "1700000000.123")
+        self.assertIn("current_runtime_state", phase["precedence"])
+        self.assertFalse(phase["physical_acceptance_claimed"])
+
 
     def test_diagnostic_summary_treats_same_boot_failure_history_as_recovered_when_current_ready(self):
         files = {

@@ -118,6 +118,17 @@ class ToolBrokerTests(unittest.TestCase):
             with self.subTest(name=name), self.assertRaises(ToolBrokerError):
                 parse_tool_call({"function": {"name": name, "arguments": {}}})
 
+    def test_two_read_only_calls_can_share_one_bounded_transaction(self):
+        calls = [
+            {"function": {"name": "environment_read_sensor", "arguments": {}}},
+            {"function": {"name": "environment_get_status", "arguments": {}}},
+        ]
+        spoken = self.broker.execute_calls(calls, user_text="Tell me the room temperature and whether the fan is on")
+        self.assertIn("27.5 degrees Celsius", spoken)
+        self.assertIn("off", spoken)
+        self.assertEqual(self.environment.fan, "off")
+
+
     def test_duplicate_mutations_in_one_turn_are_rejected(self):
         call = {"function": {"name": "environment_set_fan_power", "arguments": {"power": "on"}}}
         with self.assertRaises(ToolBrokerError):

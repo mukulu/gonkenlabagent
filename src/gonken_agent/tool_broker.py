@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import re
 import threading
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Mapping
@@ -196,8 +197,14 @@ class ToolBroker:
         if sum(1 for item in proposals if item.name == "environment_set_fan_power") > 1:
             raise ToolBrokerError("TOOL_DUPLICATE_MUTATION", "multiple mutations in one turn are not allowed")
         spoken: list[str] = []
-        for proposal in proposals:
-            outcome = self.execute(proposal, user_text=user_text)
+        if len(proposals) > 1 and all(item.name != "environment_set_fan_power" for item in proposals):
+            # Independent read-only proposals may run concurrently; mutation-bearing
+            # transactions stay sequential and the actual fan write remains lock-serialized.
+            with ThreadPoolExecutor(max_workers=min(2, len(proposals)), thread_name_prefix="gonken-tool-read") as pool:
+                outcomes = [future.result() for future in [pool.submit(self.execute, item, user_text=user_text) for item in proposals]]
+        else:
+            outcomes = [self.execute(item, user_text=user_text) for item in proposals]
+        for outcome in outcomes:
             text = outcome.get("spoken")
             if isinstance(text, str) and text.strip():
                 spoken.append(text.strip())
@@ -217,4 +224,6 @@ def broker_health() -> dict[str, object]:
         "raw_i2c": False,
         "mutation_policy": "explicit-user-authorization-and-serialized",
         "max_tool_calls_per_turn": 2,
+        "parallel_read_only": True,
+        "serialized_mutations": True,
     }
