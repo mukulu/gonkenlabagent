@@ -3,6 +3,8 @@ from __future__ import annotations
 
 import json
 import os
+import hashlib
+import stat
 import grp
 import pwd
 import platform
@@ -18,6 +20,9 @@ from .health import COMPONENTS
 from .telemetry import validate_event
 from .diagnostics import load_snapshot, collect_environment_diagnostics
 from .evidence import write_bundle
+from .component_status import collect as collect_component_status
+from .llm.models import active_model, selection_status, roster_manifest
+from .tool_broker import TOOL_NAMES
 
 
 SAFE_CODE_RE = re.compile(r"^[A-Z0-9_]{1,64}$")
@@ -437,30 +442,213 @@ def _install_events(limit: int = 40) -> dict[str, object]:
 
 
 def _service_event_codes(limit: int = 200) -> dict[str, object]:
+    """Summarize current-boot structured reason codes without exporting journal text."""
     journalctl = shutil.which("journalctl")
     if not journalctl:
-        return {"status": "UNAVAILABLE", "units": {}}
+        return {"status": "UNAVAILABLE", "scope": "current_boot", "units": {}}
     units: dict[str, object] = {}
     for unit in SERVICE_UNITS:
         try:
             result = subprocess.run(
                 [journalctl, "-u", unit, "-b", "--no-pager", "-n", str(limit), "-o", "cat"],
-                check=False,
-                capture_output=True,
-                text=True,
-                timeout=8,
+                check=False, capture_output=True, text=True, timeout=8,
             )
         except (OSError, subprocess.TimeoutExpired):
-            units[unit] = {"status": "UNAVAILABLE", "codes": {}}
+            units[unit] = {"status": "UNAVAILABLE", "codes": {}, "events": []}
             continue
         counts = Counter()
-        for match in re.finditer(r"(?:^|\s)code=([A-Z0-9_]{1,64})(?:\s|$)", result.stdout):
-            counts[match.group(1)] += 1
+        summaries: dict[str, dict[str, object]] = {}
+        for sequence, line in enumerate(result.stdout.splitlines(), 1):
+            match = re.search(r"(?:^|\s)code=([A-Z0-9_]{1,64})(?:\s|$)", line)
+            if not match:
+                continue
+            code = match.group(1)
+            counts[code] += 1
+            level_match = re.match(r"^\[([A-Z]{2,12})\]", line)
+            level = level_match.group(1) if level_match else "UNKNOWN"
+            row = summaries.setdefault(code, {"code": code, "count": 0, "first_sequence": sequence, "last_sequence": sequence, "last_level": level})
+            row["count"] = int(row["count"]) + 1
+            row["last_sequence"] = sequence
+            row["last_level"] = level
         units[unit] = {
             "status": "READY" if result.returncode == 0 else "DEGRADED",
             "codes": dict(sorted(counts.items())),
+            "events": [summaries[key] for key in sorted(summaries)],
+            "lines_examined": min(limit, len(result.stdout.splitlines())),
+            "raw_text_exported": False,
         }
-    return {"status": "READY", "units": units}
+    return {"status": "READY", "scope": "current_boot", "units": units}
+
+
+def _boot_id() -> str | None:
+    try:
+        value = Path("/proc/sys/kernel/random/boot_id").read_text(encoding="ascii").strip().lower()
+    except (OSError, UnicodeError):
+        return None
+    return value if re.fullmatch(r"[0-9a-f-]{36}", value) else None
+
+
+def _evidence_phase_context() -> dict[str, object]:
+    release = _safe_release_identity()
+    readiness = _bounded_json_file(Path("/run/gonken-agent/readiness.json"), max_bytes=8192)
+    ready = _bounded_json_file(Path("/run/gonken-agent/ready.json"), max_bytes=8192)
+    return {
+        "status": "READY",
+        "phase": "runtime_support_collection",
+        "boot_id": _boot_id(),
+        "release": release,
+        "voice_readiness": readiness if isinstance(readiness, dict) else {"status": "UNAVAILABLE"},
+        "voice_ready": ready if isinstance(ready, dict) else {"status": "UNAVAILABLE"},
+        "precedence": "current_runtime_state_over_historical_event_counts",
+        "physical_acceptance_claimed": False,
+    }
+
+
+def _safe_owner_group(st) -> tuple[str | None, str | None]:
+    try:
+        owner = pwd.getpwuid(st.st_uid).pw_name
+    except KeyError:
+        owner = None
+    try:
+        group = grp.getgrgid(st.st_gid).gr_name
+    except KeyError:
+        group = None
+    return owner, group
+
+
+def _path_permission(label: str, path: Path, *, expected_owner: str | None = None, expected_group: str | None = None, expected_mode: int | None = None) -> dict[str, object]:
+    row: dict[str, object] = {"label": label, "status": "MISSING", "exists": False}
+    try:
+        if path.is_symlink():
+            row.update({"status": "UNSAFE_SYMLINK", "exists": True})
+            return row
+        st = path.stat()
+    except OSError:
+        return row
+    owner, group = _safe_owner_group(st)
+    mode = stat.S_IMODE(st.st_mode)
+    matches = True
+    if expected_owner is not None:
+        matches = matches and owner == expected_owner
+    if expected_group is not None:
+        matches = matches and group == expected_group
+    if expected_mode is not None:
+        matches = matches and mode == expected_mode
+    row.update({
+        "status": "READY" if matches else "MISMATCH",
+        "exists": True,
+        "owner": owner,
+        "group": group,
+        "mode_octal": f"{mode:04o}",
+        "expected_owner": expected_owner,
+        "expected_group": expected_group,
+        "expected_mode_octal": f"{expected_mode:04o}" if expected_mode is not None else None,
+    })
+    return row
+
+
+def _permissions_manifest(config) -> dict[str, object]:
+    env = config.extensions.environment
+    entries = [
+        _path_permission("environment_state_dir", Path("/var/lib/gonken-environment"), expected_owner="gonken-env", expected_group="gonken-env", expected_mode=0o750),
+        _path_permission("environment_policy", Path(env.policy_path), expected_owner="gonken-env", expected_group="gonken-env", expected_mode=0o640),
+        _path_permission("environment_run_dir", Path("/run/gonken-environment"), expected_owner="gonken-env", expected_group="gonken-envctl", expected_mode=0o2770),
+        _path_permission("environment_socket", Path(env.socket_path), expected_owner="gonken-env", expected_group="gonken-envctl", expected_mode=0o660),
+        _path_permission("ollama_model_store", Path("/var/lib/ollama/models"), expected_owner="ollama", expected_group="ollama"),
+        _path_permission("model_selection", Path("/var/lib/gonken-agent/ollama/active-model.json")),
+        _path_permission("model_roster_record", Path("/var/lib/gonken-agent/ollama/roster.json")),
+        _path_permission("site_config", Path("/etc/gonken-agent/config.toml")),
+    ]
+    return {
+        "status": "READY" if not any(row["status"] in {"MISMATCH", "UNSAFE_SYMLINK"} for row in entries) else "DEGRADED",
+        "entries": entries,
+        "paths_allowlisted": True,
+    }
+
+
+def _systemd_unit_state(unit: str) -> dict[str, object]:
+    tool = shutil.which("systemctl")
+    if not tool:
+        return {"status": "UNAVAILABLE"}
+    properties = ("ActiveState", "SubState", "UnitFileState", "MainPID", "ExecMainStatus", "Result", "InvocationID", "FragmentPath", "DropInPaths")
+    command = [tool, "show", unit] + [f"--property={item}" for item in properties]
+    try:
+        result = subprocess.run(command, check=False, capture_output=True, text=True, timeout=5)
+    except (OSError, subprocess.TimeoutExpired):
+        return {"status": "UNAVAILABLE"}
+    values: dict[str, object] = {}
+    if result.returncode == 0:
+        for line in result.stdout.splitlines():
+            key, sep, value = line.partition("=")
+            if sep and key in properties:
+                if key in {"MainPID", "ExecMainStatus"} and value.isdigit():
+                    values[key] = int(value)
+                elif len(value) <= 512 and not any(ch in value for ch in "\r\n"):
+                    values[key] = value
+    return {"status": "READY" if result.returncode == 0 else "DEGRADED", "properties": values}
+
+
+def _systemd_effective_state() -> dict[str, object]:
+    return {"status": "READY", "units": {unit: _systemd_unit_state(unit) for unit in (*SERVICE_UNITS, "ollama.service")}}
+
+
+def _configuration_provenance(effective_config) -> dict[str, object]:
+    sources = effective_config.source_dict()
+    counts = Counter(str(value) for value in sources.values())
+    return {
+        "status": "READY",
+        "field_sources": sources,
+        "source_counts": dict(sorted(counts.items())),
+        "site_config_present": Path("/etc/gonken-agent/config.toml").is_file(),
+        "values_exported_here": False,
+    }
+
+
+def _ollama_inventory(config) -> dict[str, object]:
+    try:
+        from .llm import admin as llm_admin
+        return llm_admin.status(config)
+    except Exception as exc:
+        return {"status": "UNAVAILABLE", "code": type(exc).__name__, "selection": selection_status(config.llm.model), "roster": roster_manifest()}
+
+
+def _tool_broker_health(config) -> dict[str, object]:
+    return {
+        "status": "READY",
+        "code": "TYPED_TOOL_BROKER_READY",
+        "active_model": active_model(config.llm.model),
+        "tools": sorted(TOOL_NAMES),
+        "mutation_policy": "explicit_present_tense_user_authorization_required",
+        "raw_shell": False,
+        "raw_gpio": False,
+        "raw_i2c": False,
+        "physical_acceptance_claimed": False,
+    }
+
+
+def _diagnostic_summary(files: dict[str, object]) -> dict[str, object]:
+    findings: list[dict[str, object]] = []
+    phase = files.get("evidence_phase.json") if isinstance(files.get("evidence_phase.json"), dict) else {}
+    ready = phase.get("voice_ready") if isinstance(phase.get("voice_ready"), dict) else {}
+    service_events = files.get("service_events.json") if isinstance(files.get("service_events.json"), dict) else {}
+    units = service_events.get("units") if isinstance(service_events.get("units"), dict) else {}
+    voice_events = units.get("gonken-agent.service") if isinstance(units.get("gonken-agent.service"), dict) else {}
+    codes = voice_events.get("codes") if isinstance(voice_events.get("codes"), dict) else {}
+    if ready.get("status") == "READY" and any(code in codes for code in ("AUDIO_CAPTURE_FAILED", "VOICE_DEPENDENCY_WAIT")):
+        findings.append({"code": "VOICE_READY_WITH_RECOVERED_HISTORY", "severity": "info", "current_state": "READY", "history": "recoverable_errors_present", "interpretation": "historical errors do not override current semantic readiness"})
+    permissions = files.get("permissions.json") if isinstance(files.get("permissions.json"), dict) else {}
+    for row in permissions.get("entries", []) if isinstance(permissions.get("entries"), list) else []:
+        if isinstance(row, dict) and row.get("status") == "MISMATCH":
+            findings.append({"code": "PERMISSION_INVARIANT_MISMATCH", "severity": "error", "label": row.get("label")})
+    components = files.get("component_readiness.json") if isinstance(files.get("component_readiness.json"), dict) else {}
+    comp = components.get("components") if isinstance(components.get("components"), dict) else {}
+    fan = comp.get("room_fan_control") if isinstance(comp.get("room_fan_control"), dict) else {}
+    if fan.get("simulated") is True:
+        findings.append({"code": "REAL_SENSOR_WITH_SIMULATED_ACTUATOR", "severity": "info", "physical_fan_acceptance": False})
+    ollama = files.get("ollama_inventory.json") if isinstance(files.get("ollama_inventory.json"), dict) else {}
+    if ollama.get("status") != "READY":
+        findings.append({"code": "OLLAMA_ROSTER_NOT_READY", "severity": "warning"})
+    return {"status": "READY", "findings": findings, "finding_count": len(findings), "causal_precedence": "current_state_then_same_boot_history_then_older_install_history"}
 
 
 def _memory_inventory() -> dict[str, object]:
@@ -648,6 +836,28 @@ def create_bundle(
         'install_events.json': _install_events(),
         'service_events.json': _service_event_codes(),
     }
+    collection_errors: list[dict[str, str]] = []
+    def collect_optional(name: str, producer) -> None:
+        try:
+            files[name] = producer()
+        except Exception as exc:
+            code = type(exc).__name__
+            files[name] = {'status': 'UNAVAILABLE', 'code': code}
+            collection_errors.append({'section': name, 'error_type': code})
+
+    collect_optional('component_readiness.json', lambda: collect_component_status(effective_config.config))
+    collect_optional('evidence_phase.json', _evidence_phase_context)
+    collect_optional('permissions.json', lambda: _permissions_manifest(effective_config.config))
+    collect_optional('systemd_effective.json', _systemd_effective_state)
+    collect_optional('configuration_provenance.json', lambda: _configuration_provenance(effective_config))
+    collect_optional('ollama_inventory.json', lambda: _ollama_inventory(effective_config.config))
+    collect_optional('tool_broker.json', lambda: _tool_broker_health(effective_config.config))
+    files['collection_errors.json'] = {
+        'status': 'READY' if not collection_errors else 'DEGRADED',
+        'errors': collection_errors,
+        'error_count': len(collection_errors),
+    }
+    files['diagnostic_summary.json'] = _diagnostic_summary(files)
     environment_health = health.get('environment')
     if isinstance(environment_health, dict):
         files['environment_health.json'] = environment_health

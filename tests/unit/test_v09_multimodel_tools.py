@@ -187,6 +187,8 @@ class ConversationRoutingTests(unittest.TestCase):
         brain = self._brain()
         answer = brain.reply("What time is it?", threading.Event())
         self.assertIn("local time", answer)
+        self.assertEqual(brain.last_metrics["route"], "system_clock_fast_path")
+        self.assertFalse(brain.last_metrics["content_logged"])
         brain.client.chat_message.assert_not_called()
 
     def test_common_temperature_paraphrase_uses_deterministic_environment_fast_path(self):
@@ -203,6 +205,8 @@ class ConversationRoutingTests(unittest.TestCase):
         }
         answer = brain.reply("Could you check the room conditions for me?", threading.Event())
         self.assertIn("27.5 degrees Celsius", answer)
+        self.assertEqual(brain.last_metrics["route"], "llm_typed_tool")
+        self.assertIn("wall_ns", brain.last_metrics)
         brain.client.chat_message.assert_called_once()
 
     def test_model_cannot_mutate_fan_for_hypothetical(self):

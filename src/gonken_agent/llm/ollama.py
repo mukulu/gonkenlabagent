@@ -143,6 +143,28 @@ class OllamaClient:
                 watcher.join(timeout=.2)
             self._lock.release()
 
+    def model_inventory(self, cancel):
+        data = self.request("GET", "/api/tags", None, cancel)
+        models = data.get("models")
+        if not isinstance(models, list):
+            raise OllamaError("OLLAMA_MALFORMED_RESPONSE")
+        result = []
+        for item in models:
+            if not isinstance(item, Mapping):
+                continue
+            name = item.get("name")
+            digest = item.get("digest")
+            details = item.get("details") if isinstance(item.get("details"), Mapping) else {}
+            if not isinstance(name, str) or not isinstance(digest, str):
+                continue
+            result.append({
+                "name": name,
+                "digest": digest,
+                "quantization": details.get("quantization_level"),
+                "parameter_size": details.get("parameter_size"),
+            })
+        return result
+
     def model_identity(self, cancel):
         data = self.request("GET", "/api/tags", None, cancel)
         if not isinstance(data.get("models"), list):

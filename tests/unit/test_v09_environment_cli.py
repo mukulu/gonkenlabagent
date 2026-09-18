@@ -445,6 +445,35 @@ class EnvironmentCliTests(unittest.TestCase):
         self.assertFalse(rows[0]["physical_evidence"])
         self.assertEqual(client.calls, [("snapshot", None), ("snapshot", None)])
 
+    def test_watch_once_changes_only_and_health_remain_passive(self) -> None:
+        result, stdout, stderr, client = self.run_cli(["watch", "--once", "--health", "--json"])
+        self.assertEqual(result, 0, stderr)
+        payload = json.loads(stdout)
+        self.assertIn("health", payload)
+        self.assertEqual(client.calls, [("snapshot", None), ("health", None)])
+        self.assertNotIn(("read_sensor", None), client.calls)
+
+        class ChangingClient(FakeEnvironmentClient):
+            def __init__(self):
+                super().__init__()
+                self.index = 0
+            def snapshot(self):
+                self.calls.append(("snapshot", None))
+                self.index += 1
+                payload = json.loads(json.dumps(SNAPSHOT_PAYLOAD))
+                if self.index == 3:
+                    payload["state"]["fan_power"] = "on"
+                return payload
+
+        changing = ChangingClient()
+        result, stdout, stderr, client = self.run_cli(["watch", "--changes-only", "--count", "3", "--interval", "0", "--json"], fake=changing)
+        self.assertEqual(result, 0, stderr)
+        rows = [json.loads(line) for line in stdout.splitlines()]
+        self.assertEqual(len(rows), 2)
+        self.assertEqual(rows[0]["state"]["fan_power"], "off")
+        self.assertEqual(rows[1]["state"]["fan_power"], "on")
+        self.assertEqual(client.calls, [("snapshot", None)] * 3)
+
     def test_simulation_cli_commands_use_typed_ipc_only(self) -> None:
         result, stdout, stderr, client = self.run_cli(["simulate", "status"])
         self.assertEqual(result, 0, stderr)

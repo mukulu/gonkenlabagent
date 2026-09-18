@@ -103,6 +103,29 @@ def _build_parser() -> argparse.ArgumentParser:
         help='bounded microphone capture window in seconds (default: 8)',
     )
 
+    components_parser = subparsers.add_parser(
+        "components", help="show independent voice/model/environment/sensor/fan/tool states"
+    )
+    components_parser.add_argument("--json", action="store_true", dest="as_json")
+    config_arguments(components_parser)
+
+    llm_parser = subparsers.add_parser("llm", help="inspect and administer the governed local-model roster")
+    config_arguments(llm_parser)
+    llm_commands = llm_parser.add_subparsers(dest="llm_command", required=True)
+    for name, help_text in (("status", "show active model and roster health"), ("models", "list governed models and installation state")):
+        leaf = llm_commands.add_parser(name, help=help_text)
+        leaf.add_argument("--json", action="store_true", dest="as_json")
+    capabilities = llm_commands.add_parser("capabilities", help="run a non-mutating typed-tool capability smoke")
+    capabilities.add_argument("--model")
+    capabilities.add_argument("--json", action="store_true", dest="as_json")
+    benchmark = llm_commands.add_parser("benchmark", help="run a bounded content-free model latency benchmark")
+    benchmark.add_argument("--model")
+    benchmark.add_argument("--iterations", type=int, default=3)
+    benchmark.add_argument("--json", action="store_true", dest="as_json")
+    switch = llm_commands.add_parser("switch", help="atomically switch the voice service to an admitted model with rollback")
+    switch.add_argument("model")
+    switch.add_argument("--json", action="store_true", dest="as_json")
+
     _add_environment_commands(subparsers)
 
     config_parser = subparsers.add_parser(
@@ -189,6 +212,58 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 0
     if args.command == "wake":
         return _execute_wake_command(args)
+    if args.command == "components":
+        try:
+            from .operations import effective
+            from .component_status import collect
+            payload = collect(effective(args))
+        except (ValueError, OSError, RuntimeError, ConfigError) as exc:
+            print(json.dumps({"status": "FAILED", "code": "COMPONENT_STATUS_FAILED", "error_type": type(exc).__name__}), file=sys.stderr)
+            return EXIT_FAILED
+        if args.as_json:
+            print(json.dumps(payload, sort_keys=True))
+        else:
+            for name, row in payload["components"].items():
+                print(f"{name}: {row['status']} ({row['code']})")
+        return 0
+    if args.command == "llm":
+        try:
+            from .operations import effective
+            from .llm import admin as llm_admin
+            config = effective(args)
+            command = args.llm_command
+            if command in {"status", "models"}:
+                payload = llm_admin.status(config)
+            elif command == "capabilities":
+                model = args.model or llm_admin.status(config)["selection"]["model"]
+                payload = llm_admin.capability_smoke(config, str(model))
+            elif command == "benchmark":
+                model = args.model or llm_admin.status(config)["selection"]["model"]
+                payload = llm_admin.benchmark(config, str(model), args.iterations)
+            elif command == "switch":
+                payload = llm_admin.switch(config, args.model)
+            else:
+                raise ValueError("unsupported llm command")
+        except (ValueError, OSError, RuntimeError, ConfigError) as exc:
+            code = getattr(exc, "code", "LLM_ADMIN_FAILED")
+            print(json.dumps({"status": "FAILED", "code": code, "error_type": type(exc).__name__}), file=sys.stderr)
+            return EXIT_FAILED
+        if args.as_json:
+            print(json.dumps(payload, sort_keys=True))
+        else:
+            if command in {"status", "models"}:
+                selection = payload["selection"]
+                print(f"Active model: {selection['model']}  generation={selection['generation']}")
+                for row in payload["roster"]:
+                    marker = "*" if row["selected"] else " "
+                    print(f"{marker} {row['tag']}: installed={row['installed']} tools={row['tool_call_smoke']} role={row['role']}")
+            elif command == "benchmark":
+                print(f"Model: {payload['model']}  iterations={payload['iterations']}  median_wall_ms={payload['wall_ns']['median'] / 1_000_000:.1f}")
+            elif command == "capabilities":
+                print(f"Model: {payload['model']}  typed-tool capability: {payload['status']}")
+            else:
+                print(f"Active model: {payload['model']}  previous={payload['previous_model']} changed={payload['changed']}")
+        return 0
     if args.command == "run":
         if args.text_only:
             if args.legacy_source:
@@ -397,6 +472,9 @@ def _add_environment_commands(subparsers: argparse._SubParsersAction[argparse.Ar
     watch = env_commands.add_parser("watch", help="watch live environment readings through local IPC")
     watch.add_argument("--interval", type=float, default=2.0, help="seconds between samples; default 2.0")
     watch.add_argument("--count", type=int, help="optional number of samples, mainly for bounded runs/tests")
+    watch.add_argument("--once", action="store_true", help="emit one passive snapshot and exit")
+    watch.add_argument("--changes-only", action="store_true", help="emit only when meaningful environment state changes")
+    watch.add_argument("--health", action="store_true", help="attach read-only daemon health to each emitted sample")
     _add_env_json_flag(watch)
 
     fan_parser = env_commands.add_parser("fan", help="set room-fan relay power")
@@ -506,20 +584,31 @@ def _run_environment_watch(args: argparse.Namespace) -> int:
             raise ValueError("watch interval must be non-negative")
         if args.count is not None and args.count < 1:
             raise ValueError("watch count must be positive")
+        if args.once and args.count not in (None, 1):
+            raise ValueError("--once cannot be combined with --count other than 1")
+        limit = 1 if args.once else args.count
         client = _environment_client_from_args(args)
-        samples = 0
+        observed = 0
+        emitted = 0
+        previous_signature = None
         while True:
-            # Watch is deliberately passive: it observes the daemon-owned latest
-            # snapshot and must not create extra sensor samples, alter recovery
-            # windows, or trigger actuator writes. Explicit `env read` remains
-            # the active read-now command.
-            payload = client.snapshot()  # type: ignore[attr-defined]
-            if args.as_json:
-                print(json.dumps(payload, sort_keys=True), flush=True)
-            else:
-                _print_environment_watch_row(payload)
-            samples += 1
-            if args.count is not None and samples >= args.count:
+            # Watch is deliberately passive: it observes daemon-owned snapshots.
+            # It never directly reads I2C or writes the actuator.
+            raw = client.snapshot()  # type: ignore[attr-defined]
+            payload = dict(raw)
+            if args.health:
+                payload["health"] = client.health()  # type: ignore[attr-defined]
+            signature = _environment_watch_signature(payload)
+            should_emit = not args.changes_only or previous_signature is None or signature != previous_signature
+            if should_emit:
+                if args.as_json:
+                    print(json.dumps(payload, sort_keys=True), flush=True)
+                else:
+                    _print_environment_watch_row(payload)
+                emitted += 1
+            previous_signature = signature
+            observed += 1
+            if limit is not None and observed >= limit:
                 return 0
             time.sleep(args.interval)
     except KeyboardInterrupt:
@@ -780,6 +869,25 @@ def _print_environment_payload(args: argparse.Namespace, payload: Mapping[str, o
     print(json.dumps(payload, sort_keys=True))
 
 
+
+def _environment_watch_signature(payload: Mapping[str, object]) -> tuple[object, ...]:
+    state = _payload_state(payload)
+    reading = payload.get("reading")
+    if not isinstance(reading, Mapping):
+        reading = state.get("last_reading")
+    reading_map = reading if isinstance(reading, Mapping) else {}
+    provenance = payload.get("provenance") if isinstance(payload.get("provenance"), Mapping) else {}
+    polling = payload.get("polling") if isinstance(payload.get("polling"), Mapping) else {}
+    policy = state.get("policy") if isinstance(state.get("policy"), Mapping) else {}
+    return (
+        state.get("mode"), state.get("fan_power"), state.get("sensor_quality"),
+        state.get("last_transition_reason"), policy.get("generation"),
+        reading_map.get("temperature_c"), reading_map.get("relative_humidity_pct"),
+        reading_map.get("quality"), provenance.get("sensor_backend"),
+        provenance.get("actuator_backend"), polling.get("poll_error_count"),
+        polling.get("last_poll_error_code"),
+    )
+
 def _print_environment_watch_row(payload: Mapping[str, object]) -> None:
     state = _payload_state(payload)
     reading = payload.get("reading")
@@ -796,8 +904,11 @@ def _print_environment_watch_row(payload: Mapping[str, object]) -> None:
         f"actuator={provenance.get('actuator_backend', 'unknown')}  "
         f"mode={state.get('mode', 'unknown')}  "
         f"fan={state.get('fan_power', 'unknown')}  "
+        f"quality={reading_map.get('quality', state.get('sensor_quality', 'unknown'))}  "
         f"reason={state.get('last_transition_reason', 'unknown')}  "
         f"policy_generation={policy.get('generation', 'unknown')}  "
+        f"polls={(payload.get('polling') or {}).get('poll_count', 'unknown') if isinstance(payload.get('polling'), Mapping) else 'unknown'}  "
+        f"poll_errors={(payload.get('polling') or {}).get('poll_error_count', 'unknown') if isinstance(payload.get('polling'), Mapping) else 'unknown'}  "
         f"physical_evidence={payload.get('physical_evidence', False)}",
         flush=True,
     )

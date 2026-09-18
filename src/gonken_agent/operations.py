@@ -9,6 +9,7 @@ from .config import load_config, parse_cli_overrides
 from .health import ComponentHealth, Readiness, summary
 from .retrieval.index import build, load, save, sources
 from .llm.ollama import OllamaClient
+from .llm.models import active_model
 from .runtime import Coordinator, signal_handlers
 from .text_pipeline import TextPipeline
 from .telemetry import Telemetry
@@ -102,7 +103,7 @@ def doctor(config,index_path=None,probe_ollama=False,probe_audio=False):
         else: rows.append(ComponentHealth('index',Readiness.READY,'VALID'))
     else: rows.append(ComponentHealth('index',Readiness.DEGRADED,'INDEX_NOT_PROBED'))
     if probe_ollama:
-        client=OllamaClient(config.llm,timeout=3)
+        client=OllamaClient(config.llm,timeout=3,model=active_model(config.llm.model))
         try: client.model_identity(threading.Event())
         except (ValueError,RuntimeError,OSError): rows.append(ComponentHealth('ollama',Readiness.DEGRADED,'LOCAL_MODEL_UNAVAILABLE'))
         else: rows.append(ComponentHealth('ollama',Readiness.READY,'LOCAL_MODEL_PRESENT'))
@@ -244,7 +245,7 @@ def execute(args):
         index=load(args.index,corpus)
         ids=[c['id'] for c in index['chunks']]
         telemetry=Telemetry(args.telemetry,ids) if args.telemetry else None
-        client=None if args.extractive else OllamaClient(config.llm)
+        client=None if args.extractive else OllamaClient(config.llm, model=active_model(config.llm.model))
         pipeline=TextPipeline(args.index,corpus,client=client,top_k=config.retrieval.top_k,telemetry=telemetry)
         coordinator=Coordinator(pipeline)
         try:
@@ -292,7 +293,7 @@ def text_session(args):
     snapshot=Snapshot(transient=config.privacy.dashboard_transient_content,allowed_source_ids=ids)
     snapshot.update_environment(_public_environment_health(environment_health(config)))
     telemetry=Telemetry(args.telemetry,ids) if args.telemetry else None
-    client=None if args.extractive else OllamaClient(config.llm)
+    client=None if args.extractive else OllamaClient(config.llm, model=active_model(config.llm.model))
     pipeline=TextPipeline(args.index,config.paths.corpus_dir,client=client,
                           top_k=config.retrieval.top_k,telemetry=telemetry,snapshot=snapshot)
     coordinator=Coordinator(pipeline,lambda state,code:snapshot.transition(

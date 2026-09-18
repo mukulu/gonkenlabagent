@@ -27,18 +27,27 @@ class SupportTests(unittest.TestCase):
         with zipfile.ZipFile(output) as z:
             self.assertIsNone(z.testzip())
             self.assertEqual(set(z.namelist()),{
+                'collection_errors.json',
+                'component_readiness.json',
                 'configuration.json',
+                'configuration_provenance.json',
+                'diagnostic_summary.json',
                 'environment.json',
                 'environment_control.json',
                 'environment_health.json',
                 'evidence_index.json',
+                'evidence_phase.json',
                 'health.json',
                 'install_events.json',
+                'ollama_inventory.json',
+                'permissions.json',
                 'platform_inventory.json',
                 'runtime_bindings.json',
                 'service_events.json',
+                'systemd_effective.json',
                 'target_manifest.json',
                 'telemetry.json',
+                'tool_broker.json',
             })
             raw=b''.join(z.read(name) for name in z.namelist())
         self.assertNotIn(b'private-person',raw);self.assertNotIn(b'private-token',raw)
@@ -199,6 +208,11 @@ class SupportTests(unittest.TestCase):
                 'INSTALL_ACTION': 1,
                 'WAKE_LED_GPIO_DEPENDENCY_MISSING': 2,
             })
+            events = {row['code']: row for row in payload['units'][unit]['events']}
+            self.assertEqual(events['WAKE_LED_GPIO_DEPENDENCY_MISSING']['count'], 2)
+            self.assertEqual(events['WAKE_LED_GPIO_DEPENDENCY_MISSING']['first_sequence'], 1)
+            self.assertEqual(events['WAKE_LED_GPIO_DEPENDENCY_MISSING']['last_sequence'], 4)
+            self.assertFalse(payload['units'][unit]['raw_text_exported'])
         self.assertNotIn('secret', json.dumps(payload))
         self.assertNotIn('private', json.dumps(payload))
 
@@ -238,6 +252,29 @@ class SupportTests(unittest.TestCase):
         with patch('gonken_agent.support.RELEASE_ROOT', release_root):
             payload = support._safe_release_identity()
         self.assertEqual(payload['status'], 'UNAVAILABLE')
+
+    def test_diagnostic_summary_treats_same_boot_failure_history_as_recovered_when_current_ready(self):
+        files = {
+            'evidence_phase.json': {'voice_ready': {'status': 'READY'}},
+            'service_events.json': {'units': {'gonken-agent.service': {'codes': {'AUDIO_CAPTURE_FAILED': 2}}}},
+            'permissions.json': {'entries': []},
+            'component_readiness.json': {'components': {'room_fan_control': {'simulated': True}}},
+            'ollama_inventory.json': {'status': 'READY'},
+        }
+        payload = support._diagnostic_summary(files)
+        codes = {row['code'] for row in payload['findings']}
+        self.assertIn('VOICE_READY_WITH_RECOVERED_HISTORY', codes)
+        self.assertIn('REAL_SENSOR_WITH_SIMULATED_ACTUATOR', codes)
+        self.assertNotIn('VOICE_FAILED', codes)
+
+    def test_permissions_manifest_exposes_owner_group_mode_not_file_content(self):
+        state = self.root / 'state'
+        state.mkdir(mode=0o750)
+        with patch('gonken_agent.support.Path', wraps=Path):
+            row = support._path_permission('test', state)
+        self.assertTrue(row['exists'])
+        self.assertIn('mode_octal', row)
+        self.assertNotIn('content', row)
 
     def test_content_in_telemetry_rejected_before_output(self):
         telemetry=self.root/'telemetry.jsonl';telemetry.write_text('{"transcript":"secret"}\n')

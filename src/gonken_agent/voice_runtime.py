@@ -1105,6 +1105,7 @@ class ConversationBrain:
             else lambda: EnvironmentClient(config.extensions.environment.socket_path, timeout_seconds=2.0)
         )
         self.tool_broker = ToolBroker(self.environment_client_factory)
+        self.last_metrics: dict[str, object] = {}
 
     def probe(self, stop: threading.Event) -> dict[str, str]:
         identity = self.client.model_identity(stop)
@@ -1118,19 +1119,25 @@ class ConversationBrain:
         return identity
 
     def reply(self, question: str, stop: threading.Event) -> str:
+        turn_started = time.monotonic_ns()
+        self.last_metrics = {"route": "unknown", "model": self.client.model, "content_logged": False}
         question = " ".join(question.split())
         if not question or len(question) > 4096:
             raise VoiceRuntimeError("VOICE_QUESTION_INVALID")
 
         clock_reply = direct_clock_intent(question)
         if clock_reply is not None:
+            self.last_metrics.update({"route": "system_clock_fast_path", "wall_ns": time.monotonic_ns() - turn_started})
             return clock_reply
 
         environment_result = parse_environment_intent(question)
         if isinstance(environment_result, EnvironmentClarification):
+            self.last_metrics.update({"route": "environment_clarification_fast_path", "wall_ns": time.monotonic_ns() - turn_started})
             return environment_result.message
         if isinstance(environment_result, EnvironmentIntent):
-            return self._environment_reply(environment_result)
+            answer = self._environment_reply(environment_result)
+            self.last_metrics.update({"route": "environment_fast_path", "wall_ns": time.monotonic_ns() - turn_started})
+            return answer
 
         messages = [{"role": "system", "content": self.system_prompt}, *self.history,
                     {"role": "user", "content": question}]
@@ -1147,17 +1154,25 @@ class ConversationBrain:
                 )
                 raw_calls = response.get("tool_calls", [])
                 if isinstance(raw_calls, list) and raw_calls:
+                    self.last_metrics["route"] = "llm_typed_tool"
                     try:
                         answer = broker.execute_calls(raw_calls, user_text=question)
                     except ToolBrokerError:
+                        self.last_metrics["route"] = "llm_typed_tool_refused"
                         answer = (
                             "I did not perform that operation because the proposed tool action "
                             "was not independently authorized by your request."
                         )
                 else:
+                    self.last_metrics["route"] = "llm_text"
                     answer = response.get("content", "")
+                for metric in ("total_duration", "load_duration", "prompt_eval_duration", "eval_duration", "prompt_eval_count", "eval_count"):
+                    value = response.get(metric)
+                    if isinstance(value, int) and value >= 0:
+                        self.last_metrics[f"ollama_{metric}"] = value
             else:
                 # Compatibility path for test doubles and older adapters.
+                self.last_metrics["route"] = "llm_compatibility"
                 answer = self.client.chat_text(messages, stop)
         except OllamaError as exc:
             raise VoiceRuntimeError("LOCAL_MODEL_RESPONSE_FAILED") from exc
@@ -1171,6 +1186,7 @@ class ConversationBrain:
             {"role": "assistant", "content": answer},
         ))
         self.history = self.history[-8:]
+        self.last_metrics["wall_ns"] = time.monotonic_ns() - turn_started
         return answer
 
     def is_fast_deterministic(self, question: str) -> bool:
@@ -1414,12 +1430,29 @@ class VoiceAppliance:
         self.audio.play(wav)
 
     def _answer_question(self, question: str) -> str:
+        started = time.monotonic_ns()
         fast_check = getattr(self.brain, "is_fast_deterministic", None)
         if not callable(fast_check):
-            return self.brain.reply(question, self.stop)
-        if fast_check(question):
-            return self.brain.reply(question, self.stop)
-        return self._reply_with_progress_cues(question)
+            answer = self.brain.reply(question, self.stop)
+        elif fast_check(question):
+            answer = self.brain.reply(question, self.stop)
+        else:
+            answer = self._reply_with_progress_cues(question)
+        metrics = getattr(self.brain, "last_metrics", {})
+        fields: dict[str, object] = {"total_ms": int((time.monotonic_ns() - started) / 1_000_000)}
+        if isinstance(metrics, dict):
+            route = metrics.get("route")
+            model = metrics.get("model")
+            if isinstance(route, str):
+                fields["route"] = route
+            if isinstance(model, str):
+                fields["model"] = model
+            for key in ("ollama_total_duration", "ollama_load_duration", "ollama_prompt_eval_duration", "ollama_eval_duration"):
+                value = metrics.get(key)
+                if isinstance(value, int) and value >= 0:
+                    fields[key.replace("duration", "ms")] = int(value / 1_000_000)
+        self._event("INFO", "VOICE_TURN_METRICS", **fields)
+        return answer
 
     def _reply_with_progress_cues(self, question: str) -> str:
         plan = ProcessingCuePlan()
