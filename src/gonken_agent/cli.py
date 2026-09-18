@@ -121,6 +121,7 @@ def _build_parser() -> argparse.ArgumentParser:
     benchmark = llm_commands.add_parser("benchmark", help="run a bounded content-free model latency benchmark")
     benchmark.add_argument("--model")
     benchmark.add_argument("--iterations", type=int, default=3)
+    benchmark.add_argument("--thinking", action="store_true", help="benchmark the model with thinking enabled")
     benchmark.add_argument("--json", action="store_true", dest="as_json")
     switch = llm_commands.add_parser("switch", help="atomically switch the voice service to an admitted model with rollback")
     switch.add_argument("model")
@@ -239,7 +240,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 payload = llm_admin.capability_smoke(config, str(model))
             elif command == "benchmark":
                 model = args.model or llm_admin.status(config)["selection"]["model"]
-                payload = llm_admin.benchmark(config, str(model), args.iterations)
+                payload = llm_admin.benchmark(config, str(model), args.iterations, thinking=args.thinking)
             elif command == "switch":
                 payload = llm_admin.switch(config, args.model)
             else:

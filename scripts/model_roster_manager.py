@@ -185,7 +185,7 @@ def _write_selection(root: Path, model: str, previous: str | None) -> dict[str, 
     return payload
 
 
-def status(root: Path, roster: Mapping[str, Any], endpoint: str, *, require_default: bool = True) -> dict[str, Any]:
+def status(root: Path, roster: Mapping[str, Any], endpoint: str, *, require_default: bool = False) -> dict[str, Any]:
     models = _tags(endpoint)
     observed = []
     for spec in roster["models"]:
@@ -250,19 +250,22 @@ def provision(root: Path, roster: Mapping[str, Any], endpoint: str, context_toke
     default_row = next(row for row in rows if row["tag"] == default)
     if default_row["tool_call_smoke"] != "PASS":
         _fail("MODEL_DEFAULT_TOOL_SMOKE", "default model failed typed tool capability smoke", 69)
-    previous = None
     selection = _selection(root)
-    if selection and isinstance(selection.get("model"), str):
-        previous = str(selection["model"])
-    if previous is None:
-        previous = "qwen3.5:2b-q4_K_M"
-    selected = _write_selection(root, default, previous)
+    admitted = {str(item["tag"]) for item in roster["models"]}
+    if selection and isinstance(selection.get("model"), str) and str(selection["model"]) in admitted:
+        # Preserve an operator-selected admitted model across idempotent installer reruns.
+        # Provisioning validates the whole roster; it does not silently reset user choice.
+        selected = selection
+    else:
+        previous = str(selection["model"]) if selection and isinstance(selection.get("model"), str) else "qwen3.5:2b-q4_K_M"
+        selected = _write_selection(root, default, previous)
     record = {
         "format": RECORD_FORMAT,
         "status": "READY",
         "validated_epoch": int(time.time()),
         "provision_mode": mode,
         "default_model": default,
+        "active_model": selected["model"],
         "max_loaded_models": 1,
         "num_parallel": 1,
         "context_tokens": context_tokens,
@@ -272,7 +275,7 @@ def provision(root: Path, roster: Mapping[str, Any], endpoint: str, context_toke
         "physical_acceptance_claimed": False,
     }
     _atomic_json(_record_path(root), record, 0o644)
-    print(f"[OK] code=MODEL_ROSTER_READY models={len(rows)} default={default} mode={mode}")
+    print(f"[OK] code=MODEL_ROSTER_READY models={len(rows)} default={default} active={selected['model']} mode={mode}")
     return record
 
 

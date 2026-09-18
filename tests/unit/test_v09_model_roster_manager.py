@@ -83,6 +83,41 @@ class ModelRosterManagerTests(unittest.TestCase):
             selection = json.loads((root / "var/lib/gonken-agent/ollama/active-model.json").read_text())
             self.assertEqual(selection["previous_model"], "qwen3.5:2b-q4_K_M")
 
+    def test_provision_preserves_admitted_operator_selection(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            models = self._models()
+            manager._write_selection(root, "qwen3.5:0.8b", "qwen3:0.6b")
+
+            def api(_endpoint, path, payload=None, *, stream=False):
+                if path == "/api/tags":
+                    return {"models": models}
+                if path == "/api/chat":
+                    return {
+                        "model": payload["model"], "done": True, "total_duration": 123,
+                        "message": {"role": "assistant", "content": "", "tool_calls": [
+                            {"function": {"name": "readiness_probe", "arguments": {}}}
+                        ]},
+                    }
+                raise AssertionError(path)
+
+            with mock.patch.object(manager.om, "_api", side_effect=api), \
+                 mock.patch.object(manager.om, "smoke_model", return_value={"total_ns": 50, "eval_count": 1}):
+                record = manager.provision(root, self.roster, "http://127.0.0.1:11434", 2048, "online")
+                checked = manager.status(root, self.roster, "http://127.0.0.1:11434")
+            self.assertEqual(checked["selection"]["model"], "qwen3.5:0.8b")
+            self.assertEqual(record["active_model"], "qwen3.5:0.8b")
+
+    def test_status_accepts_admitted_nondefault_selection(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            models = self._models()
+            manager._write_selection(root, "lfm2.5-thinking:1.2b", "qwen3:0.6b")
+            manager._atomic_json(manager._record_path(root), {"format": manager.RECORD_FORMAT, "status": "READY"}, 0o644)
+            with mock.patch.object(manager.om, "_api", return_value={"models": models}):
+                checked = manager.status(root, self.roster, "http://127.0.0.1:11434")
+            self.assertEqual(checked["selection"]["model"], "lfm2.5-thinking:1.2b")
+
     def test_default_tool_smoke_failure_blocks_default_selection(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

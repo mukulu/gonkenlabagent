@@ -61,13 +61,44 @@ def _inventory(config) -> list[dict[str, object]]:
         probe.close()
 
 
+def _loaded_models(config) -> list[str]:
+    probe = _client(config, active_model(config.llm.model), timeout=5)
+    try:
+        return probe.loaded_models(threading.Event())
+    finally:
+        probe.close()
+
+
+def _resource_snapshot() -> dict[str, object]:
+    memory: dict[str, int] = {}
+    try:
+        for line in Path("/proc/meminfo").read_text(encoding="utf-8", errors="replace").splitlines():
+            key, _, remainder = line.partition(":")
+            if key in {"MemTotal", "MemAvailable", "SwapTotal", "SwapFree"}:
+                value = remainder.strip().split()[0]
+                if value.isdigit():
+                    memory[f"{key.lower()}_kib"] = int(value)
+    except OSError:
+        pass
+    temperature_c = None
+    try:
+        raw = Path("/sys/class/thermal/thermal_zone0/temp").read_text(encoding="ascii").strip()
+        if raw.lstrip("-").isdigit():
+            temperature_c = round(int(raw) / 1000.0, 1)
+    except (OSError, ValueError):
+        pass
+    return {"memory": memory, "soc_temperature_c": temperature_c}
+
+
 def status(config) -> dict[str, object]:
     selection = selection_status(config.llm.model)
     record = _bounded_json(ROSTER_RECORD_PATH)
     inventory: list[dict[str, object]] = []
+    loaded: list[str] = []
     inventory_error = None
     try:
         inventory = _inventory(config)
+        loaded = _loaded_models(config)
     except (OSError, ValueError, RuntimeError, OllamaError) as exc:
         inventory_error = type(exc).__name__
     installed = {str(item.get("name")) for item in inventory}
@@ -93,10 +124,13 @@ def status(config) -> dict[str, object]:
             "tool_total_ns": recorded.get("tool_total_ns"),
         })
     return {
-        "status": "READY" if selection.get("governed_roster_active") and all(row["installed"] for row in roster_rows) else "DEGRADED",
+        "status": "READY" if selection.get("governed_roster_active") and all(row["installed"] for row in roster_rows) and len(loaded) <= 1 else "DEGRADED",
         "selection": selection,
         "roster": roster_rows,
         "policy": {"max_loaded_models": 1, "num_parallel": 1, "thinking_default": False},
+        "loaded_models": loaded,
+        "one_loaded_model_invariant": len(loaded) <= 1,
+        "resources": _resource_snapshot(),
         "inventory_error": inventory_error,
         "physical_acceptance": False,
     }
@@ -136,11 +170,12 @@ def capability_smoke(config, model: str) -> dict[str, object]:
     }
 
 
-def benchmark(config, model: str, iterations: int = 3) -> dict[str, object]:
+def benchmark(config, model: str, iterations: int = 3, *, thinking: bool = False) -> dict[str, object]:
     admitted_model(model)
     if not 1 <= iterations <= 5:
         raise ValueError("iterations must be between 1 and 5")
     samples: list[dict[str, int]] = []
+    resources_before = _resource_snapshot()
     client = _client(config, model, timeout=90)
     stop = threading.Event()
     try:
@@ -149,7 +184,7 @@ def benchmark(config, model: str, iterations: int = 3) -> dict[str, object]:
             response = client.chat_message(
                 [{"role": "user", "content": "Reply with the single word ready."}],
                 stop,
-                think=False,
+                think=thinking,
                 keep_alive=0,
             )
             row = {"wall_ns": time.monotonic_ns() - started}
@@ -167,9 +202,11 @@ def benchmark(config, model: str, iterations: int = 3) -> dict[str, object]:
         "iterations": iterations,
         "wall_ns": {"min": min(wall), "median": int(statistics.median(wall)), "max": max(wall)},
         "samples": samples,
-        "thinking": False,
+        "thinking": bool(thinking),
         "keep_alive": 0,
         "content_logged": False,
+        "resources_before": resources_before,
+        "resources_after": _resource_snapshot(),
         "physical_acceptance": False,
     }
 

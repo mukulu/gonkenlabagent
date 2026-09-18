@@ -23,6 +23,7 @@ class LlmAdminComponentTests(unittest.TestCase):
         self.assertEqual(parser.parse_args(["llm", "status", "--json"]).llm_command, "status")
         self.assertEqual(parser.parse_args(["llm", "switch", "qwen3:0.6b"]).model, "qwen3:0.6b")
         self.assertEqual(parser.parse_args(["llm", "benchmark", "--iterations", "2"]).iterations, 2)
+        self.assertTrue(parser.parse_args(["llm", "benchmark", "--thinking"]).thinking)
 
     def test_component_status_keeps_real_sensor_simulated_fan_and_tools_independent(self):
         with tempfile.TemporaryDirectory() as temporary:
@@ -59,12 +60,27 @@ class LlmAdminComponentTests(unittest.TestCase):
             write_selection("qwen3:0.6b", path=selection, previous_model="qwen3.5:2b-q4_K_M")
             with mock.patch("gonken_agent.llm.admin.DEFAULT_SELECTION_PATH", selection), \
                  mock.patch("gonken_agent.llm.admin.selection_status") as selection_status_mock, \
-                 mock.patch("gonken_agent.llm.admin._inventory", return_value=[{"name": m, "digest": "a"*64} for m in ("qwen3:0.6b", "lfm2.5-thinking:1.2b", "qwen3.5:0.8b")]):
+                 mock.patch("gonken_agent.llm.admin._inventory", return_value=[{"name": m, "digest": "a"*64} for m in ("qwen3:0.6b", "lfm2.5-thinking:1.2b", "qwen3.5:0.8b")]), \
+                 mock.patch("gonken_agent.llm.admin._loaded_models", return_value=["qwen3:0.6b"]):
                 selection_status_mock.return_value = {"status": "READY", "model": "qwen3:0.6b", "generation": 1, "governed_roster_active": True}
                 payload = admin.status(self.config)
         self.assertEqual(payload["status"], "READY")
         self.assertEqual(len(payload["roster"]), 3)
         self.assertEqual(sum(1 for row in payload["roster"] if row["selected"]), 1)
+
+    def test_benchmark_records_thinking_and_resource_snapshots_without_content(self):
+        fake_client = mock.Mock()
+        fake_client.chat_message.return_value = {"total_duration": 10, "eval_duration": 5}
+        with mock.patch("gonken_agent.llm.admin._client", return_value=fake_client), \
+             mock.patch("gonken_agent.llm.admin._resource_snapshot", side_effect=[{"memory": {}, "soc_temperature_c": 45.0}, {"memory": {}, "soc_temperature_c": 46.0}]):
+            payload = admin.benchmark(self.config, "qwen3:0.6b", 1, thinking=True)
+        self.assertTrue(payload["thinking"])
+        self.assertFalse(payload["content_logged"])
+        self.assertEqual(payload["resources_before"]["soc_temperature_c"], 45.0)
+        self.assertEqual(payload["resources_after"]["soc_temperature_c"], 46.0)
+        fake_client.chat_message.assert_called_once()
+        self.assertTrue(fake_client.chat_message.call_args.kwargs["think"])
+
 
     def test_switch_rolls_back_selection_when_new_voice_model_does_not_converge(self):
         with tempfile.TemporaryDirectory() as temporary:

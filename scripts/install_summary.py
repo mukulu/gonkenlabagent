@@ -39,6 +39,10 @@ SPEECH_FIELDS = (
     "validated_epoch", "validation",
 )
 
+ROSTER_MODELS = ("qwen3:0.6b", "lfm2.5-thinking:1.2b", "qwen3.5:0.8b")
+ROSTER_RECORD_FORMAT = "gonken-ollama-roster-record-v1"
+SELECTION_FORMAT = "gonken-active-model-v1"
+
 
 class SummaryError(RuntimeError):
     def __init__(self, code: str, message: str, remediation: str, status: int = 1):
@@ -166,7 +170,53 @@ def validate_service(root: Path, commit: str) -> bool:
             return False
     return True
 
-def validate_appliance(root: Path, expected_commit: str | None = None) -> dict[str, object] | None:
+def read_bounded_json(path: Path, max_bytes: int = 256 * 1024) -> dict[str, object] | None:
+    try:
+        if path.is_symlink() or not path.is_file() or path.stat().st_size > max_bytes:
+            return None
+        value = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError, json.JSONDecodeError):
+        return None
+    return value if isinstance(value, dict) else None
+
+
+def validate_model_roster(root: Path, legacy: dict[str, str]) -> dict[str, object]:
+    selection_path = mapped(root, "/var/lib/gonken-agent/ollama/active-model.json")
+    roster_path = mapped(root, "/var/lib/gonken-agent/ollama/roster.json")
+    selection = read_bounded_json(selection_path, 4096)
+    roster = read_bounded_json(roster_path)
+    if selection is None and roster is None:
+        return {
+            "status": "LEGACY_FALLBACK", "active_model": legacy["model"],
+            "active_digest": legacy["model_digest"], "models": [legacy["model"]],
+            "generation": 0, "governed_roster_active": False,
+        }
+    if not selection or selection.get("format") != SELECTION_FORMAT:
+        fail("SUMMARY_MODEL_SELECTION", "active model selection is missing or invalid", "rerun model roster provisioning", 1)
+    model = selection.get("model")
+    generation = selection.get("generation")
+    if model not in ROSTER_MODELS or not isinstance(generation, int) or generation < 1:
+        fail("SUMMARY_MODEL_SELECTION", "active model selection is outside the governed roster", "rerun model roster provisioning", 1)
+    if not roster or roster.get("format") != ROSTER_RECORD_FORMAT or roster.get("status") != "READY":
+        fail("SUMMARY_MODEL_ROSTER", "validated roster record is missing or invalid", "rerun model roster provisioning", 1)
+    rows = roster.get("models")
+    if not isinstance(rows, list):
+        fail("SUMMARY_MODEL_ROSTER", "roster record model list is invalid", "rerun model roster provisioning", 1)
+    by_tag = {row.get("tag"): row for row in rows if isinstance(row, dict) and row.get("tag") in ROSTER_MODELS}
+    if set(by_tag) != set(ROSTER_MODELS):
+        fail("SUMMARY_MODEL_ROSTER", "roster record does not contain all governed models", "rerun model roster provisioning", 1)
+    active_row = by_tag[model]
+    digest = active_row.get("digest")
+    if not isinstance(digest, str) or not SHA256_RE.fullmatch(digest):
+        fail("SUMMARY_MODEL_ROSTER", "active roster digest is invalid", "rerun model roster provisioning", 1)
+    return {
+        "status": "READY", "active_model": model, "active_digest": digest,
+        "models": list(ROSTER_MODELS), "generation": generation,
+        "governed_roster_active": True, "tool_call_smoke": active_row.get("tool_call_smoke"),
+    }
+
+
+def validate_appliance(root: Path, expected_commit: str | None = None, expected_model: str | None = None) -> dict[str, object] | None:
     path = mapped(root, "/run/gonken-agent/ready.json")
     if not path.is_file() or path.is_symlink() or path.stat().st_size > 8192:
         return None
@@ -180,6 +230,8 @@ def validate_appliance(root: Path, expected_commit: str | None = None) -> dict[s
         return None
     if expected_commit is not None and value.get("release_commit") != expected_commit:
         return None
+    if expected_model is not None and value.get("model") != expected_model:
+        return None
     return value
 
 
@@ -192,9 +244,10 @@ def component(name: str, status: str, code: str) -> dict[str, str]:
 def build_summary(root: Path, commit: str) -> dict[str, object]:
     release = validate_release(root, commit)
     ollama = validate_ollama(root)
+    roster = validate_model_roster(root, ollama)
     speech = validate_speech(root)
     service_ready = validate_service(root, commit)
-    appliance = validate_appliance(root, commit)
+    appliance = validate_appliance(root, commit, str(roster["active_model"]))
     appliance_ready = service_ready and appliance is not None
     milestones = ["M3.3", "M3.4", "M3.5"]
     if service_ready:
@@ -206,8 +259,9 @@ def build_summary(root: Path, commit: str) -> dict[str, object]:
         "completed_milestones": milestones,
         "active_commit": release["commit"],
         "release_profile": release["profile"],
-        "ollama_model": ollama["model"],
-        "ollama_digest": ollama["model_digest"],
+        "ollama_model": roster["active_model"],
+        "ollama_digest": roster["active_digest"],
+        "ollama_roster": roster,
         "whisper_version": speech["whisper_version"],
         "piper_version": speech["piper_version"],
         "piper_voice": speech["piper_voice"],
@@ -215,6 +269,8 @@ def build_summary(root: Path, commit: str) -> dict[str, object]:
         "components": [
             component("release", "READY", "ACTIVE_RELEASE_VALIDATED"),
             component("ollama", "READY", "LOCAL_MODEL_VALIDATED"),
+            component("ollama_roster", "READY" if roster["governed_roster_active"] else "DEGRADED", "THREE_MODEL_ROSTER_VALIDATED" if roster["governed_roster_active"] else "LEGACY_MODEL_FALLBACK"),
+            component("llm_tool_broker", "READY", "TYPED_TOOL_BROKER_READY"),
             component("speech_artifacts", "READY", "PINNED_SPEECH_SMOKE_VALIDATED"),
             component("app_service", "READY" if service_ready else "DEGRADED", "HEADLESS_SERVICE_VALIDATED" if service_ready else "HEADLESS_SERVICE_NOT_READY"),
             component("input_audio", "READY" if appliance_ready else "DEGRADED", "PHYSICAL_INPUT_OPENED" if appliance_ready else "PHYSICAL_ACCEPTANCE_PENDING"),

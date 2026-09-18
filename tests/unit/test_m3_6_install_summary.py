@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 import os
 import stat
 import tempfile
@@ -143,6 +144,33 @@ class InstallSummaryTests(unittest.TestCase):
         components = {row["component"]: row for row in data["components"]}
         self.assertEqual(components["input_audio"]["status"], "READY")
         self.assertEqual(components["wake_runtime"]["code"], "WAKE_STANDBY_READY")
+
+    def test_summary_prefers_governed_roster_active_model_over_legacy_record(self) -> None:
+        state = self.system / "var/lib/gonken-agent/ollama"
+        state.mkdir(parents=True, exist_ok=True)
+        (state / "active-model.json").write_text(json.dumps({
+            "format": "gonken-active-model-v1", "model": "qwen3:0.6b", "generation": 2,
+            "previous_model": "qwen3.5:2b-q4_K_M",
+        }) + "\n", encoding="utf-8")
+        rows = []
+        for index, tag in enumerate(install_summary.ROSTER_MODELS):
+            rows.append({"tag": tag, "digest": f"{index + 1:064x}", "tool_call_smoke": "PASS"})
+        (state / "roster.json").write_text(json.dumps({
+            "format": "gonken-ollama-roster-record-v1", "status": "READY", "models": rows,
+        }) + "\n", encoding="utf-8")
+        ready = self.system / "run/gonken-agent/ready.json"
+        ready.parent.mkdir(parents=True, exist_ok=True)
+        ready.write_text(json.dumps({
+            "status": "READY", "code": "VOICE_RUNTIME_READY", "wake_phrase": "GonKen",
+            "model": "qwen3:0.6b", "release_commit": COMMIT,
+        }) + "\n", encoding="utf-8")
+        data = install_summary.build_summary(self.system, COMMIT)
+        self.assertEqual(data["ollama_model"], "qwen3:0.6b")
+        self.assertTrue(data["ollama_roster"]["governed_roster_active"])
+        components = {row["component"]: row for row in data["components"]}
+        self.assertEqual(components["ollama_roster"]["code"], "THREE_MODEL_ROSTER_VALIDATED")
+        self.assertEqual(components["llm_tool_broker"]["status"], "READY")
+        self.assertTrue(data["ready"])
 
     def test_summary_rejects_ready_record_from_previous_release(self) -> None:
         ready = self.system / "run/gonken-agent/ready.json"
