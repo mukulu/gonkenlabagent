@@ -74,6 +74,8 @@ def effective(args):
 
 
 def doctor(config,index_path=None,probe_ollama=False,probe_audio=False):
+    ready_file=Path('/run/gonken-agent/ready.json')
+    voice_runtime_ready=ready_file.is_file()
     rows=[ComponentHealth('config',Readiness.READY,'VALID'), ComponentHealth('privacy',Readiness.READY,'OFFLINE_CONTENT_FREE')]
     whisper_ready=Path(config.paths.whisper_binary).is_file() and Path(config.paths.whisper_model).is_file()
     piper_ready=Path('/usr/local/bin/piper').is_file() and Path(config.paths.piper_voice).is_file()
@@ -86,8 +88,8 @@ def doctor(config,index_path=None,probe_ollama=False,probe_audio=False):
             from .voice_runtime import AudioBackend
             AudioBackend(config).probe()
         except (ValueError,OSError,RuntimeError):
-            rows.extend((ComponentHealth('input_audio',Readiness.DEGRADED,'PHYSICAL_AUDIO_UNAVAILABLE'),
-                         ComponentHealth('output_audio',Readiness.DEGRADED,'PHYSICAL_AUDIO_UNAVAILABLE')))
+            rows.extend((ComponentHealth('input_audio',Readiness.DEGRADED,'DIRECT_AUDIO_PROBE_UNAVAILABLE_SERVICE_READY' if voice_runtime_ready else 'PHYSICAL_AUDIO_UNAVAILABLE'),
+                         ComponentHealth('output_audio',Readiness.DEGRADED,'DIRECT_AUDIO_PROBE_UNAVAILABLE_SERVICE_READY' if voice_runtime_ready else 'PHYSICAL_AUDIO_UNAVAILABLE')))
         else:
             rows.extend((ComponentHealth('input_audio',Readiness.READY,'PHYSICAL_INPUT_OPENED'),
                          ComponentHealth('output_audio',Readiness.READY,'PHYSICAL_OUTPUT_OPENED')))
@@ -111,8 +113,9 @@ def doctor(config,index_path=None,probe_ollama=False,probe_audio=False):
     else: rows.append(ComponentHealth('ollama',Readiness.DEGRADED,'NOT_PROBED'))
     data=summary(rows)
     data['scope']='local software and optional physical audio readiness'
-    ready_file=Path('/run/gonken-agent/ready.json')
-    data['voice_runtime']='ready' if ready_file.is_file() else 'waiting_or_stopped'
+    data['voice_runtime']='ready' if voice_runtime_ready else 'waiting_or_stopped'
+    data['audio_probe_context']='operator_process' if probe_audio else 'not_requested'
+    data['audio_probe_interpretation']='direct_probe_does_not_override_service_semantic_readiness' if probe_audio and voice_runtime_ready else 'standalone_probe'
     data['environment']=_public_environment_health(environment_detail)
     return data
 

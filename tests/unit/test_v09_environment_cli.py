@@ -520,6 +520,19 @@ class EnvironmentCliTests(unittest.TestCase):
         self.assertEqual(client.calls, [])
         self.assertIn("policy set requires at least one field", stderr)
 
+    def test_simulation_status_explains_real_sensor_in_hybrid_mode(self):
+        payload = json.loads(json.dumps(SIMULATION_PAYLOAD))
+        payload["simulation"]["sensor_is_simulated"] = False
+        payload["simulation"]["evidence_mode"] = "TARGET_HYBRID_ACTUATOR_SIMULATED"
+        payload["simulation"]["sensor"] = {}
+        stream = io.StringIO()
+        with contextlib.redirect_stdout(stream):
+            cli._print_environment_simulation_payload(payload)
+        text = stream.getvalue()
+        self.assertIn("physical/non-simulated", text)
+        self.assertIn("env read", text)
+        self.assertNotIn("temp=unavailable", text)
+
 
 if __name__ == "__main__":
     unittest.main()

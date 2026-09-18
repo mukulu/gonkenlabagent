@@ -22,6 +22,7 @@ class LlmAdminComponentTests(unittest.TestCase):
         self.assertEqual(parser.parse_args(["components", "--json"]).command, "components")
         self.assertEqual(parser.parse_args(["llm", "status", "--json"]).llm_command, "status")
         self.assertEqual(parser.parse_args(["llm", "switch", "qwen3:0.6b"]).model, "qwen3:0.6b")
+        self.assertTrue(parser.parse_args(["llm", "capabilities", "--all"]).all_models)
         self.assertEqual(parser.parse_args(["llm", "benchmark", "--iterations", "2"]).iterations, 2)
         self.assertTrue(parser.parse_args(["llm", "benchmark", "--thinking"]).thinking)
 
@@ -67,6 +68,37 @@ class LlmAdminComponentTests(unittest.TestCase):
         self.assertEqual(payload["status"], "READY")
         self.assertEqual(len(payload["roster"]), 3)
         self.assertEqual(sum(1 for row in payload["roster"] if row["selected"]), 1)
+
+    def test_semantic_tool_quality_checks_tool_proposals_without_execution(self):
+        responses = []
+        for name, arguments in (
+            ("system_get_local_datetime", {}),
+            ("environment_read_sensor", {}),
+            ("environment_get_status", {}),
+            ("environment_set_fan_power", {"power": "on"}),
+        ):
+            responses.append({
+                "message": {"role": "assistant", "content": "", "tool_calls": [{"function": {"name": name, "arguments": arguments}}]},
+                "tool_calls": [{"function": {"name": name, "arguments": arguments}}],
+                "total_duration": 10,
+            })
+        fake_client = mock.Mock()
+        fake_client.chat_message.side_effect = responses
+        with mock.patch("gonken_agent.llm.admin._client", return_value=fake_client):
+            payload = admin.semantic_tool_quality(self.config, "qwen3:0.6b")
+        self.assertEqual(payload["status"], "PASS")
+        self.assertEqual(payload["passed"], 4)
+        self.assertFalse(payload["tools_executed"])
+        self.assertFalse(payload["content_logged"])
+        self.assertTrue(all(call.kwargs["keep_alive"] == 0 for call in fake_client.chat_message.call_args_list))
+
+    def test_all_model_capabilities_reports_each_roster_model(self):
+        with mock.patch("gonken_agent.llm.admin.capability_report", side_effect=lambda _cfg, model, thinking=False: {"status": "PASS", "model": model, "semantic_tool_quality": {"passed": 4, "total": 4}}):
+            payload = admin.all_model_capabilities(self.config)
+        self.assertEqual(payload["status"], "PASS")
+        self.assertEqual([row["model"] for row in payload["models"]], ["qwen3:0.6b", "lfm2.5-thinking:1.2b", "qwen3.5:0.8b"])
+        self.assertFalse(payload["tools_executed"])
+
 
     def test_benchmark_records_thinking_and_resource_snapshots_without_content(self):
         fake_client = mock.Mock()

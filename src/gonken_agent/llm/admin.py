@@ -20,6 +20,7 @@ from .models import (
     write_selection,
 )
 from .ollama import OllamaClient, OllamaError
+from ..tool_broker import TOOL_SCHEMAS, parse_tool_call, ToolBrokerError
 
 ROSTER_RECORD_PATH = Path("/var/lib/gonken-agent/ollama/roster.json")
 READY_FILE = Path("/run/gonken-agent/ready.json")
@@ -167,6 +168,76 @@ def capability_smoke(config, model: str) -> dict[str, object]:
         "wall_ns": time.monotonic_ns() - started,
         "ollama_total_ns": response.get("total_duration"),
         "content_logged": False,
+    }
+
+
+def semantic_tool_quality(config, model: str, *, thinking: bool = False) -> dict[str, object]:
+    """Verify semantic tool selection without executing any proposed tool."""
+    admitted_model(model)
+    cases = (
+        ("clock", "What time is it right now?", "system_get_local_datetime", {}),
+        ("temperature", "Could you check how warm the room is?", "environment_read_sensor", {}),
+        ("fan_status", "Is the room fan powered on?", "environment_get_status", {}),
+        ("fan_on_proposal", "Please turn the room fan on.", "environment_set_fan_power", {"power": "on"}),
+    )
+    client = _client(config, model, timeout=90)
+    stop = threading.Event()
+    rows: list[dict[str, object]] = []
+    try:
+        for case_id, prompt, expected_name, expected_args in cases:
+            started = time.monotonic_ns()
+            response = client.chat_message(
+                [{"role": "user", "content": prompt}],
+                stop, tools=TOOL_SCHEMAS, think=thinking, keep_alive=0,
+            )
+            calls = response.get("tool_calls", [])
+            observed_name = None
+            observed_args: dict[str, object] | None = None
+            valid = False
+            if isinstance(calls, list) and len(calls) == 1 and isinstance(calls[0], dict):
+                try:
+                    proposal = parse_tool_call(calls[0])
+                except ToolBrokerError:
+                    pass
+                else:
+                    observed_name = proposal.name
+                    observed_args = dict(proposal.arguments)
+                    valid = proposal.name == expected_name and observed_args == expected_args
+            rows.append({
+                "case": case_id, "status": "PASS" if valid else "FAIL",
+                "expected_tool": expected_name, "observed_tool": observed_name,
+                "arguments_match": observed_args == expected_args,
+                "wall_ns": time.monotonic_ns() - started,
+                "ollama_total_ns": response.get("total_duration"),
+            })
+    finally:
+        client.close()
+    passed = sum(1 for row in rows if row["status"] == "PASS")
+    return {
+        "status": "PASS" if passed == len(rows) else "FAIL",
+        "model": model, "thinking": bool(thinking),
+        "passed": passed, "total": len(rows), "cases": rows,
+        "tools_executed": False, "content_logged": False,
+        "physical_acceptance": False,
+    }
+
+
+def capability_report(config, model: str, *, thinking: bool = False) -> dict[str, object]:
+    provider = capability_smoke(config, model)
+    semantic = semantic_tool_quality(config, model, thinking=thinking)
+    return {
+        "status": "PASS" if provider["status"] == "PASS" and semantic["status"] == "PASS" else "FAIL",
+        "model": model, "provider_tool_api": provider, "semantic_tool_quality": semantic,
+        "thinking": bool(thinking), "tools_executed": False, "content_logged": False,
+    }
+
+
+def all_model_capabilities(config, *, thinking: bool = False) -> dict[str, object]:
+    rows = [capability_report(config, spec.tag, thinking=thinking) for spec in MODEL_ROSTER]
+    return {
+        "status": "PASS" if all(row["status"] == "PASS" for row in rows) else "DEGRADED",
+        "thinking": bool(thinking), "models": rows,
+        "tools_executed": False, "content_logged": False, "physical_acceptance": False,
     }
 
 

@@ -117,6 +117,8 @@ def _build_parser() -> argparse.ArgumentParser:
         leaf.add_argument("--json", action="store_true", dest="as_json")
     capabilities = llm_commands.add_parser("capabilities", help="run a non-mutating typed-tool capability smoke")
     capabilities.add_argument("--model")
+    capabilities.add_argument("--all", action="store_true", dest="all_models", help="check every governed roster model")
+    capabilities.add_argument("--thinking", action="store_true", help="run semantic capability cases with thinking enabled")
     capabilities.add_argument("--json", action="store_true", dest="as_json")
     benchmark = llm_commands.add_parser("benchmark", help="run a bounded content-free model latency benchmark")
     benchmark.add_argument("--model")
@@ -236,8 +238,13 @@ def main(argv: Sequence[str] | None = None) -> int:
             if command in {"status", "models"}:
                 payload = llm_admin.status(config)
             elif command == "capabilities":
-                model = args.model or llm_admin.status(config)["selection"]["model"]
-                payload = llm_admin.capability_smoke(config, str(model))
+                if args.all_models and args.model:
+                    raise ValueError("--all and --model cannot be combined")
+                if args.all_models:
+                    payload = llm_admin.all_model_capabilities(config, thinking=args.thinking)
+                else:
+                    model = args.model or llm_admin.status(config)["selection"]["model"]
+                    payload = llm_admin.capability_report(config, str(model), thinking=args.thinking)
             elif command == "benchmark":
                 model = args.model or llm_admin.status(config)["selection"]["model"]
                 payload = llm_admin.benchmark(config, str(model), args.iterations, thinking=args.thinking)
@@ -261,7 +268,14 @@ def main(argv: Sequence[str] | None = None) -> int:
             elif command == "benchmark":
                 print(f"Model: {payload['model']}  iterations={payload['iterations']}  median_wall_ms={payload['wall_ns']['median'] / 1_000_000:.1f}")
             elif command == "capabilities":
-                print(f"Model: {payload['model']}  typed-tool capability: {payload['status']}")
+                if args.all_models:
+                    print(f"Roster tool capability: {payload['status']}  models={len(payload['models'])}  thinking={payload['thinking']}")
+                    for row in payload["models"]:
+                        semantic = row["semantic_tool_quality"]
+                        print(f"  {row['model']}: {row['status']} semantic={semantic['passed']}/{semantic['total']}")
+                else:
+                    semantic = payload["semantic_tool_quality"]
+                    print(f"Model: {payload['model']}  typed-tool capability: {payload['status']}  semantic={semantic['passed']}/{semantic['total']}")
             else:
                 print(f"Active model: {payload['model']}  previous={payload['previous_model']} changed={payload['changed']}")
         return 0
@@ -925,7 +939,10 @@ def _print_environment_simulation_payload(payload: Mapping[str, object]) -> None
     print(f"Actuator simulated: {simulation.get('actuator_is_simulated', False)}")
     print(f"Evidence mode: {simulation.get('evidence_mode', 'unknown')}")
     print(f"Generation: {simulation.get('simulation_generation', 'unknown')}")
-    print(f"Sensor: temp={_format_value(sensor.get('temperature_c'), 'C')} humidity={_format_value(sensor.get('relative_humidity_pct'), '%RH')} fault={sensor.get('fault')}")
+    if simulation.get("sensor_is_simulated", False):
+        print(f"Sensor: simulated temp={_format_value(sensor.get('temperature_c'), 'C')} humidity={_format_value(sensor.get('relative_humidity_pct'), '%RH')} fault={sensor.get('fault')}")
+    else:
+        print("Sensor: physical/non-simulated; live values are reported by `gonken-agent env read` or `env watch`")
     print(f"Fan: behavior={actuator.get('behavior', 'unknown')} commanded={actuator.get('commanded_power', 'unknown')} modeled={actuator.get('modeled_power', 'unknown')}")
     print(f"Physical Pi evidence: {payload.get('physical_evidence', False)}")
 
