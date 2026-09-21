@@ -141,3 +141,15 @@ now use the same interpreter with -S; production invocation, deadlines, action
 semantics and all assertions are unchanged. All seven acceptance tests plus CLI
 and environment config tests pass (25 tests, 4.315 s). This is a measured current
 checker-environment cause, not an explanation of earlier lost sessions.
+
+### Final checker-environment resolution
+
+A bootstrap timing experiment confirmed that bypassing all site initialization
+also hides genuine setuptools prerequisites. The fixture-specific experiment is
+preserved in Git, then removed; the original acceptance/bootstrap fixture process
+semantics and deadlines are restored. The correct layer is a clean host tooling
+venv, with the same Python 3.13.5, existing setuptools 82.0.1 and pip 25.1.1, but
+without unrelated analysis-environment site initialization. Empty Python and
+build-tool timing measurements are in the external environment record. No package
+was downloaded. Final qualification is rerun in this explicitly recorded clean
+host context; this does not grant physical Pi evidence.

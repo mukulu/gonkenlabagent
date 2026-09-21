@@ -26,7 +26,8 @@ class AcceptanceRunnerFixture:
     def _fake(self, name: str) -> Path:
         path = self.root / name
         path.write_text(
-            "#!" + sys.executable + " -S\n" + """import json
+            """#!/usr/bin/env python3
+import json
 import os
 import pathlib
 import sys
@@ -97,7 +98,6 @@ raise SystemExit(0)
         return subprocess.run(
             [
                 sys.executable,
-                "-S",  # stdlib fixture/collector: avoid host sitecustomize startup per command
                 str(RUNNER),
                 "--output-dir",
                 str(out),
