@@ -99,3 +99,16 @@ is silently downgraded. The installation roster manifest must match the canonica
 model catalog before any API call. Installed maintenance uses that same catalog
 sidecar. 25 focused model/summary/installed-maintenance tests PASS; this closes the
 newly reachable false-red gate rather than merely moving the original failure.
+
+## B11E exclusive owner and service-stop safety
+
+Source review found that default SIGTERM could bypass Python cleanup and a second
+server could unlink a live authority socket. The main daemon now unwinds through
+safe-OFF cleanup on SIGTERM/SIGINT (real subprocess signal tests, fake hardware).
+Shutdown records the OFF acknowledgement or failure before releasing the line.
+The socket server holds an exclusive lifetime lock, refuses live predecessor
+sockets even without a lock, rejects symbolic/non-socket paths, recovers only
+ECONNREFUSED stale sockets and never unlinks a replacement socket during cleanup.
+Lock files remain to avoid inode replacement races. Bind failure releases the lock
+without constructing a second hardware cleanup path. 46 lifecycle/adapter/
+observability tests PASS, including actual process termination and restart.

@@ -11,6 +11,8 @@ from __future__ import annotations
 
 import hashlib
 import json
+import signal
+import threading
 from dataclasses import fields
 from pathlib import Path
 from time import monotonic
@@ -209,6 +211,10 @@ def build_environment_unix_server(
     return EnvironmentUnixServer(Path(str(env_config.socket_path)), core, socket_mode=socket_mode)
 
 
+class _EnvironmentStop(BaseException):
+    """Internal signal unwind; always passes through sole-owner cleanup."""
+
+
 class EnvironmentDaemon:
     """Lifecycle wrapper used by CLI/systemd entry points and tests."""
 
@@ -235,11 +241,33 @@ class EnvironmentDaemon:
         return self.server.core.poll_once()
 
     def serve_forever(self) -> None:
-        self.start_polling()
+        # systemd sends SIGTERM, not KeyboardInterrupt. Merely relying on a
+        # finally block without handling SIGTERM bypasses Python cleanup.
+        previous = {}
+        stopping = False
+
+        def request_stop(signum: int, frame: object) -> None:
+            nonlocal stopping
+            if not stopping:
+                stopping = True
+                raise _EnvironmentStop()
+
         try:
-            self.server.serve_forever()
+            if threading.current_thread() is threading.main_thread():
+                for sig in (signal.SIGTERM, signal.SIGINT):
+                    previous[sig] = signal.signal(sig, request_stop)
+            self.start_polling()
+            self.server.serve_forever(poll_interval=0.2)
+        except _EnvironmentStop:
+            pass
         finally:
-            self.close()
+            # Repeated TERM during cleanup must not cut off safe-OFF/release.
+            stopping = True
+            try:
+                self.close()
+            finally:
+                for sig, handler in previous.items():
+                    signal.signal(sig, handler)
 
     def shutdown(self) -> None:
         if self.polling_loop is not None:

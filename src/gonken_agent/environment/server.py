@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import errno
+import fcntl
 import os
 import socket
 import socketserver
@@ -23,6 +25,8 @@ class EnvironmentRequestHandler(socketserver.StreamRequestHandler):
     """Handle exactly one bounded newline-delimited JSON request."""
 
     def handle(self) -> None:
+        # An authorized but stalled client must not retain a thread indefinitely.
+        self.request.settimeout(2.0)
         request = None
         try:
             line = self.rfile.readline(MAX_REQUEST_BYTES + 2)
@@ -53,11 +57,50 @@ class EnvironmentUnixServer(socketserver.ThreadingMixIn, socketserver.UnixStream
         self.socket_path = Path(socket_path)
         self.core = core
         self.socket_mode = socket_mode
-        _prepare_socket_path(self.socket_path)
-        super().__init__(str(self.socket_path), EnvironmentRequestHandler)
-        os.chmod(self.socket_path, self.socket_mode)
+        self._closed = False
+        self._socket_identity = None
+        self._owner_lock = None
+        self.socket_path.parent.mkdir(parents=True, exist_ok=True)
+        lock_path = str(self.socket_path) + ".owner.lock"
+        descriptor = os.open(lock_path, os.O_RDWR | os.O_CREAT | os.O_NOFOLLOW | os.O_CLOEXEC, 0o600)
+        try:
+            info = os.fstat(descriptor)
+            if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1 or info.st_uid != os.geteuid():
+                raise OSError("ENV_SOCKET_OWNER_LOCK_UNSAFE")
+            try:
+                fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except BlockingIOError as exc:
+                raise OSError("ENV_SOCKET_ALREADY_OWNED") from exc
+            self._owner_lock = descriptor
+            _prepare_socket_path(self.socket_path)
+            # Binding and chmod are protected by the lifetime owner lock.
+            super().__init__(str(self.socket_path), EnvironmentRequestHandler, bind_and_activate=False)
+            self.server_bind()
+            self.server_activate()
+            info = self.socket_path.lstat()
+            self._socket_identity = (info.st_dev, info.st_ino)
+            os.chmod(self.socket_path, self.socket_mode)
+        except BaseException:
+            if getattr(self, "socket", None) is not None:
+                self.socket.close()
+            self._unlink_owned_socket()
+            os.close(descriptor)
+            self._owner_lock = None
+            raise
+
+    def _unlink_owned_socket(self) -> None:
+        try:
+            info = self.socket_path.lstat()
+            if (stat.S_ISSOCK(info.st_mode) and
+                    (info.st_dev, info.st_ino) == self._socket_identity):
+                self.socket_path.unlink()
+        except FileNotFoundError:
+            pass
 
     def server_close(self) -> None:
+        if self._closed:
+            return
+        self._closed = True
         try:
             shutdown = getattr(self.core, "shutdown_safe_off", None)
             if callable(shutdown):
@@ -67,22 +110,41 @@ class EnvironmentUnixServer(socketserver.ThreadingMixIn, socketserver.UnixStream
                 super().server_close()
             finally:
                 try:
-                    if self.socket_path.exists() and _is_socket(self.socket_path):
-                        self.socket_path.unlink()
-                except OSError:
-                    pass
+                    self._unlink_owned_socket()
+                finally:
+                    if self._owner_lock is not None:
+                        os.close(self._owner_lock)
+                        self._owner_lock = None
+                    # Never unlink the lock: doing so would allow two lock inodes.
 
 
 def _prepare_socket_path(path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    if path.exists() or path.is_symlink():
-        if not _is_socket(path):
-            raise OSError(f"refusing to replace non-socket path: {path}")
-        path.unlink()
+    try:
+        info = path.lstat()
+    except FileNotFoundError:
+        return
+    if not stat.S_ISSOCK(info.st_mode):
+        raise OSError("ENV_SOCKET_PATH_UNSAFE")
+    # Compatibility: an older daemon has no owner lock. Refuse to steal its live
+    # socket. Only ECONNREFUSED proves a stale socket; permissions/timeouts do not.
+    with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as probe:
+        probe.settimeout(0.2)
+        try:
+            probe.connect(str(path))
+        except OSError as exc:
+            if exc.errno != errno.ECONNREFUSED:
+                raise OSError("ENV_SOCKET_OWNERSHIP_UNCERTAIN") from exc
+        else:
+            raise OSError("ENV_SOCKET_ALREADY_OWNED")
+    current = path.lstat()
+    if (current.st_dev, current.st_ino) != (info.st_dev, info.st_ino):
+        raise OSError("ENV_SOCKET_CHANGED_DURING_CHECK")
+    path.unlink()
 
 
 def _is_socket(path: Path) -> bool:
     try:
-        return stat.S_ISSOCK(path.stat().st_mode)
+        return stat.S_ISSOCK(path.lstat().st_mode)
     except OSError:
         return False

@@ -774,26 +774,43 @@ class EnvironmentServiceCore:
             self.policy_store.save(self.controller.policy)
 
     def shutdown_safe_off(self) -> None:
-        """Best-effort safe OFF and adapter cleanup for daemon shutdown."""
+        """Sole-owner OFF acknowledgement, then line release and sensor cleanup."""
 
         with self._lock:
             if self._closed:
                 return
             now = float(self.now())
+            previous = self._last_actuator_command
             self.controller.shutdown(now_monotonic=now)
             if self.fan_actuator is not None:
+                self._last_actuator_requested = FanPower.OFF
                 try:
                     safe_off = getattr(self.fan_actuator, "safe_off", None)
-                    if callable(safe_off):
-                        safe_off()
+                    if not callable(safe_off):
+                        raise RuntimeError("ACTUATOR_SAFE_OFF_UNAVAILABLE")
+                    safe_off()
+                    self._last_actuator_command = FanPower.OFF
+                    self._last_actuator_command_monotonic = now
+                    self._last_actuator_command_reason = self.controller.state.last_transition_reason.value
+                    self._last_actuator_write_result = "SUCCESS"
+                    self._actuator_command_count += 1
+                    self._emit_actuator_event(now, "ENV_ACTUATOR_TRANSITION", previous, FanPower.OFF, "SUCCESS")
                 except Exception:
                     self._actuator_error_code = "ACTUATOR_UNAVAILABLE"
+                    self._actuator_write_errors += 1
+                    self._last_actuator_command = None
+                    self._last_actuator_write_result = "FAILED"
+                    self._emit_actuator_event(now, "ENV_ACTUATOR_WRITE_FAILED", previous, FanPower.OFF, "FAILED",
+                                              safe_off_result="FAILED")
                 try:
                     close = getattr(self.fan_actuator, "close", None)
                     if callable(close):
                         close()
                 except Exception:
                     self._actuator_error_code = "ACTUATOR_UNAVAILABLE"
+                    self._actuator_write_errors += 1
+                    self._last_actuator_write_result = "RELEASE_FAILED"
+                    self._last_actuator_command = None
             if self.sensor_adapter is not None:
                 try:
                     close = getattr(self.sensor_adapter, "close", None)
