@@ -125,3 +125,19 @@ copying raw conversation or inventing physical observations. Existing thermostat
 reconciliation is a separate historical phase member, never a live-ready claim.
 35 focused evidence/journal/support tests PASS. The new member was added to the
 exact-member regression expectation; privacy canaries remain excluded.
+
+## B11G checker false-red isolation
+
+Two broad runner envelopes were interrupted, with completed results retained;
+selected modules were subsequently run as smaller direct unittest batches with
+per-case JSONL completion records. A selected test name typo produced a loader
+error and was corrected to the actual method name; no product change was needed.
+
+The acceptance fixture's explicit-actuation case then exceeded its existing
+20-second subprocess deadline. A fresh timing experiment measured empty Python
+startup at 1.80 s and Python -S at 0.06 s. The fixture launches many stdlib-only
+fake command processes. Those fixtures and the stdlib-only collector invocation
+now use the same interpreter with -S; production invocation, deadlines, action
+semantics and all assertions are unchanged. All seven acceptance tests plus CLI
+and environment config tests pass (25 tests, 4.315 s). This is a measured current
+checker-environment cause, not an explanation of earlier lost sessions.
