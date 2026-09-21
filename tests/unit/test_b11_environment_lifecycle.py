@@ -84,11 +84,15 @@ EnvironmentDaemon(server, polling_loop=Poller()).serve_forever()
         for signum in (signal.SIGTERM,signal.SIGINT):
             with self.subTest(signal=signum),tempfile.TemporaryDirectory() as name:
                 path=Path(name)
-                proc=subprocess.Popen([sys.executable,'-c',child,name],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+                env=dict(os.environ, PYTHONPATH=str(Path(__file__).resolve().parents[2] / 'src'))
+                proc=subprocess.Popen([sys.executable,'-c',child,name],stdout=subprocess.PIPE,stderr=subprocess.PIPE,env=env)
                 try:
                     until=time.monotonic()+4
                     while not (path/'ready').exists() and proc.poll() is None and time.monotonic()<until:time.sleep(.02)
-                    self.assertTrue((path/'ready').exists())
+                    if not (path/'ready').exists():
+                        if proc.poll() is None: proc.kill()
+                        _, stderr = proc.communicate(timeout=2)
+                        self.fail('signal fixture did not start: ' + stderr.decode(errors='replace'))
                     proc.send_signal(signum);out,err=proc.communicate(timeout=4)
                     self.assertEqual(proc.returncode,0,err.decode());self.assertFalse((path/'control.sock').exists())
                     self.assertEqual((path/'actions.txt').read_text(),'safe_off\nrelease\n')

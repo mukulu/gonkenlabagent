@@ -153,3 +153,13 @@ without unrelated analysis-environment site initialization. Empty Python and
 build-tool timing measurements are in the external environment record. No package
 was downloaded. Final qualification is rerun in this explicitly recorded clean
 host context; this does not grant physical Pi evidence.
+
+## B11-H: subprocess test source-path isolation
+
+The final clean-tooling run exposed a new signal-test fixture dependency: the
+parent inserted `src` into `sys.path`, but the subprocess inherited no
+`PYTHONPATH`, and exited with `ModuleNotFoundError`. Explicitly passing only the
+repository source directory to the child makes this dependency reproducible.
+The test now captures startup stderr instead of reporting only a missing ready
+file. This changes no daemon behavior, signal semantics or deadlines. The failed
+`clean_unit_01` log is retained; the corrected batch supersedes it.
