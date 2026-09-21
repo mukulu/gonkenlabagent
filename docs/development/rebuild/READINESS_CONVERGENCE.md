@@ -53,3 +53,12 @@ changed. No service was started and no GPIO/I2C was opened by this batch.
 
 Next: canonical support/failure archive migration, then fresh broader regression
 and exact code-bearing package qualification. Main and dev-stable stay unchanged.
+
+## Broader doctor-context regression correction
+
+The broader unit campaign found an additional historical fixture that wrote `{}`
+to ready.json and expected service READY solely from file existence. The test now
+uses a real current-boot/live-process bound JSON fixture for the positive case,
+and explicitly proves an existing empty file cannot override an unavailable
+operator audio probe. Canonical production validation was not weakened. The
+24-test doctor/freshness rerun passed (`b6-doctor-repair.log`).
