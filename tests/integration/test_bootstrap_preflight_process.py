@@ -5,6 +5,8 @@ import re
 import shutil
 import stat
 import subprocess
+import sys
+import shlex
 import tempfile
 import unittest
 from pathlib import Path
@@ -47,6 +49,15 @@ class BootstrapProcessTests(unittest.TestCase):
             encoding="utf-8",
         )
         id_stub.chmod(0o755)
+        # Retain real dependency imports. Only stdlib preflight commands bypass
+        # unrelated host sitecustomize overhead; setuptools must remain visible.
+        python_stub = self.stubs / "python3"
+        executable = shlex.quote(sys.executable)
+        python_stub.write_text(
+            "#!/bin/sh\n"
+            'case "$*" in *setuptools*|*pip*) exec ' + executable + ' "$@" ;; esac\n'
+            'exec ' + executable + ' -S "$@"\n', encoding="utf-8")
+        python_stub.chmod(0o755)
 
     def tearDown(self) -> None:
         self.temporary.cleanup()
