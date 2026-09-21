@@ -95,6 +95,8 @@ def safe_source(path: Path) -> dict[str, object]:
         "environment_profile": fields.get("environment_profile") if fields.get("environment_profile") in {
             "none", "full-simulation", "real-sensor-simulated-actuator", "sensor-deferred-relay", "full-real"
         } else None,
+        "environment_mode": fields.get("environment_mode") if fields.get("environment_mode") in {
+            "preserve", "manual", "semi_automatic", "automatic", "disabled"} else None,
         "environment_sensor_address": fields.get("environment_sensor_address") if fields.get("environment_sensor_address") in {"0x44", "0x45"} else None,
     }
 

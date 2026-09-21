@@ -40,6 +40,9 @@ class ServiceIdentity:
     sensor_is_simulated: bool = False
     actuator_is_simulated: bool = False
     evidence_mode: str = "HOST_FAKE"
+    release_commit: str = "unknown"
+    release_profile: str = "unknown"
+    configuration_sha256: str = "unknown"
 
     def as_dict(self) -> dict[str, object]:
         return {
@@ -53,6 +56,9 @@ class ServiceIdentity:
             "sensor_is_simulated": self.sensor_is_simulated,
             "actuator_is_simulated": self.actuator_is_simulated,
             "evidence_mode": self.evidence_mode,
+            "release_commit": self.release_commit,
+            "release_profile": self.release_profile,
+            "configuration_sha256": self.configuration_sha256,
         }
 
 
@@ -525,6 +531,9 @@ class EnvironmentServiceCore:
             "actuator_is_simulated": self.identity.actuator_is_simulated,
             "physical_evidence": self.identity.physical_evidence,
             "evidence_mode": self.identity.evidence_mode,
+            "release_commit": self.identity.release_commit,
+            "release_profile": self.identity.release_profile,
+            "configuration_sha256": self.identity.configuration_sha256,
         }
         if self.simulation_state is not None:
             payload.update({
@@ -554,6 +563,9 @@ class EnvironmentServiceCore:
             "sensor_is_simulated": self.identity.sensor_is_simulated,
             "actuator_is_simulated": self.identity.actuator_is_simulated,
             "evidence_mode": self.identity.evidence_mode,
+            "release_commit": self.identity.release_commit,
+            "release_profile": self.identity.release_profile,
+            "configuration_sha256": self.identity.configuration_sha256,
             "physical_evidence": False,
         })
         return payload

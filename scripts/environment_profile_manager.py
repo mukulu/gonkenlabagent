@@ -172,7 +172,7 @@ def compatible_environment_only_profile(path: Path, name: str, *, sensor_address
     target = profile_spec(name, sensor_address=sensor_address)
     if not environment or any(key not in target for key in environment):
         return False
-    return all(target[key] == value for key, value in environment.items())
+    return all(type(target[key]) is type(value) and target[key] == value for key, value in environment.items())
 
 def detect_managed_profile_details(path: Path) -> tuple[str, int | None] | None:
     payload = _load(path)
@@ -186,7 +186,8 @@ def detect_managed_profile_details(path: Path) -> tuple[str, int | None] | None:
     for name in PROFILE_SPECS:
         addresses = SHT31_ADDRESSES if name in REAL_SENSOR_PROFILES else (0x44,)
         for address in addresses:
-            if environment == profile_spec(name, sensor_address=address):
+            spec = profile_spec(name, sensor_address=address)
+            if isinstance(environment, dict) and environment == spec and all(type(environment[k]) is type(v) for k, v in spec.items()):
                 return name, (address if name in REAL_SENSOR_PROFILES else None)
     return None
 
@@ -294,7 +295,7 @@ def main(argv: list[str] | None = None) -> int:
             else:
                 selected = detect_managed_profile(path)
                 status = PROFILE_CODES[selected] if selected else "OTHER_ADMIN_CONFIG"
-            if args.expect_profile is not None and selected != args.expect_profile:
+            if args.expect_profile is not None and (selected != args.expect_profile or (selected in REAL_SENSOR_PROFILES and not exact_profile(path, selected, sensor_address=int(args.sensor_address, 0)))):
                 fail(
                     "ENV_PROFILE_DRIFT",
                     f"site configuration profile differs: expected={args.expect_profile} observed={selected or status}",

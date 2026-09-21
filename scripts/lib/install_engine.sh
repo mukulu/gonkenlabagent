@@ -178,7 +178,7 @@ gonken_load_source_record() {
     rpi_image_reference pi_model pid1 systemd_version free_kib memory_kib
     observed_epoch existing_checkout
   )
-  local -a optional_fields=(bluetooth_audio bluetooth_device source_mode environment_profile environment_sensor_address model_provision_mode)
+  local -a optional_fields=(bluetooth_audio bluetooth_device source_mode environment_profile environment_sensor_address environment_mode model_provision_mode)
   local -a fields=("${required_fields[@]}" "${optional_fields[@]}")
   gonken_validate_absolute_path "$path" "source record" || return 65
   gonken_read_record "$path" fields GONKEN_SOURCE_RECORD || return $?
@@ -192,6 +192,7 @@ gonken_load_source_record() {
   GONKEN_SOURCE_RECORD[bluetooth_device]="${GONKEN_SOURCE_RECORD[bluetooth_device]:-}"
   GONKEN_SOURCE_RECORD[source_mode]="${GONKEN_SOURCE_RECORD[source_mode]:-remote}"
   GONKEN_SOURCE_RECORD[environment_profile]="${GONKEN_SOURCE_RECORD[environment_profile]:-none}"
+  GONKEN_SOURCE_RECORD[environment_mode]="${GONKEN_SOURCE_RECORD[environment_mode]:-preserve}"
   GONKEN_SOURCE_RECORD[environment_sensor_address]="${GONKEN_SOURCE_RECORD[environment_sensor_address]:-0x44}"
   GONKEN_SOURCE_RECORD[model_provision_mode]="${GONKEN_SOURCE_RECORD[model_provision_mode]:-online}"
   [[ "${GONKEN_SOURCE_RECORD[format]}" == "gonken-bootstrap-source-v1" ]] || {
@@ -235,6 +236,13 @@ gonken_load_source_record() {
       return 65
       ;;
   esac
+  case "${GONKEN_SOURCE_RECORD[environment_mode]}" in
+    preserve|manual|semi_automatic|automatic|disabled) ;;
+    *) gonken_error "INSTALL_RECORD" "invalid environment mode" "rerun bootstrap with a documented mode"; return 65 ;;
+  esac
+  if [[ "${GONKEN_SOURCE_RECORD[environment_mode]}" != "preserve" && "${GONKEN_SOURCE_RECORD[environment_profile]}" == "none" ]]; then
+    gonken_error "INSTALL_RECORD" "environment mode requires a selected profile" "rerun bootstrap"; return 65
+  fi
   case "${GONKEN_SOURCE_RECORD[environment_sensor_address]}" in
     0x44|0x45) ;;
     *)

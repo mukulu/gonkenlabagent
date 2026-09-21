@@ -32,6 +32,7 @@ EXISTING_CHECKOUT_EXPLICIT=0
 BLUETOOTH_AUDIO="disabled"
 BLUETOOTH_DEVICE=""
 ENVIRONMENT_PROFILE="none"
+ENVIRONMENT_MODE="preserve"
 ENVIRONMENT_SENSOR_ADDRESS="0x44"
 MODEL_PROVISION_MODE="online"
 
@@ -65,8 +66,11 @@ Options:
                            Choices: none, full-simulation,
                            real-sensor-simulated-actuator,
                            sensor-deferred-relay, full-real.
-                           The default is none; real relay profiles require a
-                           later supervised physical-commissioning gate.
+                           Default none. Explicit full-real starts the wired
+                           SHT31/GPIO23 daemon with safe-OFF initialization.
+  --environment-mode M    preserve (default), manual, semi_automatic, automatic,
+                           or disabled; requires an explicit environment profile.
+                           Mode updates preserve temperature thresholds/dwell.
   --sensor-address ADDR    SHT31 address for real-sensor profiles: 0x44 or 0x45
                            (default: 0x44).
   --model-provision-mode M V04 model roster mode: online or preseeded-offline
@@ -93,7 +97,7 @@ while (($#)); do
       BLUETOOTH_AUDIO="requested"
       shift
       ;;
-    --source-url|--ref|--existing-checkout|--staging-parent|--bluetooth-device|--environment-profile|--sensor-address|--model-provision-mode)
+    --source-url|--ref|--existing-checkout|--staging-parent|--bluetooth-device|--environment-profile|--sensor-address|--environment-mode|--model-provision-mode)
       option="$1"
       (($# >= 2)) || {
         usage >&2
@@ -114,6 +118,7 @@ while (($#)); do
           BLUETOOTH_AUDIO="requested"
           ;;
         --environment-profile) ENVIRONMENT_PROFILE="$value" ;;
+        --environment-mode) ENVIRONMENT_MODE="$value" ;;
         --sensor-address) ENVIRONMENT_SENSOR_ADDRESS="$value" ;;
         --model-provision-mode) MODEL_PROVISION_MODE="$value" ;;
       esac
@@ -161,6 +166,14 @@ case "$ENVIRONMENT_PROFILE" in
     exit 64
     ;;
 esac
+case "$ENVIRONMENT_MODE" in
+  preserve|manual|semi_automatic|automatic|disabled) ;;
+  *) gonken_error "PREFLIGHT_ENVIRONMENT_MODE" "unsupported environment mode" "use a documented mode" || true; exit 64 ;;
+esac
+if [[ "$ENVIRONMENT_MODE" != "preserve" && "$ENVIRONMENT_PROFILE" == "none" ]]; then
+  gonken_error "PREFLIGHT_ENVIRONMENT_MODE" "mode selection requires an environment profile" "select full-real for the room appliance" || true
+  exit 64
+fi
 case "$ENVIRONMENT_SENSOR_ADDRESS" in
   0x44|0x45) ;;
   *)
@@ -299,6 +312,7 @@ gonken_create_staging "$STAGING_PARENT" \
   "bluetooth_audio=$BLUETOOTH_AUDIO" \
   "bluetooth_device=$BLUETOOTH_DEVICE" \
   "environment_profile=$ENVIRONMENT_PROFILE" \
+  "environment_mode=$ENVIRONMENT_MODE" \
   "environment_sensor_address=$ENVIRONMENT_SENSOR_ADDRESS" \
   "model_provision_mode=$MODEL_PROVISION_MODE" || exit 73
 

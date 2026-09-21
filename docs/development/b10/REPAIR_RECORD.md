@@ -33,3 +33,20 @@ installed/source import selection. No global site-packages exposure was added.
 The release builder now performs bounded clean-environment maintenance import
 smokes before activation. Model runtime behavior and real fan operation are not
 established by these checks.
+
+## B10B real room-appliance deployment
+
+The persisted target profile used a real SHT31 and simulated relay; its mutable
+policy was manual. Added an explicit exact-checkout room-appliance wrapper that
+selects full-real and automatic, preserves thresholds/dwell, and routes changes
+through the sole environment daemon. Full-real service convergence no longer
+requires historical physical PASS artifacts. The selected profile is validated
+before GPIO discovery, and live daemon commit/config fingerprints invalidate an
+old running simulated process. Simulated-sensor/real-actuator HIL remains distinct.
+
+Added strict finite/type validation of policy and duplicate-JSON rejection.
+Environment/source-record/mode helper and installed dependency closure are tested.
+B10B focused chain: 61 tests PASS (14.476 s); earlier two static-order expectations
+failed because they encoded the old profile-after-GPIO order. They now require the
+intentional profile-before-GPIO order and explicit full-real authorization contract.
+Real backend controller tests inject host adapters: not physical acceptance.

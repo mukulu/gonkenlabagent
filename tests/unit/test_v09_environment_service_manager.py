@@ -212,12 +212,12 @@ class EnvironmentServiceManagerTests(unittest.TestCase):
         self.assertIn("ENV_SERVICE_DROPIN_CONFLICT", blocked.stderr)
         self.assertTrue(unknown.exists())
 
-    def test_real_actuator_profile_requires_supervised_physical_commissioning(self) -> None:
+    def test_real_actuator_restart_requires_explicit_validated_real_configuration(self) -> None:
         fixture = self.fixture()
         self.assertEqual(fixture.run("install").returncode, 0)
         result = fixture.run("converge", profile="full-real")
-        self.assertEqual(result.returncode, 78)
-        self.assertIn("ENVIRONMENT_PHYSICAL_COMMISSION_REQUIRED", result.stderr)
+        self.assertEqual(result.returncode, 65)
+        self.assertIn("ENV_REAL_PROFILE_REQUIRED", result.stderr)
         log = fixture.systemctl_log.read_text(encoding="utf-8")
         self.assertNotIn("restart gonken-environment.service", log)
 

@@ -28,13 +28,14 @@ class TargetInstallDependencyGraphTests(unittest.TestCase):
             "activate_release",
             "environment_account",
             "target_identity_preflight",
+            "environment_profile",
             "target_i2c_platform",
             "target_runtime_bindings",
             "target_gpio_identity",
             "environment_service",
-            "environment_profile",
             "environment_commissioning",
             "environment_readiness",
+            "environment_policy",
             "ollama_account_and_store",
             "ollama_binary",
             "ollama_service",
@@ -74,14 +75,15 @@ class TargetInstallDependencyGraphTests(unittest.TestCase):
         self.assertIn("does_not_actuate", registration)
 
     def test_environment_profile_and_commissioning_are_explicit_optional_boundaries(self) -> None:
-        self.assertLess(self.position("environment_service"), self.position("environment_profile"))
+        self.assertLess(self.position("environment_profile"), self.position("target_gpio_identity"))
+        self.assertLess(self.position("environment_service"), self.position("environment_commissioning"))
         self.assertLess(self.position("environment_profile"), self.position("environment_commissioning"))
         self.assertLess(self.position("environment_commissioning"), self.position("environment_readiness"))
         self.assertLess(self.position("environment_readiness"), self.position("ollama_account_and_store"))
         region = self.text[self.position("environment_service"):self.position("ollama_account_and_store")]
         self.assertIn('GONKEN_SOURCE_RECORD[environment_profile]', region)
-        self.assertIn("real_relay_profiles_pause_for_supervision", region)
-        self.assertIn("generic_install_never_auto_actuates_real_room_fan_gpio", region)
+        self.assertIn("explicit_full_real_or_simulated_profile_enable_restart_and_verify_current_daemon", region)
+        self.assertIn("only_environment_daemon_owns_relay_safe_off_and_selected_policy", region)
 
     def test_install_completion_reports_independent_component_truth(self):
         body = self.text[self.text.index('gonken_print_component_summary()'):self.text.index('gonken_collect_install_failure()')]

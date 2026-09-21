@@ -9,9 +9,15 @@ campaign proves the actual sensor, GPIO line, relay polarity and fan behavior.
 
 from __future__ import annotations
 
+import hashlib
+import json
+from dataclasses import fields
 from pathlib import Path
 from time import monotonic
 from typing import Any, Callable
+
+from ..config import EnvironmentConfig
+from ..release_identity import runtime_release_identity
 
 from .actuators import GpiodRelayFanActuator, SimulatedFanActuator
 from .controller import EnvironmentController
@@ -85,6 +91,17 @@ def policy_bounds_from_config(env_config: Any) -> PolicyBounds:
         raise EnvironmentDaemonError("ENV_CONFIG_INVALID", "invalid environment policy bounds") from exc
 
 
+def environment_configuration_sha256(env_config: Any) -> str:
+    """Bind daemon state to all effective static environment fields, not a filename.
+
+    This contains no policy or conversation data. A fresh read-only --check uses
+    the same canonical function; changed backends/timing/pins require restart.
+    """
+    values = {field.name: getattr(env_config, field.name) for field in fields(EnvironmentConfig)}
+    return hashlib.sha256(json.dumps(values, sort_keys=True, separators=(",", ":"),
+                                     allow_nan=False).encode("utf-8")).hexdigest()
+
+
 def build_environment_service_core(
     env_config: Any,
     *,
@@ -141,8 +158,12 @@ def build_environment_service_core(
     )
     sensor_backend = str(env_config.sensor_backend).strip().lower()
     actuator_backend = str(env_config.relay_backend).strip().lower()
+    release = runtime_release_identity()
     identity = ServiceIdentity(
         hardware_backend=f"{sensor_backend}+{actuator_backend}",
+        release_commit=release.commit,
+        release_profile=release.profile,
+        configuration_sha256=environment_configuration_sha256(env_config),
         physical_evidence=False,
         sensor_backend=sensor_backend,
         actuator_backend=actuator_backend,

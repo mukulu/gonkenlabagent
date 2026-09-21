@@ -757,6 +757,10 @@ gonken_environment_commissioning_postcondition() {
     --tmpfiles-template "$(gonken_environment_service_tmpfiles_template)" \
     --systemctl /usr/bin/systemctl \
     --systemd-tmpfiles /usr/bin/systemd-tmpfiles >/dev/null 2>&1 || return 1
+  python3 "$(gonken_environment_readiness_manager)" \
+    --agent "$RELEASE_ROOT/current/.venv/bin/gonken-agent" \
+    --profile "$profile" --expect-commit "${GONKEN_SOURCE_RECORD[resolved_commit]}" \
+    --check-config --binding-only --timeout 5 --interval 0.25 >/dev/null 2>&1 || return 1
   GONKEN_STEP_EVIDENCE="gonken_environment_service_commissioned_profile_${profile}"
 }
 
@@ -777,7 +781,7 @@ gonken_environment_readiness_postcondition() {
   [[ "$profile" != "none" ]] || return 1
   python3 "$(gonken_environment_readiness_manager)" \
     --agent "$RELEASE_ROOT/current/.venv/bin/gonken-agent" \
-    --profile "$profile" --timeout 3 --interval 0.25 >/dev/null 2>&1 || return 1
+    --profile "$profile" --expect-commit "${GONKEN_SOURCE_RECORD[resolved_commit]}" --check-config --timeout 5 --interval 0.25 >/dev/null 2>&1 || return 1
   GONKEN_STEP_EVIDENCE="environment_semantic_ready_profile_${profile}_physical_evidence_false"
 }
 
@@ -786,7 +790,20 @@ gonken_environment_readiness_action() {
   [[ "$profile" != "none" ]] || return 64
   python3 "$(gonken_environment_readiness_manager)" \
     --agent "$RELEASE_ROOT/current/.venv/bin/gonken-agent" \
-    --profile "$profile" --timeout 30 --interval 1
+    --profile "$profile" --expect-commit "${GONKEN_SOURCE_RECORD[resolved_commit]}" --check-config --timeout 30 --interval 1
+}
+
+gonken_environment_policy_postcondition() {
+  python3 "$RELEASE_ROOT/current/maintenance/environment_policy_manager.py" \
+    --agent "$RELEASE_ROOT/current/.venv/bin/gonken-agent" \
+    --mode "${GONKEN_SOURCE_RECORD[environment_mode]}" --check >/dev/null 2>&1 || return 1
+  GONKEN_STEP_EVIDENCE="environment_mode_${GONKEN_SOURCE_RECORD[environment_mode]}_thresholds_preserved"
+}
+
+gonken_environment_policy_action() {
+  python3 "$RELEASE_ROOT/current/maintenance/environment_policy_manager.py" \
+    --agent "$RELEASE_ROOT/current/.venv/bin/gonken-agent" \
+    --mode "${GONKEN_SOURCE_RECORD[environment_mode]}"
 }
 
 gonken_print_component_summary() {
@@ -1255,9 +1272,20 @@ if ((ENGINE_ONLY == 0)); then
       "revalidate_service_identities_and_operator_socket_access_after_account_convergence" \
       "does_not_grant_or_remove_preexisting_operator_raw_hardware_groups" || exit $?
 
+    environment_identity_postcondition="gonken_target_identity_preflight_postcondition"
+    if [[ "${GONKEN_SOURCE_RECORD[environment_profile]}" != "none" ]]; then
+      gonken_register_step \
+        "environment_profile" "1" \
+        "gonken_target_identity_preflight_postcondition" "gonken_environment_profile_action" "gonken_environment_profile_postcondition" \
+        "exact_managed_site_configuration_for_${GONKEN_SOURCE_RECORD[environment_profile]}" \
+        "create_or_merge_only_compatible_environment_only_site_config_without_hardware_actuation" \
+        "unrelated_or_conflicting_administrator_configuration_fails_closed" || exit $?
+      environment_identity_postcondition="gonken_environment_profile_postcondition"
+    fi
+
     gonken_register_step \
       "target_i2c_platform" "1" \
-      "gonken_target_identity_preflight_postcondition" "gonken_i2c_platform_action" "gonken_i2c_platform_postcondition" \
+      "$environment_identity_postcondition" "gonken_i2c_platform_action" "gonken_i2c_platform_postcondition" \
       "raspberry_pi_i2c_bus1_enabled_and_gonken_env_accessible_without_sensor_probe" \
       "enable_i2c_non_actuating_and_resume_after_reboot_when_device_node_is_not_yet_present" \
       "never_probe_sensor_address_start_environment_service_or_actuate_gpio" || exit $?
@@ -1273,7 +1301,7 @@ if ((ENGINE_ONLY == 0)); then
       "target_gpio_identity" "2" \
       "gonken_target_runtime_bindings_postcondition" "gonken_target_gpio_identity_action" "gonken_target_gpio_identity_postcondition" \
       "non_actuating_selected_capability_gpio_identity" \
-      "resolve_gpio17_22_23_27_before_services_and_fail_early_with_candidate_metadata" \
+      "resolve_only_enabled_capability_lines_after_selected_profile_and_before_service_start" \
       "does_not_request_write_or_toggle_any_gpio_line" || exit $?
 
     gonken_register_step \
@@ -1285,27 +1313,31 @@ if ((ENGINE_ONLY == 0)); then
 
     environment_downstream_postcondition="gonken_environment_service_postcondition"
     if [[ "${GONKEN_SOURCE_RECORD[environment_profile]}" != "none" ]]; then
-      gonken_register_step \
-        "environment_profile" "1" \
-        "gonken_environment_service_postcondition" "gonken_environment_profile_action" "gonken_environment_profile_postcondition" \
-        "exact_managed_site_configuration_for_${GONKEN_SOURCE_RECORD[environment_profile]}" \
-        "create_or_merge_only_compatible_environment_only_site_config_without_hardware_actuation" \
-        "unrelated_or_conflicting_administrator_configuration_fails_closed" || exit $?
+
 
       gonken_register_step \
-        "environment_commissioning" "1" \
+        "environment_commissioning" "2" \
         "gonken_environment_profile_postcondition" "gonken_environment_commissioning_action" "gonken_environment_commissioning_postcondition" \
         "profile_service_enablement_runtime_ownership_and_restart_state_converged" \
-        "safe_profiles_enable_reset_failed_restart_and_verify_while_real_relay_profiles_pause_for_supervision" \
-        "generic_install_never_auto_actuates_real_room_fan_gpio" || exit $?
+        "explicit_full_real_or_simulated_profile_enable_restart_and_verify_current_daemon" \
+        "only_environment_daemon_owns_relay_safe_off_and_selected_policy" || exit $?
 
       gonken_register_step \
-        "environment_readiness" "1" \
+        "environment_readiness" "2" \
         "gonken_environment_commissioning_postcondition" "gonken_environment_readiness_action" "gonken_environment_readiness_postcondition" \
-        "daemon_ipc_sensor_and_simulated_actuator_semantic_readiness_for_selected_safe_profile" \
+        "daemon_ipc_current_release_config_and_real_or_simulated_backend_readiness" \
         "poll_passive_env_health_until_profile_backends_and_sensor_quality_are_ready" \
         "does_not_directly_read_i2c_write_gpio_or_claim_physical_acceptance" || exit $?
       environment_downstream_postcondition="gonken_environment_readiness_postcondition"
+      if [[ "${GONKEN_SOURCE_RECORD[environment_mode]}" != "preserve" ]]; then
+        gonken_register_step \
+          "environment_policy" "1" \
+          "gonken_environment_readiness_postcondition" "gonken_environment_policy_action" "gonken_environment_policy_postcondition" \
+          "daemon_owned_mode_selection_with_generation_check" \
+          "preserve_existing_valid_thresholds_and_dwell_on_mode_change" \
+          "no_raw_gpio_no_direct_policy_file_write" || exit $?
+        environment_downstream_postcondition="gonken_environment_policy_postcondition"
+      fi
     fi
 
     gonken_register_step \

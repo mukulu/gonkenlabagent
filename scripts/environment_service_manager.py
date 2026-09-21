@@ -4,8 +4,9 @@
 This manager installs only the structural service and tmpfiles contract.  It
 intentionally does not enable or start ``gonken-environment.service`` during a
 generic upgrade, because V09 environment hardware remains disabled until an
-operator explicitly enables the static hardware profile and completes target
-acceptance.
+operator explicitly selects a validated static hardware profile. Explicit
+full-real selection is authorization to start the real daemon with safe-OFF
+startup; an uploaded physical acceptance report is not a deployment prerequisite.
 """
 
 from __future__ import annotations
@@ -28,7 +29,8 @@ SERVICE_USER = "gonken-env"
 SERVICE_GROUP = "gonken-env"
 CONTROL_GROUP = "gonken-envctl"
 NON_ACTUATING_COMMISSIONED_PROFILES = {"full-simulation", "real-sensor-simulated-actuator"}
-REAL_ACTUATOR_PROFILES = {"sensor-deferred-relay", "full-real"}
+REAL_ACTUATOR_PROFILES = {"sensor-deferred-relay"}
+COMMISSIONED_PROFILES = NON_ACTUATING_COMMISSIONED_PROFILES | {"full-real"}
 KNOWN_TEST_DROPIN = (
     "[Service]\n"
     "Environment=GONKEN_EXTENSIONS_ENVIRONMENT_ENABLED=true\n"
@@ -211,16 +213,30 @@ def reconcile_known_dropins(root: Path) -> bool:
     return changed
 
 
+def validate_selected_profile(root: Path, profile: str) -> None:
+    if profile == "sensor-deferred-relay":
+        fail("ENVIRONMENT_PHYSICAL_COMMISSION_REQUIRED",
+             "a simulated sensor must not automatically drive a real relay",
+             "use full-real for the wired room thermostat or the separate supervised HIL procedure", 78)
+    if profile not in COMMISSIONED_PROFILES:
+        fail("ENV_PROFILE_NAME", f"unsupported commissioned profile: {profile}",
+             "choose a canonical environment profile", 64)
+    if profile == "full-real":
+        # This sibling is shipped in the same immutable maintenance directory.
+        # No GPIO access or historical target-PASS file is involved.
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        import environment_profile_manager as profiles
+        try:
+            valid = profiles.exact_profile(mapped(root, "/etc/gonken-agent/config.toml"), "full-real")
+        except profiles.ProfileError:
+            valid = False
+        if not valid:
+            fail("ENV_REAL_PROFILE_REQUIRED", "full-real restart requires the exact managed real-hardware profile",
+                 "apply the full-real profile before starting the daemon; no simulated fallback is permitted", 65)
+
+
 def converge_commissioned(root: Path, systemctl: Path, profile: str) -> None:
-    if profile in REAL_ACTUATOR_PROFILES:
-        fail(
-            "ENVIRONMENT_PHYSICAL_COMMISSION_REQUIRED",
-            f"profile {profile} contains a real relay actuator and cannot be auto-started by generic installation",
-            "commission real GPIO23/fan actuation under the supervised Raspberry Pi acceptance ladder",
-            78,
-        )
-    if profile not in NON_ACTUATING_COMMISSIONED_PROFILES:
-        fail("ENV_PROFILE_NAME", f"unsupported commissioned profile: {profile}", "choose a canonical safe commissioning profile", 64)
+    validate_selected_profile(root, profile)
     reconcile_runtime_state(root)
     changed = reconcile_known_dropins(root)
     if changed:
@@ -237,8 +253,7 @@ def converge_commissioned(root: Path, systemctl: Path, profile: str) -> None:
 
 def commissioned_status(root: Path, systemctl: Path, profile: str) -> None:
     validate_runtime_state(root)
-    if profile in REAL_ACTUATOR_PROFILES:
-        fail("ENVIRONMENT_PHYSICAL_COMMISSION_REQUIRED", f"profile {profile} still requires supervised actuator commissioning", "complete the physical fan acceptance ladder", 78)
+    validate_selected_profile(root, profile)
     enabled = run_tool(systemctl, "is-enabled", "--quiet", SERVICE_NAME, allow_failure=True).returncode == 0
     active = run_tool(systemctl, "is-active", "--quiet", SERVICE_NAME, allow_failure=True).returncode == 0
     if not enabled or not active:
@@ -328,7 +343,11 @@ def run_tool(
         fail("ENV_SERVICE_TOOL", "manager helper path must be absolute", "use absolute systemctl/systemd-tmpfiles paths", 64)
     if optional and not tool.exists():
         return subprocess.CompletedProcess([str(tool), *arguments], 0, "", "")
-    result = subprocess.run([str(tool), *arguments], check=False, capture_output=True, text=True)
+    try:
+        result = subprocess.run([str(tool), *arguments], check=False, capture_output=True, text=True, timeout=30)
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        fail("ENV_SERVICE_COMMAND", f"service command did not complete: {type(exc).__name__}",
+             "inspect the service journal and retry the selected profile", 75)
     if result.returncode != 0 and not allow_failure:
         detail = (result.stderr or result.stdout).strip().replace("\n", " ")[:400]
         fail("ENV_SERVICE_COMMAND", f"command failed ({result.returncode}): {detail or tool.name}", "inspect system service state and rerun", result.returncode if 1 <= result.returncode <= 125 else 74)

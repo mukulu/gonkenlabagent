@@ -37,6 +37,8 @@ class EnvironmentReadinessTests(unittest.TestCase):
                 "sensor_backend": sensor_backend,
                 "actuator_backend": actuator_backend,
                 "physical_evidence": False,
+                "sensor_is_simulated": sensor_backend == "simulated",
+                "actuator_is_simulated": actuator_backend == "simulated",
             },
         }
 
@@ -64,13 +66,13 @@ class EnvironmentReadinessTests(unittest.TestCase):
                 readiness.probe(agent, "full-simulation", timeout=0.01, interval=0)
         self.assertEqual(ctx.exception.code, "ENVIRONMENT_SEMANTIC_NOT_READY")
 
-    def test_real_relay_profile_pauses_before_probe(self) -> None:
+    def test_full_real_rejects_a_simulated_actuator(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             agent = self.fake_agent(Path(temporary), self.health(sensor_backend="sht31", actuator_backend="simulated"))
             with self.assertRaises(readiness.ReadinessError) as ctx:
                 readiness.probe(agent, "full-real", timeout=0.1, interval=0)
-        self.assertEqual(ctx.exception.code, "ENVIRONMENT_PHYSICAL_COMMISSION_REQUIRED")
-        self.assertEqual(ctx.exception.status, 78)
+        self.assertEqual(ctx.exception.code, "ENVIRONMENT_SEMANTIC_NOT_READY")
+        self.assertEqual(ctx.exception.status, 75)
 
 
 if __name__ == "__main__":
