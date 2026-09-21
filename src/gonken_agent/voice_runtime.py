@@ -41,7 +41,9 @@ from .environment import (
     parse_environment_intent,
 )
 from .llm.ollama import OllamaClient, OllamaError
-from .llm.models import active_model
+from .llm.models import active_model, LEGACY_MODEL, roster_tags
+from .llm.qualification import qualified_rows
+from .runtime_readiness import bounded_json
 from .tool_broker import ToolBroker, ToolBrokerError, direct_clock_intent
 from .interaction.gpiod_ptt import GpiodPushToTalkHardware, GpiodWakeMonitoringLed
 from .interaction.push_to_talk import PushToTalk
@@ -136,6 +138,8 @@ def _readiness_recoverable(code: str) -> bool:
         "WAKE_LED_GPIO_LINE_AMBIGUOUS",
         "GPIO_LINE_AMBIGUOUS",
         "GPIO_HEADER_UNRESOLVED",
+        "LOCAL_MODEL_TOOLS_NOT_QUALIFIED",
+        "LOCAL_MODEL_OUTSIDE_ROSTER",
     }
     return code not in nonrecoverable
 
@@ -1092,6 +1096,8 @@ class ConversationBrain:
     def __init__(self, config, *, environment_client_factory=None):
         selected_model = active_model(config.llm.model)
         self.client = OllamaClient(config.llm, timeout=90, model=selected_model)
+        self.tool_context_tokens = config.llm.context_tokens
+        self.roster_record_path = Path("/var/lib/gonken-agent/ollama/roster.json")
         prompt_path = Path(config.paths.local_prompt)
         if not prompt_path.is_file() or prompt_path.is_symlink() or prompt_path.stat().st_size > 32768:
             raise VoiceRuntimeError("LOCAL_PROMPT_MISSING")
@@ -1107,8 +1113,32 @@ class ConversationBrain:
         self.tool_broker = ToolBroker(self.environment_client_factory)
         self.last_metrics: dict[str, object] = {}
 
+    def _admit_model_tools(self, identity: dict[str, str]) -> bool:
+        """Check the actual consumer, not catalog support or a previous READY.
+
+        Legacy rollback conversation remains text-only. Governed models must
+        match current recorded digest/context/tool qualification before the
+        runtime requests tools. Direct deterministic environment intents remain
+        independent of this model capability.
+        """
+        model = identity.get("model")
+        if model == LEGACY_MODEL:
+            return False
+        if model not in roster_tags() or model != self.client.model:
+            raise VoiceRuntimeError("LOCAL_MODEL_OUTSIDE_ROSTER")
+        context = getattr(self, "tool_context_tokens", None)
+        if type(context) is not int or context <= 0:
+            raise VoiceRuntimeError("LOCAL_MODEL_TOOLS_NOT_QUALIFIED")
+        record = bounded_json(self.roster_record_path, 256 * 1024)
+        qualified = qualified_rows(record, [{"name": model, "digest": identity.get("digest")}],
+                                   context_tokens=context)
+        if qualified.get(model, {}).get("tools") is not True:
+            raise VoiceRuntimeError("LOCAL_MODEL_TOOLS_NOT_QUALIFIED")
+        return True
+
     def probe(self, stop: threading.Event) -> dict[str, str]:
         identity = self.client.model_identity(stop)
+        self._admit_model_tools(identity)
         # Readiness means inference works, not merely that a tag exists.  This
         # also warms the small local model so the first spoken turn has lower
         # latency after boot.  The probe is not added to conversation history.
@@ -1148,7 +1178,12 @@ class ConversationBrain:
                         {"role": "user", "content": question}]
         try:
             broker = getattr(self, "tool_broker", None)
+            tools_admitted = False
             if broker is not None and hasattr(self.client, "chat_message"):
+                # Check fresh inventory and the bounded qualification record on
+                # every model-routed turn. No inference is used to test health.
+                tools_admitted = self._admit_model_tools(self.client.model_identity(stop))
+            if tools_admitted:
                 response = self.client.chat_message(
                     messages, stop, tools=broker.schemas, think=False
                 )
@@ -1171,7 +1206,7 @@ class ConversationBrain:
                     if isinstance(value, int) and value >= 0:
                         self.last_metrics[f"ollama_{metric}"] = value
             else:
-                # Compatibility path for test doubles and older adapters.
+                # Text-only compatibility path: no tool schema or model-proposed action.
                 self.last_metrics["route"] = "llm_compatibility"
                 answer = self.client.chat_text(messages, stop)
         except OllamaError as exc:

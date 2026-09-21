@@ -189,6 +189,17 @@ class ConversationRoutingTests(unittest.TestCase):
         brain.environment_client_factory = lambda: self.environment
         brain.tool_broker = ToolBroker(brain.environment_client_factory)
         brain.client = mock.Mock()
+        brain.client.model = DEFAULT_MODEL
+        brain.client.model_identity.return_value = {"model": DEFAULT_MODEL, "digest": "a" * 64}
+        brain.tool_context_tokens = 2048
+        tmp = tempfile.TemporaryDirectory(); self.addCleanup(tmp.cleanup)
+        brain.roster_record_path = Path(tmp.name) / "roster.json"
+        brain.roster_record_path.write_text(json.dumps({
+            "format": "gonken-ollama-roster-record-v2", "status": "READY", "context_tokens": 2048,
+            "models": [{"tag": DEFAULT_MODEL, "digest": "a" * 64, "inference_status": "PASS",
+                        "tool_call_smoke": "PASS", "stages": [
+                            {"stage": stage, "status": "PASS"}
+                            for stage in ("IDENTITY", "INFERENCE", "TOOLS", "UNLOAD")]}]}))
         return brain
 
     def setUp(self):

@@ -163,3 +163,18 @@ repository source directory to the child makes this dependency reproducible.
 The test now captures startup stderr instead of reporting only a missing ready
 file. This changes no daemon behavior, signal semantics or deadlines. The failed
 `clean_unit_01` log is retained; the corrected batch supersedes it.
+
+## B11-I: runtime consumer tool-admission gap
+
+Final cascade review found that installer/status/model-switch qualification did
+not constrain `ConversationBrain` itself: startup only warmed inference and the
+reply path advertised tools unconditionally. A test against the unchanged parent
+source proves a tool-incompatible model was not refused. Runtime startup now
+binds governed-model tools to the current roster, actual inventory digest and
+context. Every model-routed turn rechecks metadata before sending tool schemas;
+revoked evidence, changed digest or an unqualified selected model is rejected
+without executing tools. Unknown models cannot bypass the roster. The explicit
+legacy rollback model remains text-only, and deterministic clock/environment
+commands remain independent. There is no inference probe on every status refresh.
+Twelve new cases plus the affected voice/tool/environment tests passed (63 tests).
+This is an actual consuming-path repair, not a diagnostic-only permission label.
