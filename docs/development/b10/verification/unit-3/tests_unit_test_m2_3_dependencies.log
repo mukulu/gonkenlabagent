@@ -1,0 +1,19 @@
+# command: /opt/pyvenv/bin/python3 -m unittest -v tests.unit.test_m2_3_dependencies
+# started_utc: 2026-09-21T15:03:23Z
+test_artifacts_match_declared_interpreter_and_platform (tests.unit.test_m2_3_dependencies.DependencyProfileTests.test_artifacts_match_declared_interpreter_and_platform) ... ok
+test_blocked_profiles_have_reasons_and_no_locks (tests.unit.test_m2_3_dependencies.DependencyProfileTests.test_blocked_profiles_have_reasons_and_no_locks) ... ok
+test_every_accepted_requirement_is_exact_hashed_and_binary_only (tests.unit.test_m2_3_dependencies.DependencyProfileTests.test_every_accepted_requirement_is_exact_hashed_and_binary_only) ... ok
+test_generated_locks_are_current (tests.unit.test_m2_3_dependencies.DependencyProfileTests.test_generated_locks_are_current) ... ok
+test_legacy_ranges_are_quarantined_from_accepted_paths (tests.unit.test_m2_3_dependencies.DependencyProfileTests.test_legacy_ranges_are_quarantined_from_accepted_paths) ... ok
+test_license_report_is_machine_readable_and_fail_closed (tests.unit.test_m2_3_dependencies.DependencyProfileTests.test_license_report_is_machine_readable_and_fail_closed) ... ok
+test_project_core_is_empty_and_ui_is_optional (tests.unit.test_m2_3_dependencies.DependencyProfileTests.test_project_core_is_empty_and_ui_is_optional) ... ok
+test_required_profile_boundaries_exist (tests.unit.test_m2_3_dependencies.DependencyProfileTests.test_required_profile_boundaries_exist) ... ok
+test_ui_and_wake_dependencies_cannot_leak_into_core (tests.unit.test_m2_3_dependencies.DependencyProfileTests.test_ui_and_wake_dependencies_cannot_leak_into_core) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 1.236s
+
+OK
+# finished_utc: 2026-09-21T15:03:25Z
+# duration_seconds: 1.928
+# returncode: 0

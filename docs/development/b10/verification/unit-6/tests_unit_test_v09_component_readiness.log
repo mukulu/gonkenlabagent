@@ -1,0 +1,16 @@
+# command: /opt/pyvenv/bin/python3 -m unittest -v tests.unit.test_v09_component_readiness
+# started_utc: 2026-09-21T15:04:22Z
+test_current_ready_can_retain_historical_failure_without_becoming_failed (tests.unit.test_v09_component_readiness.ComponentReadinessTests.test_current_ready_can_retain_historical_failure_without_becoming_failed) ... ok
+test_document_is_versioned_and_never_claims_physical_acceptance (tests.unit.test_v09_component_readiness.ComponentReadinessTests.test_document_is_versioned_and_never_claims_physical_acceptance) ... ok
+test_optional_degradation_can_complete_selected_profile (tests.unit.test_v09_component_readiness.ComponentReadinessTests.test_optional_degradation_can_complete_selected_profile) ... ok
+test_required_failure_does_not_hide_independent_ready_component (tests.unit.test_v09_component_readiness.ComponentReadinessTests.test_required_failure_does_not_hide_independent_ready_component) ... ok
+test_required_not_commissioned_is_distinct_from_failure (tests.unit.test_v09_component_readiness.ComponentReadinessTests.test_required_not_commissioned_is_distinct_from_failure) ... ok
+test_unknown_status_is_rejected (tests.unit.test_v09_component_readiness.ComponentReadinessTests.test_unknown_status_is_rejected) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.000s
+
+OK
+# finished_utc: 2026-09-21T15:04:23Z
+# duration_seconds: 0.607
+# returncode: 0

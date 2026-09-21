@@ -1,0 +1,13 @@
+# command: /opt/pyvenv/bin/python3 -m unittest -v tests.integration.test_v09_environment_voice_transaction
+# started_utc: 2026-09-21T15:10:59Z
+test_voice_daemon_unavailable_returns_truthful_failure_without_llm (tests.integration.test_v09_environment_voice_transaction.EnvironmentVoiceTransactionIntegrationTests.test_voice_daemon_unavailable_returns_truthful_failure_without_llm) ... ok
+test_voice_fan_on_off_traverses_real_unix_protocol_without_llm_or_physical_claim (tests.integration.test_v09_environment_voice_transaction.EnvironmentVoiceTransactionIntegrationTests.test_voice_fan_on_off_traverses_real_unix_protocol_without_llm_or_physical_claim) ... ok
+test_voice_sensor_query_uses_daemon_and_labels_simulated_reading (tests.integration.test_v09_environment_voice_transaction.EnvironmentVoiceTransactionIntegrationTests.test_voice_sensor_query_uses_daemon_and_labels_simulated_reading) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 1.027s
+
+OK
+# finished_utc: 2026-09-21T15:11:01Z
+# duration_seconds: 1.945
+# returncode: 0

@@ -1,0 +1,14 @@
+# command: /opt/pyvenv/bin/python3 -m unittest -v tests.unit.test_b10_policy_safety
+# started_utc: 2026-09-21T15:02:42Z
+test_duplicate_and_nonfinite_json_preserves_policy_file (tests.unit.test_b10_policy_safety.RealPolicySafetyTests.test_duplicate_and_nonfinite_json_preserves_policy_file) ... ok
+test_fractional_boolean_and_string_dwell_never_coerced (tests.unit.test_b10_policy_safety.RealPolicySafetyTests.test_fractional_boolean_and_string_dwell_never_coerced) ... ok
+test_mode_only_update_preserves_thresholds_and_dwell (tests.unit.test_b10_policy_safety.RealPolicySafetyTests.test_mode_only_update_preserves_thresholds_and_dwell) ... ok
+test_nonfinite_and_boolean_thresholds_rejected (tests.unit.test_b10_policy_safety.RealPolicySafetyTests.test_nonfinite_and_boolean_thresholds_rejected) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.002s
+
+OK
+# finished_utc: 2026-09-21T15:02:42Z
+# duration_seconds: 0.741
+# returncode: 0

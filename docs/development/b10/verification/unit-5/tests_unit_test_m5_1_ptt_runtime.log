@@ -1,0 +1,18 @@
+# command: /opt/pyvenv/bin/python3 -m unittest -v tests.unit.test_m5_1_ptt_runtime
+# started_utc: 2026-09-21T15:03:50Z
+test_discovers_gpio_by_name_and_requests_pullup_button_and_led_off (tests.unit.test_m5_1_ptt_runtime.GpiodPttHardwareTests.test_discovers_gpio_by_name_and_requests_pullup_button_and_led_off) ... ok
+test_pi5_header_topology_disambiguates_when_chip_labels_are_unavailable (tests.unit.test_m5_1_ptt_runtime.GpiodPttHardwareTests.test_pi5_header_topology_disambiguates_when_chip_labels_are_unavailable) ... ok
+test_pi5_rp1_label_disambiguates_duplicate_header_gpio_names (tests.unit.test_m5_1_ptt_runtime.GpiodPttHardwareTests.test_pi5_rp1_label_disambiguates_duplicate_header_gpio_names) ... ok
+test_refuses_missing_ambiguous_or_cross_chip_mappings (tests.unit.test_m5_1_ptt_runtime.GpiodPttHardwareTests.test_refuses_missing_ambiguous_or_cross_chip_mappings) ... ok
+test_wake_monitor_led_resolves_by_name_and_is_off_on_close (tests.unit.test_m5_1_ptt_runtime.GpiodPttHardwareTests.test_wake_monitor_led_resolves_by_name_and_is_off_on_close) ... ok
+test_discard_removes_max_hold_capture_without_processing (tests.unit.test_m5_1_ptt_runtime.PushToTalkVoiceAdapterTests.test_discard_removes_max_hold_capture_without_processing) ... ok
+test_release_preserves_partial_capture_then_processes_and_cleans_it (tests.unit.test_m5_1_ptt_runtime.PushToTalkVoiceAdapterTests.test_release_preserves_partial_capture_then_processes_and_cleans_it) ... ok
+test_push_to_talk_mode_selects_ptt_loop_not_wake_loop (tests.unit.test_m5_1_ptt_runtime.RunApplianceModeTests.test_push_to_talk_mode_selects_ptt_loop_not_wake_loop) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 0.056s
+
+OK
+# finished_utc: 2026-09-21T15:03:50Z
+# duration_seconds: 0.813
+# returncode: 0

@@ -4,8 +4,8 @@
   "blueprint": "Attempt03 (Attempt02 execution + original V7 + Display V2)",
   "blueprint_sha256": "4f932dac8b03ffcef03b7fc77a2f67d99966cab460217c59821f8e1535a5e441",
   "physical_acceptance_claimed": false,
-  "package_status": "DEVELOPMENT",
-  "next_action": "Continue CP46.5.1 candidate/precondition state model and CP46.5.2 late activation ordering. Preserve B7 final-success gates; use the B9 development package, not CKPT45 or a report-only delivery.",
+  "package_status": "B10_ROOM_APPLIANCE_TARGET_TEST_CANDIDATE; not full Attempt03 stable release",
+  "next_action": "Run the exact B10 room-appliance candidate with ./install-room-appliance.sh; ingest its single failure/support archive if needed. Independent development continues at CP46.5.3 semantic rollback; remaining power/display work stays open.",
   "slots": [
     {
       "id": "46.0.1",
@@ -232,19 +232,29 @@
       "id": "46.5.1",
       "title": "Candidate/precondition state model",
       "source_line": 1838,
-      "status": "NOT_STARTED",
-      "evidence": []
+      "status": "HOST_VERIFIED",
+      "evidence": [
+        "scripts/installer_plan.py",
+        "scripts/install.sh",
+        "tests/unit/test_b10_candidate_plan.py",
+        "tests/integration/test_b10_candidate_execution.py",
+        "docs/development/b10/VERIFICATION.json"
+      ],
+      "note": "B10 scoped host verification; no target/hardware acceptance inferred."
     },
     {
       "id": "46.5.2",
       "title": "Activation ordering / stale-readiness rejection",
       "source_line": 1839,
-      "status": "WIP",
+      "status": "HOST_VERIFIED",
       "evidence": [
-        "docs/development/rebuild/FINAL_INSTALL_CONVERGENCE.md",
-        "docs/development/rebuild/b7-cascade.log",
-        "tests/unit/test_attempt03_final_convergence.py"
-      ]
+        "scripts/installer_plan.py",
+        "scripts/install.sh",
+        "tests/integration/test_b10_candidate_execution.py",
+        "tests/unit/test_attempt03_runtime_readiness.py",
+        "docs/development/b10/VERIFICATION.json"
+      ],
+      "note": "B10 scoped host verification; no target/hardware acceptance inferred."
     },
     {
       "id": "46.5.3",
@@ -468,15 +478,28 @@
       "id": "46.9.1",
       "title": "Production profile selection semantics",
       "source_line": 1896,
-      "status": "NOT_STARTED",
-      "evidence": []
+      "status": "HOST_VERIFIED",
+      "evidence": [
+        "install-room-appliance.sh",
+        "scripts/environment_profile_manager.py",
+        "scripts/environment_service_manager.py",
+        "tests/unit/test_b10_real_environment.py",
+        "docs/development/b10/VERIFICATION.json"
+      ],
+      "note": "B10 scoped host verification; no target/hardware acceptance inferred."
     },
     {
       "id": "46.9.2",
       "title": "GPIO23/polarity/safe-OFF configuration contract",
       "source_line": 1897,
-      "status": "NOT_STARTED",
-      "evidence": []
+      "status": "HOST_VERIFIED",
+      "evidence": [
+        "src/gonken_agent/environment/policy.py",
+        "tests/unit/test_b10_policy_safety.py",
+        "tests/unit/test_b10_real_environment.py",
+        "docs/development/b10/VERIFICATION.json"
+      ],
+      "note": "B10 scoped host verification; no target/hardware acceptance inferred."
     },
     {
       "id": "46.9.3",
@@ -489,15 +512,26 @@
       "id": "46.9.4",
       "title": "No-simulation-fallback negative tests",
       "source_line": 1899,
-      "status": "NOT_STARTED",
-      "evidence": []
+      "status": "HOST_VERIFIED",
+      "evidence": [
+        "scripts/environment_readiness.py",
+        "tests/unit/test_b10_real_environment.py",
+        "docs/development/b10/VERIFICATION.json"
+      ],
+      "note": "B10 scoped host verification; no target/hardware acceptance inferred."
     },
     {
       "id": "46.9.5",
       "title": "Host/target-shadow status/evidence convergence",
       "source_line": 1900,
-      "status": "NOT_STARTED",
-      "evidence": []
+      "status": "HOST_VERIFIED",
+      "evidence": [
+        "src/gonken_agent/environment/daemon.py",
+        "scripts/environment_readiness.py",
+        "tests/unit/test_b10_real_environment.py",
+        "docs/development/b10/VERIFICATION.json"
+      ],
+      "note": "B10 scoped host verification; no target/hardware acceptance inferred."
     },
     {
       "id": "46.9.6",

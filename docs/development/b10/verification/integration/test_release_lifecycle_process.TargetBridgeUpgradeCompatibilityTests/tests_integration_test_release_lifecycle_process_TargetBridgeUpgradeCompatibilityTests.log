@@ -1,0 +1,15 @@
+# command: /opt/pyvenv/bin/python3 -m unittest -v tests.integration.test_release_lifecycle_process.TargetBridgeUpgradeCompatibilityTests
+# started_utc: 2026-09-21T15:17:45Z
+test_process_activation_does_not_execute_or_revalidate_previous_current_release (tests.integration.test_release_lifecycle_process.TargetBridgeUpgradeCompatibilityTests.test_process_activation_does_not_execute_or_revalidate_previous_current_release) ... ok
+test_process_activation_does_not_fail_after_success_when_older_stale_release_is_pre_bridge (tests.integration.test_release_lifecycle_process.TargetBridgeUpgradeCompatibilityTests.test_process_activation_does_not_fail_after_success_when_older_stale_release_is_pre_bridge)
+Reproduce checkpoint-30 Pi: stale legacy A, active legacy B, new strict C. ... ok
+test_process_activation_migrates_from_post_verified_pre_bridge_target_release (tests.integration.test_release_lifecycle_process.TargetBridgeUpgradeCompatibilityTests.test_process_activation_migrates_from_post_verified_pre_bridge_target_release)
+Exact checkpoint-29 target failure: reconcile old active, then activate bridge release. ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 2.049s
+
+OK
+# finished_utc: 2026-09-21T15:17:48Z
+# duration_seconds: 2.718
+# returncode: 0

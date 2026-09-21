@@ -1,0 +1,22 @@
+# command: /opt/pyvenv/bin/python3 -m unittest -v tests.unit.test_bounded_unittest_runner
+# started_utc: 2026-09-21T15:02:48Z
+test_case_granularity_runs_each_unittest_method_with_separate_log (tests.unit.test_bounded_unittest_runner.BoundedUnittestRunnerTests.test_case_granularity_runs_each_unittest_method_with_separate_log) ... ok
+test_ci_exposes_phase_selection_for_long_host_runs (tests.unit.test_bounded_unittest_runner.BoundedUnittestRunnerTests.test_ci_exposes_phase_selection_for_long_host_runs) ... ok
+test_ci_rejects_unknown_phase_without_running_checks (tests.unit.test_bounded_unittest_runner.BoundedUnittestRunnerTests.test_ci_rejects_unknown_phase_without_running_checks) ... ok
+test_ci_uses_bounded_runner_for_unit_and_integration_suites (tests.unit.test_bounded_unittest_runner.BoundedUnittestRunnerTests.test_ci_uses_bounded_runner_for_unit_and_integration_suites) ... ok
+test_completed_manifest_has_no_pending_or_active_modules (tests.unit.test_bounded_unittest_runner.BoundedUnittestRunnerTests.test_completed_manifest_has_no_pending_or_active_modules) ... ok
+test_duplicate_explicit_cases_do_not_inflate_coverage (tests.unit.test_bounded_unittest_runner.BoundedUnittestRunnerTests.test_duplicate_explicit_cases_do_not_inflate_coverage) ... ok
+test_excluded_module_is_not_selected_during_discovery (tests.unit.test_bounded_unittest_runner.BoundedUnittestRunnerTests.test_excluded_module_is_not_selected_during_discovery) ... ok
+test_failing_module_returns_nonzero_but_preserves_manifest (tests.unit.test_bounded_unittest_runner.BoundedUnittestRunnerTests.test_failing_module_returns_nonzero_but_preserves_manifest) ... ok
+test_interruption_preserves_completed_result_and_marks_pending (tests.unit.test_bounded_unittest_runner.BoundedUnittestRunnerTests.test_interruption_preserves_completed_result_and_marks_pending) ... ok
+test_nonfinite_budgets_are_refused_before_test_execution (tests.unit.test_bounded_unittest_runner.BoundedUnittestRunnerTests.test_nonfinite_budgets_are_refused_before_test_execution) ... ok
+test_passing_module_writes_manifest_and_log (tests.unit.test_bounded_unittest_runner.BoundedUnittestRunnerTests.test_passing_module_writes_manifest_and_log) ... ok
+test_timeout_module_returns_nonzero_and_kills_child (tests.unit.test_bounded_unittest_runner.BoundedUnittestRunnerTests.test_timeout_module_returns_nonzero_and_kills_child) ... ok
+
+----------------------------------------------------------------------
+Ran 12 tests in 12.756s
+
+OK
+# finished_utc: 2026-09-21T15:03:01Z
+# duration_seconds: 13.414
+# returncode: 0

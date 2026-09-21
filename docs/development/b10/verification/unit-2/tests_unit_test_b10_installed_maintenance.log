@@ -1,0 +1,13 @@
+# command: /opt/pyvenv/bin/python3 -m unittest -v tests.unit.test_b10_installed_maintenance
+# started_utc: 2026-09-21T15:02:38Z
+test_all_installed_ollama_helpers_run_without_checkout_pythonpath (tests.unit.test_b10_installed_maintenance.InstalledMaintenanceTests.test_all_installed_ollama_helpers_run_without_checkout_pythonpath) ... ok
+test_missing_installed_dependency_is_not_hidden (tests.unit.test_b10_installed_maintenance.InstalledMaintenanceTests.test_missing_installed_dependency_is_not_hidden) ... ok
+test_sidecars_packaged_from_canonical_sources (tests.unit.test_b10_installed_maintenance.InstalledMaintenanceTests.test_sidecars_packaged_from_canonical_sources) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 2.760s
+
+OK
+# finished_utc: 2026-09-21T15:02:42Z
+# duration_seconds: 3.485
+# returncode: 0

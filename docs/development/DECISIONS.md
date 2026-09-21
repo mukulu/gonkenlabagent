@@ -1913,3 +1913,21 @@ This compatibility is a migration mechanism, not a waiver. The goal is to move s
 Historical PTT-mandatory decisions are superseded for the current wake-word
 profile. See [RESOURCE_MIGRATION.md](rebuild/RESOURCE_MIGRATION.md). Inactive
 compatibility fields are not reservations. GPIO22 remains independently governed.
+
+## B10-D1 - Explicit real-room deployment replaces the historical simulation-only startup gate
+
+- Status: Accepted for the user's already-wired SHT31/GPIO23 room appliance.
+- Evidence: B9 target run and B10 input/repair register; source and tests are linked
+  in `b10/REPAIR_RECORD.md` and `b10/VERIFICATION.json`.
+- Decision: `install-room-appliance.sh` selects exact local commit, full-real and
+  automatic. No historic physical-PASS artifact is required to commission this
+  profile. Runtime identity, valid sensor readings, configuration/permissions,
+  safe-OFF, dwell and the environment-daemon ownership boundary remain required.
+- Generic bootstrap default `none` and explicit development simulation remain;
+  they are not an implicit fallback from a failed real profile. Mixed
+  simulated-sensor/real-relay experiments remain supervised.
+- Valid thresholds/dwell are preserved. Mode changes use daemon IPC and expected
+  policy generation. Never equate real-backend selection with observed fan motion.
+- Scope: this supersedes earlier deployment wording requiring a prior HIL report
+  or simulated actuator for the current profile, not physical acceptance criteria,
+  privacy indication, speed-control limitations or future display/power governance.

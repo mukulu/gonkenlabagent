@@ -1,0 +1,23 @@
+# command: /opt/pyvenv/bin/python3 -m unittest -v tests.unit.test_v09_environment_cli
+# started_utc: 2026-09-21T15:05:23Z
+test_daemon_rejection_is_reported_without_fake_success (tests.unit.test_v09_environment_cli.EnvironmentCliTests.test_daemon_rejection_is_reported_without_fake_success) ... ok
+test_env_serve_check_does_not_call_safe_off_or_open_resources (tests.unit.test_v09_environment_cli.EnvironmentCliTests.test_env_serve_check_does_not_call_safe_off_or_open_resources) ... ok
+test_env_serve_disabled_exits_without_fake_hardware (tests.unit.test_v09_environment_cli.EnvironmentCliTests.test_env_serve_disabled_exits_without_fake_hardware) ... ok
+test_env_serve_enabled_check_builds_without_hardware_evidence_or_socket_loop (tests.unit.test_v09_environment_cli.EnvironmentCliTests.test_env_serve_enabled_check_builds_without_hardware_evidence_or_socket_loop) ... ok
+test_fan_mode_and_policy_mutations_pass_typed_arguments_only (tests.unit.test_v09_environment_cli.EnvironmentCliTests.test_fan_mode_and_policy_mutations_pass_typed_arguments_only) ... ok
+test_policy_set_without_fields_fails_before_daemon_call (tests.unit.test_v09_environment_cli.EnvironmentCliTests.test_policy_set_without_fields_fails_before_daemon_call) ... ok
+test_policy_show_health_and_probe_are_non_mutating_client_calls (tests.unit.test_v09_environment_cli.EnvironmentCliTests.test_policy_show_health_and_probe_are_non_mutating_client_calls) ... ok
+test_simulation_cli_commands_use_typed_ipc_only (tests.unit.test_v09_environment_cli.EnvironmentCliTests.test_simulation_cli_commands_use_typed_ipc_only) ... ok
+test_simulation_status_explains_real_sensor_in_hybrid_mode (tests.unit.test_v09_environment_cli.EnvironmentCliTests.test_simulation_status_explains_real_sensor_in_hybrid_mode) ... ok
+test_status_json_uses_ipc_client_and_reports_no_physical_evidence (tests.unit.test_v09_environment_cli.EnvironmentCliTests.test_status_json_uses_ipc_client_and_reports_no_physical_evidence) ... ok
+test_temperature_and_humidity_commands_read_sensor_once (tests.unit.test_v09_environment_cli.EnvironmentCliTests.test_temperature_and_humidity_commands_read_sensor_once) ... ok
+test_watch_observes_snapshots_passively_without_extra_sensor_reads (tests.unit.test_v09_environment_cli.EnvironmentCliTests.test_watch_observes_snapshots_passively_without_extra_sensor_reads) ... ok
+test_watch_once_changes_only_and_health_remain_passive (tests.unit.test_v09_environment_cli.EnvironmentCliTests.test_watch_once_changes_only_and_health_remain_passive) ... ok
+
+----------------------------------------------------------------------
+Ran 13 tests in 0.179s
+
+OK
+# finished_utc: 2026-09-21T15:05:24Z
+# duration_seconds: 0.884
+# returncode: 0

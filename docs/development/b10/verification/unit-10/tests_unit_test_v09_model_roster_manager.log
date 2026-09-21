@@ -1,0 +1,71 @@
+# command: /opt/pyvenv/bin/python3 -m unittest -v tests.unit.test_v09_model_roster_manager
+# started_utc: 2026-09-21T15:06:22Z
+test_default_tool_smoke_failure_blocks_default_selection (tests.unit.test_v09_model_roster_manager.ModelRosterManagerTests.test_default_tool_smoke_failure_blocks_default_selection) ... [MODEL] model=- stage=INVENTORY
+[MODEL] model=- stage=PREREQUISITES
+[MODEL] model=- stage=INVENTORY_AFTER_PULL
+[MODEL] model=qwen3:0.6b stage=IDENTITY
+[MODEL] model=qwen3:0.6b stage=INFERENCE
+[MODEL] model=qwen3:0.6b stage=TOOLS
+[MODEL] model=qwen3:0.6b stage=UNLOAD
+[MODEL] model=lfm2.5-thinking:1.2b stage=IDENTITY
+[MODEL] model=lfm2.5-thinking:1.2b stage=INFERENCE
+[MODEL] model=lfm2.5-thinking:1.2b stage=TOOLS
+[MODEL] model=lfm2.5-thinking:1.2b stage=UNLOAD
+[MODEL] model=qwen3.5:0.8b stage=IDENTITY
+[MODEL] model=qwen3.5:0.8b stage=INFERENCE
+[MODEL] model=qwen3.5:0.8b stage=TOOLS
+[MODEL] model=qwen3.5:0.8b stage=UNLOAD
+[MODEL] model=- stage=ADMISSION
+ok
+test_manifest_has_exact_roster_and_default (tests.unit.test_v09_model_roster_manager.ModelRosterManagerTests.test_manifest_has_exact_roster_and_default) ... ok
+test_old_ready_record_without_qualification_is_rejected (tests.unit.test_v09_model_roster_manager.ModelRosterManagerTests.test_old_ready_record_without_qualification_is_rejected) ... ok
+test_online_provision_validates_all_models_and_selects_default (tests.unit.test_v09_model_roster_manager.ModelRosterManagerTests.test_online_provision_validates_all_models_and_selects_default) ... [MODEL] model=- stage=INVENTORY
+[MODEL] model=- stage=PREREQUISITES
+[MODEL] model=- stage=PULL:qwen3:0.6b
+[MODEL] model=- stage=PULL:lfm2.5-thinking:1.2b
+[MODEL] model=- stage=PULL:qwen3.5:0.8b
+[MODEL] model=- stage=INVENTORY_AFTER_PULL
+[MODEL] model=qwen3:0.6b stage=IDENTITY
+[MODEL] model=qwen3:0.6b stage=INFERENCE
+[MODEL] model=qwen3:0.6b stage=TOOLS
+[MODEL] model=qwen3:0.6b stage=UNLOAD
+[MODEL] model=lfm2.5-thinking:1.2b stage=IDENTITY
+[MODEL] model=lfm2.5-thinking:1.2b stage=INFERENCE
+[MODEL] model=lfm2.5-thinking:1.2b stage=TOOLS
+[MODEL] model=lfm2.5-thinking:1.2b stage=UNLOAD
+[MODEL] model=qwen3.5:0.8b stage=IDENTITY
+[MODEL] model=qwen3.5:0.8b stage=INFERENCE
+[MODEL] model=qwen3.5:0.8b stage=TOOLS
+[MODEL] model=qwen3.5:0.8b stage=UNLOAD
+[MODEL] model=- stage=ADMISSION
+ok
+test_preseeded_offline_fails_if_any_model_missing_without_pull (tests.unit.test_v09_model_roster_manager.ModelRosterManagerTests.test_preseeded_offline_fails_if_any_model_missing_without_pull) ... [OK] code=MODEL_ROSTER_READY models=3 default=qwen3:0.6b active=qwen3:0.6b mode=online
+[MODEL] model=- stage=INVENTORY
+[MODEL] model=- stage=PREREQUISITES
+ok
+test_provision_preserves_admitted_operator_selection (tests.unit.test_v09_model_roster_manager.ModelRosterManagerTests.test_provision_preserves_admitted_operator_selection) ... [MODEL] model=- stage=INVENTORY
+[MODEL] model=- stage=PREREQUISITES
+[MODEL] model=- stage=INVENTORY_AFTER_PULL
+[MODEL] model=qwen3:0.6b stage=IDENTITY
+[MODEL] model=qwen3:0.6b stage=INFERENCE
+[MODEL] model=qwen3:0.6b stage=TOOLS
+[MODEL] model=qwen3:0.6b stage=UNLOAD
+[MODEL] model=lfm2.5-thinking:1.2b stage=IDENTITY
+[MODEL] model=lfm2.5-thinking:1.2b stage=INFERENCE
+[MODEL] model=lfm2.5-thinking:1.2b stage=TOOLS
+[MODEL] model=lfm2.5-thinking:1.2b stage=UNLOAD
+[MODEL] model=qwen3.5:0.8b stage=IDENTITY
+[MODEL] model=qwen3.5:0.8b stage=INFERENCE
+[MODEL] model=qwen3.5:0.8b stage=TOOLS
+[MODEL] model=qwen3.5:0.8b stage=UNLOAD
+[MODEL] model=- stage=ADMISSION
+ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.046s
+
+OK
+[OK] code=MODEL_ROSTER_READY models=3 default=qwen3:0.6b active=qwen3.5:0.8b mode=online
+# finished_utc: 2026-09-21T15:06:22Z
+# duration_seconds: 0.671
+# returncode: 0

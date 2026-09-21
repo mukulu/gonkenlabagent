@@ -1,0 +1,13 @@
+# command: /opt/pyvenv/bin/python3 -m unittest -v tests.integration.test_release_lifecycle_process.ActivationInterruptionTests
+# started_utc: 2026-09-21T15:18:00Z
+test_every_journal_switch_and_postcheck_boundary_reconciles (tests.integration.test_release_lifecycle_process.ActivationInterruptionTests.test_every_journal_switch_and_postcheck_boundary_reconciles) ... ok
+test_operator_rollback_script_restarts_service_after_validated_switch (tests.integration.test_release_lifecycle_process.ActivationInterruptionTests.test_operator_rollback_script_restarts_service_after_validated_switch) ... ok
+test_tampered_candidate_is_rejected_before_switching_current (tests.integration.test_release_lifecycle_process.ActivationInterruptionTests.test_tampered_candidate_is_rejected_before_switching_current) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 9.085s
+
+OK
+# finished_utc: 2026-09-21T15:18:10Z
+# duration_seconds: 9.839
+# returncode: 0

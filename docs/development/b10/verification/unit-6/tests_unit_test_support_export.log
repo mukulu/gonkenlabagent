@@ -1,0 +1,29 @@
+# command: /opt/pyvenv/bin/python3 -m unittest -v tests.unit.test_support_export
+# started_utc: 2026-09-21T15:04:12Z
+test_audio_endpoint_metadata_redacts_stable_bluetooth_identifiers (tests.unit.test_support_export.SupportTests.test_audio_endpoint_metadata_redacts_stable_bluetooth_identifiers) ... ok
+test_bundle_exact_members_redacted_paths_no_raw_files (tests.unit.test_support_export.SupportTests.test_bundle_exact_members_redacted_paths_no_raw_files) ... ok
+test_bundle_preserves_allow_listed_health_reason_codes (tests.unit.test_support_export.SupportTests.test_bundle_preserves_allow_listed_health_reason_codes) ... ok
+test_content_in_telemetry_rejected_before_output (tests.unit.test_support_export.SupportTests.test_content_in_telemetry_rejected_before_output) ... ok
+test_diagnostic_summary_treats_same_boot_failure_history_as_recovered_when_current_ready (tests.unit.test_support_export.SupportTests.test_diagnostic_summary_treats_same_boot_failure_history_as_recovered_when_current_ready) ... ok
+test_evidence_phase_binds_latest_install_run_without_raw_content (tests.unit.test_support_export.SupportTests.test_evidence_phase_binds_latest_install_run_without_raw_content) ... ok
+test_existing_symlink_and_publish_race_preserve_destination (tests.unit.test_support_export.SupportTests.test_existing_symlink_and_publish_race_preserve_destination) ... ok
+test_extra_health_details_are_not_exported (tests.unit.test_support_export.SupportTests.test_extra_health_details_are_not_exported) ... ok
+test_gpio_platform_export_is_allowlisted_and_drops_raw_command_text (tests.unit.test_support_export.SupportTests.test_gpio_platform_export_is_allowlisted_and_drops_raw_command_text) ... ok
+test_install_event_export_is_bounded_allow_listed_and_content_free (tests.unit.test_support_export.SupportTests.test_install_event_export_is_bounded_allow_listed_and_content_free) ... ok
+test_permissions_manifest_exposes_owner_group_mode_not_file_content (tests.unit.test_support_export.SupportTests.test_permissions_manifest_exposes_owner_group_mode_not_file_content) ... ok
+test_release_identity_export_binds_current_symlink_to_record (tests.unit.test_support_export.SupportTests.test_release_identity_export_binds_current_symlink_to_record) ... ok
+test_release_identity_rejects_unknown_record_format (tests.unit.test_support_export.SupportTests.test_release_identity_rejects_unknown_record_format) ... ok
+test_runtime_binding_member_reports_release_interpreter_probe_without_raw_output (tests.unit.test_support_export.SupportTests.test_runtime_binding_member_reports_release_interpreter_probe_without_raw_output) ... ok
+test_service_audio_probe_refuses_to_mislabel_wrong_nonroot_identity (tests.unit.test_support_export.SupportTests.test_service_audio_probe_refuses_to_mislabel_wrong_nonroot_identity) ... ok
+test_service_event_export_counts_codes_without_exporting_journal_text (tests.unit.test_support_export.SupportTests.test_service_event_export_counts_codes_without_exporting_journal_text) ... ok
+test_startup_snapshot_is_allow_listed_member (tests.unit.test_support_export.SupportTests.test_startup_snapshot_is_allow_listed_member) ... ok
+test_target_manifest_member_embeds_valid_non_actuating_manifest (tests.unit.test_support_export.SupportTests.test_target_manifest_member_embeds_valid_non_actuating_manifest) ... ok
+test_target_manifest_member_rejects_privacy_boundary_violation (tests.unit.test_support_export.SupportTests.test_target_manifest_member_rejects_privacy_boundary_violation) ... ok
+
+----------------------------------------------------------------------
+Ran 19 tests in 6.103s
+
+OK
+# finished_utc: 2026-09-21T15:04:19Z
+# duration_seconds: 6.937
+# returncode: 0

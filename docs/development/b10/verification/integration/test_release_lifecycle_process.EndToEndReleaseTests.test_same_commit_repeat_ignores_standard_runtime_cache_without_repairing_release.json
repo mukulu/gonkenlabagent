@@ -1,0 +1,29 @@
+{
+  "active_module": null,
+  "created_utc": "2026-09-21T15:16:36Z",
+  "execution_state": "COMPLETED",
+  "granularity": "module",
+  "label": "test_release_lifecycle_process.EndToEndReleaseTests.test_same_commit_repeat_ignores_standard_runtime_cache_without_repairing_release",
+  "module_count": 1,
+  "modules": [
+    {
+      "duration_seconds": 29.972,
+      "log_file": "docs/development/b10/verification/integration/test_release_lifecycle_process.EndToEndReleaseTests.test_same_commit_repeat_ignores_standard_runtime_cache_without_repairing_release/tests_integration_test_release_lifecycle_process_EndToEndReleaseTests_test_same_commit_repeat_ignores_standard_runtime_cache_without_repairing_release.log",
+      "module": "tests.integration.test_release_lifecycle_process.EndToEndReleaseTests.test_same_commit_repeat_ignores_standard_runtime_cache_without_repairing_release",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    }
+  ],
+  "pending_modules": [],
+  "planned_count": 1,
+  "planned_modules": [
+    "tests.integration.test_release_lifecycle_process.EndToEndReleaseTests.test_same_commit_repeat_ignores_standard_runtime_cache_without_repairing_release"
+  ],
+  "result": "PASS",
+  "runner_pid": 18426,
+  "schema": "gonken-bounded-unittest-v1",
+  "status_counts": {
+    "PASS": 1
+  }
+}

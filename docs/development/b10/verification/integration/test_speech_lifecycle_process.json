@@ -1,0 +1,20 @@
+{
+  "active_module": "tests.integration.test_speech_lifecycle_process",
+  "created_utc": "2026-09-21T15:12:38Z",
+  "execution_state": "INTERRUPTED",
+  "granularity": "module",
+  "label": "test_speech_lifecycle_process",
+  "module_count": 0,
+  "modules": [],
+  "pending_modules": [
+    "tests.integration.test_speech_lifecycle_process"
+  ],
+  "planned_count": 1,
+  "planned_modules": [
+    "tests.integration.test_speech_lifecycle_process"
+  ],
+  "result": "INCOMPLETE",
+  "runner_pid": 15695,
+  "schema": "gonken-bounded-unittest-v1",
+  "status_counts": {}
+}

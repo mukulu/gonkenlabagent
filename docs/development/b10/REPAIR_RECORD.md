@@ -21,7 +21,7 @@ Source: exact B9 a732f0bb1ab0e752a395f5250fa5b792d65ac708. See INPUTS.json for a
 
 B10A: reproduce/fix installed maintenance imports; B10B: real-profile service/readiness and safe policy convergence; B10C: candidate/precondition and restart lifecycle; B10D: downstream model/voice and evidence repairs found by tests; B10 close: complete affected and full current regression corpus, build/extract exact installation candidate, report unimplemented broader blueprint items separately.
 
-Execution status: IN_PROGRESS. No application or physical acceptance implied.
+Execution status: HOST_VERIFIED_REPAIR; target installation candidate prepared. Full Attempt03 completion and physical acceptance are not claimed.
 
 ## B10A outcome
 
@@ -67,3 +67,26 @@ no surviving child process remained. Actual shell registration/planner/engine
 fault fixtures plus ordering tests: 24 PASS in 3.669 s. Model/speech failure fixtures
 prove the simulated current pointer is unchanged and environment startup was not
 called. These are host execution proofs, not real Pi provisioning.
+
+## B10D broad verification and current deployment documentation
+
+All 73 current unit modules (791 cases) and all 13 integration modules (80 cases)
+passed at runtime/installer source commit cf737520be6f380c9779b0198faa2c2922aef671.
+`VERIFICATION.json` binds every discovered test to its recorded log. Module/case
+reruns are not counted twice. Interrupted outer commands preserve completed results;
+only uncertain speech/unit work was rerun. No unexplained RUNNING test remains.
+
+Current README/installation/operations/troubleshooting docs point to the explicit
+real-room wrapper. Historical simulation-first campaign text is retained with an
+explicit current-profile supersession. T0 now syntax-checks the wrapper as well.
+Only supported host slots advance in CURRENT_GATES; physical and future feature
+slots remain open. The B10 package may be run on the configured Pi without first
+uploading historical HIL acceptance. It is not the full Attempt03 stable release.
+
+Known remaining boundaries: no real Pi execution in this host run; no fresh
+physical model/audio/wake/fan/soak proof; new display/touch/power-action features
+are not implemented here. Late post-activation semantic rollback and transactional
+rollback of mutable model/config dependencies remain separately tracked. A model
+or voice failure is reported, not suppressed to manufacture installation success.
+
+Final documentation/CI regression: 34 focused reruns PASS; T0/dependency rendering/current-state/docs/syntax PASS. These are reruns, not additional unique tests.

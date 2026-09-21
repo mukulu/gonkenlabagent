@@ -1,0 +1,11 @@
+# command: /opt/pyvenv/bin/python3 -m unittest -v tests.integration.test_v09_user_test_release_candidate
+# started_utc: 2026-09-21T15:11:02Z
+test_full_simulation_runner_and_release_gate (tests.integration.test_v09_user_test_release_candidate.V09UserTestReleaseCandidateIntegrationTests.test_full_simulation_runner_and_release_gate) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 22.393s
+
+OK
+# finished_utc: 2026-09-21T15:11:25Z
+# duration_seconds: 23.050
+# returncode: 0

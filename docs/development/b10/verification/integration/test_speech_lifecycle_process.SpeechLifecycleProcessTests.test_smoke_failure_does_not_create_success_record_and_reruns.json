@@ -1,0 +1,29 @@
+{
+  "active_module": null,
+  "created_utc": "2026-09-21T15:14:02Z",
+  "execution_state": "COMPLETED",
+  "granularity": "module",
+  "label": "test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_smoke_failure_does_not_create_success_record_and_reruns",
+  "module_count": 1,
+  "modules": [
+    {
+      "duration_seconds": 10.546,
+      "log_file": "docs/development/b10/verification/integration/test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_smoke_failure_does_not_create_success_record_and_reruns/tests_integration_test_speech_lifecycle_process_SpeechLifecycleProcessTests_test_smoke_failure_does_not_create_success_record_and_reruns.log",
+      "module": "tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_smoke_failure_does_not_create_success_record_and_reruns",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    }
+  ],
+  "pending_modules": [],
+  "planned_count": 1,
+  "planned_modules": [
+    "tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_smoke_failure_does_not_create_success_record_and_reruns"
+  ],
+  "result": "PASS",
+  "runner_pid": 16549,
+  "schema": "gonken-bounded-unittest-v1",
+  "status_counts": {
+    "PASS": 1
+  }
+}

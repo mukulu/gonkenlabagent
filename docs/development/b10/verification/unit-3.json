@@ -1,0 +1,74 @@
+{
+  "active_module": null,
+  "created_utc": "2026-09-21T15:03:25Z",
+  "execution_state": "COMPLETED",
+  "granularity": "module",
+  "label": "b10-unit-3",
+  "module_count": 6,
+  "modules": [
+    {
+      "duration_seconds": 0.746,
+      "log_file": "docs/development/b10/verification/unit-3/tests_unit_test_fix5_appliance_manager.log",
+      "module": "tests.unit.test_fix5_appliance_manager",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.918,
+      "log_file": "docs/development/b10/verification/unit-3/tests_unit_test_grounding_observability.log",
+      "module": "tests.unit.test_grounding_observability",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 2.035,
+      "log_file": "docs/development/b10/verification/unit-3/tests_unit_test_legacy_router.log",
+      "module": "tests.unit.test_legacy_router",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 2.402,
+      "log_file": "docs/development/b10/verification/unit-3/tests_unit_test_m2_1.log",
+      "module": "tests.unit.test_m2_1",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.98,
+      "log_file": "docs/development/b10/verification/unit-3/tests_unit_test_m2_2_config.log",
+      "module": "tests.unit.test_m2_2_config",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 1.928,
+      "log_file": "docs/development/b10/verification/unit-3/tests_unit_test_m2_3_dependencies.log",
+      "module": "tests.unit.test_m2_3_dependencies",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    }
+  ],
+  "pending_modules": [],
+  "planned_count": 6,
+  "planned_modules": [
+    "tests.unit.test_fix5_appliance_manager",
+    "tests.unit.test_grounding_observability",
+    "tests.unit.test_legacy_router",
+    "tests.unit.test_m2_1",
+    "tests.unit.test_m2_2_config",
+    "tests.unit.test_m2_3_dependencies"
+  ],
+  "result": "PASS",
+  "runner_pid": 7973,
+  "schema": "gonken-bounded-unittest-v1",
+  "status_counts": {
+    "PASS": 6
+  }
+}

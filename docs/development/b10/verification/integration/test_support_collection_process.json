@@ -1,0 +1,29 @@
+{
+  "active_module": null,
+  "created_utc": "2026-09-21T15:10:35Z",
+  "execution_state": "COMPLETED",
+  "granularity": "module",
+  "label": "test_support_collection_process",
+  "module_count": 1,
+  "modules": [
+    {
+      "duration_seconds": 3.749,
+      "log_file": "docs/development/b10/verification/integration/test_support_collection_process/tests_integration_test_support_collection_process.log",
+      "module": "tests.integration.test_support_collection_process",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    }
+  ],
+  "pending_modules": [],
+  "planned_count": 1,
+  "planned_modules": [
+    "tests.integration.test_support_collection_process"
+  ],
+  "result": "PASS",
+  "runner_pid": 14944,
+  "schema": "gonken-bounded-unittest-v1",
+  "status_counts": {
+    "PASS": 1
+  }
+}

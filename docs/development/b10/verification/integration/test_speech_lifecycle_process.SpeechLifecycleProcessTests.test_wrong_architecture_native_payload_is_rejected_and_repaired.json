@@ -1,0 +1,29 @@
+{
+  "active_module": null,
+  "created_utc": "2026-09-21T15:14:12Z",
+  "execution_state": "COMPLETED",
+  "granularity": "module",
+  "label": "test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_wrong_architecture_native_payload_is_rejected_and_repaired",
+  "module_count": 1,
+  "modules": [
+    {
+      "duration_seconds": 7.886,
+      "log_file": "docs/development/b10/verification/integration/test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_wrong_architecture_native_payload_is_rejected_and_repaired/tests_integration_test_speech_lifecycle_process_SpeechLifecycleProcessTests_test_wrong_architecture_native_payload_is_rejected_and_repaired.log",
+      "module": "tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_wrong_architecture_native_payload_is_rejected_and_repaired",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    }
+  ],
+  "pending_modules": [],
+  "planned_count": 1,
+  "planned_modules": [
+    "tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_wrong_architecture_native_payload_is_rejected_and_repaired"
+  ],
+  "result": "PASS",
+  "runner_pid": 16709,
+  "schema": "gonken-bounded-unittest-v1",
+  "status_counts": {
+    "PASS": 1
+  }
+}

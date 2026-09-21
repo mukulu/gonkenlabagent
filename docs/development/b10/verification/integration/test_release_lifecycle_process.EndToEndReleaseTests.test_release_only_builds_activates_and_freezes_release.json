@@ -1,0 +1,29 @@
+{
+  "active_module": null,
+  "created_utc": "2026-09-21T15:15:09Z",
+  "execution_state": "COMPLETED",
+  "granularity": "module",
+  "label": "test_release_lifecycle_process.EndToEndReleaseTests.test_release_only_builds_activates_and_freezes_release",
+  "module_count": 1,
+  "modules": [
+    {
+      "duration_seconds": 24.766,
+      "log_file": "docs/development/b10/verification/integration/test_release_lifecycle_process.EndToEndReleaseTests.test_release_only_builds_activates_and_freezes_release/tests_integration_test_release_lifecycle_process_EndToEndReleaseTests_test_release_only_builds_activates_and_freezes_release.log",
+      "module": "tests.integration.test_release_lifecycle_process.EndToEndReleaseTests.test_release_only_builds_activates_and_freezes_release",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    }
+  ],
+  "pending_modules": [],
+  "planned_count": 1,
+  "planned_modules": [
+    "tests.integration.test_release_lifecycle_process.EndToEndReleaseTests.test_release_only_builds_activates_and_freezes_release"
+  ],
+  "result": "PASS",
+  "runner_pid": 17041,
+  "schema": "gonken-bounded-unittest-v1",
+  "status_counts": {
+    "PASS": 1
+  }
+}

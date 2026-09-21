@@ -1,0 +1,74 @@
+{
+  "active_module": null,
+  "created_utc": "2026-09-21T15:02:37Z",
+  "execution_state": "COMPLETED",
+  "granularity": "module",
+  "label": "b10-unit-1",
+  "module_count": 6,
+  "modules": [
+    {
+      "duration_seconds": 0.767,
+      "log_file": "docs/development/b10/verification/unit-1/tests_unit_test_attempt03_ollama_errors.log",
+      "module": "tests.unit.test_attempt03_ollama_errors",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.873,
+      "log_file": "docs/development/b10/verification/unit-1/tests_unit_test_attempt03_promotion_gates.log",
+      "module": "tests.unit.test_attempt03_promotion_gates",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.686,
+      "log_file": "docs/development/b10/verification/unit-1/tests_unit_test_attempt03_resources.log",
+      "module": "tests.unit.test_attempt03_resources",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.822,
+      "log_file": "docs/development/b10/verification/unit-1/tests_unit_test_attempt03_roster_progress.log",
+      "module": "tests.unit.test_attempt03_roster_progress",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 1.347,
+      "log_file": "docs/development/b10/verification/unit-1/tests_unit_test_attempt03_runtime_readiness.log",
+      "module": "tests.unit.test_attempt03_runtime_readiness",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.644,
+      "log_file": "docs/development/b10/verification/unit-1/tests_unit_test_b10_candidate_plan.log",
+      "module": "tests.unit.test_b10_candidate_plan",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    }
+  ],
+  "pending_modules": [],
+  "planned_count": 6,
+  "planned_modules": [
+    "tests.unit.test_attempt03_ollama_errors",
+    "tests.unit.test_attempt03_promotion_gates",
+    "tests.unit.test_attempt03_resources",
+    "tests.unit.test_attempt03_roster_progress",
+    "tests.unit.test_attempt03_runtime_readiness",
+    "tests.unit.test_b10_candidate_plan"
+  ],
+  "result": "PASS",
+  "runner_pid": 7400,
+  "schema": "gonken-bounded-unittest-v1",
+  "status_counts": {
+    "PASS": 6
+  }
+}

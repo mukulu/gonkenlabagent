@@ -91,7 +91,7 @@ if has_phase t0; then
   "$PYTHON_BIN" "$SCRIPT_DIR/release_readiness.py" --validate --allow-dirty >/dev/null
 
   echo "[T0] source/config syntax"
-  bash -n bootstrap.sh install-gonken.sh setup.sh scripts/ci.sh scripts/install.sh \
+  bash -n bootstrap.sh install-gonken.sh install-room-appliance.sh setup.sh scripts/ci.sh scripts/install.sh \
     scripts/lib/common.sh scripts/lib/install_engine.sh scripts/reconcile-release.sh \
     scripts/update.sh scripts/collect-support.sh scripts/rollback.sh scripts/uninstall.sh \
     tests/fixtures/install_engine_harness.sh

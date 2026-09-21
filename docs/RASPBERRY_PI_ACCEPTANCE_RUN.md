@@ -1,5 +1,22 @@
 # Raspberry Pi target acceptance campaign
 
+## B10 current real-room deployment
+
+For this already-wired SHT31/GPIO23 appliance, use the exact candidate checkout:
+
+```bash
+./install-room-appliance.sh
+```
+
+See [ROOM_APPLIANCE_INSTALL.md](ROOM_APPLIANCE_INSTALL.md) for migration from the
+managed simulated relay, automatic mode, preserved temperature thresholds and
+dwell, service status and one-archive failure reporting. Prior physical PASS
+reports are not a prerequisite to this explicit deployment. Invalid safety
+configuration or unavailable real hardware still fails honestly; simulation is
+never a fallback. Historical Checkpoint-44/45 simulation-first examples below are
+retained as test/campaign history, not the B10 production default.
+
+
 This runbook is the authoritative **real-target** procedure for GonKenLab Agent
 the current V09 comprehensive-closure checkpoint. Host CI, simulation, a clean archive, or a READY JSON file cannot
 substitute for this campaign. Every result must remain classified as host,

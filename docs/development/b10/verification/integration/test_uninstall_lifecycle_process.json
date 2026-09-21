@@ -1,0 +1,29 @@
+{
+  "active_module": null,
+  "created_utc": "2026-09-21T15:10:50Z",
+  "execution_state": "COMPLETED",
+  "granularity": "module",
+  "label": "test_uninstall_lifecycle_process",
+  "module_count": 1,
+  "modules": [
+    {
+      "duration_seconds": 2.045,
+      "log_file": "docs/development/b10/verification/integration/test_uninstall_lifecycle_process/tests_integration_test_uninstall_lifecycle_process.log",
+      "module": "tests.integration.test_uninstall_lifecycle_process",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    }
+  ],
+  "pending_modules": [],
+  "planned_count": 1,
+  "planned_modules": [
+    "tests.integration.test_uninstall_lifecycle_process"
+  ],
+  "result": "PASS",
+  "runner_pid": 15209,
+  "schema": "gonken-bounded-unittest-v1",
+  "status_counts": {
+    "PASS": 1
+  }
+}

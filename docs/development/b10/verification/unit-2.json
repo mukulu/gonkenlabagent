@@ -1,0 +1,74 @@
+{
+  "active_module": null,
+  "created_utc": "2026-09-21T15:03:02Z",
+  "execution_state": "COMPLETED",
+  "granularity": "module",
+  "label": "b10-unit-2",
+  "module_count": 6,
+  "modules": [
+    {
+      "duration_seconds": 3.485,
+      "log_file": "docs/development/b10/verification/unit-2/tests_unit_test_b10_installed_maintenance.log",
+      "module": "tests.unit.test_b10_installed_maintenance",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.741,
+      "log_file": "docs/development/b10/verification/unit-2/tests_unit_test_b10_policy_safety.log",
+      "module": "tests.unit.test_b10_policy_safety",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 3.193,
+      "log_file": "docs/development/b10/verification/unit-2/tests_unit_test_b10_real_environment.log",
+      "module": "tests.unit.test_b10_real_environment",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 2.015,
+      "log_file": "docs/development/b10/verification/unit-2/tests_unit_test_b10_room_installer.log",
+      "module": "tests.unit.test_b10_room_installer",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 13.414,
+      "log_file": "docs/development/b10/verification/unit-2/tests_unit_test_bounded_unittest_runner.log",
+      "module": "tests.unit.test_bounded_unittest_runner",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.99,
+      "log_file": "docs/development/b10/verification/unit-2/tests_unit_test_diagnostics_snapshot.log",
+      "module": "tests.unit.test_diagnostics_snapshot",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    }
+  ],
+  "pending_modules": [],
+  "planned_count": 6,
+  "planned_modules": [
+    "tests.unit.test_b10_installed_maintenance",
+    "tests.unit.test_b10_policy_safety",
+    "tests.unit.test_b10_real_environment",
+    "tests.unit.test_b10_room_installer",
+    "tests.unit.test_bounded_unittest_runner",
+    "tests.unit.test_diagnostics_snapshot"
+  ],
+  "result": "PASS",
+  "runner_pid": 7491,
+  "schema": "gonken-bounded-unittest-v1",
+  "status_counts": {
+    "PASS": 6
+  }
+}

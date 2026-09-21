@@ -1,5 +1,27 @@
 # V09 troubleshooting guide
 
+## B10: installed Ollama helper cannot import `gonken_agent`
+
+The supplied B9 run reached `ollama_binary` after switching current, then failed
+with `ModuleNotFoundError` in the installed maintenance directory. B10 supplies
+canonical standalone error/qualification/catalog dependencies and tests the
+installed helpers in a clean interpreter context before sealing. Model/speech
+preparation now precedes the current-release switch. Install the entire new
+checkout, not a copied single helper or a mutation of the sealed current release.
+
+## B10: sensor is real but fan is simulated or manual
+
+Run `./install-room-appliance.sh` from the exact candidate checkout. This selects
+`full-real` and `automatic`, migrating the known managed simulation profile.
+Check `gonken-agent env health --json` and `gonken-agent env policy show`.
+Expect `sht31`, `libgpiod`, both simulation flags false, and automatic mode.
+The existing temperature thresholds and minimum dwell are preserved; a fan below
+the start threshold is correctly OFF. A manual fan command changes mode to manual;
+restore thermostat operation with `gonken-agent env mode automatic`.
+`physical_evidence=false` is not simulation and does not block operation.
+No raw GPIO command or live wiring change is part of this repair procedure.
+
+
 This guide starts from observed symptoms and points to the least risky next diagnostic step. It preserves the same evidence boundary used by the V09 implementation: host output, simulation output, daemon JSON, and exit code 0 are not physical Raspberry Pi acceptance.
 
 ## 1. Basic state checks

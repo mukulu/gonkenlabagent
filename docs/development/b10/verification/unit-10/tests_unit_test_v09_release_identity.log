@@ -1,0 +1,14 @@
+# command: /opt/pyvenv/bin/python3 -m unittest -v tests.unit.test_v09_release_identity
+# started_utc: 2026-09-21T15:06:23Z
+test_invalid_record_profile_is_unknown_not_development (tests.unit.test_v09_release_identity.RuntimeReleaseIdentityTests.test_invalid_record_profile_is_unknown_not_development) ... ok
+test_package_anchor_preserves_identity_when_venv_python_symlink_resolves_outside_release (tests.unit.test_v09_release_identity.RuntimeReleaseIdentityTests.test_package_anchor_preserves_identity_when_venv_python_symlink_resolves_outside_release) ... ok
+test_source_tree_is_development (tests.unit.test_v09_release_identity.RuntimeReleaseIdentityTests.test_source_tree_is_development) ... ok
+test_voice_runtime_wrappers_use_package_identity_not_sys_executable (tests.unit.test_v09_release_identity.RuntimeReleaseIdentityTests.test_voice_runtime_wrappers_use_package_identity_not_sys_executable) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.004s
+
+OK
+# finished_utc: 2026-09-21T15:06:24Z
+# duration_seconds: 0.725
+# returncode: 0

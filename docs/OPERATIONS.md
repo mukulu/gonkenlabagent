@@ -1,5 +1,22 @@
 # Operating and troubleshooting GonKenLab Agent
 
+## B10 current real-room deployment
+
+For this already-wired SHT31/GPIO23 appliance, use the exact candidate checkout:
+
+```bash
+./install-room-appliance.sh
+```
+
+See [ROOM_APPLIANCE_INSTALL.md](ROOM_APPLIANCE_INSTALL.md) for migration from the
+managed simulated relay, automatic mode, preserved temperature thresholds and
+dwell, service status and one-archive failure reporting. Prior physical PASS
+reports are not a prerequisite to this explicit deployment. Invalid safety
+configuration or unavailable real hardware still fails honestly; simulation is
+never a fallback. Historical Checkpoint-44/45 simulation-first examples below are
+retained as test/campaign history, not the B10 production default.
+
+
 This document is the operational reference after installation. Normal everyday
 use does not require SSH or a shell login.
 
@@ -521,7 +538,12 @@ The installer then owns the following convergence work rather than requiring man
 - enable the environment service, reset a stale systemd failure-rate state, restart it, and verify enablement/liveness;
 - wait for passive daemon semantic health proving the selected sensor/actuator backends and a READY sensor before continuing to later model/service steps.
 
-`full-simulation` is also safe for automatic commissioning. `sensor-deferred-relay` and `full-real` contain a real relay backend and therefore stop at `ENVIRONMENT_PHYSICAL_COMMISSION_REQUIRED` for supervised Raspberry Pi commissioning instead of automatically starting GPIO23 room-fan control.
+`full-simulation` remains an explicit test profile. `sensor-deferred-relay`
+(simulated sensor / real actuator) still stops at `ENVIRONMENT_PHYSICAL_COMMISSION_REQUIRED`.
+B10 explicitly selected `full-real` instead validates the real static profile,
+reconciles/restarts the sole environment daemon, checks real backend/readiness,
+and applies the requested policy mode through IPC. No earlier physical-PASS
+archive is required; actual fan-motion acceptance is still separately observed.
 
 At successful completion the installer prints independent `[COMPONENT]` lines. These distinguish voice, Ollama inference/roster, environment controller, temperature/humidity sensor, room-fan control, and the typed LLM/environment tool broker. Checkpoint 45 commissions the bounded tool broker, but real GPIO23/ELUTENG fan actuation remains separately target-gated.
 
@@ -558,6 +580,6 @@ The switch preflights typed-tool capability, atomically changes the selection, r
 
 The voice path uses deterministic local fast paths for current date/time and common environment/fan requests. Less direct paraphrases may be classified by the selected Ollama model, but the model receives only the fixed typed tool schema. The broker—not model output—validates mutation authority and calls environment IPC. There is no model shell, systemctl, raw GPIO, raw I2C, arbitrary file or arbitrary network tool.
 
-With the recommended `real-sensor-simulated-actuator` profile, fan ON/OFF requests change only the simulated actuator. They do not toggle GPIO23 or establish physical ELUTENG fan motion. Use `gonken-agent env status`, `env read`, and `env watch --once --health` to distinguish real sensor state from simulated actuator state.
+With the explicit test-only `real-sensor-simulated-actuator` profile, fan ON/OFF requests change only the simulated actuator. They do not toggle GPIO23 or establish physical ELUTENG fan motion. Use `gonken-agent env status`, `env read`, and `env watch --once --health` to distinguish real sensor state from simulated actuator state.
 
 A direct `gonken-agent doctor --probe-audio` runs in the invoking operator process. If that direct probe cannot open the audio route while the systemd voice service already has current semantic READY, the doctor output reports the context difference rather than replacing service-runtime truth. Use `gonken-agent components` and the one-archive support bundle for the combined view.

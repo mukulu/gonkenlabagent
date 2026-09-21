@@ -1,0 +1,16 @@
+# command: /opt/pyvenv/bin/python3 -m unittest -v tests.integration.test_bootstrap_preflight_process
+# started_utc: 2026-09-21T15:07:27Z
+test_bluetooth_audio_is_target_only_and_does_not_mutate_development_staging (tests.integration.test_bootstrap_preflight_process.BootstrapProcessTests.test_bluetooth_audio_is_target_only_and_does_not_mutate_development_staging) ... ok
+test_default_routes_to_release_manager_and_never_legacy_setup (tests.integration.test_bootstrap_preflight_process.BootstrapProcessTests.test_default_routes_to_release_manager_and_never_legacy_setup) ... ok
+test_development_preflight_process_writes_exact_private_manifest (tests.integration.test_bootstrap_preflight_process.BootstrapProcessTests.test_development_preflight_process_writes_exact_private_manifest) ... ok
+test_environment_commissioning_is_target_only_and_does_not_mutate_development_staging (tests.integration.test_bootstrap_preflight_process.BootstrapProcessTests.test_environment_commissioning_is_target_only_and_does_not_mutate_development_staging) ... ok
+test_invalid_environment_profile_is_rejected_before_staging (tests.integration.test_bootstrap_preflight_process.BootstrapProcessTests.test_invalid_environment_profile_is_rejected_before_staging) ... ok
+test_unsupported_target_fails_before_network_or_staging (tests.integration.test_bootstrap_preflight_process.BootstrapProcessTests.test_unsupported_target_fails_before_network_or_staging) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 7.992s
+
+OK
+# finished_utc: 2026-09-21T15:07:36Z
+# duration_seconds: 8.666
+# returncode: 0

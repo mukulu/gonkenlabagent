@@ -1,10 +1,10 @@
 # GonKenLab Agent
 
-> **Attempt03 development checkpoint:** consult [current implementation state](docs/CURRENT_STATE.md)
-> before installation. A source-recovery package or successful development
-> validation is not a target-qualified release. Installation and usage below
-> describe the intended appliance workflow; exact-package hardware acceptance
-> remains separate.
+> **B10 room-appliance installation candidate:** this package repairs the B9
+> installed-helper import failure and explicitly supports the wired real SHT31 /
+> GPIO23 thermostat. Start with [the room-appliance runbook](docs/ROOM_APPLIANCE_INSTALL.md).
+> Host regression verification is not physical acceptance or completion of every
+> later Attempt03 feature; see [current implementation state](docs/CURRENT_STATE.md).
 
 GonKenLab Agent turns a supported Raspberry Pi into a privacy-oriented, fully
 local voice assistant. Qwen, speech recognition, speech synthesis, and the voice
@@ -28,7 +28,28 @@ regulatory country has been configured. See
 [Installation and fresh-Pi preparation](docs/INSTALLATION.md) if Wi-Fi is
 blocked or the Pi is not yet reachable.
 
-## 2. Install
+## 2. Install this package on the wired room appliance
+
+Extract the delivered full-Git archive into a new directory. From its
+`gonkenlabagent/` directory, as the normal administrator, run:
+
+```bash
+./install-room-appliance.sh
+```
+
+This installs this exact commit with real SHT31 (I2C1/0x44), the active-high
+GPIO23 relay, and automatic temperature control. It migrates the known managed
+simulated-actuator profile, preserves valid thresholds/dwell, and does not wait
+for an uploaded physical acceptance report. Running it authorizes real fan-power
+switching; wiring must already be correct. See the [runbook](docs/ROOM_APPLIANCE_INSTALL.md)
+for expected status and sensor-fault safe-OFF behavior.
+
+### Generic voice-only or repository installation
+
+The generic command below is a different source-selection path. Do not use it
+instead of the local wrapper when testing the exact B10 artifact. It retains the
+conservative environment-profile default `none`; explicit test profiles remain
+available separately.
 
 SSH into the Pi as your normal administrator account and run:
 
@@ -92,8 +113,11 @@ profile keeps room-fan GPIO simulated:
   --sensor-address 0x44
 ```
 
-The default profile is `none`. Real-relay profiles are not auto-actuated by the
-generic installer; they stop at a supervised physical-commissioning boundary.
+The generic default profile is `none`. An explicit `full-real` selection now
+starts the validated real controller without a historical HIL-report prerequisite.
+The room-appliance wrapper also selects automatic mode. The mixed
+`sensor-deferred-relay` profile (simulated sensor / real relay) remains a
+supervised experiment, not a production thermostat.
 
 ## 3. Wait for READY
 
@@ -129,7 +153,7 @@ gonken-agent components --json
 gonken-agent llm status --json
 ```
 
-Checkpoint 45 provisions the governed small-model roster (`qwen3:0.6b`, `lfm2.5-thinking:1.2b`, and `qwen3.5:0.8b`) and adds typed local date/time and environment/fan tool routing. With the recommended `real-sensor-simulated-actuator` profile, fan commands remain simulated; real GPIO23/ELUTENG actuation is a later supervised acceptance gate.
+Checkpoint 45 provisions the governed small-model roster (`qwen3:0.6b`, `lfm2.5-thinking:1.2b`, and `qwen3.5:0.8b`) and adds typed local date/time and environment/fan tool routing. With the explicit test-only `real-sensor-simulated-actuator` profile, fan commands remain simulated; real GPIO23/ELUTENG actuation is a later supervised acceptance gate.
 
 For manual foreground operation, one-turn testing, service start/stop/restart,
 logs, `doctor`, and support collection, see

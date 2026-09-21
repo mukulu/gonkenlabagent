@@ -1,0 +1,31 @@
+# command: /opt/pyvenv/bin/python3 -m unittest -v tests.unit.test_attempt03_evidence_transport
+# started_utc: 2026-09-21T15:02:16Z
+test_actual_tar_and_bidirectional_index (tests.unit.test_attempt03_evidence_transport.EvidenceTransportTests.test_actual_tar_and_bidirectional_index) ... ok
+test_archive_size_limits (tests.unit.test_attempt03_evidence_transport.EvidenceTransportTests.test_archive_size_limits) ... ok
+test_cli_output_options_and_human_summary (tests.unit.test_attempt03_evidence_transport.EvidenceTransportTests.test_cli_output_options_and_human_summary) ... ok
+test_default_user_home_and_sudo_home (tests.unit.test_attempt03_evidence_transport.EvidenceTransportTests.test_default_user_home_and_sudo_home) ... ok
+test_digest_mismatch_rejected (tests.unit.test_attempt03_evidence_transport.EvidenceTransportTests.test_digest_mismatch_rejected) ... ok
+test_duplicate_member_rejected (tests.unit.test_attempt03_evidence_transport.EvidenceTransportTests.test_duplicate_member_rejected) ... ok
+test_existing_output_never_overwritten (tests.unit.test_attempt03_evidence_transport.EvidenceTransportTests.test_existing_output_never_overwritten) ... ok
+test_fail_during_compression_preserves_previous_state (tests.unit.test_attempt03_evidence_transport.EvidenceTransportTests.test_fail_during_compression_preserves_previous_state) ... ok
+test_failed_verification_not_published (tests.unit.test_attempt03_evidence_transport.EvidenceTransportTests.test_failed_verification_not_published) ... ok
+test_filename_prefix_cannot_traverse (tests.unit.test_attempt03_evidence_transport.EvidenceTransportTests.test_filename_prefix_cannot_traverse) ... ok
+test_index_cannot_grant_physical_acceptance (tests.unit.test_attempt03_evidence_transport.EvidenceTransportTests.test_index_cannot_grant_physical_acceptance) ... ok
+test_legacy_zip_destination_refused (tests.unit.test_attempt03_evidence_transport.EvidenceTransportTests.test_legacy_zip_destination_refused) ... ok
+test_missing_member_rejected (tests.unit.test_attempt03_evidence_transport.EvidenceTransportTests.test_missing_member_rejected) ... ok
+test_missing_or_duplicate_index_rejected (tests.unit.test_attempt03_evidence_transport.EvidenceTransportTests.test_missing_or_duplicate_index_rejected) ... ok
+test_new_output_dir_must_preexist (tests.unit.test_attempt03_evidence_transport.EvidenceTransportTests.test_new_output_dir_must_preexist) ... ok
+test_no_unvalidated_sudo_chown (tests.unit.test_attempt03_evidence_transport.EvidenceTransportTests.test_no_unvalidated_sudo_chown) ... ok
+test_nonfinite_and_duplicate_json_refused (tests.unit.test_attempt03_evidence_transport.EvidenceTransportTests.test_nonfinite_and_duplicate_json_refused) ... ok
+test_path_traversal_and_links_refused_without_extraction (tests.unit.test_attempt03_evidence_transport.EvidenceTransportTests.test_path_traversal_and_links_refused_without_extraction) ... ok
+test_publish_race_does_not_replace_other_writer (tests.unit.test_attempt03_evidence_transport.EvidenceTransportTests.test_publish_race_does_not_replace_other_writer) ... ok
+test_symlink_output_refused (tests.unit.test_attempt03_evidence_transport.EvidenceTransportTests.test_symlink_output_refused) ... ok
+test_unknown_unindexed_member_rejected (tests.unit.test_attempt03_evidence_transport.EvidenceTransportTests.test_unknown_unindexed_member_rejected) ... ok
+
+----------------------------------------------------------------------
+Ran 21 tests in 0.077s
+
+OK
+# finished_utc: 2026-09-21T15:02:17Z
+# duration_seconds: 0.808
+# returncode: 0

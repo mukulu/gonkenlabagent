@@ -1,0 +1,14 @@
+# command: /opt/pyvenv/bin/python3 -m unittest -v tests.integration.test_first_install_launcher
+# started_utc: 2026-09-21T15:07:16Z
+test_launcher_help_is_non_mutating_and_documents_bootstrap_passthrough (tests.integration.test_first_install_launcher.FirstInstallLauncherTests.test_launcher_help_is_non_mutating_and_documents_bootstrap_passthrough) ... ok
+test_readme_primary_install_is_one_command_and_manual_bootstrap_is_short (tests.integration.test_first_install_launcher.FirstInstallLauncherTests.test_readme_primary_install_is_one_command_and_manual_bootstrap_is_short) ... ok
+test_standard_bootstrap_has_official_source_and_main_defaults (tests.integration.test_first_install_launcher.FirstInstallLauncherTests.test_standard_bootstrap_has_official_source_and_main_defaults) ... ok
+test_stream_launcher_prepares_checkout_and_forwards_bluetooth_parameters (tests.integration.test_first_install_launcher.FirstInstallLauncherTests.test_stream_launcher_prepares_checkout_and_forwards_bluetooth_parameters) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.047s
+
+OK
+# finished_utc: 2026-09-21T15:07:16Z
+# duration_seconds: 0.799
+# returncode: 0
