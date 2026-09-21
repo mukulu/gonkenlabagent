@@ -1,0 +1,1280 @@
+{
+  "schema": "gonken-current-state-v1",
+  "lineage": "CKPT45 explicit reconstruction, not recovered CP46.7R1",
+  "blueprint": "Attempt03 (Attempt02 execution + original V7 + Display V2)",
+  "blueprint_sha256": "4f932dac8b03ffcef03b7fc77a2f67d99966cab460217c59821f8e1535a5e441",
+  "physical_acceptance_claimed": false,
+  "package_status": "DEVELOPMENT",
+  "next_action": "Ollama causal errors and per-model stage evidence",
+  "slots": [
+    {
+      "id": "46.0.1",
+      "title": "Baseline authority record",
+      "source_line": 1673,
+      "status": "HOST_VERIFIED",
+      "evidence": [
+        "docs/development/rebuild/SOURCE_REGISTER.json",
+        "tools/recovery_guard.py",
+        "tests/recovery/test_recovery_guard.py"
+      ]
+    },
+    {
+      "id": "46.0.2",
+      "title": "Lightweight recovery mechanism",
+      "source_line": 1686,
+      "status": "HOST_VERIFIED",
+      "evidence": [
+        "docs/development/rebuild/SOURCE_REGISTER.json",
+        "tools/recovery_guard.py",
+        "tests/recovery/test_recovery_guard.py"
+      ]
+    },
+    {
+      "id": "46.0.3",
+      "title": "Recovery/cold-resume contract",
+      "source_line": 1693,
+      "status": "HOST_VERIFIED",
+      "evidence": [
+        "docs/development/rebuild/SOURCE_REGISTER.json",
+        "tools/recovery_guard.py",
+        "tests/recovery/test_recovery_guard.py"
+      ]
+    },
+    {
+      "id": "46.0.4",
+      "title": "Takeoff checkpoint close",
+      "source_line": 1700,
+      "status": "WIP",
+      "evidence": [
+        "docs/development/rebuild/SOURCE_REGISTER.json",
+        "tools/recovery_guard.py",
+        "tests/recovery/test_recovery_guard.py"
+      ]
+    },
+    {
+      "id": "46.1.1",
+      "title": "Git identity/origin/upstream validator",
+      "source_line": 1715,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "46.1.2",
+      "title": "`.tar.bz2` package qualifier support",
+      "source_line": 1719,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "46.1.3",
+      "title": "Package Git false-green fixtures",
+      "source_line": 1723,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "46.1.4",
+      "title": "CP46.1 integration close",
+      "source_line": 1727,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "46.2.1",
+      "title": "`CURRENT_STATE` schema/minimal authoritative document",
+      "source_line": 1737,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "46.2.2",
+      "title": "Machine current-gate registry + validator",
+      "source_line": 1741,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "46.2.3",
+      "title": "Release-readiness consumer migration",
+      "source_line": 1745,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "46.2.4",
+      "title": "CI/T0 current-gate integration",
+      "source_line": 1749,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "46.2.5",
+      "title": "CP46.2 close",
+      "source_line": 1753,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "46.3.1",
+      "title": "Structured Ollama HTTP error object",
+      "source_line": 1763,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "46.3.2",
+      "title": "Per-model/per-stage qualification persistence",
+      "source_line": 1771,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "46.3.3",
+      "title": "Incident vs collection status",
+      "source_line": 1778,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "46.3.4",
+      "title": "Bounded Ollama journal/runtime/resource correlation",
+      "source_line": 1785,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "46.3.5",
+      "title": "Sanitized Checkpoint-45 regression fixtures and checkpoint close",
+      "source_line": 1789,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "46.4.1",
+      "title": "Reproduction harness only",
+      "source_line": 1804,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "46.4.2",
+      "title": "Schema matrix",
+      "source_line": 1808,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "46.4.3",
+      "title": "Token/context/output-bound matrix",
+      "source_line": 1812,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "46.4.4",
+      "title": "Runtime-version rollback experiment",
+      "source_line": 1816,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "46.4.5",
+      "title": "Correct-layer repair",
+      "source_line": 1820,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "46.4.6",
+      "title": "Model authority consolidation and degradation policy",
+      "source_line": 1824,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "46.4.7",
+      "title": "CP46.4 close",
+      "source_line": 1828,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "46.5.1",
+      "title": "Candidate/precondition state model",
+      "source_line": 1838,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "46.5.2",
+      "title": "Activation ordering / stale-readiness rejection",
+      "source_line": 1839,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "46.5.3",
+      "title": "Failure rollback semantic verification",
+      "source_line": 1840,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "46.5.4",
+      "title": "Repeat/reinstall/dirty-target fixtures",
+      "source_line": 1841,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "46.5.5",
+      "title": "CP46.5 broad lifecycle close",
+      "source_line": 1842,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "46.6.1",
+      "title": "Component readiness layering",
+      "source_line": 1852,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "46.6.2",
+      "title": "Active model/tool qualification coupling",
+      "source_line": 1853,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "46.6.3",
+      "title": "Service-user vs operator audio evidence separation",
+      "source_line": 1854,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "46.6.4",
+      "title": "Simulation/real-sensor UX correction",
+      "source_line": 1855,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "46.6.5",
+      "title": "Evidence contradiction rules + checkpoint close",
+      "source_line": 1856,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "46.7.1",
+      "title": "Reachability scanner/inventory mechanism",
+      "source_line": 1866,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "46.7.2",
+      "title": "Classify legacy orchestrator/setup entry points",
+      "source_line": 1867,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "46.7.3",
+      "title": "Migrate one compatibility consumer family",
+      "source_line": 1868,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "46.7.4",
+      "title": "Migrate dependency/provenance/CI consumers",
+      "source_line": 1869,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "46.7.5",
+      "title": "CP46.7 no-deletion-yet review/close",
+      "source_line": 1870,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "46.8.1",
+      "title": "Remove one proven-unreachable runtime family",
+      "source_line": 1880,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "46.8.2",
+      "title": "Remove obsolete cloud/UI/setup/dependency family",
+      "source_line": 1881,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "46.8.3",
+      "title": "Rewrite PRD current truth",
+      "source_line": 1882,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "46.8.4",
+      "title": "README/operator architecture currentness",
+      "source_line": 1883,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "46.8.5",
+      "title": "Historical docs/evidence cleanup in bounded directory groups",
+      "source_line": 1884,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "46.8.6",
+      "title": "Semantic stale-content/historical-creep gate",
+      "source_line": 1885,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "46.8.7",
+      "title": "CP46.8 package-size/reachability/current-doc close",
+      "source_line": 1886,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "46.9.P5",
+      "title": "resource-profile false-green/false-red matrix",
+      "source_line": 403,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "46.9.P4",
+      "title": "installer postcondition migration",
+      "source_line": 388,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "46.9.P3",
+      "title": "GPIO preflight and target-probe parameterization",
+      "source_line": 382,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "46.9.P2",
+      "title": "config collision migration",
+      "source_line": 371,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "46.9.P1",
+      "title": "pure resource-claim schema/resolver",
+      "source_line": 349,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "46.9.1",
+      "title": "Production profile selection semantics",
+      "source_line": 1896,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "46.9.2",
+      "title": "GPIO23/polarity/safe-OFF configuration contract",
+      "source_line": 1897,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "46.9.3",
+      "title": "Commissioning record/state-machine logic",
+      "source_line": 1898,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "46.9.4",
+      "title": "No-simulation-fallback negative tests",
+      "source_line": 1899,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "46.9.5",
+      "title": "Host/target-shadow status/evidence convergence",
+      "source_line": 1900,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "46.9.6",
+      "title": "CP46.9 close",
+      "source_line": 1901,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "46.10.1",
+      "title": "Typed power action domain",
+      "source_line": 1911,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "46.10.2",
+      "title": "Deterministic confirmation/cancel/expiry/replay state machine",
+      "source_line": 1912,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "46.10.3",
+      "title": "Narrow logind/PolicyKit or fixed-helper adapter",
+      "source_line": 1913,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "46.10.4",
+      "title": "Adversarial language/security tests",
+      "source_line": 1914,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "46.10.5",
+      "title": "Status/evidence/operator documentation",
+      "source_line": 1915,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "46.10.6",
+      "title": "CP46.10 close",
+      "source_line": 1916,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "46.11.1",
+      "title": "Semantic currentness validator",
+      "source_line": 1926,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "46.11.2",
+      "title": "Authority uniqueness validator",
+      "source_line": 1927,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "46.11.3",
+      "title": "Reachability/hygiene validator",
+      "source_line": 1928,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "46.11.4",
+      "title": "Validator seeded-defect/mutation tests",
+      "source_line": 1929,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "46.11.5",
+      "title": "Cascade/change-impact record",
+      "source_line": 1930,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "46.11.6",
+      "title": "Package Git/current-state cross-check",
+      "source_line": 1931,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "46.11.7",
+      "title": "CP46.11 close",
+      "source_line": 1932,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "46.12.1",
+      "title": "Complete unit suite",
+      "source_line": 1942,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "46.12.2",
+      "title": "Integration/process/lifecycle suite",
+      "source_line": 1943,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "46.12.3",
+      "title": "Installer/reinstaller/update/rollback suite",
+      "source_line": 1944,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "46.12.4",
+      "title": "Speech/voice/environment non-regression suite",
+      "source_line": 1945,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "46.12.5",
+      "title": "Release readiness/T0/current-state/docs checks",
+      "source_line": 1946,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "46.12.6",
+      "title": "Exact archive qualifier + fresh extraction",
+      "source_line": 1947,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "46.12.7",
+      "title": "Package-size/tracked-file/provenance review",
+      "source_line": 1948,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "47.0.1",
+      "title": "Install exact package + collect baseline evidence",
+      "source_line": 1974,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "47.0.2",
+      "title": "Reproduce/verify model/tool behavior",
+      "source_line": 1975,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "47.0.3",
+      "title": "Required-model capability qualification",
+      "source_line": 1976,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "47.0.4",
+      "title": "latency/resource/thermal evidence",
+      "source_line": 1977,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "47.0.5",
+      "title": "CP47.0 close or repair handoff",
+      "source_line": 1978,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "47.1.1",
+      "title": "safe OFF / identity / permission proof",
+      "source_line": 1986,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "47.1.2",
+      "title": "repeated valid SHT31 reads",
+      "source_line": 1987,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "47.1.3",
+      "title": "unloaded/controlled relay commissioning if required",
+      "source_line": 1988,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "47.1.4",
+      "title": "GonKen CLI OFF/ON/OFF with human observation",
+      "source_line": 1989,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "47.1.5",
+      "title": "voice ON/OFF with human observation",
+      "source_line": 1990,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "47.1.6",
+      "title": "reboot safe-state verification",
+      "source_line": 1991,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "47.1.7",
+      "title": "CP47.1 close",
+      "source_line": 1992,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "47.2.1",
+      "title": "cancellation/timeout/replay target checks",
+      "source_line": 2000,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "47.2.2",
+      "title": "one confirmed reboot + boot-ID/no-login recovery",
+      "source_line": 2001,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "47.2.3",
+      "title": "one confirmed shutdown + manual power-on recovery",
+      "source_line": 2002,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "47.2.4",
+      "title": "support/evidence review",
+      "source_line": 2003,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "47.2.5",
+      "title": "CP47.2 close",
+      "source_line": 2004,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "47.3.1",
+      "title": "same-package reinstall",
+      "source_line": 2012,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "47.3.2",
+      "title": "update from predecessor",
+      "source_line": 2013,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "47.3.3",
+      "title": "injected rollback case",
+      "source_line": 2014,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "47.3.4",
+      "title": "repeated no-login reboot persistence",
+      "source_line": 2015,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "47.3.5",
+      "title": "bounded soak/resource/log-growth campaign",
+      "source_line": 2016,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "47.3.6",
+      "title": "CP47.3 close",
+      "source_line": 2017,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "47.4.1",
+      "title": "ingest final target evidence / close or retain gates",
+      "source_line": 2027,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "47.4.2",
+      "title": "remove temporary campaign artifacts from current tree",
+      "source_line": 2028,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "47.4.3",
+      "title": "update `CURRENT_STATE` to evidence-backed final truth",
+      "source_line": 2029,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "47.4.4",
+      "title": "final main/Git/package audit",
+      "source_line": 2030,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "47.4.5",
+      "title": "exact final package + fresh extraction + handoff",
+      "source_line": 2031,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "48.0.1",
+      "title": "source/evidence drift revalidation",
+      "source_line": 679,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "48.0.2",
+      "title": "resource-contract revalidation",
+      "source_line": 688,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "48.0.3",
+      "title": "presentation architecture + ownership decision",
+      "source_line": 697,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "48.0.4",
+      "title": "privacy/threat/config contract",
+      "source_line": 709,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "48.0.5",
+      "title": "driver experiment plan and checkpoint close",
+      "source_line": 721,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "48.1.1",
+      "title": "power-off mechanical/resource baseline",
+      "source_line": 733,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "48.1.2",
+      "title": "read-only first-boot/display inventory",
+      "source_line": 746,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "48.1.3",
+      "title": "Path A DRM/KMS experiment",
+      "source_line": 750,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "48.1.4",
+      "title": "Path B fbdev-console experiment",
+      "source_line": 756,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "48.1.5",
+      "title": "Path C vendor X11/fbdev fallback",
+      "source_line": 760,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "48.1.6",
+      "title": "selected profile/provenance close",
+      "source_line": 764,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "48.2.1",
+      "title": "schema and privacy classes",
+      "source_line": 776,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "48.2.2",
+      "title": "bounded in-memory ring",
+      "source_line": 780,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "48.2.3",
+      "title": "canonical snapshot assembler",
+      "source_line": 784,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "48.2.4",
+      "title": "AF_UNIX view protocol",
+      "source_line": 788,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "48.2.5",
+      "title": "backpressure/multiclient behavior",
+      "source_line": 792,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "48.2.6",
+      "title": "control-path authorization for presentation-only mutations",
+      "source_line": 796,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "48.2.7",
+      "title": "privacy/no-side-effect checkpoint close",
+      "source_line": 800,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "48.3.1",
+      "title": "terminal sanitizer/text model",
+      "source_line": 808,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "48.3.2",
+      "title": "responsive layout engine",
+      "source_line": 812,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "48.3.3",
+      "title": "independent viewport/follow-tail model",
+      "source_line": 816,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "48.3.4",
+      "title": "curses client transport integration",
+      "source_line": 820,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "48.3.5",
+      "title": "compact/detail/help truthful status",
+      "source_line": 824,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "48.3.6",
+      "title": "low-refresh/performance behavior",
+      "source_line": 828,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "48.3.7",
+      "title": "CP48.3 close",
+      "source_line": 832,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "48.4.1",
+      "title": "content-free voice lifecycle publication",
+      "source_line": 840,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "48.4.2",
+      "title": "private final transcript publication",
+      "source_line": 841,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "48.4.3",
+      "title": "private final response/fast-path/tool-answer publication",
+      "source_line": 842,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "48.4.4",
+      "title": "environment/component/model/release adapter integration",
+      "source_line": 843,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "48.4.5",
+      "title": "failure/restart/stale-generation semantics",
+      "source_line": 844,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "48.4.6",
+      "title": "privacy/nonblocking/cascade checkpoint close",
+      "source_line": 845,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "48.5.1",
+      "title": "viewer group/socket/runtime-directory provisioning",
+      "source_line": 859,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "48.5.2",
+      "title": "optional presentation service unit",
+      "source_line": 860,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "48.5.3",
+      "title": "new `gonken-agent console` CLI contract and SSH usage",
+      "source_line": 861,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "48.5.4",
+      "title": "optional local TTY console unit/getty collision policy",
+      "source_line": 862,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "48.5.5",
+      "title": "selected OSOYOO profile adapter integration from CP48.1",
+      "source_line": 863,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "48.5.6",
+      "title": "HDMI/SSH/local degraded semantics and docs",
+      "source_line": 864,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "48.5.7",
+      "title": "CP48.5 close",
+      "source_line": 865,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "48.6.1",
+      "title": "stable touch identity + calibration/rotation",
+      "source_line": 877,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "48.6.2",
+      "title": "navigation-only touch gestures",
+      "source_line": 878,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "48.6.3",
+      "title": "exact GPIO18/backlight board verification",
+      "source_line": 879,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "48.6.4",
+      "title": "optional managed dim/blank only if GPIO18/backlight behavior is proven",
+      "source_line": 880,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "48.6.5",
+      "title": "touch/backlight negative/security tests",
+      "source_line": 881,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "48.6.6",
+      "title": "CP48.6 close",
+      "source_line": 882,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "48.7.1",
+      "title": "broker/ring/protocol full host suite",
+      "source_line": 894,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "48.7.2",
+      "title": "TUI geometry/text/injection suite",
+      "source_line": 895,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "48.7.3",
+      "title": "multiclient/backpressure/restart suite",
+      "source_line": 896,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "48.7.4",
+      "title": "privacy canary + no-hardware-side-effect suite",
+      "source_line": 897,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "48.7.5",
+      "title": "config/resource/profile/rollback suite",
+      "source_line": 898,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "48.7.6",
+      "title": "core voice/environment/fan/model non-regression suite",
+      "source_line": 899,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "48.7.7",
+      "title": "release readiness/T0/docs/current-state gates",
+      "source_line": 900,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "48.7.8",
+      "title": "exact tar.bz2 archive qualification + fresh extraction",
+      "source_line": 901,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "48.7.9",
+      "title": "CP48.7 host-qualified display-extension package close",
+      "source_line": 902,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "49.0.1",
+      "title": "mechanical/install acceptance record",
+      "source_line": 910,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "49.0.2",
+      "title": "first-power/display/SSH/power baseline",
+      "source_line": 911,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "49.0.3",
+      "title": "SHT31 coexistence while display updates",
+      "source_line": 912,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "49.0.4",
+      "title": "GPIO23 room-fan coexistence + supervised OFF/ON/OFF",
+      "source_line": 913,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "49.0.5",
+      "title": "voice/audio/STT/model/TTS non-regression with display active",
+      "source_line": 914,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "49.0.6",
+      "title": "local + two SSH viewers independent-scroll/resize test",
+      "source_line": 915,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "49.0.7",
+      "title": "HDMI-only / OSOYOO-only / claimed coexistence cases",
+      "source_line": 916,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "49.0.8",
+      "title": "no-login reboot x2 with empty-on-reboot ring semantics",
+      "source_line": 917,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "49.0.9",
+      "title": "CP49.0 evidence close",
+      "source_line": 918,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "49.1.1",
+      "title": "bounded 1-4 hour initial soak",
+      "source_line": 926,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "49.1.2",
+      "title": "resource/log/ring/backpressure review",
+      "source_line": 927,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "49.1.3",
+      "title": "optional fault injection/recovery cases",
+      "source_line": 928,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "49.1.4",
+      "title": "display-profile rollback to pre-display graphics state",
+      "source_line": 929,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "49.1.5",
+      "title": "reinstall/update/idempotency of selected display profile",
+      "source_line": 930,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "49.1.6",
+      "title": "final privacy/evidence review",
+      "source_line": 931,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "49.1.7",
+      "title": "final current-state/gate/documentation synchronization",
+      "source_line": 932,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "49.1.8",
+      "title": "exact package + final display acceptance handoff",
+      "source_line": 933,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "46.2.6",
+      "title": "current interaction/resource decision record",
+      "source_line": 280,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "46.6.6",
+      "title": "display-preparation read-only status contract",
+      "source_line": 298,
+      "status": "NOT_STARTED",
+      "evidence": []
+    },
+    {
+      "id": "46.6.7",
+      "title": "private presentation boundary guard",
+      "source_line": 315,
+      "status": "NOT_STARTED",
+      "evidence": []
+    }
+  ]
+}

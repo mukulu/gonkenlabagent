@@ -12,6 +12,7 @@ import stat
 import subprocess
 import sys
 import tempfile
+import tarfile
 import zipfile
 from pathlib import Path, PurePosixPath
 from typing import Any
@@ -95,6 +96,47 @@ def extract_zip_preserving_permissions(path: Path, destination: Path) -> None:
                 target.chmod(mode & 0o777)
 
 
+def inspect_tar(path: Path) -> dict[str, object]:
+    """Inspect new canonical tar.bz2 packages without trusting links or modes."""
+    roots, seen, failures = set(), set(), []
+    total = 0
+    try:
+        with tarfile.open(path, "r:bz2") as archive:
+            for index, member in enumerate(archive):
+                name = member.name.rstrip("/")
+                parts = name.split("/")
+                if (not name or name.startswith("/") or "\\" in name or
+                        any(p in {"", ".", ".."} for p in parts) or name in seen):
+                    failures.append("unsafe_or_duplicate_path"); continue
+                seen.add(name); roots.add(parts[0])
+                if not (member.isfile() or member.isdir()): failures.append("special_member")
+                if member.mode & 0o7000: failures.append("privileged_mode")
+                if "__pycache__" in parts or Path(name).suffix in {".pyc", ".pyo"}: failures.append("python_cache")
+                total += member.size
+                if index > 100000 or total > 512 * 1024 * 1024: failures.append("archive_size_limit"); break
+    except (OSError, EOFError, tarfile.TarError):
+        return {"status":"FAIL", "code":"ARCHIVE_UNREADABLE"}
+    if not seen or len(roots) != 1: failures.append("single_nonempty_root_required")
+    if failures: return {"status":"FAIL", "code":"ARCHIVE_STRUCTURE_INVALID", "detail":";".join(sorted(set(failures)))}
+    return {"status":"PASS", "code":"ARCHIVE_STRUCTURE_VALID", "root":next(iter(roots)), "members":len(seen)}
+
+
+def extract_tar_preserving_permissions(path: Path, destination: Path) -> None:
+    inspection = inspect_tar(path)
+    if inspection["status"] != "PASS": raise ValueError("invalid tar archive")
+    # The qualification caller always supplies a fresh private directory.
+    with tarfile.open(path, "r:bz2") as archive:
+        for member in archive:
+            target = destination.joinpath(*PurePosixPath(member.name).parts)
+            if member.isdir():
+                target.mkdir(parents=True, exist_ok=True)
+            else:
+                target.parent.mkdir(parents=True, exist_ok=True)
+                with archive.extractfile(member) as source, target.open("xb") as output:
+                    shutil.copyfileobj(source, output)
+                target.chmod(member.mode & 0o777)
+
+
 def _run(command: list[str], cwd: Path, *, timeout: int = 60) -> dict[str, object]:
     try:
         completed = subprocess.run(
@@ -135,7 +177,8 @@ def qualify_archive(
 ) -> dict[str, object]:
     checks: list[dict[str, object]] = []
     archive_path = archive_path.resolve()
-    structure = inspect_zip(archive_path)
+    is_tar = archive_path.name.endswith(".tar.bz2")
+    structure = inspect_tar(archive_path) if is_tar else inspect_zip(archive_path)
     checks.append({"code": structure.get("code", "ARCHIVE_STRUCTURE_INVALID"), **structure})
     report: dict[str, object] = {
         "schema": 1,
@@ -150,7 +193,7 @@ def qualify_archive(
         return report
     with tempfile.TemporaryDirectory(prefix="gonken-archive-qualifier-") as temporary:
         extract_root = Path(temporary)
-        extract_zip_preserving_permissions(archive_path, extract_root)
+        (extract_tar_preserving_permissions if is_tar else extract_zip_preserving_permissions)(archive_path, extract_root)
         repo = extract_root / str(structure["root"])
         if not repo.is_dir():
             checks.append({"status": "FAIL", "code": "EXTRACTED_ROOT_MISSING", "path": str(repo)})
@@ -196,7 +239,7 @@ def qualify_archive(
 
 def parser() -> argparse.ArgumentParser:
     result = argparse.ArgumentParser(description=__doc__)
-    result.add_argument("archive", help="Checkpoint zip archive to qualify")
+    result.add_argument("archive", help="Canonical .tar.bz2 checkpoint (legacy ZIP read-only compatibility)")
     result.add_argument("--expected-commit", help="Expected Git commit for extracted archive")
     result.add_argument("--expected-tag", help="Expected Git tag pointing at the extracted archive commit")
     result.add_argument("--skip-t0", action="store_true", help="Skip T0 inside the extracted archive")

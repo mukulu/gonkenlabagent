@@ -81,6 +81,9 @@ CI_LOG_DIR="${GONKEN_CI_LOG_DIR:-$PROJECT_ROOT/build/ci-logs}"
 mkdir -p "$CI_LOG_DIR"
 
 if has_phase t0; then
+  "$PYTHON_BIN" "$SCRIPT_DIR/current_state.py" --check
+  "$PYTHON_BIN" "$SCRIPT_DIR/repository_contract.py" --allow-dirty >/dev/null
+
   echo "[T0] dependency lock drift"
   "$PYTHON_BIN" "$SCRIPT_DIR/dependencies.py" render --check
 
