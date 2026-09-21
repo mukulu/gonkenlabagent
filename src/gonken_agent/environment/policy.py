@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from math import isfinite
 import os
 import tempfile
 from dataclasses import dataclass, replace
@@ -62,6 +63,12 @@ class EnvironmentPolicy:
         unknown = sorted(set(data) - allowed)
         if unknown:
             raise PolicyError("POLICY_INVALID", f"unknown policy key: {unknown[0]}")
+        for key in ("schema_version", "generation", "minimum_on_seconds", "minimum_off_seconds"):
+            if key in data and type(data[key]) is not int:
+                raise PolicyError("POLICY_INVALID", f"{key} must be an integer, not a coerced value")
+        for key in ("start_c", "stop_c"):
+            if key in data and (type(data[key]) not in (int, float) or not isfinite(data[key])):
+                raise PolicyError("POLICY_INVALID", f"{key} must be a finite number")
         try:
             policy = cls(
                 schema_version=int(data.get("schema_version", POLICY_SCHEMA_VERSION)),
@@ -79,6 +86,15 @@ class EnvironmentPolicy:
         return policy.validated(bounds=bounds)
 
     def validated(self, *, bounds: PolicyBounds) -> "EnvironmentPolicy":
+        for key in ("schema_version", "generation", "minimum_on_seconds", "minimum_off_seconds"):
+            if type(getattr(self, key)) is not int:
+                raise PolicyError("POLICY_INVALID", f"{key} must be an integer")
+        for key in ("start_c", "stop_c"):
+            value = getattr(self, key)
+            if type(value) not in (int, float) or not isfinite(value):
+                raise PolicyError("POLICY_INVALID", f"{key} must be a finite number")
+        if not isinstance(self.mode, EnvironmentMode):
+            raise PolicyError("POLICY_INVALID", "mode must be an EnvironmentMode")
         if self.schema_version != POLICY_SCHEMA_VERSION:
             raise PolicyError(
                 "POLICY_INVALID",
@@ -123,6 +139,14 @@ class EnvironmentPolicy:
         minimum_on_seconds: int | None = None,
         minimum_off_seconds: int | None = None,
     ) -> "EnvironmentPolicy":
+        for key, value in (("expected_generation", expected_generation),
+                           ("minimum_on_seconds", minimum_on_seconds),
+                           ("minimum_off_seconds", minimum_off_seconds)):
+            if value is not None and type(value) is not int:
+                raise PolicyError("POLICY_INVALID", f"{key} must be an integer")
+        for key, value in (("start_c", start_c), ("stop_c", stop_c)):
+            if value is not None and (type(value) not in (int, float) or not isfinite(value)):
+                raise PolicyError("POLICY_INVALID", f"{key} must be a finite number")
         if expected_generation is not None and expected_generation != self.generation:
             raise PolicyError("POLICY_GENERATION_CONFLICT", "policy generation changed")
         next_policy = replace(
@@ -175,8 +199,9 @@ class PolicyStore:
         except OSError as exc:
             raise PolicyError("ENV_POLICY_READ_FAILED", f"cannot read policy file: {self.path}") from exc
         try:
-            raw = json.loads(text)
-        except json.JSONDecodeError as exc:
+            raw = json.loads(text, object_pairs_hook=_unique_policy_object,
+                             parse_constant=lambda value: (_ for _ in ()).throw(ValueError("nonfinite policy")))
+        except (ValueError, UnicodeError) as exc:
             raise PolicyError("ENV_POLICY_JSON_INVALID", f"policy JSON is invalid: {self.path}") from exc
         if not isinstance(raw, dict):
             raise PolicyError("ENV_POLICY_JSON_INVALID", "policy root must be an object")
@@ -247,3 +272,12 @@ def _fsync_dir(path: Path) -> None:
         pass
     finally:
         os.close(fd)
+
+
+def _unique_policy_object(pairs):
+    result = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError("duplicate policy key")
+        result[key] = value
+    return result
