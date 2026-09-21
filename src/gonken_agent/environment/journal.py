@@ -7,12 +7,14 @@ import re
 import sys
 import threading
 from typing import Mapping, TextIO
+from .domain import EnvironmentMode, TransitionReason
 
 CODES = frozenset({'ENV_ACTUATOR_TRANSITION', 'ENV_ACTUATOR_WRITE_FAILED'})
 FIELDS = frozenset({'code','backend','actuator_simulated','gpio','gpio_claimed','gpio_consumer',
                    'previous','requested','relay_commanded','reason','mode','monotonic',
                    'control_temperature_c','start_c','stop_c','write_result','safe_off_result',
-                   'actuator_write_errors','fan_motion_observed','physical_evidence'})
+                   'actuator_write_errors','fan_motion_observed','physical_evidence',
+                   'release_commit','configuration_sha256','process_id'})
 
 def sanitized_event(event: Mapping[str, object]) -> dict[str, object]:
     if event.get('code') not in CODES: raise ValueError('invalid_environment_event')
@@ -33,8 +35,46 @@ def sanitized_event(event: Mapping[str, object]) -> dict[str, object]:
     if 'actuator_write_errors' in payload:
         value = payload['actuator_write_errors']
         if type(value) is not int or value < 0: raise ValueError('invalid_event_count')
+    for key, allowed in (
+            ('backend', {'libgpiod','simulated','host_fake'}),
+            ('mode', {mode.value for mode in EnvironmentMode}),
+            ('reason', {reason.value for reason in TransitionReason}),
+            ('write_result', {'SUCCESS','FAILED','RELEASE_FAILED'}),
+            ('safe_off_result', {'SUCCESS','FAILED'}),
+            ('gpio_consumer', {'gonken-environment'})):
+        value = payload.get(key)
+        if value is not None and value not in allowed: raise ValueError('invalid_event_enum')
+    if payload.get('gpio') is not None and not re.fullmatch(r'GPIO[0-9]{1,2}', payload['gpio']):
+        raise ValueError('invalid_event_gpio')
+    for key, length in (('release_commit',40),('configuration_sha256',64)):
+        value = payload.get(key)
+        if value is not None and value != 'unknown' and (not isinstance(value,str) or not re.fullmatch('[0-9a-f]{'+str(length)+'}', value)):
+            raise ValueError('invalid_event_identity')
+    if 'process_id' in payload and (type(payload['process_id']) is not int or payload['process_id'] <= 0):
+        raise ValueError('invalid_event_process')
     payload['fan_motion_observed'] = payload['physical_evidence'] = False
     return payload
+
+def _unique_pairs(pairs):
+    value = {}
+    for key, item in pairs:
+        if key in value: raise ValueError('duplicate_event_key')
+        value[key] = item
+    return value
+
+
+def parse_event_line(line: str) -> dict[str, object] | None:
+    """Parse only bounded, typed actuator metadata; never export raw journal text."""
+    if not line.startswith('{') or len(line.encode('utf-8', errors='replace')) > 4096:
+        return None
+    try:
+        event = json.loads(line, object_pairs_hook=_unique_pairs,
+                           parse_constant=lambda value: (_ for _ in ()).throw(ValueError('nonfinite')))
+        if not isinstance(event,dict): return None
+        return sanitized_event(event)
+    except (ValueError, TypeError, OverflowError):
+        return None
+
 
 class EnvironmentEventJournal:
     def __init__(self, stream: TextIO | None = None, capacity: int = 64):

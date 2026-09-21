@@ -24,6 +24,7 @@ from .runtime_readiness import read_ready, read_pending
 from .component_status import collect as collect_component_status
 from .llm.models import active_model, selection_status, roster_manifest
 from .tool_broker import TOOL_NAMES
+from .environment.journal import parse_event_line
 
 
 SAFE_CODE_RE = re.compile(r"^[A-Z0-9_]{1,64}$")
@@ -473,7 +474,12 @@ def _service_event_codes(limit: int = 200) -> dict[str, object]:
             continue
         counts = Counter()
         summaries: dict[str, dict[str, object]] = {}
-        for sequence, line in enumerate(result.stdout.splitlines(), 1):
+        actuator_transitions = []
+        for sequence, line in enumerate(result.stdout.splitlines()[-limit:], 1):
+            event = parse_event_line(line) if unit == "gonken-environment.service" else None
+            if event is not None:
+                actuator_transitions.append({"journal_sequence": sequence, **event})
+                line = "[INFO] code=" + str(event['code'])
             match = re.search(r"(?:^|\s)code=([A-Z0-9_]{1,64})(?:\s|$)", line)
             if not match:
                 continue
@@ -491,8 +497,41 @@ def _service_event_codes(limit: int = 200) -> dict[str, object]:
             "events": [summaries[key] for key in sorted(summaries)],
             "lines_examined": min(limit, len(result.stdout.splitlines())),
             "raw_text_exported": False,
+            "actuator_transitions": actuator_transitions[-40:],
+            "event_scope": "current_boot_history_not_current_readiness",
         }
     return {"status": "READY", "scope": "current_boot", "units": units}
+
+
+def _existing_environment_reconciliation() -> dict[str, object]:
+    """Expose the historical installer phase, not a live readiness declaration."""
+    path = INSTALL_EVENTS_DIR.parent.parent / "environment-current-reconciliation.json"
+    data = _bounded_json_file(path, max_bytes=16384)
+    result = {"status": "UNAVAILABLE", "scope": "existing_environment_reconciliation_record",
+              "runtime_freshness_claimed": False, "physical_acceptance_claimed": False}
+    if not isinstance(data, dict) or data.get('format') != 'gonken-existing-environment-reconciliation-v1':
+        return result
+    state = data.get('status')
+    if state not in {'RUNNING','READY_EXISTING_ENVIRONMENT','DEFERRED_NO_CURRENT','DEGRADED_EXISTING_ENVIRONMENT'}:
+        return result
+    inputs = data.get('inputs', {})
+    if not isinstance(inputs, dict): return result
+    clean_inputs = {}
+    for key, length in (('candidate_commit',40),('current_commit',40),('configuration_inputs_sha256',64)):
+        value = inputs.get(key)
+        if value is not None and (not isinstance(value,str) or not re.fullmatch('[0-9a-f]{'+str(length)+'}',value)):
+            return result
+        clean_inputs[key] = value
+    if inputs.get('mode_requested') not in {'preserve','manual','semi_automatic','automatic','disabled'}:
+        return result
+    clean_inputs['mode_requested'] = inputs['mode_requested']
+    result.update(status='READY', recorded_status=state, inputs=clean_inputs,
+                  global_activation_changed=False)
+    invocation = data.get('invocation_id')
+    if isinstance(invocation,str) and re.fullmatch('[0-9a-f]{32}',invocation):result['invocation_id']=invocation
+    code = data.get('reason_code')
+    if isinstance(code,str) and re.fullmatch('[A-Za-z0-9_]{1,64}',code):result['reason_code']=code
+    return result
 
 
 def _boot_id() -> str | None:
@@ -877,6 +916,7 @@ def create_bundle(
     collect_optional('evidence_phase.json', lambda: _evidence_phase_context(files.get('install_events.json') if isinstance(files.get('install_events.json'), dict) else None))
     collect_optional('permissions.json', lambda: _permissions_manifest(effective_config.config))
     collect_optional('systemd_effective.json', _systemd_effective_state)
+    collect_optional('environment_current_reconciliation.json', _existing_environment_reconciliation)
     collect_optional('configuration_provenance.json', lambda: _configuration_provenance(effective_config))
     collect_optional('ollama_inventory.json', lambda: _ollama_inventory(effective_config.config))
     collect_optional('tool_broker.json', lambda: _tool_broker_health(effective_config.config, files.get('component_readiness.json')))

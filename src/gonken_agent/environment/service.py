@@ -8,6 +8,7 @@ service boundary.
 
 from __future__ import annotations
 
+import os
 import threading
 from dataclasses import dataclass
 from time import monotonic
@@ -424,6 +425,7 @@ class EnvironmentServiceCore:
             "last_command_result": self._last_actuator_write_result,
             "last_write_result": self._last_actuator_write_result,
             "event_delivery_errors": self._event_delivery_errors,
+            "event_queue_drops": getattr(self._event_sink, "dropped_events", 0),
             "actuator_simulated": self.identity.actuator_is_simulated,
             **transport,
             "fan_motion_observed": False, "physical_evidence": False,
@@ -436,6 +438,9 @@ class EnvironmentServiceCore:
         identity = self._actuator_runtime_identity()
         state, policy = self.controller.state, self.controller.policy
         event = {"code": code, "backend": self.identity.actuator_backend,
+                 "release_commit": self.identity.release_commit,
+                 "configuration_sha256": self.identity.configuration_sha256,
+                 "process_id": os.getpid(),
                  "actuator_simulated": self.identity.actuator_is_simulated,
                  "gpio": identity.get("line_name"), "gpio_claimed": identity.get("gpio_claimed"),
                  "gpio_consumer": identity.get("gpio_consumer"),

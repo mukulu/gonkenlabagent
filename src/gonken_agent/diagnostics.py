@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import math
 import os
 import platform
 import re
@@ -272,6 +273,7 @@ def _environment_ipc(socket_path: Path, *, client_factory=None) -> dict[str, obj
         "physical_evidence": bool(health.get("physical_evidence", False)) if isinstance(health, dict) else False,
         "simulation": _environment_simulation_summary(simulation),
         "snapshot": _environment_snapshot_summary(snapshot),
+        "actuator_commands": _actuator_command_summary(health.get("actuator_commands") if isinstance(health, dict) else None),
     }
 
 
@@ -306,6 +308,35 @@ def _environment_simulation_summary(payload: object) -> dict[str, object]:
     }
 
 
+def _actuator_command_summary(value: object) -> dict[str, object]:
+    """Fixed, typed command facts; never copy arbitrary producer content."""
+    result: dict[str, object] = {"fan_motion_observed": False, "physical_evidence": False}
+    if not isinstance(value, dict):
+        result["status"] = "UNAVAILABLE"
+        return result
+    result["status"] = "READY"
+    for key in ("controller_desired", "relay_commanded", "last_actuator_requested", "last_actuator_command"):
+        item = value.get(key)
+        result[key] = item if isinstance(item, str) and item in {"on", "off"} else None
+    for key in ("actuator_command_count", "actuator_write_errors", "gpio_write_count", "gpio_write_errors",
+                "gpio_request_errors", "event_delivery_errors", "event_queue_drops"):
+        item = value.get(key)
+        if type(item) is int and item >= 0: result[key] = item
+    for key in ("actuator_simulated", "gpio_claimed"):
+        if type(value.get(key)) is bool: result[key] = value[key]
+    if value.get("gpio_consumer") == "gonken-environment": result["gpio_consumer"] = "gonken-environment"
+    from .environment.domain import TransitionReason
+    if value.get("last_actuator_command_reason") in {r.value for r in TransitionReason}:
+        result["last_actuator_command_reason"] = value["last_actuator_command_reason"]
+    item = value.get("last_actuator_command_monotonic")
+    if type(item) in (int, float) and math.isfinite(item) and item >= 0:
+        result["last_actuator_command_monotonic"] = item
+    for key in ("last_command_result", "last_write_result"):
+        if value.get(key) in {"SUCCESS", "FAILED", "RELEASE_FAILED", "NOT_COMMANDED", "NOT_REQUESTED", "DIAGNOSTICS_UNAVAILABLE"}:
+            result[key] = value[key]
+    return result
+
+
 def _environment_snapshot_summary(payload: object) -> dict[str, object]:
     if not isinstance(payload, dict):
         return {"status": "UNAVAILABLE", "code": "SNAPSHOT_UNAVAILABLE"}
@@ -317,6 +348,7 @@ def _environment_snapshot_summary(payload: object) -> dict[str, object]:
         "environment": _safe_text(str(payload.get("environment", "UNKNOWN"))),
         "mode": _safe_text(str(state.get("mode", "unknown"))),
         "fan_power": _safe_text(str(state.get("fan_power", "unknown"))),
+        "actuator_commands": _actuator_command_summary(payload.get("actuator_commands")),
         "sensor_quality": _safe_text(str(state.get("sensor_quality", "unknown"))),
         "last_transition_reason": _safe_text(str(state.get("last_transition_reason", "unknown"))),
         "poll_count": polling.get("poll_count"),

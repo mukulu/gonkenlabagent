@@ -34,6 +34,7 @@ class SupportTests(unittest.TestCase):
                 'diagnostic_summary.json',
                 'environment.json',
                 'environment_control.json',
+                'environment_current_reconciliation.json',
                 'environment_health.json',
                 'evidence_index.json',
                 'evidence_phase.json',

@@ -112,3 +112,16 @@ ECONNREFUSED stale sockets and never unlinks a replacement socket during cleanup
 Lock files remain to avoid inode replacement races. Bind failure releases the lock
 without constructing a second hardware cleanup path. 46 lifecycle/adapter/
 observability tests PASS, including actual process termination and restart.
+
+## B11F canonical evidence closure
+
+The canonical collector now recognizes allowlisted JSON relay journal events as
+well as older code= records, retains at most 40 typed actuator transitions and
+labels them current-boot history, not current readiness. Release/configuration
+hashes and PID bind new events. Unknown keys, invalid enums/identities, duplicate
+JSON keys and non-finite numbers are excluded. Passive environment diagnostics
+retain acknowledged-command/unknown-state, ownership and error counters without
+copying raw conversation or inventing physical observations. Existing thermostat
+reconciliation is a separate historical phase member, never a live-ready claim.
+35 focused evidence/journal/support tests PASS. The new member was added to the
+exact-member regression expectation; privacy canaries remain excluded.
