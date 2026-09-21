@@ -11,6 +11,8 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
+import tempfile
 import os
 import re
 import signal
@@ -116,6 +118,16 @@ def _terminate_process(process: subprocess.Popen[str], kill_after_seconds: float
         pass
 
 
+class RunInterrupted(Exception):
+    def __init__(self, signum: int):
+        self.signum = signum
+        super().__init__(f"runner interrupted by signal {signum}")
+
+
+def _interrupt(signum, _frame):
+    raise RunInterrupted(signum)
+
+
 def run_module(
     *,
     module: str,
@@ -157,52 +169,65 @@ def run_module(
         output_tail: list[str] = []
         partial = ""
         timed_out = False
-        while True:
-            ready, _, _ = select.select([fd], [], [], 0.1)
-            if ready:
-                try:
-                    chunk = os.read(fd, 8192)
-                except BlockingIOError:
-                    chunk = b""
-                if chunk:
-                    text = chunk.decode("utf-8", errors="replace")
-                    log.write(text)
-                    log.flush()
-                    partial += text
-                    while "\n" in partial:
-                        line, partial = partial.split("\n", 1)
-                        output_tail.append(line)
-                        output_tail = output_tail[-3:]
-                elif process.poll() is not None:
-                    break
-            if process.poll() is not None:
-                while True:
+        try:
+            while True:
+                ready, _, _ = select.select([fd], [], [], 0.1)
+                if ready:
                     try:
                         chunk = os.read(fd, 8192)
                     except BlockingIOError:
+                        chunk = b""
+                    if chunk:
+                        text = chunk.decode("utf-8", errors="replace")
+                        log.write(text)
+                        log.flush()
+                        partial += text
+                        while "\n" in partial:
+                            line, partial = partial.split("\n", 1)
+                            output_tail.append(line)
+                            output_tail = output_tail[-3:]
+                    elif process.poll() is not None:
                         break
-                    if not chunk:
-                        break
-                    text = chunk.decode("utf-8", errors="replace")
-                    log.write(text)
+                if process.poll() is not None:
+                    while True:
+                        try:
+                            chunk = os.read(fd, 8192)
+                        except BlockingIOError:
+                            break
+                        if not chunk:
+                            break
+                        text = chunk.decode("utf-8", errors="replace")
+                        log.write(text)
+                        log.flush()
+                        partial += text
+                    if partial:
+                        output_tail.append(partial.rstrip("\n"))
+                        output_tail = output_tail[-3:]
+                    break
+                now = time.monotonic()
+                elapsed = now - started
+                if elapsed >= timeout_seconds:
+                    timed_out = True
+                    log.write(f"\n# timeout after {elapsed:.3f}s\n")
                     log.flush()
-                    partial += text
-                if partial:
-                    output_tail.append(partial.rstrip("\n"))
-                    output_tail = output_tail[-3:]
-                break
-            now = time.monotonic()
-            elapsed = now - started
-            if elapsed >= timeout_seconds:
-                timed_out = True
-                log.write(f"\n# timeout after {elapsed:.3f}s\n")
-                log.flush()
-                _terminate_process(process, kill_after_seconds)
-                break
-            if now >= next_heartbeat:
-                tail = " | ".join(output_tail[-2:]) if output_tail else "no output yet"
-                print(f"[WAIT] module={module} elapsed={elapsed:.1f}s tail={tail}", flush=True)
-                next_heartbeat = now + heartbeat_seconds
+                    _terminate_process(process, kill_after_seconds)
+                    break
+                if now >= next_heartbeat:
+                    tail = " | ".join(output_tail[-2:]) if output_tail else "no output yet"
+                    print(f"[WAIT] module={module} elapsed={elapsed:.1f}s tail={tail}", flush=True)
+                    next_heartbeat = now + heartbeat_seconds
+        except BaseException:
+            _terminate_process(process, kill_after_seconds)
+            try:
+                process.wait(timeout=kill_after_seconds + 1)
+            except subprocess.TimeoutExpired:
+                process.kill()
+                process.wait(timeout=1)
+            log.write("\n# runner interrupted; active test has no completion verdict\n")
+            log.flush()
+            raise
+        finally:
+            process.stdout.close()
         returncode = process.poll()
         duration = time.monotonic() - started
         log.write(f"# finished_utc: {utc_now()}\n# duration_seconds: {duration:.3f}\n# returncode: {returncode}\n")
@@ -216,22 +241,43 @@ def run_module(
     return ModuleResult(module, "FAIL", returncode, duration, str(log_path))
 
 
-def write_manifest(path: Path, *, label: str, granularity: str, results: list[ModuleResult]) -> None:
+def write_manifest(path: Path, *, label: str, granularity: str, results: list[ModuleResult],
+                   selected: Sequence[str] | None = None, execution_state: str = "COMPLETED",
+                   active_module: str | None = None) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     statuses = [result.status for result in results]
+    selected = list(selected) if selected is not None else [r.module for r in results]
+    completed = {r.module for r in results}
+    pending = [name for name in selected if name not in completed]
+    complete = execution_state == "COMPLETED" and not pending
     payload = {
         "schema": "gonken-bounded-unittest-v1",
+        "execution_state": execution_state,
+        "planned_count": len(selected),
+        "planned_modules": selected,
+        "pending_modules": pending,
+        "active_module": active_module,
+        "runner_pid": os.getpid(),
         "label": label,
         "created_utc": utc_now(),
         "granularity": granularity,
-        "result": "PASS" if statuses and all(status == "PASS" for status in statuses) else "FAIL",
+        "result": ("PASS" if statuses and all(status == "PASS" for status in statuses) else "FAIL") if complete else "INCOMPLETE",
         "module_count": len(results),
         "status_counts": {status: statuses.count(status) for status in sorted(set(statuses))},
         "modules": [result.as_dict() for result in results],
     }
-    temporary = path.with_name(f".{path.name}.tmp")
-    temporary.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    os.replace(temporary, path)
+    temporary = None
+    try:
+        with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", dir=path.parent,
+                                         prefix="." + path.name + ".", delete=False) as handle:
+            temporary = Path(handle.name)
+            handle.write(json.dumps(payload, indent=2, sort_keys=True) + "\n")
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.replace(temporary, path)
+    finally:
+        if temporary is not None:
+            temporary.unlink(missing_ok=True)
 
 
 def parse_env(values: Sequence[str]) -> dict[str, str]:
@@ -268,7 +314,7 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: Sequence[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
-    if args.timeout_seconds <= 0 or args.kill_after_seconds <= 0 or args.heartbeat_seconds <= 0:
+    if any(not math.isfinite(v) or v <= 0 for v in (args.timeout_seconds, args.kill_after_seconds, args.heartbeat_seconds)):
         parser.error("timeouts and heartbeat must be positive")
     root = args.root.resolve()
     explicit = args.module or []
@@ -290,26 +336,38 @@ def main(argv: Sequence[str] | None = None) -> int:
     for test_name in selected:
         if not MODULE_RE.fullmatch(test_name):
             parser.error(f"unsafe test identifier: {test_name}")
+    if len(selected) != len(set(selected)):
+        parser.error("duplicate test identifiers are not permitted")
     extra_env = parse_env(args.env)
     results: list[ModuleResult] = []
-    for module in selected:
-        results.append(
-            run_module(
-                module=module,
-                root=root,
-                log_dir=args.log_dir,
-                timeout_seconds=args.timeout_seconds,
-                kill_after_seconds=args.kill_after_seconds,
-                heartbeat_seconds=args.heartbeat_seconds,
-                python_bin=args.python,
-                extra_env=extra_env,
-            )
-        )
-        if results[-1].status != "PASS":
-            # Continue to the next independent module/case so the manifest identifies all
-            # immediate failures, but never return success once one item fails.
-            pass
-    write_manifest(args.manifest, label=args.label, granularity=args.granularity, results=results)
+    previous = {signum: signal.signal(signum, _interrupt) for signum in (signal.SIGTERM, signal.SIGINT)}
+    def persist(state: str, active: str | None = None):
+        write_manifest(args.manifest, label=args.label, granularity=args.granularity,
+                       results=results, selected=selected, execution_state=state, active_module=active)
+    active = None
+    try:
+        persist("RUNNING")
+        for module in selected:
+            active = module
+            persist("RUNNING", active)
+            results.append(run_module(
+                module=module, root=root, log_dir=args.log_dir,
+                timeout_seconds=args.timeout_seconds, kill_after_seconds=args.kill_after_seconds,
+                heartbeat_seconds=args.heartbeat_seconds, python_bin=args.python, extra_env=extra_env))
+            active = None
+            persist("RUNNING")
+        persist("COMPLETED")
+    except (RunInterrupted, KeyboardInterrupt) as exc:
+        persist("INTERRUPTED", active)
+        print(f"[INTERRUPTED] label={args.label} completed={len(results)} active={active} manifest={args.manifest}", flush=True)
+        return 128 + (exc.signum if isinstance(exc, RunInterrupted) else signal.SIGINT)
+    except Exception as exc:
+        persist("FAILED", active)
+        print(f"[ERROR] label={args.label} error_type={type(exc).__name__} manifest={args.manifest}", flush=True)
+        return 2
+    finally:
+        for signum, handler in previous.items():
+            signal.signal(signum, handler)
     failures = [result for result in results if result.status != "PASS"]
     if failures:
         print(f"[SUMMARY] label={args.label} result=FAIL modules={len(results)} failures={len(failures)} manifest={args.manifest}", flush=True)
