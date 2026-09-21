@@ -1,0 +1,11 @@
+# command: /opt/pyvenv/bin/python -m unittest -v tests.integration.test_ollama_lifecycle_process.OllamaLifecycleProcessTests.test_representative_download_extract_readiness_pull_and_smoke_boundary_recovers
+# started_utc: 2026-09-21T10:21:31Z
+test_representative_download_extract_readiness_pull_and_smoke_boundary_recovers (tests.integration.test_ollama_lifecycle_process.OllamaLifecycleProcessTests.test_representative_download_extract_readiness_pull_and_smoke_boundary_recovers) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 14.585s
+
+OK
+# finished_utc: 2026-09-21T10:21:46Z
+# duration_seconds: 15.165
+# returncode: 0

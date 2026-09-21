@@ -1,0 +1,11 @@
+# command: /opt/pyvenv/bin/python -m unittest -v tests.integration.test_release_lifecycle_process.EndToEndReleaseTests.test_default_install_after_release_boundary_stops_before_target_only_steps
+# started_utc: 2026-09-21T10:14:51Z
+test_default_install_after_release_boundary_stops_before_target_only_steps (tests.integration.test_release_lifecycle_process.EndToEndReleaseTests.test_default_install_after_release_boundary_stops_before_target_only_steps) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 19.489s
+
+OK
+# finished_utc: 2026-09-21T10:15:11Z
+# duration_seconds: 20.138
+# returncode: 0

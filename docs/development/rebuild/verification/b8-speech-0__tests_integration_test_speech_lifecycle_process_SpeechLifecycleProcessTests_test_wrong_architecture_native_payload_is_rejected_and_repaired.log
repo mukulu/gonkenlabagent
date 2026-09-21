@@ -1,0 +1,11 @@
+# command: /opt/pyvenv/bin/python -m unittest -v tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_wrong_architecture_native_payload_is_rejected_and_repaired
+# started_utc: 2026-09-21T10:11:55Z
+test_wrong_architecture_native_payload_is_rejected_and_repaired (tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_wrong_architecture_native_payload_is_rejected_and_repaired) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 6.998s
+
+OK
+# finished_utc: 2026-09-21T10:12:03Z
+# duration_seconds: 7.707
+# returncode: 0

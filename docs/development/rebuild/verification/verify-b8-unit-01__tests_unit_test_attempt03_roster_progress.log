@@ -1,0 +1,144 @@
+# command: /opt/pyvenv/bin/python -m unittest -v tests.unit.test_attempt03_roster_progress
+# started_utc: 2026-09-21T10:16:38Z
+test_admin_ready_requires_current_qualified_selected_model (tests.unit.test_attempt03_roster_progress.RosterProgressTests.test_admin_ready_requires_current_qualified_selected_model) ... [MODEL] model=- stage=INVENTORY
+[MODEL] model=- stage=PREREQUISITES
+[MODEL] model=- stage=INVENTORY_AFTER_PULL
+[MODEL] model=qwen3:0.6b stage=IDENTITY
+[MODEL] model=qwen3:0.6b stage=INFERENCE
+[MODEL] model=qwen3:0.6b stage=TOOLS
+[MODEL] model=qwen3:0.6b stage=UNLOAD
+[MODEL] model=lfm2.5-thinking:1.2b stage=IDENTITY
+[MODEL] model=lfm2.5-thinking:1.2b stage=INFERENCE
+[MODEL] model=lfm2.5-thinking:1.2b stage=TOOLS
+[MODEL] model=lfm2.5-thinking:1.2b stage=UNLOAD
+[MODEL] model=qwen3.5:0.8b stage=IDENTITY
+[MODEL] model=qwen3.5:0.8b stage=INFERENCE
+[MODEL] model=qwen3.5:0.8b stage=TOOLS
+[MODEL] model=qwen3.5:0.8b stage=UNLOAD
+[MODEL] model=- stage=ADMISSION
+ok
+test_context_drift_rejected (tests.unit.test_attempt03_roster_progress.RosterProgressTests.test_context_drift_rejected) ... [OK] code=MODEL_ROSTER_READY models=3 default=qwen3:0.6b active=qwen3:0.6b mode=preseeded-offline
+[MODEL] model=- stage=INVENTORY
+[MODEL] model=- stage=PREREQUISITES
+[MODEL] model=- stage=INVENTORY_AFTER_PULL
+[MODEL] model=qwen3:0.6b stage=IDENTITY
+[MODEL] model=qwen3:0.6b stage=INFERENCE
+[MODEL] model=qwen3:0.6b stage=TOOLS
+[MODEL] model=qwen3:0.6b stage=UNLOAD
+[MODEL] model=lfm2.5-thinking:1.2b stage=IDENTITY
+[MODEL] model=lfm2.5-thinking:1.2b stage=INFERENCE
+[MODEL] model=lfm2.5-thinking:1.2b stage=TOOLS
+[MODEL] model=lfm2.5-thinking:1.2b stage=UNLOAD
+[MODEL] model=qwen3.5:0.8b stage=IDENTITY
+[MODEL] model=qwen3.5:0.8b stage=INFERENCE
+[MODEL] model=qwen3.5:0.8b stage=TOOLS
+[MODEL] model=qwen3.5:0.8b stage=UNLOAD
+[MODEL] model=- stage=ADMISSION
+ok
+test_later_failure_preserves_completed_model_and_stage (tests.unit.test_attempt03_roster_progress.RosterProgressTests.test_later_failure_preserves_completed_model_and_stage) ... [OK] code=MODEL_ROSTER_READY models=3 default=qwen3:0.6b active=qwen3:0.6b mode=preseeded-offline
+[MODEL] model=- stage=INVENTORY
+[MODEL] model=- stage=PREREQUISITES
+[MODEL] model=- stage=INVENTORY_AFTER_PULL
+[MODEL] model=qwen3:0.6b stage=IDENTITY
+[MODEL] model=qwen3:0.6b stage=INFERENCE
+[MODEL] model=qwen3:0.6b stage=TOOLS
+[MODEL] model=qwen3:0.6b stage=UNLOAD
+[MODEL] model=lfm2.5-thinking:1.2b stage=IDENTITY
+[MODEL] model=lfm2.5-thinking:1.2b stage=INFERENCE
+[MODEL] model=lfm2.5-thinking:1.2b stage=UNLOAD
+ok
+test_old_attempt_ready_invalidated_before_network_failure (tests.unit.test_attempt03_roster_progress.RosterProgressTests.test_old_attempt_ready_invalidated_before_network_failure) ... [MODEL] model=- stage=INVENTORY
+[MODEL] model=- stage=PREREQUISITES
+[MODEL] model=- stage=INVENTORY_AFTER_PULL
+[MODEL] model=qwen3:0.6b stage=IDENTITY
+[MODEL] model=qwen3:0.6b stage=INFERENCE
+[MODEL] model=qwen3:0.6b stage=TOOLS
+[MODEL] model=qwen3:0.6b stage=UNLOAD
+[MODEL] model=lfm2.5-thinking:1.2b stage=IDENTITY
+[MODEL] model=lfm2.5-thinking:1.2b stage=INFERENCE
+[MODEL] model=lfm2.5-thinking:1.2b stage=TOOLS
+[MODEL] model=lfm2.5-thinking:1.2b stage=UNLOAD
+[MODEL] model=qwen3.5:0.8b stage=IDENTITY
+[MODEL] model=qwen3.5:0.8b stage=INFERENCE
+[MODEL] model=qwen3.5:0.8b stage=TOOLS
+[MODEL] model=qwen3.5:0.8b stage=UNLOAD
+[MODEL] model=- stage=ADMISSION
+[OK] code=MODEL_ROSTER_READY models=3 default=qwen3:0.6b active=qwen3:0.6b mode=preseeded-offline
+[MODEL] model=- stage=INVENTORY
+ok
+test_record_bound_to_model_digest (tests.unit.test_attempt03_roster_progress.RosterProgressTests.test_record_bound_to_model_digest) ... [MODEL] model=- stage=INVENTORY
+[MODEL] model=- stage=PREREQUISITES
+[MODEL] model=- stage=INVENTORY_AFTER_PULL
+[MODEL] model=qwen3:0.6b stage=IDENTITY
+[MODEL] model=qwen3:0.6b stage=INFERENCE
+[MODEL] model=qwen3:0.6b stage=TOOLS
+[MODEL] model=qwen3:0.6b stage=UNLOAD
+[MODEL] model=lfm2.5-thinking:1.2b stage=IDENTITY
+[MODEL] model=lfm2.5-thinking:1.2b stage=INFERENCE
+[MODEL] model=lfm2.5-thinking:1.2b stage=TOOLS
+[MODEL] model=lfm2.5-thinking:1.2b stage=UNLOAD
+[MODEL] model=qwen3.5:0.8b stage=IDENTITY
+[MODEL] model=qwen3.5:0.8b stage=INFERENCE
+[MODEL] model=qwen3.5:0.8b stage=TOOLS
+[MODEL] model=qwen3.5:0.8b stage=UNLOAD
+[MODEL] model=- stage=ADMISSION
+ok
+test_roster_fingerprint_drift_rejects (tests.unit.test_attempt03_roster_progress.RosterProgressTests.test_roster_fingerprint_drift_rejects) ... [OK] code=MODEL_ROSTER_READY models=3 default=qwen3:0.6b active=qwen3:0.6b mode=preseeded-offline
+[MODEL] model=- stage=INVENTORY
+[MODEL] model=- stage=PREREQUISITES
+[MODEL] model=- stage=INVENTORY_AFTER_PULL
+[MODEL] model=qwen3:0.6b stage=IDENTITY
+[MODEL] model=qwen3:0.6b stage=INFERENCE
+[MODEL] model=qwen3:0.6b stage=TOOLS
+[MODEL] model=qwen3:0.6b stage=UNLOAD
+[MODEL] model=lfm2.5-thinking:1.2b stage=IDENTITY
+[MODEL] model=lfm2.5-thinking:1.2b stage=INFERENCE
+[MODEL] model=lfm2.5-thinking:1.2b stage=TOOLS
+[MODEL] model=lfm2.5-thinking:1.2b stage=UNLOAD
+[MODEL] model=qwen3.5:0.8b stage=IDENTITY
+[MODEL] model=qwen3.5:0.8b stage=INFERENCE
+[MODEL] model=qwen3.5:0.8b stage=TOOLS
+[MODEL] model=qwen3.5:0.8b stage=UNLOAD
+[MODEL] model=- stage=ADMISSION
+ok
+test_tool_arguments_must_be_empty (tests.unit.test_attempt03_roster_progress.RosterProgressTests.test_tool_arguments_must_be_empty) ... [OK] code=MODEL_ROSTER_READY models=3 default=qwen3:0.6b active=qwen3:0.6b mode=preseeded-offline
+[MODEL] model=- stage=INVENTORY
+[MODEL] model=- stage=PREREQUISITES
+[MODEL] model=- stage=INVENTORY_AFTER_PULL
+[MODEL] model=qwen3:0.6b stage=IDENTITY
+[MODEL] model=qwen3:0.6b stage=INFERENCE
+[MODEL] model=qwen3:0.6b stage=TOOLS
+[MODEL] model=qwen3:0.6b stage=UNLOAD
+[MODEL] model=lfm2.5-thinking:1.2b stage=IDENTITY
+[MODEL] model=lfm2.5-thinking:1.2b stage=INFERENCE
+[MODEL] model=lfm2.5-thinking:1.2b stage=TOOLS
+[MODEL] model=lfm2.5-thinking:1.2b stage=UNLOAD
+[MODEL] model=qwen3.5:0.8b stage=IDENTITY
+[MODEL] model=qwen3.5:0.8b stage=INFERENCE
+[MODEL] model=qwen3.5:0.8b stage=TOOLS
+[MODEL] model=qwen3.5:0.8b stage=UNLOAD
+[MODEL] model=- stage=ADMISSION
+ok
+test_unload_failure_does_not_overwrite_original (tests.unit.test_attempt03_roster_progress.RosterProgressTests.test_unload_failure_does_not_overwrite_original) ... [MODEL] model=- stage=INVENTORY
+[MODEL] model=- stage=PREREQUISITES
+[MODEL] model=- stage=INVENTORY_AFTER_PULL
+[MODEL] model=qwen3:0.6b stage=IDENTITY
+[MODEL] model=qwen3:0.6b stage=INFERENCE
+[MODEL] model=qwen3:0.6b stage=UNLOAD
+ok
+test_unload_unconfirmed_prevents_ready (tests.unit.test_attempt03_roster_progress.RosterProgressTests.test_unload_unconfirmed_prevents_ready) ... [MODEL] model=- stage=INVENTORY
+[MODEL] model=- stage=PREREQUISITES
+[MODEL] model=- stage=INVENTORY_AFTER_PULL
+[MODEL] model=qwen3:0.6b stage=IDENTITY
+[MODEL] model=qwen3:0.6b stage=INFERENCE
+[MODEL] model=qwen3:0.6b stage=TOOLS
+[MODEL] model=qwen3:0.6b stage=UNLOAD
+ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.151s
+
+OK
+# finished_utc: 2026-09-21T10:16:39Z
+# duration_seconds: 0.794
+# returncode: 0

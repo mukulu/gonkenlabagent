@@ -1,0 +1,16 @@
+# command: /opt/pyvenv/bin/python -m unittest -v tests.unit.test_m8_update_manager
+# started_utc: 2026-09-21T10:17:38Z
+test_resolve_ref_accepts_unambiguous_local_branch_under_test_gate (tests.unit.test_m8_update_manager.UpdateManagerTests.test_resolve_ref_accepts_unambiguous_local_branch_under_test_gate) ... ok
+test_source_and_ref_validation_fail_closed (tests.unit.test_m8_update_manager.UpdateManagerTests.test_source_and_ref_validation_fail_closed) ... ok
+test_update_builds_activates_prunes_and_restarts_service (tests.unit.test_m8_update_manager.UpdateManagerTests.test_update_builds_activates_prunes_and_restarts_service) ... ok
+test_update_noop_does_not_restart_service (tests.unit.test_m8_update_manager.UpdateManagerTests.test_update_noop_does_not_restart_service) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.094s
+
+OK
+[OK] code=UPDATE_COMPLETE commit=52b166f40bb5880385c4861d5916a7ad4d1a9781 previous=4773cb2e532c8f0923c3306708f0be6b5c09f054
+[OK] code=UPDATE_ALREADY_CURRENT commit=52b166f40bb5880385c4861d5916a7ad4d1a9781
+# finished_utc: 2026-09-21T10:17:39Z
+# duration_seconds: 0.671
+# returncode: 0

@@ -5,7 +5,7 @@
   "blueprint_sha256": "4f932dac8b03ffcef03b7fc77a2f67d99966cab460217c59821f8e1535a5e441",
   "physical_acceptance_claimed": false,
   "package_status": "DEVELOPMENT",
-  "next_action": "Complete bounded unit/integration and lifecycle regression; repair first actual failure; then qualify a code-bearing development package.",
+  "next_action": "Continue CP46.5.1 candidate/precondition state model and CP46.5.2 late activation ordering. Preserve B7 final-success gates; use the B9 development package, not CKPT45 or a report-only delivery.",
   "slots": [
     {
       "id": "46.0.1",
@@ -605,36 +605,56 @@
       "id": "46.12.1",
       "title": "Complete unit suite",
       "source_line": 1942,
-      "status": "NOT_STARTED",
-      "evidence": []
+      "status": "WIP",
+      "evidence": [
+        "docs/development/rebuild/FINAL_VERIFICATION.md",
+        "docs/development/rebuild/verification/VERIFICATION.json"
+      ],
+      "note": "Current recovered implementation corpus passed; final blueprint-wide convergence is not claimed while earlier implementation remains open."
     },
     {
       "id": "46.12.2",
       "title": "Integration/process/lifecycle suite",
       "source_line": 1943,
-      "status": "NOT_STARTED",
-      "evidence": []
+      "status": "WIP",
+      "evidence": [
+        "docs/development/rebuild/FINAL_VERIFICATION.md",
+        "docs/development/rebuild/verification/VERIFICATION.json"
+      ],
+      "note": "Current recovered implementation corpus passed; final blueprint-wide convergence is not claimed while earlier implementation remains open."
     },
     {
       "id": "46.12.3",
       "title": "Installer/reinstaller/update/rollback suite",
       "source_line": 1944,
-      "status": "NOT_STARTED",
-      "evidence": []
+      "status": "WIP",
+      "evidence": [
+        "docs/development/rebuild/FINAL_VERIFICATION.md",
+        "docs/development/rebuild/verification/VERIFICATION.json"
+      ],
+      "note": "Current recovered implementation corpus passed; final blueprint-wide convergence is not claimed while earlier implementation remains open."
     },
     {
       "id": "46.12.4",
       "title": "Speech/voice/environment non-regression suite",
       "source_line": 1945,
-      "status": "NOT_STARTED",
-      "evidence": []
+      "status": "WIP",
+      "evidence": [
+        "docs/development/rebuild/FINAL_VERIFICATION.md",
+        "docs/development/rebuild/verification/VERIFICATION.json"
+      ],
+      "note": "Current recovered implementation corpus passed; final blueprint-wide convergence is not claimed while earlier implementation remains open."
     },
     {
       "id": "46.12.5",
       "title": "Release readiness/T0/current-state/docs checks",
       "source_line": 1946,
-      "status": "NOT_STARTED",
-      "evidence": []
+      "status": "WIP",
+      "evidence": [
+        "docs/development/rebuild/FINAL_VERIFICATION.md",
+        "docs/development/rebuild/verification/VERIFICATION.json"
+      ],
+      "note": "Current recovered implementation corpus passed; final blueprint-wide convergence is not claimed while earlier implementation remains open."
     },
     {
       "id": "46.12.6",

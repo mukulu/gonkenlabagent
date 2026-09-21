@@ -1,0 +1,11 @@
+# command: /opt/pyvenv/bin/python -m unittest -v tests.integration.test_ollama_lifecycle_process.OllamaLifecycleProcessTests.test_recorded_full_digest_drift_is_refused
+# started_utc: 2026-09-21T10:21:20Z
+test_recorded_full_digest_drift_is_refused (tests.integration.test_ollama_lifecycle_process.OllamaLifecycleProcessTests.test_recorded_full_digest_drift_is_refused) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 2.884s
+
+OK
+# finished_utc: 2026-09-21T10:21:24Z
+# duration_seconds: 3.478
+# returncode: 0

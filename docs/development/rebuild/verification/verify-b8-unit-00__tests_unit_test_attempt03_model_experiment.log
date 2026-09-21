@@ -1,0 +1,19 @@
+# command: /opt/pyvenv/bin/python -m unittest -v tests.unit.test_attempt03_model_experiment
+# started_utc: 2026-09-21T10:16:34Z
+test_active_model_not_unloaded (tests.unit.test_attempt03_model_experiment.ExperimentTests.test_active_model_not_unloaded) ... ok
+test_all_shapes (tests.unit.test_attempt03_model_experiment.ExperimentTests.test_all_shapes) ... ok
+test_bounds_and_models (tests.unit.test_attempt03_model_experiment.ExperimentTests.test_bounds_and_models) ... ok
+test_confirmation_required (tests.unit.test_attempt03_model_experiment.ExperimentTests.test_confirmation_required) ... ok
+test_failure_preserved_with_cleanup_error (tests.unit.test_attempt03_model_experiment.ExperimentTests.test_failure_preserved_with_cleanup_error) ... ok
+test_one_case_no_content_and_no_overwrite (tests.unit.test_attempt03_model_experiment.ExperimentTests.test_one_case_no_content_and_no_overwrite) ... ok
+test_resident_after_cleanup_fails (tests.unit.test_attempt03_model_experiment.ExperimentTests.test_resident_after_cleanup_fails) ... ok
+test_untrusted_tool_never_accepted (tests.unit.test_attempt03_model_experiment.ExperimentTests.test_untrusted_tool_never_accepted) ... ok
+test_valid_tool_summary (tests.unit.test_attempt03_model_experiment.ExperimentTests.test_valid_tool_summary) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.017s
+
+OK
+# finished_utc: 2026-09-21T10:16:35Z
+# duration_seconds: 0.642
+# returncode: 0

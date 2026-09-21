@@ -1,0 +1,11 @@
+# command: /opt/pyvenv/bin/python -m unittest -v tests.integration.test_release_lifecycle_process.EndToEndReleaseTests.test_release_only_builds_activates_and_freezes_release
+# started_utc: 2026-09-21T10:13:20Z
+test_release_only_builds_activates_and_freezes_release (tests.integration.test_release_lifecycle_process.EndToEndReleaseTests.test_release_only_builds_activates_and_freezes_release) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 14.033s
+
+OK
+# finished_utc: 2026-09-21T10:13:35Z
+# duration_seconds: 14.674
+# returncode: 0

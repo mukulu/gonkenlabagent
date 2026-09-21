@@ -1,0 +1,11 @@
+# command: /opt/pyvenv/bin/python -m unittest -v tests.integration.test_ollama_lifecycle_process.OllamaLifecycleProcessTests.test_checksum_failure_never_creates_release
+# started_utc: 2026-09-21T10:21:08Z
+test_checksum_failure_never_creates_release (tests.integration.test_ollama_lifecycle_process.OllamaLifecycleProcessTests.test_checksum_failure_never_creates_release) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.627s
+
+OK
+# finished_utc: 2026-09-21T10:21:10Z
+# duration_seconds: 1.201
+# returncode: 0

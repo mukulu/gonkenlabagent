@@ -1,0 +1,24 @@
+# command: /opt/pyvenv/bin/python -m unittest -v tests.unit.test_v09_environment_simulation
+# started_utc: 2026-09-21T10:19:26Z
+test_defaults_keep_simulation_control_disabled (tests.unit.test_v09_environment_simulation.EnvironmentSimulationConfigTests.test_defaults_keep_simulation_control_disabled) ... ok
+test_evidence_mode_classifier_keeps_hybrid_modes_distinct (tests.unit.test_v09_environment_simulation.EnvironmentSimulationConfigTests.test_evidence_mode_classifier_keeps_hybrid_modes_distinct) ... ok
+test_independent_simulation_backend_axes_are_validated (tests.unit.test_v09_environment_simulation.EnvironmentSimulationConfigTests.test_independent_simulation_backend_axes_are_validated) ... ok
+test_unknown_simulation_backend_is_rejected (tests.unit.test_v09_environment_simulation.EnvironmentSimulationConfigTests.test_unknown_simulation_backend_is_rejected) ... ok
+test_operator_simulation_cli_over_unix_socket_drives_full_sim_without_physical_claim (tests.unit.test_v09_environment_simulation.EnvironmentSimulationProtocolTests.test_operator_simulation_cli_over_unix_socket_drives_full_sim_without_physical_claim) ... ok
+test_service_core_supports_simulation_protocol_and_polling (tests.unit.test_v09_environment_simulation.EnvironmentSimulationProtocolTests.test_service_core_supports_simulation_protocol_and_polling) ... ok
+test_simulated_actuator_fail_next_write_surfaces_service_error_and_safe_off (tests.unit.test_v09_environment_simulation.EnvironmentSimulationProtocolTests.test_simulated_actuator_fail_next_write_surfaces_service_error_and_safe_off) ... ok
+test_simulation_operations_reject_wrong_backend_axis (tests.unit.test_v09_environment_simulation.EnvironmentSimulationProtocolTests.test_simulation_operations_reject_wrong_backend_axis) ... ok
+test_simulation_runtime_control_is_explicitly_opt_in (tests.unit.test_v09_environment_simulation.EnvironmentSimulationProtocolTests.test_simulation_runtime_control_is_explicitly_opt_in) ... ok
+test_unix_protocol_accepts_simulation_operations (tests.unit.test_v09_environment_simulation.EnvironmentSimulationProtocolTests.test_unix_protocol_accepts_simulation_operations) ... ok
+test_factories_select_simulated_backends_without_physical_adapters (tests.unit.test_v09_environment_simulation.SimulatedAdapterTests.test_factories_select_simulated_backends_without_physical_adapters) ... ok
+test_simulated_actuator_records_power_and_fault_injection_without_gpiod (tests.unit.test_v09_environment_simulation.SimulatedAdapterTests.test_simulated_actuator_records_power_and_fault_injection_without_gpiod) ... ok
+test_simulated_sensor_persists_reading_and_faults_truthfully (tests.unit.test_v09_environment_simulation.SimulatedAdapterTests.test_simulated_sensor_persists_reading_and_faults_truthfully) ... ok
+test_simulated_sensor_rejects_invalid_operator_values (tests.unit.test_v09_environment_simulation.SimulatedAdapterTests.test_simulated_sensor_rejects_invalid_operator_values) ... ok
+
+----------------------------------------------------------------------
+Ran 14 tests in 1.095s
+
+OK
+# finished_utc: 2026-09-21T10:19:28Z
+# duration_seconds: 1.711
+# returncode: 0

@@ -1,0 +1,15 @@
+# command: /opt/pyvenv/bin/python -m unittest -v tests.unit.test_v09_environment_config
+# started_utc: 2026-09-21T10:18:53Z
+test_dormant_relay_field_is_not_a_reservation (tests.unit.test_v09_environment_config.V09EnvironmentConfigTests.test_dormant_relay_field_is_not_a_reservation) ... ok
+test_enabled_relay_cannot_reuse_other_enabled_resources (tests.unit.test_v09_environment_config.V09EnvironmentConfigTests.test_enabled_relay_cannot_reuse_other_enabled_resources) ... ok
+test_environment_static_policy_bounds_are_cross_validated (tests.unit.test_v09_environment_config.V09EnvironmentConfigTests.test_environment_static_policy_bounds_are_cross_validated) ... ok
+test_schema_one_site_config_migrates_without_downgrading_effective_schema (tests.unit.test_v09_environment_config.V09EnvironmentConfigTests.test_schema_one_site_config_migrates_without_downgrading_effective_schema) ... ok
+test_schema_two_defaults_add_disabled_environment_static_contract (tests.unit.test_v09_environment_config.V09EnvironmentConfigTests.test_schema_two_defaults_add_disabled_environment_static_contract) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.031s
+
+OK
+# finished_utc: 2026-09-21T10:18:53Z
+# duration_seconds: 0.688
+# returncode: 0

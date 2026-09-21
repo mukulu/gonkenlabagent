@@ -1,0 +1,18 @@
+# command: /opt/pyvenv/bin/python -m unittest -v tests.unit.test_v09_environment_controller
+# started_utc: 2026-09-21T10:18:53Z
+test_auto_forces_safe_off_on_stale_sensor_and_requires_recovery_sequence (tests.unit.test_v09_environment_controller.EnvironmentControllerTests.test_auto_forces_safe_off_on_stale_sensor_and_requires_recovery_sequence) ... ok
+test_automatic_uses_recovery_samples_hysteresis_and_dwell (tests.unit.test_v09_environment_controller.EnvironmentControllerTests.test_automatic_uses_recovery_samples_hysteresis_and_dwell) ... ok
+test_controller_is_pure_and_boots_safe_off (tests.unit.test_v09_environment_controller.EnvironmentControllerTests.test_controller_is_pure_and_boots_safe_off) ... ok
+test_disabled_mode_rejects_on_and_keeps_safe_off (tests.unit.test_v09_environment_controller.EnvironmentControllerTests.test_disabled_mode_rejects_on_and_keeps_safe_off) ... ok
+test_generic_on_or_off_in_auto_switches_to_manual_with_actual_state (tests.unit.test_v09_environment_controller.EnvironmentControllerTests.test_generic_on_or_off_in_auto_switches_to_manual_with_actual_state) ... ok
+test_manual_keeps_deliberate_actuator_state_independent_of_sensor_failure (tests.unit.test_v09_environment_controller.EnvironmentControllerTests.test_manual_keeps_deliberate_actuator_state_independent_of_sensor_failure) ... ok
+test_policy_update_can_stop_running_auto_fan_without_auto_starting_semi (tests.unit.test_v09_environment_controller.EnvironmentControllerTests.test_policy_update_can_stop_running_auto_fan_without_auto_starting_semi) ... ok
+test_semi_automatic_never_auto_starts_but_auto_stops_after_user_start (tests.unit.test_v09_environment_controller.EnvironmentControllerTests.test_semi_automatic_never_auto_starts_but_auto_stops_after_user_start) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 0.001s
+
+OK
+# finished_utc: 2026-09-21T10:18:54Z
+# duration_seconds: 0.624
+# returncode: 0

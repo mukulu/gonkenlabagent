@@ -1,0 +1,11 @@
+# command: /opt/pyvenv/bin/python -m unittest -v tests.integration.test_ollama_lifecycle_process.OllamaLifecycleProcessTests.test_binary_service_model_repeat_and_status
+# started_utc: 2026-09-21T10:21:03Z
+test_binary_service_model_repeat_and_status (tests.integration.test_ollama_lifecycle_process.OllamaLifecycleProcessTests.test_binary_service_model_repeat_and_status) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 4.739s
+
+OK
+# finished_utc: 2026-09-21T10:21:08Z
+# duration_seconds: 5.322
+# returncode: 0

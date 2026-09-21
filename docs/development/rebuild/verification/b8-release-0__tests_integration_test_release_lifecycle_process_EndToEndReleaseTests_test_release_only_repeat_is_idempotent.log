@@ -1,0 +1,11 @@
+# command: /opt/pyvenv/bin/python -m unittest -v tests.integration.test_release_lifecycle_process.EndToEndReleaseTests.test_release_only_repeat_is_idempotent
+# started_utc: 2026-09-21T10:13:35Z
+test_release_only_repeat_is_idempotent (tests.integration.test_release_lifecycle_process.EndToEndReleaseTests.test_release_only_repeat_is_idempotent) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 19.505s
+
+OK
+# finished_utc: 2026-09-21T10:13:55Z
+# duration_seconds: 20.117
+# returncode: 0

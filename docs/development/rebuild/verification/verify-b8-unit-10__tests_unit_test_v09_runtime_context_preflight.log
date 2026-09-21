@@ -1,0 +1,17 @@
+# command: /opt/pyvenv/bin/python -m unittest -v tests.unit.test_v09_runtime_context_preflight
+# started_utc: 2026-09-21T10:19:48Z
+test_installer_gates_appliance_readiness_on_runtime_context (tests.unit.test_v09_runtime_context_preflight.RuntimeContextPreflightTests.test_installer_gates_appliance_readiness_on_runtime_context) ... ok
+test_missing_runtime_environment_fails_require_ready (tests.unit.test_v09_runtime_context_preflight.RuntimeContextPreflightTests.test_missing_runtime_environment_fails_require_ready) ... [ERROR] code=RUNTIME_CONTEXT_NOT_READY message=service/user-session runtime context is incomplete remediation=rerun service/Bluetooth convergence and inspect the generated runtime environment and user manager
+ok
+test_pipewire_requirement_checks_user_manager_services_and_pulse (tests.unit.test_v09_runtime_context_preflight.RuntimeContextPreflightTests.test_pipewire_requirement_checks_user_manager_services_and_pulse) ... ok
+test_service_unit_contract_preserves_environment_independence (tests.unit.test_v09_runtime_context_preflight.RuntimeContextPreflightTests.test_service_unit_contract_preserves_environment_independence) ... ok
+test_structural_context_can_be_ready_without_claiming_physical_audio (tests.unit.test_v09_runtime_context_preflight.RuntimeContextPreflightTests.test_structural_context_can_be_ready_without_claiming_physical_audio) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.002s
+
+OK
+[OK] code=RUNTIME_CONTEXT status=NOT_READY user=gonken-agent runtime_env=false runtime_dir=false linger=false user_manager=false pipewire_required=false physical_audio_claimed=false
+# finished_utc: 2026-09-21T10:19:48Z
+# duration_seconds: 0.642
+# returncode: 0

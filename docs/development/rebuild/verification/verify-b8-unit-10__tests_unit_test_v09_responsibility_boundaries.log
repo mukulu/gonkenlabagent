@@ -1,0 +1,14 @@
+# command: /opt/pyvenv/bin/python -m unittest -v tests.unit.test_v09_responsibility_boundaries
+# started_utc: 2026-09-21T10:19:47Z
+test_bootstrap_owns_source_record_preflight_and_installer_handoff (tests.unit.test_v09_responsibility_boundaries.V09ResponsibilityBoundaryTests.test_bootstrap_owns_source_record_preflight_and_installer_handoff) ... ok
+test_critical_responsibilities_have_exactly_one_declared_owner (tests.unit.test_v09_responsibility_boundaries.V09ResponsibilityBoundaryTests.test_critical_responsibilities_have_exactly_one_declared_owner) ... ok
+test_installer_owns_dag_readiness_and_failure_bundle (tests.unit.test_v09_responsibility_boundaries.V09ResponsibilityBoundaryTests.test_installer_owns_dag_readiness_and_failure_bundle) ... ok
+test_launcher_is_acquisition_and_bootstrap_delegation_only (tests.unit.test_v09_responsibility_boundaries.V09ResponsibilityBoundaryTests.test_launcher_is_acquisition_and_bootstrap_delegation_only) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.001s
+
+OK
+# finished_utc: 2026-09-21T10:19:48Z
+# duration_seconds: 0.611
+# returncode: 0

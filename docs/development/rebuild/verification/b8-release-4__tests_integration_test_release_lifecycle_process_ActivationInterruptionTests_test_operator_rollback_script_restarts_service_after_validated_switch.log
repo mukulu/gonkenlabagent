@@ -1,0 +1,11 @@
+# command: /opt/pyvenv/bin/python -m unittest -v tests.integration.test_release_lifecycle_process.ActivationInterruptionTests.test_operator_rollback_script_restarts_service_after_validated_switch
+# started_utc: 2026-09-21T10:16:04Z
+test_operator_rollback_script_restarts_service_after_validated_switch (tests.integration.test_release_lifecycle_process.ActivationInterruptionTests.test_operator_rollback_script_restarts_service_after_validated_switch) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 1.246s
+
+OK
+# finished_utc: 2026-09-21T10:16:06Z
+# duration_seconds: 1.844
+# returncode: 0

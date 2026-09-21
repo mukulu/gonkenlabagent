@@ -1,0 +1,11 @@
+# command: /opt/pyvenv/bin/python -m unittest -v tests.integration.test_release_lifecycle_process.FinalizationInterruptionTests.test_candidate_finalize_boundaries_leave_recoverable_old_or_new_state
+# started_utc: 2026-09-21T10:16:06Z
+test_candidate_finalize_boundaries_leave_recoverable_old_or_new_state (tests.integration.test_release_lifecycle_process.FinalizationInterruptionTests.test_candidate_finalize_boundaries_leave_recoverable_old_or_new_state) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 2.483s
+
+OK
+# finished_utc: 2026-09-21T10:16:09Z
+# duration_seconds: 3.125
+# returncode: 0

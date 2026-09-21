@@ -1,0 +1,11 @@
+# command: /opt/pyvenv/bin/python -m unittest -v tests.integration.test_release_lifecycle_process.EndToEndReleaseTests.test_same_commit_repeat_ignores_standard_runtime_cache_without_repairing_release
+# started_utc: 2026-09-21T10:14:19Z
+test_same_commit_repeat_ignores_standard_runtime_cache_without_repairing_release (tests.integration.test_release_lifecycle_process.EndToEndReleaseTests.test_same_commit_repeat_ignores_standard_runtime_cache_without_repairing_release) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 20.260s
+
+OK
+# finished_utc: 2026-09-21T10:14:40Z
+# duration_seconds: 20.922
+# returncode: 0

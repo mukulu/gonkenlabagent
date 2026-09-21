@@ -1,0 +1,11 @@
+# command: /opt/pyvenv/bin/python -m unittest -v tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_interrupt_whisper_model_download_during_converges_on_rerun
+# started_utc: 2026-09-21T10:12:34Z
+test_interrupt_whisper_model_download_during_converges_on_rerun (tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_interrupt_whisper_model_download_during_converges_on_rerun) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 4.407s
+
+OK
+# finished_utc: 2026-09-21T10:12:39Z
+# duration_seconds: 5.084
+# returncode: 0

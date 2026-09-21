@@ -1,0 +1,28 @@
+# command: /opt/pyvenv/bin/python -m unittest -v tests.unit.test_attempt03_promotion_gates
+# started_utc: 2026-09-21T10:16:37Z
+test_development_uses_validation_without_candidate_label (tests.unit.test_attempt03_promotion_gates.ArchivePurposeTests.test_development_uses_validation_without_candidate_label) ... ok
+test_invalid_purpose_rejected (tests.unit.test_attempt03_promotion_gates.ArchivePurposeTests.test_invalid_purpose_rejected) ... ok
+test_allow_dirty_never_bypasses_unfinished_gates (tests.unit.test_attempt03_promotion_gates.CurrentPromotionTests.test_allow_dirty_never_bypasses_unfinished_gates) ... ok
+test_bad_shadow_blocks_even_complete_core (tests.unit.test_attempt03_promotion_gates.CurrentPromotionTests.test_bad_shadow_blocks_even_complete_core) ... ok
+test_cli_gates_are_mutually_exclusive (tests.unit.test_attempt03_promotion_gates.CurrentPromotionTests.test_cli_gates_are_mutually_exclusive) ... ok
+test_complete_core_does_not_claim_physical_or_require_optional_display (tests.unit.test_attempt03_promotion_gates.CurrentPromotionTests.test_complete_core_does_not_claim_physical_or_require_optional_display) ... ok
+test_declared_completion_without_evidence_fails (tests.unit.test_attempt03_promotion_gates.CurrentPromotionTests.test_declared_completion_without_evidence_fails) ... ok
+test_dirty_source_not_promoted_without_explicit_override (tests.unit.test_attempt03_promotion_gates.CurrentPromotionTests.test_dirty_source_not_promoted_without_explicit_override) ... ok
+test_missing_plan_fails_closed (tests.unit.test_attempt03_promotion_gates.CurrentPromotionTests.test_missing_plan_fails_closed) ... ok
+test_missing_registry_fails_closed (tests.unit.test_attempt03_promotion_gates.CurrentPromotionTests.test_missing_registry_fails_closed) ... ok
+test_old_milestones_are_not_current_authority (tests.unit.test_attempt03_promotion_gates.CurrentPromotionTests.test_old_milestones_are_not_current_authority) ... ok
+test_removed_slot_fails_coverage (tests.unit.test_attempt03_promotion_gates.CurrentPromotionTests.test_removed_slot_fails_coverage) ... ok
+test_requirement_cannot_be_made_optional (tests.unit.test_attempt03_promotion_gates.CurrentPromotionTests.test_requirement_cannot_be_made_optional) ... ok
+test_symlink_evidence_rejected (tests.unit.test_attempt03_promotion_gates.CurrentPromotionTests.test_symlink_evidence_rejected) ... ok
+test_title_drift_fails (tests.unit.test_attempt03_promotion_gates.CurrentPromotionTests.test_title_drift_fails) ... ok
+test_unknown_slot_fails_coverage (tests.unit.test_attempt03_promotion_gates.CurrentPromotionTests.test_unknown_slot_fails_coverage) ... ok
+test_validate_exit_distinct_from_promotion (tests.unit.test_attempt03_promotion_gates.CurrentPromotionTests.test_validate_exit_distinct_from_promotion) ... ok
+test_validation_failure_has_nonzero_exit (tests.unit.test_attempt03_promotion_gates.CurrentPromotionTests.test_validation_failure_has_nonzero_exit) ... ok
+
+----------------------------------------------------------------------
+Ran 18 tests in 0.130s
+
+OK
+# finished_utc: 2026-09-21T10:16:37Z
+# duration_seconds: 0.804
+# returncode: 0

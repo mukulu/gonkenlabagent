@@ -1,0 +1,17 @@
+[RUN] module=tests.unit.test_v09_sht31_diagnostic timeout=15s log=/mnt/data/continuation_source_audit/ci/b7-unit-tail2/tests_unit_test_v09_sht31_diagnostic.log
+[PASS] module=tests.unit.test_v09_sht31_diagnostic seconds=0.8
+[RUN] module=tests.unit.test_v09_target_preflight timeout=15s log=/mnt/data/continuation_source_audit/ci/b7-unit-tail2/tests_unit_test_v09_target_preflight.log
+[PASS] module=tests.unit.test_v09_target_preflight seconds=0.7
+[RUN] module=tests.unit.test_v09_target_probe timeout=15s log=/mnt/data/continuation_source_audit/ci/b7-unit-tail2/tests_unit_test_v09_target_probe.log
+[WAIT] module=tests.unit.test_v09_target_probe elapsed=4.1s tail=test_cli_replay_exit_codes (tests.unit.test_v09_target_probe.TargetProbeTests.test_cli_replay_exit_codes) ... ok | test_cli_replay_exit_codes_for_capability_fixtures (tests.unit.test_v09_target_probe.TargetProbeTests.test_cli_replay_exit_codes_for_capability_fixtures) ... ok
+[PASS] module=tests.unit.test_v09_target_probe seconds=6.2
+[RUN] module=tests.unit.test_v09_user_test_readiness timeout=15s log=/mnt/data/continuation_source_audit/ci/b7-unit-tail2/tests_unit_test_v09_user_test_readiness.log
+[PASS] module=tests.unit.test_v09_user_test_readiness seconds=0.7
+[RUN] module=tests.unit.test_voice_appliance timeout=15s log=/mnt/data/continuation_source_audit/ci/b7-unit-tail2/tests_unit_test_voice_appliance.log
+[PASS] module=tests.unit.test_voice_appliance seconds=0.8
+[RUN] module=tests.unit.test_x4_bluetooth_manager timeout=15s log=/mnt/data/continuation_source_audit/ci/b7-unit-tail2/tests_unit_test_x4_bluetooth_manager.log
+[WAIT] module=tests.unit.test_x4_bluetooth_manager elapsed=4.0s tail=ok | test_pairing_busy_bluetooth_continues_with_deterministic_direct_audio (tests.unit.test_x4_bluetooth_manager.BluetoothManagerTests.test_pairing_busy_bluetooth_continues_with_deterministic_direct_audio) ... [RUNNING] code=BLUETOOTH_PAIR address=41:42:06:42:05:80 name=AIRHUG 01
+[WAIT] module=tests.unit.test_x4_bluetooth_manager elapsed=8.0s tail=ok | test_pairing_busy_bluetooth_continues_with_deterministic_direct_audio (tests.unit.test_x4_bluetooth_manager.BluetoothManagerTests.test_pairing_busy_bluetooth_continues_with_deterministic_direct_audio) ... [RUNNING] code=BLUETOOTH_PAIR address=41:42:06:42:05:80 name=AIRHUG 01
+[WAIT] module=tests.unit.test_x4_bluetooth_manager elapsed=12.1s tail=ok | test_pairing_busy_bluetooth_without_direct_audio_still_fails (tests.unit.test_x4_bluetooth_manager.BluetoothManagerTests.test_pairing_busy_bluetooth_without_direct_audio_still_fails) ... [RUNNING] code=BLUETOOTH_PAIR address=41:42:06:42:05:80 name=AIRHUG 01
+[TIMEOUT] module=tests.unit.test_x4_bluetooth_manager seconds=15.1 log=/mnt/data/continuation_source_audit/ci/b7-unit-tail2/tests_unit_test_x4_bluetooth_manager.log
+[SUMMARY] label=b7-unit-tail2 result=FAIL modules=6 failures=1 manifest=/mnt/data/continuation_source_audit/ci/b7-unit-tail2.json

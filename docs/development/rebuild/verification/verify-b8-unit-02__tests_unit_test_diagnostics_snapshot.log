@@ -1,0 +1,17 @@
+# command: /opt/pyvenv/bin/python -m unittest -v tests.unit.test_diagnostics_snapshot
+# started_utc: 2026-09-21T10:17:05Z
+test_debug_audio_snapshot_includes_bounded_pipewire_route_metadata (tests.unit.test_diagnostics_snapshot.StartupSnapshotTests.test_debug_audio_snapshot_includes_bounded_pipewire_route_metadata) ... ok
+test_environment_diagnostics_are_non_destructive_and_read_only (tests.unit.test_diagnostics_snapshot.StartupSnapshotTests.test_environment_diagnostics_are_non_destructive_and_read_only) ... ok
+test_production_default_keeps_only_latest (tests.unit.test_diagnostics_snapshot.StartupSnapshotTests.test_production_default_keeps_only_latest) ... ok
+test_snapshot_is_content_free_and_bounded (tests.unit.test_diagnostics_snapshot.StartupSnapshotTests.test_snapshot_is_content_free_and_bounded) ... ok
+test_systemctl_preserves_legitimate_nonzero_inactive_and_disabled_states (tests.unit.test_diagnostics_snapshot.StartupSnapshotTests.test_systemctl_preserves_legitimate_nonzero_inactive_and_disabled_states) ... ok
+test_unsafe_snapshot_input_rejected (tests.unit.test_diagnostics_snapshot.StartupSnapshotTests.test_unsafe_snapshot_input_rejected) ... ok
+test_write_latest_and_retained_history_then_prunes (tests.unit.test_diagnostics_snapshot.StartupSnapshotTests.test_write_latest_and_retained_history_then_prunes) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.250s
+
+OK
+# finished_utc: 2026-09-21T10:17:06Z
+# duration_seconds: 0.898
+# returncode: 0

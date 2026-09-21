@@ -1,0 +1,44 @@
+======================================================================
+FAIL: test_boot_process_and_digest_drift_reject_final_ready (tests.unit.test_m3_6_install_summary.InstallSummaryTests.test_boot_process_and_digest_drift_reject_final_ready) (field='process_start_ticks')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/data/gonken_attempt03_continue/tests/unit/test_m3_6_install_summary.py", line 222, in test_boot_process_and_digest_drift_reject_final_ready
+    self.assertFalse(install_summary.build_summary(self.system, COMMIT)['ready'])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_boot_process_and_digest_drift_reject_final_ready (tests.unit.test_m3_6_install_summary.InstallSummaryTests.test_boot_process_and_digest_drift_reject_final_ready) (field='profile')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/data/gonken_attempt03_continue/tests/unit/test_m3_6_install_summary.py", line 222, in test_boot_process_and_digest_drift_reject_final_ready
+    self.assertFalse(install_summary.build_summary(self.system, COMMIT)['ready'])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_newer_waiting_record_rejects_old_success (tests.unit.test_m3_6_install_summary.InstallSummaryTests.test_newer_waiting_record_rejects_old_success)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/data/gonken_attempt03_continue/tests/unit/test_m3_6_install_summary.py", line 230, in test_newer_waiting_record_rejects_old_success
+    self.assertFalse(install_summary.build_summary(self.system, COMMIT)['ready'])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: True is not false
+
+----------------------------------------------------------------------
+Ran 95 tests in 3.994s
+
+FAILED (failures=3)
+[OK] code=RELEASE_ALREADY_VALID commit=cccccccccccccccccccccccccccccccccccccccc
+[OK] code=ACTIVATION_RECONCILED phase=post_verified commit=cccccccccccccccccccccccccccccccccccccccc policy=structural_current_only
+[OK] code=ACTIVATION_RECONCILED phase=post_verified commit=cccccccccccccccccccccccccccccccccccccccc policy=structural_current_only
+[OK] code=ROLLBACK_COMPLETE commit=bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+[OK] code=ACTIVATION_HEALTHY commit=bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+[OK] code=RELEASE_PRUNED commit=2222222222222222222222222222222222222222
+[OK] code=RELEASE_PRUNED commit=3333333333333333333333333333333333333333
+[OK] code=RELEASE_PRUNED commit=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+[OK] code=ACTIVATION_EMPTY
+[OK] code=ACTIVATION_RECONCILED phase=post_verified commit=5555555555555555555555555555555555555555 policy=structural_current_only
+[OK] code=RELEASE_LEGACY_TRANSITION_SOURCE commit=6666666666666666666666666666666666666666 profile=core-pi-trixie-py313 runtime_policy=bounded_cli_smoke
+[OK] code=RELEASE_LEGACY_TRANSITION_SOURCE commit=6666666666666666666666666666666666666666 profile=core-pi-trixie-py313 runtime_policy=bounded_cli_smoke
+[OK] code=ROLLBACK_COMPLETE commit=6666666666666666666666666666666666666666

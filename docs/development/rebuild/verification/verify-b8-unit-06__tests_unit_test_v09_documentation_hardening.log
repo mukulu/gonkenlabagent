@@ -1,0 +1,15 @@
+# command: /opt/pyvenv/bin/python -m unittest -v tests.unit.test_v09_documentation_hardening
+# started_utc: 2026-09-21T10:18:26Z
+test_ci_t0_invokes_v09_documentation_validator (tests.unit.test_v09_documentation_hardening.V09DocumentationHardeningTests.test_ci_t0_invokes_v09_documentation_validator) ... ok
+test_executed_simulation_milestones_have_no_stale_planned_rows (tests.unit.test_v09_documentation_hardening.V09DocumentationHardeningTests.test_executed_simulation_milestones_have_no_stale_planned_rows) ... ok
+test_room_environment_docs_are_user_facing_and_boundary_safe (tests.unit.test_v09_documentation_hardening.V09DocumentationHardeningTests.test_room_environment_docs_are_user_facing_and_boundary_safe) ... ok
+test_v09_documentation_validator_passes (tests.unit.test_v09_documentation_hardening.V09DocumentationHardeningTests.test_v09_documentation_validator_passes) ... ok
+test_wake_default_examples_are_not_stale (tests.unit.test_v09_documentation_hardening.V09DocumentationHardeningTests.test_wake_default_examples_are_not_stale) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 1.667s
+
+OK
+# finished_utc: 2026-09-21T10:18:28Z
+# duration_seconds: 2.282
+# returncode: 0

@@ -1,0 +1,11 @@
+[RUN] module=tests.integration.test_support_collection_process timeout=18s log=/mnt/data/continuation_source_audit/ci/b7-integration-runtime/tests_integration_test_support_collection_process.log
+[PASS] module=tests.integration.test_support_collection_process seconds=3.0
+[RUN] module=tests.integration.test_text_runtime_process timeout=18s log=/mnt/data/continuation_source_audit/ci/b7-integration-runtime/tests_integration_test_text_runtime_process.log
+[WAIT] module=tests.integration.test_text_runtime_process elapsed=4.1s tail=test_works_when_dns_proxy_and_external_connections_forbidden (tests.integration.test_text_runtime_process.LocalNetworkTests.test_works_when_dns_proxy_and_external_connections_forbidden) ... ok | test_build_verify_ask_unknown_doctor_and_no_content_telemetry (tests.integration.test_text_runtime_process.TextCLIProcessTests.test_build_verify_ask_unknown_doctor_and_no_content_telemetry) ... ok
+[PASS] module=tests.integration.test_text_runtime_process seconds=7.8
+[RUN] module=tests.integration.test_v09_environment_voice_transaction timeout=18s log=/mnt/data/continuation_source_audit/ci/b7-integration-runtime/tests_integration_test_v09_environment_voice_transaction.log
+[PASS] module=tests.integration.test_v09_environment_voice_transaction seconds=1.7
+[RUN] module=tests.integration.test_v09_user_test_release_candidate timeout=18s log=/mnt/data/continuation_source_audit/ci/b7-integration-runtime/tests_integration_test_v09_user_test_release_candidate.log
+[WAIT] module=tests.integration.test_v09_user_test_release_candidate elapsed=4.0s tail=no output yet
+[WAIT] module=tests.integration.test_v09_user_test_release_candidate elapsed=8.0s tail=no output yet
+[WAIT] module=tests.integration.test_v09_user_test_release_candidate elapsed=12.1s tail=no output yet
