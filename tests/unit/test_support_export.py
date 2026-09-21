@@ -1,7 +1,7 @@
 import json
 import tempfile
 import unittest
-import zipfile
+import tarfile
 from pathlib import Path
 from unittest.mock import Mock, patch
 from gonken_agent.config import load_config
@@ -21,12 +21,12 @@ class SupportTests(unittest.TestCase):
         self.assertIn('environment', {row['component'] for row in self.health['components']})
     def test_bundle_exact_members_redacted_paths_no_raw_files(self):
         (self.root/'.env').write_text('SECRET=private-token')
-        output=self.root/'support.zip'
+        output=self.root/'support.tar.bz2'
         telemetry=self.root/'telemetry.jsonl';Telemetry(telemetry).append({'status':'DEGRADED'})
         create_bundle(output,self.config,self.health,telemetry)
-        with zipfile.ZipFile(output) as z:
-            self.assertIsNone(z.testzip())
-            self.assertEqual(set(z.namelist()),{
+        with tarfile.open(output, "r:bz2") as z:
+            self.assertTrue(all(member.isfile() for member in z.getmembers()))
+            self.assertEqual(set(z.getnames()),{
                 'collection_errors.json',
                 'component_readiness.json',
                 'configuration.json',
@@ -50,14 +50,14 @@ class SupportTests(unittest.TestCase):
                 'telemetry.json',
                 'tool_broker.json',
             })
-            raw=b''.join(z.read(name) for name in z.namelist())
+            raw=b''.join(z.extractfile(name).read() for name in z.getnames())
         self.assertNotIn(b'private-person',raw);self.assertNotIn(b'private-token',raw)
         self.assertNotIn(str(self.root).encode(),raw)
         self.assertEqual(output.stat().st_mode&0o777,0o600)
-        with zipfile.ZipFile(output) as z:
-            index=json.loads(z.read('evidence_index.json'))
-            target=json.loads(z.read('target_manifest.json'))
-            resources=json.loads(z.read('resource_claims.json'))
+        with tarfile.open(output, "r:bz2") as z:
+            index=json.loads(z.extractfile('evidence_index.json').read())
+            target=json.loads(z.extractfile('target_manifest.json').read())
+            resources=json.loads(z.extractfile('resource_claims.json').read())
         self.assertFalse(resources['physical_acceptance_claimed'])
         self.assertIn('target_manifest.json', {item['path'] for item in index['members']})
         self.assertEqual(target['status'], 'UNAVAILABLE')
@@ -69,19 +69,19 @@ class SupportTests(unittest.TestCase):
             self.assertGreater(member['bytes'], 0)
 
     def test_bundle_preserves_allow_listed_health_reason_codes(self):
-        output=self.root/'support-codes.zip'
+        output=self.root/'support-codes.tar.bz2'
         create_bundle(output,self.config,self.health)
-        with zipfile.ZipFile(output) as z:
-            payload=json.loads(z.read('health.json'))
+        with tarfile.open(output, "r:bz2") as z:
+            payload=json.loads(z.extractfile('health.json').read())
         rows={row['component']:row for row in payload['components']}
         self.assertEqual(rows['environment']['code'], self.health['environment']['code'])
         self.assertRegex(rows['environment']['code'], r'^[A-Z0-9_]+$')
 
     def test_runtime_binding_member_reports_release_interpreter_probe_without_raw_output(self):
-        output=self.root/'support-runtime.zip'
+        output=self.root/'support-runtime.tar.bz2'
         create_bundle(output,self.config,self.health)
-        with zipfile.ZipFile(output) as z:
-            payload=json.loads(z.read('runtime_bindings.json'))
+        with tarfile.open(output, "r:bz2") as z:
+            payload=json.loads(z.extractfile('runtime_bindings.json').read())
         self.assertIn('release', payload)
         self.assertIn('venv', payload)
         self.assertIn('bindings', payload)
@@ -129,10 +129,10 @@ class SupportTests(unittest.TestCase):
             },
             'physical_acceptance_claimed': False,
         }), encoding='utf-8')
-        output=self.root/'support-target.zip'
+        output=self.root/'support-target.tar.bz2'
         create_bundle(output,self.config,self.health,target_manifest=manifest)
-        with zipfile.ZipFile(output) as z:
-            payload=json.loads(z.read('target_manifest.json'))
+        with tarfile.open(output, "r:bz2") as z:
+            payload=json.loads(z.extractfile('target_manifest.json').read())
         self.assertEqual(payload['support_member_status'], 'READY')
         self.assertEqual(payload['raspberry_pi']['model'], 'Raspberry Pi 5 Model B')
         self.assertFalse(payload['physical_acceptance_claimed'])
@@ -148,10 +148,10 @@ class SupportTests(unittest.TestCase):
             },
             'physical_acceptance_claimed': False,
         }), encoding='utf-8')
-        output=self.root/'support-target-bad.zip'
+        output=self.root/'support-target-bad.tar.bz2'
         create_bundle(output,self.config,self.health,target_manifest=manifest)
-        with zipfile.ZipFile(output) as z:
-            payload=json.loads(z.read('target_manifest.json'))
+        with tarfile.open(output, "r:bz2") as z:
+            payload=json.loads(z.extractfile('target_manifest.json').read())
         self.assertEqual(payload['status'], 'INVALID')
         self.assertEqual(payload['detail'], 'target_probe_manifest_privacy_boundary_invalid')
 
@@ -297,11 +297,11 @@ class SupportTests(unittest.TestCase):
 
     def test_content_in_telemetry_rejected_before_output(self):
         telemetry=self.root/'telemetry.jsonl';telemetry.write_text('{"transcript":"secret"}\n')
-        output=self.root/'support.zip'
+        output=self.root/'support.tar.bz2'
         with self.assertRaises(ValueError):create_bundle(output,self.config,self.health,telemetry)
         self.assertFalse(output.exists());self.assertFalse(list(self.root.glob('.support-*')))
     def test_existing_symlink_and_publish_race_preserve_destination(self):
-        output=self.root/'support.zip';output.write_bytes(b'old')
+        output=self.root/'support.tar.bz2';output.write_bytes(b'old')
         with self.assertRaises(ValueError):create_bundle(output,self.config,self.health)
         self.assertEqual(output.read_bytes(),b'old')
         output.unlink();output.symlink_to(self.root/'elsewhere')
@@ -311,21 +311,21 @@ class SupportTests(unittest.TestCase):
             with self.assertRaises(FileExistsError):create_bundle(output,self.config,self.health)
         self.assertFalse(list(self.root.glob('.support-*')))
     def test_extra_health_details_are_not_exported(self):
-        output=self.root/'support.zip';self.health['components'][0]['detail']='secret transcript'
+        output=self.root/'support.tar.bz2';self.health['components'][0]['detail']='secret transcript'
         create_bundle(output,self.config,self.health)
-        with zipfile.ZipFile(output) as z:self.assertNotIn(b'secret',z.read('health.json'))
+        with tarfile.open(output, "r:bz2") as z:self.assertNotIn(b'secret',z.extractfile('health.json').read())
     def test_startup_snapshot_is_allow_listed_member(self):
         from gonken_agent.diagnostics import write_startup_snapshot
         snapshot_dir=self.root/'snapshots'
         snapshot=write_startup_snapshot(self.config.config,directory=snapshot_dir,retain=1)
-        output=self.root/'support.zip'
+        output=self.root/'support.tar.bz2'
         create_bundle(output,self.config,self.health,startup_snapshot=snapshot['latest'])
-        with zipfile.ZipFile(output) as z:
-            self.assertIn('startup_snapshot.json',z.namelist())
-            payload=json.loads(z.read('startup_snapshot.json'))
-            self.assertIn('environment_control.json', z.namelist())
-            self.assertIn('environment_health.json', z.namelist())
-            env=json.loads(z.read('environment_control.json'))
+        with tarfile.open(output, "r:bz2") as z:
+            self.assertIn('startup_snapshot.json',z.getnames())
+            payload=json.loads(z.extractfile('startup_snapshot.json').read())
+            self.assertIn('environment_control.json', z.getnames())
+            self.assertIn('environment_health.json', z.getnames())
+            env=json.loads(z.extractfile('environment_control.json').read())
             self.assertFalse(env['physical_evidence'])
             self.assertFalse(env['capabilities']['software_speed_control'])
             self.assertEqual(payload['schema'],1)

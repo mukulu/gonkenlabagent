@@ -18,7 +18,6 @@ import shutil
 import subprocess
 import tempfile
 import time
-import zipfile
 from pathlib import Path
 
 SAFE_CODE = re.compile(r"^[A-Z0-9_]{1,64}$")
@@ -314,46 +313,36 @@ def service_event_codes(limit: int = 200) -> dict[str, object]:
 
 
 def _current_readiness() -> dict[str, object] | None:
-    path = Path("/run/gonken-agent/readiness.json")
-    try:
-        if path.is_symlink() or not path.is_file() or path.stat().st_size > 8192:
-            return None
-        payload = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, json.JSONDecodeError):
-        return None
-    code = str(payload.get("code", ""))
-    component = str(payload.get("component", ""))
-    status = str(payload.get("status", ""))
-    if payload.get("format") != "gonken-voice-readiness-v1" or status not in {"WAITING", "READY"}:
-        return None
-    if not SAFE_CODE.fullmatch(code) or not re.fullmatch(r"[a-z0-9_.-]{1,64}", component):
-        return None
-    return {
-        "status": status, "code": code, "component": component,
-        "recoverable": bool(payload.get("recoverable")),
-        "release_profile": payload.get("release_profile") if isinstance(payload.get("release_profile"), str) else None,
-        "service_start_ticks": payload.get("service_start_ticks") if isinstance(payload.get("service_start_ticks"), int) else None,
-        "observed_epoch": payload.get("observed_epoch") if isinstance(payload.get("observed_epoch"), int) else None,
-    }
+    # Source and maintenance use the same content-free freshness validator.
+    candidates = [Path(__file__).resolve().with_name("runtime_readiness.py"),
+                  Path(__file__).resolve().parents[1] / "src/gonken_agent/runtime_readiness.py"]
+    for path in candidates:
+        if path.is_file() and not path.is_symlink():
+            spec = importlib.util.spec_from_file_location("gonken_failure_readiness", path)
+            if spec and spec.loader:
+                module = importlib.util.module_from_spec(spec)
+                spec.loader.exec_module(module)
+                return module.read_pending()
+    return None
 
 
 def _collect_support_payloads(staging: Path) -> tuple[dict[str, object], list[dict[str, str]]]:
     collector = CURRENT_MAINTENANCE / "collect-support.sh"
     if not collector.is_file() or collector.is_symlink() or not os.access(collector, os.X_OK):
         return {}, [{"name": "canonical_support", "reason": "collect-support unavailable at current install stage"}]
-    support_zip = staging / "canonical-support.zip"
+    support_archive = staging / "canonical-support.tar.bz2"
     try:
         result = subprocess.run(
-            [str(collector), "--output", str(support_zip)],
+            [str(collector), "--output", str(support_archive)],
             check=False, capture_output=True, text=True, timeout=90,
         )
     except (OSError, subprocess.TimeoutExpired) as exc:
         return {}, [{"name": "canonical_support", "reason": f"collector {type(exc).__name__}"}]
-    if result.returncode != 0 or not support_zip.is_file():
+    if result.returncode != 0 or not support_archive.is_file():
         return {}, [{"name": "canonical_support", "reason": f"collector exit {result.returncode}"}]
     try:
-        return EVIDENCE.read_json_members(support_zip), []
-    except (OSError, ValueError, zipfile.BadZipFile, json.JSONDecodeError) as exc:
+        return EVIDENCE.read_json_members(support_archive), []
+    except (OSError, ValueError, json.JSONDecodeError) as exc:
         return {}, [{"name": "canonical_support", "reason": f"collector archive {type(exc).__name__}"}]
 
 
@@ -447,7 +436,7 @@ def main(argv: list[str] | None = None) -> int:
     print(f"[EVIDENCE] bundle: {bundle}")
     print("[EVIDENCE] kind: combined installer failure + support")
     print(f"[EVIDENCE] installer: exit={args.exit_code}")
-    print("[EVIDENCE] upload this single ZIP for the next build cycle")
+    print("[EVIDENCE] upload this single .tar.bz2 archive for the next build cycle")
     return 0
 
 

@@ -5,7 +5,7 @@
   "blueprint_sha256": "4f932dac8b03ffcef03b7fc77a2f67d99966cab460217c59821f8e1535a5e441",
   "physical_acceptance_claimed": false,
   "package_status": "DEVELOPMENT",
-  "next_action": "Canonical evidence archive migration and bounded regression from recovered B3/B4 source.",
+  "next_action": "Bounded broad regression and dependency-ready installer/model/current-state repairs after B5 evidence transport.",
   "slots": [
     {
       "id": "46.0.1",
@@ -288,7 +288,9 @@
       "source_line": 1856,
       "status": "WIP",
       "evidence": [
-        "docs/development/rebuild/READINESS_CONVERGENCE.md"
+        "docs/development/rebuild/EVIDENCE_TRANSPORT.md",
+        "docs/development/rebuild/READINESS_CONVERGENCE.md",
+        "tests/unit/test_attempt03_evidence_transport.py"
       ]
     },
     {

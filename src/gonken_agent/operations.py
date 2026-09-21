@@ -40,9 +40,12 @@ def add_commands(subparsers):
     dashboard=subparsers.add_parser('dashboard',help='serve read-only loopback diagnostic health')
     config_arguments(dashboard)
     dashboard.add_argument('--index',type=Path,required=True)
-    support=subparsers.add_parser('support',help='create an allow-listed private diagnostic ZIP')
+    support=subparsers.add_parser('support',help='create an allow-listed private diagnostic .tar.bz2 archive')
     config_arguments(support)
-    support.add_argument('--output',type=Path,required=True)
+    destination=support.add_mutually_exclusive_group()
+    destination.add_argument('--output',type=Path)
+    destination.add_argument('--output-dir',type=Path)
+    support.add_argument('--json', action='store_true', help='explicit machine-readable summary')
     support.add_argument('--index',type=Path)
     support.add_argument('--telemetry',type=Path)
     support.add_argument('--startup-snapshot',type=Path)
@@ -203,6 +206,8 @@ def execute(args):
         return service_loop(args)
     if args.command=='support':
         from .support import create_bundle
+        from .evidence import resolve_output_path, return_ownership_to_invoking_user
+        output=resolve_output_path(prefix="gonken-support", output=args.output, output_dir=args.output_dir)
         kw={'cli_overrides':parse_cli_overrides(args.set)}
         if args.no_site:kw['site_path']=None
         elif args.site is not None:kw['site_path']=args.site
@@ -210,7 +215,7 @@ def execute(args):
         ids=[]
         if args.index:ids=[c['id'] for c in load(args.index,corpus)['chunks']]
         result=create_bundle(
-            args.output,
+            output,
             effective_config,
             doctor(config,args.index),
             args.telemetry,
@@ -218,7 +223,12 @@ def execute(args):
             args.startup_snapshot,
             args.target_manifest,
         )
-        print(json.dumps(result,sort_keys=True))
+        return_ownership_to_invoking_user(output)
+        if args.json:
+            print(json.dumps(result,sort_keys=True))
+        else:
+            print("[EVIDENCE] kind: canonical support; archive verified; private content excluded")
+            print(f"[EVIDENCE] bundle: {output}")
         return 0
     if args.command=='index':
         if args.action=='build':

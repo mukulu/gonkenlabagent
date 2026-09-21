@@ -4,7 +4,7 @@ import importlib.util
 import json
 import tempfile
 import unittest
-import zipfile
+import tarfile
 from pathlib import Path
 from unittest.mock import patch
 
@@ -59,12 +59,12 @@ class InstallerFailureBundleTests(unittest.TestCase):
             }):
                 path = bundle.create_bundle(state_dir=state, log_dir=logs, source_record=source, output_dir=output, exit_code=74)
             self.assertEqual(path.stat().st_mode & 0o777, 0o600)
-            with zipfile.ZipFile(path) as zf:
-                names = set(zf.namelist())
-                text = "\n".join(zf.read(name).decode() for name in names)
-                index = json.loads(zf.read("evidence_index.json"))
-                target = json.loads(zf.read("target_manifest.json"))
-                service = json.loads(zf.read("service_events.json"))
+            with tarfile.open(path, "r:bz2") as zf:
+                names = set(zf.getnames())
+                text = "\n".join(zf.extractfile(name).read().decode() for name in names)
+                index = json.loads(zf.extractfile("evidence_index.json").read())
+                target = json.loads(zf.extractfile("target_manifest.json").read())
+                service = json.loads(zf.extractfile("service_events.json").read())
             self.assertIn("installer/failure.json", names)
             self.assertIn("platform_inventory.json", names)
             self.assertIn("target_manifest.json", names)
@@ -108,11 +108,11 @@ class InstallerFailureBundleTests(unittest.TestCase):
                     state_dir=state, log_dir=logs, source_record=source,
                     output_dir=root / "out", exit_code=75,
                 )
-            with zipfile.ZipFile(path) as zf:
-                names = zf.namelist()
-                index = json.loads(zf.read("evidence_index.json"))
-                failure = json.loads(zf.read("installer/failure.json"))
-                source_payload = json.loads(zf.read("installer/source.json"))
+            with tarfile.open(path, "r:bz2") as zf:
+                names = zf.getnames()
+                index = json.loads(zf.extractfile("evidence_index.json").read())
+                failure = json.loads(zf.extractfile("installer/failure.json").read())
+                source_payload = json.loads(zf.extractfile("installer/source.json").read())
             self.assertEqual(names.count("target_manifest.json"), 1)
             self.assertIn("installer/source.json", names)
             self.assertIn("configuration.json", names)

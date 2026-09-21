@@ -1,7 +1,7 @@
 # Raspberry Pi target acceptance campaign
 
 This runbook is the authoritative **real-target** procedure for GonKenLab Agent
-the current V09 comprehensive-closure checkpoint. Host CI, simulation, a clean ZIP, or a READY JSON file cannot
+the current V09 comprehensive-closure checkpoint. Host CI, simulation, a clean archive, or a READY JSON file cannot
 substitute for this campaign. Every result must remain classified as host,
 simulation, hybrid HIL, or physical evidence.
 
@@ -17,17 +17,24 @@ For this campaign, do **not** install remote `main` with the public `curl`
 launcher. Doing so would test whatever remote revision is current rather than
 the checkpoint that passed host verification.
 
-Copy the delivered checkpoint ZIP and its SHA-256 manifest to the Pi. Use the **exact filenames from the delivery message**; do not substitute remote `main`.
+Only a delivery explicitly qualified for target installation may enter this
+campaign. A development recovery bundle is not an installation candidate. Use the
+exact `.tar.bz2` archive, manifest and expected commit from the delivery report;
+do not substitute remote `main`.
 
-Verify the archive, extract it without discarding `.git`, enter the single extracted repository directory, and restore tracked modes/content because Python's ZIP extractor does not preserve Unix executable bits:
+After reviewing the delivered member inventory, extract into a new empty directory
+without discarding `.git` or repairing mismatched contents. Tar preserves tracked
+Unix executable modes. These commands prompt for the actual artifact paths rather
+than assuming a filename or deleting a previous checkout:
 
 ```bash
-sha256sum -c <delivered-sha256-manifest>
-rm -rf ~/gonken-target-checkpoint
-mkdir -p ~/gonken-target-checkpoint
-python3 -m zipfile -e <delivered-checkpoint>.zip ~/gonken-target-checkpoint
-cd ~/gonken-target-checkpoint/<extracted-repository-directory>
-git reset --hard HEAD
+read -r -p 'Qualified checkpoint archive: ' ARCHIVE
+read -r -p 'Delivered SHA-256 manifest: ' MANIFEST
+sha256sum -c "$MANIFEST"
+tar -tjf "$ARCHIVE"
+DEST=$(mktemp -d "$HOME/gonken-target-checkpoint.XXXXXXXX")
+tar --no-same-owner -xjf "$ARCHIVE" -C "$DEST"
+cd "$DEST/gonkenlabagent"
 test -x ./bootstrap.sh
 git rev-parse HEAD
 git status --porcelain
@@ -38,12 +45,12 @@ python3 scripts/release_readiness.py --json --check
 Acceptance conditions before installation:
 
 - checksum verification passes;
-- `git reset --hard HEAD` restores the exact committed modes/content after extraction;
+- tracked content and modes are already correct; no reset/repair was used to conceal transport drift;
 - `./bootstrap.sh` is executable;
 - the Git commit equals the commit printed in the delivery summary;
 - `git status --porcelain` is empty;
 - `git fsck --strict` succeeds;
-- `release_readiness.py --check` reports `READY_FOR_TARGET_ACCEPTANCE` while target-only gates remain open.
+- the delivery qualification explicitly permits target testing. A checker exiting zero means its checks ran successfully, not that all gates passed. Inspect its overall verdict; `NOT_READY` must not be presented as `READY_FOR_TARGET_ACCEPTANCE`.
 
 If any identity/integrity check fails, **STOP**. Do not make an unrecorded in-place edit to force the package through acceptance.
 
@@ -499,7 +506,7 @@ MiB over a representative 30-minute steady run. Wake, STT/TTS and LLM latency
 must be measured on the real Pi rather than inferred from host tests. A threshold
 miss triggers diagnosis; do not weaken the criterion merely to obtain PASS.
 
-## 15. Single support/evidence ZIP to upload
+## 15. Single support/evidence archive to upload
 
 Collect the standard support bundle. From checkpoint 42 onward this is the
 primary target handoff artifact: it includes the ordinary support data plus a
@@ -511,15 +518,15 @@ sudo /usr/local/lib/gonken-agent/current/maintenance/collect-support.sh
 ```
 
 If installation fails before the current release is usable, upload the
-installer-owned failure ZIP printed by the installer instead. It carries the
+installer-owned failure archive printed by the installer instead. It carries the
 same one-upload purpose for early failures: source/install provenance, target
 preflight summaries, platform/resource inventory, bounded event summaries and
 the target manifest when it can be collected.
 
-Upload the ZIP without editing it to make results look cleaner. If a fact is
+Upload the archive without editing it to make results look cleaner. If a fact is
 inherently manual, such as visible fan blade motion, relay indicator behavior,
 sensor placement, wake recognition quality or reboot/no-login observation, add
-short notes beside the ZIP. Do not create a second diagnostic package merely to
+short notes beside the archive. Do not create a second diagnostic package merely to
 carry information that the collector now records automatically.
 
 Raw audio is not required by default. Do not upload credentials, Wi-Fi
@@ -618,7 +625,7 @@ Checkpoint 43 is the first package after the 2026-09-17 target attempt that reac
 
 ### A. Install only the exact qualified archive
 
-Extract the delivered checkpoint-43 ZIP including `.git`, enter its repository root, and verify the documented SHA-256 from the checkpoint report. Use the local-checkpoint route so the target source record is bound to the exact delivered commit:
+Extract the delivered checkpoint-43 archive including `.git`, enter its repository root, and verify the documented SHA-256 from the checkpoint report. Use the local-checkpoint route so the target source record is bound to the exact delivered commit:
 
 If Bluetooth audio is intentionally selected, set the target's configured selector explicitly rather than copying a device identity from another installation:
 
@@ -631,11 +638,11 @@ If Bluetooth is not part of the intended target profile, omit the Bluetooth opti
 
 If the installer intentionally reports `I2C_REBOOT_REQUIRED`, reboot once, return to the same extracted checkpoint and rerun the exact same command. Do not delete install state, immutable releases or model files merely to make the rerun look clean.
 
-### B. Failure handling is one-ZIP-first
+### B. Failure handling is one-archive-first
 
-If any installer step fails, the terminal should print one operator-accessible evidence ZIP. Upload that ZIP first. Do not run `collect-support.sh` a second time unless `evidence_index.json` says canonical support collection was unavailable. The combined archive must identify the current installer failure separately from historical service-code counts.
+If any installer step fails, the terminal should print one operator-accessible evidence archive. Upload that archive first. Do not run `collect-support.sh` a second time unless `evidence_index.json` says canonical support collection was unavailable. The combined archive must identify the current installer failure separately from historical service-code counts.
 
-A failure to create or return an operator-readable ZIP is itself a checkpoint-43 defect; record the terminal output and location/ownership observed.
+A failure to create or return an operator-readable archive is itself a checkpoint-43 defect; record the terminal output and location/ownership observed.
 
 ### C. Required installation-success token
 
@@ -656,7 +663,7 @@ After `INSTALLATION_COMPLETE`:
 3. say `GonKen` and complete at least one wake -> capture -> Whisper -> local Ollama -> Piper -> speaker transaction;
 4. repeat an immediate same-commit installer invocation and confirm it converges without mutating/rebuilding the active immutable release incorrectly;
 5. reboot and repeat the no-login service/voice check before changing the environment profile;
-6. collect a normal support ZIP and retain it as the successful-install target evidence artifact.
+6. collect a normal support archive and retain it as the successful-install target evidence artifact.
 
 ### E. Environment commissioning ladder
 
@@ -671,7 +678,7 @@ For a real SHT31, run the governed targeted diagnostic and record the proven `0x
 
 ### F. Lifecycle acceptance sequence
 
-For the exact checkpoint-43 archive, record separate results for: fresh/dirty-state install convergence; immediate same-commit rerun; reboot/no-login at least three times; USB capture/playback; configured Bluetooth preference plus deterministic direct fallback; wake/listen/STT/model/TTS transaction; SHT31 campaign; relay/fan cycles; MANUAL/SEMI/AUTOMATIC/DISABLED semantics; sensor unplug/recovery; service restart; audio hotplug/re-enumeration; update/rollback/reinstall when a suitable prior/newer governed release is available; and the final support/evidence ZIP privacy/integrity review.
+For the exact checkpoint-43 archive, record separate results for: fresh/dirty-state install convergence; immediate same-commit rerun; reboot/no-login at least three times; USB capture/playback; configured Bluetooth preference plus deterministic direct fallback; wake/listen/STT/model/TTS transaction; SHT31 campaign; relay/fan cycles; MANUAL/SEMI/AUTOMATIC/DISABLED semantics; sensor unplug/recovery; service restart; audio hotplug/re-enumeration; update/rollback/reinstall when a suitable prior/newer governed release is available; and the final support/evidence archive privacy/integrity review.
 
 Host, simulation and target-shadow PASS rows do not close these physical gates.
 
@@ -740,7 +747,7 @@ Do not change the first run to `full-real` merely to make the fan participate. I
 
 ### E. Failure evidence
 
-If any step fails, upload the **single combined evidence ZIP** printed by the installer. Do not manually repair the target and then report only the post-repair state; the failure archive is needed to test whether Checkpoint 44 correctly localized the remaining dependency.
+If any step fails, upload the **single combined evidence archive** printed by the installer. Do not manually repair the target and then report only the post-repair state; the failure archive is needed to test whether Checkpoint 44 correctly localized the remaining dependency.
 
 ## Checkpoint 45 V04 three-model and typed-tool target campaign
 
@@ -809,4 +816,4 @@ sudo reboot
 
 After reboot/no-login convergence, reconnect and verify `gonken-agent components --json` and `gonken-agent llm status --json` still identify the selected admitted model. Switch back to the desired default with `sudo gonken-agent llm switch qwen3:0.6b` after the comparison campaign.
 
-If any installation, model, tool, service or reboot step fails, use the single installer-failure/support ZIP produced by the package. Do not manually toggle GPIO23 during this campaign. Real relay/PENGLIN/ELUTENG actuation begins only at supervised WP-45C.
+If any installation, model, tool, service or reboot step fails, use the single installer-failure/support archive produced by the package. Do not manually toggle GPIO23 during this campaign. Real relay/PENGLIN/ELUTENG actuation begins only at supervised WP-45C.

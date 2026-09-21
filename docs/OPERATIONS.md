@@ -231,27 +231,49 @@ See [BLUETOOTH_AUDIO.md](BLUETOOTH_AUDIO.md) for pairing and profile details.
 
 ## Support bundle
 
-Create the project allow-listed support ZIP:
+Create the project allow-listed `.tar.bz2` support archive:
 
 ```bash
 sudo /usr/local/lib/gonken-agent/current/maintenance/collect-support.sh
 ```
 
-The command prints the resulting ZIP path. When invoked through `sudo` without
-`--output`, the maintenance wrapper now places the bundle in the invoking
+The command prints the resulting archive path. When invoked through `sudo` without
+`--output`, the canonical evidence engine places the bundle in the invoking
 administrator's home directory and returns ownership to that user, so a second
 `sudo mv` step is unnecessary. Normal support export is designed to exclude
 transcripts, prompts, answers, pairing secrets and raw audio. Debug snapshots
 include bounded ALSA and PipeWire/Pulse route metadata so capture-routing failures
 can be diagnosed without storing speech content.
 
-The ZIP also includes a sanitized non-actuating target manifest, platform and
+The archive also includes a sanitized non-actuating target manifest, platform and
 resource inventory, bounded service-event code counts and an evidence index when
 the packaged maintenance helpers are present. When diagnosing an installer
-failure, upload the installer-owned failure ZIP printed by the installer; it is
+failure, upload the installer-owned failure archive printed by the installer; it is
 designed to carry the same one-upload evidence role even before activation.
 Preserve the exact terminal error when convenient, but do not create a second
-diagnostic package for information the ZIP already records.
+diagnostic package for information the archive already records.
+
+### Evidence destination and verification
+
+Both normal support and installer failure now use the same `.tar.bz2` engine.
+JSON remains inside the archive; the default terminal summary is human-readable.
+Historical checkpoint references below preserve their original acceptance scope,
+but do not select a different current evidence format. No additional ZIP is emitted.
+
+```bash
+sudo /usr/local/lib/gonken-agent/current/maintenance/collect-support.sh --output-dir /tmp
+sudo /usr/local/lib/gonken-agent/current/maintenance/collect-support.sh --output "$HOME/gonken-support-review.tar.bz2"
+gonken-agent support --output-dir /tmp --json
+```
+
+The directory must already exist, and an existing output file is never overwritten.
+The file is owner-readable only (`0600`). A validated `sudo` invoking identity
+receives ownership; otherwise the current user owns it. Bare-root collection falls
+back to `/var/lib/gonken-agent/support`. `--output` and `--output-dir` are mutually
+exclusive. Use `--json` only when a machine-readable terminal result is needed.
+Before publishing, the engine reopens the exact compressed bytes and validates
+member names, sizes, hashes and bidirectional index coverage. This verifies
+transport integrity, not the truth of every hardware observation.
 
 ## Updating
 
@@ -454,9 +476,9 @@ First, `systemctl is-active gonken-agent.service` is only a liveness observation
 
 A known non-recoverable dependency may stop early instead of consuming the full readiness timeout. Do not copy/edit files under `/run/gonken-agent` to force READY; rerun the same installer after correcting the stated dependency.
 
-Second, an ordinary failed target installation now produces **one final evidence ZIP**. Installer-specific evidence is namespaced under `installer/`, while the common support members use the same canonical evidence engine as successful-install support collection. The terminal prints the absolute path. By default a sudo-launched install returns the ZIP to the invoking administrator's home and ownership. `--output` and `--output-dir` remain available on the evidence collector paths; `/tmp` may be selected explicitly when disposable post-reboot evidence is preferred.
+Second, an ordinary failed target installation now produces **one final evidence archive**. Installer-specific evidence is namespaced under `installer/`, while the common support members use the same canonical evidence engine as successful-install support collection. The terminal prints the absolute path. By default a sudo-launched install returns the archive to the invoking administrator's home and ownership. `--output` and `--output-dir` remain available on the evidence collector paths; `/tmp` may be selected explicitly when disposable post-reboot evidence is preferred.
 
-After an ordinary installer failure, upload the single printed ZIP. Do **not** run `collect-support.sh` again unless the ZIP/index explicitly says that canonical support collection was unavailable at that install stage. After a successful installation, `collect-support.sh` remains the normal support command.
+After an ordinary installer failure, upload the single printed archive. Do **not** run `collect-support.sh` again unless the archive/index explicitly says that canonical support collection was unavailable at that install stage. After a successful installation, `collect-support.sh` remains the normal support command.
 
 The support bundle records metadata-only service-user audio context and semantic readiness. It does not retain microphone audio, transcripts, prompts, model responses, Wi-Fi credentials or raw journals. Interactive-user audio success is not treated as proof that the `gonken-agent` service identity can capture or play audio.
 
@@ -538,4 +560,4 @@ The voice path uses deterministic local fast paths for current date/time and com
 
 With the recommended `real-sensor-simulated-actuator` profile, fan ON/OFF requests change only the simulated actuator. They do not toggle GPIO23 or establish physical ELUTENG fan motion. Use `gonken-agent env status`, `env read`, and `env watch --once --health` to distinguish real sensor state from simulated actuator state.
 
-A direct `gonken-agent doctor --probe-audio` runs in the invoking operator process. If that direct probe cannot open the audio route while the systemd voice service already has current semantic READY, the doctor output reports the context difference rather than replacing service-runtime truth. Use `gonken-agent components` and the one-ZIP support bundle for the combined view.
+A direct `gonken-agent doctor --probe-audio` runs in the invoking operator process. If that direct probe cannot open the audio route while the systemd voice service already has current semantic READY, the doctor output reports the context difference rather than replacing service-runtime truth. Use `gonken-agent components` and the one-archive support bundle for the combined view.

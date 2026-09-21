@@ -13,10 +13,16 @@ import pwd
 import re
 import tempfile
 import time
-import zipfile
+import io
+import stat
+import tarfile
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Mapping, Sequence
+
+MAX_MEMBER_BYTES = 2 * 1024 * 1024
+MAX_TOTAL_BYTES = 8 * 1024 * 1024
+MAX_MEMBERS = 128
 
 INDEX_FORMAT = "gonken-evidence-bundle-index-v2"
 SAFE_MEMBER = re.compile(r"(?:[A-Za-z0-9_.-]+/)*[A-Za-z0-9_.-]+\.json$")
@@ -53,6 +59,8 @@ def build_index(
     package_commit: str | None = None,
     created_at: str | None = None,
 ) -> dict[str, object]:
+    if bundle_kind not in {"support", "combined_installer_failure_support"}:
+        raise ValueError("unknown evidence bundle kind")
     members = []
     producer_map = producers or {}
     for name in sorted(payloads):
@@ -104,6 +112,8 @@ def write_bundle(
         raise ValueError("evidence output parent must be an existing real directory")
     if output.exists() or output.is_symlink():
         raise ValueError("evidence output must be a new file")
+    if not output.name.endswith(".tar.bz2"):
+        raise ValueError("evidence output must end in .tar.bz2")
     common = dict(payloads)
     if "evidence_index.json" in common:
         raise ValueError("evidence index is canonical-engine owned")
@@ -119,21 +129,35 @@ def write_bundle(
     temporary = Path(name)
     os.close(descriptor)
     try:
-        with zipfile.ZipFile(temporary, "w", compression=zipfile.ZIP_DEFLATED) as archive:
-            for member, payload in sorted(common.items()):
-                entry = zipfile.ZipInfo(member, date_time=(1980, 1, 1, 0, 0, 0))
-                entry.external_attr = 0o100600 << 16
-                entry.compress_type = zipfile.ZIP_DEFLATED
-                archive.writestr(entry, json_bytes(payload))
+        encoded = {member: json_bytes(payload) for member, payload in sorted(common.items())}
+        if len(encoded) > MAX_MEMBERS or any(len(raw) > MAX_MEMBER_BYTES for raw in encoded.values()) or sum(map(len, encoded.values())) > MAX_TOTAL_BYTES:
+            raise ValueError("evidence size limit")
+        with tarfile.open(temporary, "w:bz2", format=tarfile.USTAR_FORMAT) as archive:
+            for member, raw in encoded.items():
+                entry = tarfile.TarInfo(member)
+                entry.mode = 0o600
+                entry.mtime = 0
+                entry.size = len(raw)
+                archive.addfile(entry, io.BytesIO(raw))
+        # Validate the exact bytes before exposing the final path.
+        verify_bundle(temporary)
         os.chmod(temporary, 0o600)
         with temporary.open("rb") as stream:
             os.fsync(stream.fileno())
         os.link(temporary, output, follow_symlinks=False)
         os.chmod(output, 0o600)
+        directory_fd = os.open(output.parent, os.O_RDONLY | os.O_DIRECTORY)
+        try:
+            os.fsync(directory_fd)
+        finally:
+            os.close(directory_fd)
     finally:
         temporary.unlink(missing_ok=True)
     return {
         "status": "CREATED",
+        "archive": str(output),
+        "archive_format": "tar.bz2",
+        "verified": True,
         "bundle_kind": bundle_kind,
         "members": sorted(common),
         "content_logging": False,
@@ -172,18 +196,20 @@ def resolve_output_path(
     output_dir: Path | None = None,
     fallback_dir: Path = Path("/var/lib/gonken-agent/support"),
 ) -> Path:
+    if not re.fullmatch(r"[a-z0-9][a-z0-9-]{0,79}", prefix):
+        raise ValueError("invalid evidence filename prefix")
     if output is not None and output_dir is not None:
         raise ValueError("use either --output or --output-dir, not both")
     if output is not None:
         result = Path(output).absolute()
-        if result.suffix != ".zip":
-            raise ValueError("evidence --output must end in .zip")
+        if not result.name.endswith(".tar.bz2"):
+            raise ValueError("evidence --output must end in .tar.bz2")
         return result
     if output_dir is not None:
         # Explicit destinations are operator-owned policy.  Require the caller
         # to create them first so a sudo invocation cannot silently create a
         # root-only directory inside the caller's home and then strand an
-        # otherwise correctly chowned ZIP beneath it.
+        # otherwise correctly chowned archive beneath it.
         directory = Path(output_dir).absolute()
         if not directory.is_dir() or directory.is_symlink() or directory.resolve() != directory:
             raise ValueError("evidence --output-dir must be an existing real directory")
@@ -199,7 +225,7 @@ def resolve_output_path(
         if not directory.is_dir() or directory.is_symlink() or directory.resolve() != directory:
             raise ValueError("evidence output directory must be an existing real directory")
     stamp = time.strftime("%Y%m%dT%H%M%SZ", time.gmtime())
-    return directory / f"{prefix}-{stamp}-{os.getpid()}.zip"
+    return directory / f"{prefix}-{stamp}-{os.getpid()}.tar.bz2"
 
 
 def return_ownership_to_invoking_user(path: Path) -> bool:
@@ -212,19 +238,86 @@ def return_ownership_to_invoking_user(path: Path) -> bool:
     return True
 
 
-def read_json_members(path: Path, *, max_total_bytes: int = 8 * 1024 * 1024) -> dict[str, object]:
-    result: dict[str, object] = {}
-    total = 0
-    with zipfile.ZipFile(path) as archive:
-        for info in archive.infolist():
-            name = info.filename
-            if name == "evidence_index.json":
-                continue
-            if not SAFE_MEMBER.fullmatch(name) or ".." in Path(name).parts:
-                raise ValueError("unsafe evidence member")
-            total += info.file_size
-            if info.file_size > 2 * 1024 * 1024 or total > max_total_bytes:
-                raise ValueError("evidence member size limit")
-            value = json.loads(archive.read(info).decode("utf-8"))
-            result[name] = value
+def _unique_object(pairs):
+    result = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError("duplicate evidence JSON key")
+        result[key] = value
     return result
+
+
+def _invalid_constant(_value):
+    raise ValueError("non-finite evidence JSON")
+
+
+def _read_archive(path: Path, max_total_bytes: int) -> tuple[dict[str, object], dict[str, bytes]]:
+    payloads: dict[str, object] = {}
+    raw_members: dict[str, bytes] = {}
+    total = 0
+    if type(max_total_bytes) is not int or not 1 <= max_total_bytes <= MAX_TOTAL_BYTES:
+        raise ValueError("invalid evidence byte budget")
+    descriptor = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
+    try:
+        info = os.fstat(descriptor)
+        if not stat.S_ISREG(info.st_mode) or info.st_size > MAX_TOTAL_BYTES * 2:
+            raise ValueError("unsafe evidence archive input")
+        source_file = os.fdopen(descriptor, 'rb')
+        descriptor = None
+        with source_file, tarfile.open(fileobj=source_file, mode="r:bz2") as archive:
+            for info in archive:
+                name = info.name
+                if (name in payloads or not info.isfile() or not SAFE_MEMBER.fullmatch(name)
+                        or ".." in Path(name).parts or info.mode & 0o7000):
+                    raise ValueError("unsafe or duplicate evidence member")
+                total += info.size
+                if (info.size < 0 or info.size > MAX_MEMBER_BYTES or total > max_total_bytes
+                        or len(payloads) >= MAX_MEMBERS):
+                    raise ValueError("evidence member size limit")
+                with archive.extractfile(info) as source:
+                    raw = source.read(MAX_MEMBER_BYTES + 1)
+                if len(raw) != info.size:
+                    raise ValueError("truncated evidence member")
+                value = json.loads(raw, object_pairs_hook=_unique_object, parse_constant=_invalid_constant)
+                payloads[name], raw_members[name] = value, raw
+    except (tarfile.TarError, EOFError, UnicodeError, RecursionError) as exc:
+        raise ValueError("invalid evidence archive") from exc
+    finally:
+        if descriptor is not None:
+            os.close(descriptor)
+    return payloads, raw_members
+
+
+def _validate_index(payloads: dict[str, object], raw_members: dict[str, bytes]) -> dict:
+    index = payloads.get("evidence_index.json")
+    if (not isinstance(index, dict) or index.get("format") != INDEX_FORMAT
+            or type(index.get("schema")) is not int or index.get("schema") != 2
+            or index.get("bundle_kind") not in {"support", "combined_installer_failure_support"}
+            or index.get("content_logging") is not False or index.get("physical_acceptance_claimed") is not False
+            or not isinstance(index.get("members"), list)):
+        raise ValueError("invalid or missing evidence index")
+    seen = set()
+    for row in index['members']:
+        if not isinstance(row, dict) or not isinstance(row.get('path'), str):
+            raise ValueError("invalid evidence index row")
+        name = row['path']
+        if name in seen or name == 'evidence_index.json' or name not in raw_members:
+            raise ValueError("evidence index membership mismatch")
+        seen.add(name)
+        raw = raw_members[name]
+        if type(row.get('bytes')) is not int or row['bytes'] != len(raw) or row.get('sha256') != hashlib.sha256(raw).hexdigest():
+            raise ValueError("evidence integrity mismatch")
+    if seen != set(payloads) - {'evidence_index.json'}:
+        raise ValueError("evidence index membership mismatch")
+    return index
+
+
+def verify_bundle(path: Path, *, max_total_bytes: int = MAX_TOTAL_BYTES) -> dict:
+    payloads, raw_members = _read_archive(Path(path), max_total_bytes)
+    return _validate_index(payloads, raw_members)
+
+
+def read_json_members(path: Path, *, max_total_bytes: int = MAX_TOTAL_BYTES) -> dict[str, object]:
+    payloads, raw_members = _read_archive(Path(path), max_total_bytes)
+    _validate_index(payloads, raw_members)
+    return {name: value for name, value in payloads.items() if name != 'evidence_index.json'}
