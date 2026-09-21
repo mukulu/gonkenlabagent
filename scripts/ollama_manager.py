@@ -29,10 +29,17 @@ import urllib.request
 from pathlib import Path, PurePosixPath
 
 
-SOURCE_ROOT = Path(__file__).resolve().parents[1]
-if str(SOURCE_ROOT / "src") not in sys.path:
+SCRIPT_DIR = Path(__file__).resolve().parent
+SOURCE_ROOT = SCRIPT_DIR.parent
+# Installed maintenance runs under system Python, not the application venv.
+# The builder copies the exact canonical stdlib modules before sealing. Prefer
+# those local copies so an unrelated globally installed package cannot win.
+if (SCRIPT_DIR / "ollama_errors.py").is_file():
+    sys.path.insert(0, str(SCRIPT_DIR))
+    from ollama_errors import BODY_LIMIT, http_metadata
+else:
     sys.path.insert(0, str(SOURCE_ROOT / "src"))
-from gonken_agent.llm.errors import BODY_LIMIT, http_metadata
+    from gonken_agent.llm.errors import BODY_LIMIT, http_metadata
 
 
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")

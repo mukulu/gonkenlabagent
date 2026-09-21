@@ -42,7 +42,7 @@ class InstalledMaintenanceTests(unittest.TestCase):
     def test_sidecars_packaged_from_canonical_sources(self):
         text = (ROOT / "scripts/release_manager.py").read_text()
         for name in SIDECARS:
-            self.assertIn('maintenance / "' + name + '"', text)
+            self.assertTrue('maintenance / "' + name + '"' in text, name + " not packaged")
 
     def test_missing_installed_dependency_is_not_hidden(self):
         (self.maintenance / "ollama_errors.py").unlink()

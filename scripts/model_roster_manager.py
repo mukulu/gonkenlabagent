@@ -25,7 +25,10 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 import ollama_manager as om  # noqa: E402
-from gonken_agent.llm.qualification import RECORD_FORMAT, qualified_rows
+if (SCRIPT_DIR / "model_qualification.py").is_file():
+    from model_qualification import RECORD_FORMAT, qualified_rows
+else:
+    from gonken_agent.llm.qualification import RECORD_FORMAT, qualified_rows
 
 FORMAT = "gonken-ollama-model-roster-v1"
 SELECTION_FORMAT = "gonken-active-model-v1"

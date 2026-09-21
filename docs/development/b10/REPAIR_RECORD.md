@@ -22,3 +22,14 @@ Source: exact B9 a732f0bb1ab0e752a395f5250fa5b792d65ac708. See INPUTS.json for a
 B10A: reproduce/fix installed maintenance imports; B10B: real-profile service/readiness and safe policy convergence; B10C: candidate/precondition and restart lifecycle; B10D: downstream model/voice and evidence repairs found by tests; B10 close: complete affected and full current regression corpus, build/extract exact installation candidate, report unimplemented broader blueprint items separately.
 
 Execution status: IN_PROGRESS. No application or physical acceptance implied.
+
+## B10A outcome
+
+Reproduced before repair: three installed helpers fail with the same missing
+application import. Repair copies exact canonical standard-library error,
+qualification and model-catalog modules into sealed maintenance, with explicit
+installed/source import selection. No global site-packages exposure was added.
+24 focused tests PASS; real release build/activation/immutability test PASS.
+The release builder now performs bounded clean-environment maintenance import
+smokes before activation. Model runtime behavior and real fan operation are not
+established by these checks.

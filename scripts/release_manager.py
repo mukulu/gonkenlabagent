@@ -920,6 +920,34 @@ def smoke_legacy_transition_source(
     return version, status_result.stdout
 
 
+def smoke_installed_maintenance(release: Path) -> None:
+    """Catch checkout-only imports before activation using actual installed paths.
+
+    --help parses nothing and performs no device/service/network operation.
+    A clean cwd/environment prevents source PYTHONPATH from hiding a missing
+    sealed dependency (the B9 target failure). Each process is time bounded.
+    """
+    tools = ("ollama_manager.py", "model_roster_manager.py",
+             "ollama_qualification_matrix.py", "appliance_manager.py",
+             "install_summary.py", "environment_service_manager.py",
+             "environment_profile_manager.py", "environment_readiness.py")
+    environment = {"PATH": "/usr/bin:/bin", "LANG": "C.UTF-8",
+                   "PYTHONDONTWRITEBYTECODE": "1", "PYTHONNOUSERSITE": "1"}
+    for name in tools:
+        try:
+            result = subprocess.run(
+                [sys.executable, "-s", str(release / "maintenance" / name), "--help"],
+                cwd=release, env=environment, capture_output=True, text=True, timeout=10,
+                check=False,
+            )
+        except (OSError, subprocess.TimeoutExpired) as exc:
+            fail("RELEASE_MAINTENANCE_IMPORT", f"{name}: {type(exc).__name__}",
+                 "repair the candidate maintenance dependency closure before activation", 74)
+        if result.returncode != 0 or "usage:" not in result.stdout:
+            fail("RELEASE_MAINTENANCE_IMPORT", f"{name}: exit={result.returncode}",
+                 "repair the candidate maintenance dependency closure before activation", 74)
+
+
 def build_release(
     source_url: str,
     source_ref: str,
@@ -1039,6 +1067,8 @@ def build_release(
             source / "src" / "gonken_agent" / "evidence.py": maintenance / "evidence.py",
             source / "src" / "gonken_agent" / "runtime_readiness.py": maintenance / "runtime_readiness.py",
             source / "src" / "gonken_agent" / "llm" / "qualification.py": maintenance / "model_qualification.py",
+            source / "src" / "gonken_agent" / "llm" / "errors.py": maintenance / "ollama_errors.py",
+            source / "src" / "gonken_agent" / "llm" / "models.py": maintenance / "model_catalog.py",
             source / "scripts" / "bluetooth_manager.py": maintenance / "bluetooth_manager.py",
             source / "scripts" / "appliance_manager.py": maintenance / "appliance_manager.py",
             source / "scripts" / "update_manager.py": maintenance / "update_manager.py",
@@ -1060,6 +1090,7 @@ def build_release(
         for source_path, destination in maintenance_sources.items():
             destination.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(source_path, destination)
+        smoke_installed_maintenance(release)
         for executable in (
             maintenance / "release_manager.py",
             maintenance / "reconcile-release.sh",

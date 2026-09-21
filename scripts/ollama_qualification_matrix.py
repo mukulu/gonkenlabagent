@@ -19,8 +19,12 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import model_roster_manager as roster
 import ollama_manager as om
-from gonken_agent.llm.errors import request_shape
-from gonken_agent.llm.models import admitted_model, roster_tags
+if (Path(__file__).resolve().parent / "ollama_errors.py").is_file():
+    from ollama_errors import request_shape
+    from model_catalog import admitted_model, roster_tags
+else:
+    from gonken_agent.llm.errors import request_shape
+    from gonken_agent.llm.models import admitted_model, roster_tags
 
 CASES = ("plain", "json", "schema", "tools", "schema-tools")
 SCHEMA = {"type": "object", "properties": {"ready": {"type": "boolean"}}, "required": ["ready"], "additionalProperties": False}
