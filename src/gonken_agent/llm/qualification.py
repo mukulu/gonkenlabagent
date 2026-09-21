@@ -11,7 +11,11 @@ def qualified_rows(record: object, inventory: list[dict], *, context_tokens: int
         return {}
     rows = record.get('models')
     if not isinstance(rows, list): return {}
-    installed = {r.get('name'): r.get('digest') for r in inventory if isinstance(r, Mapping)}
+    installed = {}
+    for item in inventory:
+        if not isinstance(item, Mapping) or not isinstance(item.get('name'), str): return {}
+        if item['name'] in installed: return {}
+        installed[item['name']] = item.get('digest')
     result = {}
     seen = set()
     for row in rows:
@@ -20,7 +24,10 @@ def qualified_rows(record: object, inventory: list[dict], *, context_tokens: int
         if tag in seen: return {}
         seen.add(tag)
         if not isinstance(row.get('stages'), list): continue
-        stages = {v.get('stage'): v.get('status') for v in row['stages'] if isinstance(v, Mapping)}
+        stages = {}
+        for v in row['stages']:
+            if not isinstance(v, Mapping) or not isinstance(v.get('stage'), str) or v['stage'] in stages: return {}
+            stages[v['stage']] = v.get('status')
         digest = row.get('digest')
         if (not isinstance(digest, str) or len(digest) != 64 or
                 any(c not in '0123456789abcdef' for c in digest) or

@@ -5,7 +5,7 @@
   "blueprint_sha256": "4f932dac8b03ffcef03b7fc77a2f67d99966cab460217c59821f8e1535a5e441",
   "physical_acceptance_claimed": false,
   "package_status": "DEVELOPMENT",
-  "next_action": "Ollama causal errors and per-model stage evidence",
+  "next_action": "Capability-derived GPIO resources and consumer migration; target model experiments remain separate.",
   "slots": [
     {
       "id": "46.0.1",
@@ -161,35 +161,39 @@
       "id": "46.4.1",
       "title": "Reproduction harness only",
       "source_line": 1804,
-      "status": "NOT_STARTED",
-      "evidence": []
+      "status": "HOST_VERIFIED",
+      "evidence": [
+        "scripts/ollama_qualification_matrix.py",
+        "tests/unit/test_attempt03_model_experiment.py",
+        "docs/development/rebuild/evidence/b2c-final.log"
+      ]
     },
     {
       "id": "46.4.2",
       "title": "Schema matrix",
       "source_line": 1808,
-      "status": "NOT_STARTED",
+      "status": "BLOCKED_TARGET",
       "evidence": []
     },
     {
       "id": "46.4.3",
       "title": "Token/context/output-bound matrix",
       "source_line": 1812,
-      "status": "NOT_STARTED",
+      "status": "BLOCKED_TARGET",
       "evidence": []
     },
     {
       "id": "46.4.4",
       "title": "Runtime-version rollback experiment",
       "source_line": 1816,
-      "status": "NOT_STARTED",
+      "status": "BLOCKED_TARGET",
       "evidence": []
     },
     {
       "id": "46.4.5",
       "title": "Correct-layer repair",
       "source_line": 1820,
-      "status": "NOT_STARTED",
+      "status": "BLOCKED_TARGET",
       "evidence": []
     },
     {

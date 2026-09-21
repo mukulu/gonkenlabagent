@@ -190,12 +190,18 @@ def read_manifest(path: Path, root: Path) -> dict[str, str]:
 
 
 def validate_endpoint(endpoint: str) -> str:
-    parsed = urllib.parse.urlparse(endpoint)
-    if parsed.scheme != "http" or parsed.hostname not in {"127.0.0.1", "localhost", "::1"} or parsed.username or parsed.password or parsed.path not in {"", "/"} or parsed.query or parsed.fragment:
-        fail("OLLAMA_ENDPOINT", "Ollama endpoint must be an unauthenticated loopback HTTP origin", "set the effective endpoint to http://127.0.0.1:11434", 65)
-    if parsed.port is None:
-        fail("OLLAMA_ENDPOINT", "Ollama endpoint must include an explicit port", "set the effective loopback port", 65)
-    return endpoint.rstrip("/")
+    try:
+        parsed = urllib.parse.urlparse(endpoint)
+        port = parsed.port
+    except (TypeError, ValueError):
+        fail("OLLAMA_ENDPOINT", "invalid local API origin", "use an explicit loopback HTTP origin", 65)
+    if (parsed.scheme != "http" or parsed.hostname not in {"127.0.0.1", "localhost", "::1"}
+            or parsed.username or parsed.password or parsed.path not in {"", "/"}
+            or parsed.query or parsed.fragment or port is None or not 1 <= port <= 65535):
+        fail("OLLAMA_ENDPOINT", "Ollama endpoint must be an unauthenticated loopback HTTP origin", "set http://127.0.0.1:11434", 65)
+    # Never use name resolution for the local service, even for localhost.
+    host = "[::1]" if parsed.hostname == "::1" else "127.0.0.1"
+    return f"http://{host}:{port}"
 
 
 def layout(root: Path, version: str) -> dict[str, Path]:
@@ -486,45 +492,86 @@ def install_binary(root: Path, manifest: dict[str, str], zstd: Path) -> None:
     print(f"[OK] code=OLLAMA_BINARY_INSTALLED version={manifest['ollama_version']}")
 
 
-def _api(endpoint: str, path: str, payload: dict[str, object] | None = None, *, stream: bool = False):
+API_RESPONSE_LIMIT = 2 * 1024 * 1024
+API_PATHS = frozenset({"/api/version", "/api/tags", "/api/ps", "/api/show", "/api/chat", "/api/generate", "/api/pull"})
+
+
+class _NoApiRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        raise urllib.error.HTTPError(req.full_url, code, "local API redirect refused", headers, fp)
+
+
+def _open_api(request, timeout: float):
+    # API traffic must never inherit proxy variables or follow a redirect away
+    # from the numeric loopback origin. Artifact download policy is separate.
+    opener = urllib.request.build_opener(urllib.request.ProxyHandler({}), _NoApiRedirect())
+    return opener.open(request, timeout=timeout)
+
+
+def _api(endpoint: str, path: str, payload: dict[str, object] | None = None, *, stream: bool = False, timeout: float = 120):
+    endpoint = validate_endpoint(endpoint)
+    if path not in API_PATHS or isinstance(timeout, bool) or not 0 < timeout <= 120:
+        fail("OLLAMA_API_INPUT", "invalid API path or timeout", "use the governed local API", 64)
+    if stream and path != "/api/pull":
+        fail("OLLAMA_API_INPUT", "streaming is allowed only for model pull", "use bounded non-streaming requests", 64)
     body = json.dumps(payload).encode() if payload is not None else None
+    if body is not None and len(body) > API_RESPONSE_LIMIT:
+        fail("OLLAMA_API_INPUT", "API request is too large", "use bounded request data", 64)
     request = urllib.request.Request(endpoint + path, data=body, headers={"Content-Type": "application/json"} if body is not None else {}, method="POST" if body is not None else "GET")
     try:
-        response = urllib.request.urlopen(request, timeout=120)
+        response = _open_api(request, timeout)
         if stream:
             return response
         with response:
-            return json.load(response)
+            raw = response.read(API_RESPONSE_LIMIT + 1)
+        if len(raw) > API_RESPONSE_LIMIT:
+            fail("OLLAMA_API_RESPONSE_TOO_LARGE", "local API response exceeds the limit", "inspect local model/service metadata", 69)
+        result = json.loads(raw)
+        if not isinstance(result, dict):
+            fail("OLLAMA_API_RESPONSE_INVALID", "local API response is not an object", "inspect local service compatibility", 69)
+        if "error" in result:
+            raise OllamaError("OLLAMA_API_ERROR", "local API returned an error object", "inspect structured diagnostics", 69,
+                              diagnostics=http_metadata(200, path, payload, raw[:BODY_LIMIT + 1]))
+        return result
     except urllib.error.HTTPError as exc:
         try:
-            body = exc.read(BODY_LIMIT + 1)
+            error_body = exc.read(BODY_LIMIT + 1)
         except (OSError, ValueError):
-            body = b""
+            error_body = b""
         finally:
             exc.close()
-        metadata = http_metadata(exc.code, path, payload, body)
+        metadata = http_metadata(exc.code, path, payload, error_body)
         raise OllamaError("OLLAMA_API_HTTP", f"HTTP {exc.code} during local Ollama API request",
                           "inspect the structured roster failure record", 69, diagnostics=metadata) from None
-    except (OSError, urllib.error.URLError, json.JSONDecodeError) as exc:
+    except (OSError, urllib.error.URLError, UnicodeError, json.JSONDecodeError) as exc:
         fail("OLLAMA_API", f"Ollama API request failed: {type(exc).__name__}", "inspect the loopback service and structured diagnostics", 69)
 
 
-def wait_ready(endpoint: str, version: str, attempts: int = 60) -> None:
+def wait_ready(endpoint: str, version: str, attempts: int = 60, *, deadline_seconds: float = 60.0) -> None:
+    if isinstance(attempts, bool) or not 1 <= attempts <= 60 or not 0 < deadline_seconds <= 60:
+        fail("OLLAMA_READINESS_INPUT", "invalid readiness budget", "use attempts<=60 and deadline<=60s", 64)
     maybe_interrupt("service_ready", "before")
-    last = "no response"
+    deadline = time.monotonic() + deadline_seconds
+    last = "NO_RESPONSE"
     for attempt in range(attempts):
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            break
         try:
-            payload = _api(endpoint, "/api/version")
+            payload = _api(endpoint, "/api/version", timeout=min(2.0, remaining))
             if attempt == 0:
                 maybe_interrupt("service_ready", "during")
-            if isinstance(payload, dict) and payload.get("version") == version:
+            if payload.get("version") == version:
                 maybe_interrupt("service_ready", "after")
                 return
-            last = f"unexpected version: {payload!r}"
+            last = "VERSION_MISMATCH"
         except OllamaError as error:
-            last = str(error)
-        time.sleep(0.1 if os.environ.get("GONKEN_ENABLE_TEST_FAILURES") == "1" else 1)
-    fail("OLLAMA_READINESS", f"Ollama did not become ready: {last}", "inspect systemctl status and journalctl -u ollama.service", 69)
+            last = error.code
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            break
+        time.sleep(min(remaining, 0.1 if os.environ.get("GONKEN_ENABLE_TEST_FAILURES") == "1" else 1.0))
+    fail("OLLAMA_READINESS", f"Ollama did not become ready: {last}", "inspect bounded service/version diagnostics", 69)
 
 
 def _render_dropin(template: bytes, endpoint: str, context_tokens: int) -> bytes:
@@ -605,7 +652,9 @@ def pull_model(endpoint: str, model: str) -> int:
     last_percent = -1
     seen_success = False
     try:
-        for index, line in enumerate(response):
+        for index, line in enumerate(iter(lambda: response.readline(65537), b"")):
+            if len(line) > 65536:
+                raise ValueError("pull event exceeds limit")
             if index == 0:
                 maybe_interrupt("model_pull", "during")
             event = json.loads(line)
@@ -622,11 +671,11 @@ def pull_model(endpoint: str, model: str) -> int:
                     last_percent = percent
             status = event.get("status")
             if isinstance(status, str) and status and total == 0:
-                print(f"[RUNNING] code=OLLAMA_MODEL_PULL model={model} status={status.replace(' ', '_')}", flush=True)
+                print(f"[RUNNING] code=OLLAMA_MODEL_PULL model={model} status=IN_PROGRESS", flush=True)
             if status == "success":
                 seen_success = True
     except (OSError, UnicodeError, json.JSONDecodeError, ValueError) as exc:
-        fail("OLLAMA_PULL", f"model pull stream failed: {exc}", "restore connectivity and rerun; Ollama resumes blobs", 69)
+        fail("OLLAMA_PULL", f"model pull stream failed: {type(exc).__name__}", "restore connectivity and rerun; Ollama resumes blobs", 69)
     finally:
         response.close()
     if not seen_success:

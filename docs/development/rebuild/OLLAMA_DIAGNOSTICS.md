@@ -43,3 +43,38 @@ which model is selected or lower its required capabilities.
 Record migration is deliberate: v1 records trigger a fresh qualification pass
 without deleting model files. The install-summary consumer was migrated to v2.
 44 focused and affected tests passed; see `evidence/b2b-qualification-final.log`.
+
+## B2c: bounded maintenance experiment
+
+The installer local API now normalizes localhost to numeric loopback, excludes
+proxy environment variables and redirects, bounds response bytes, and rejects
+HTTP-200 error objects. Service readiness uses one 60-second total deadline and
+at most two seconds per version request, rather than 60 calls of 120 seconds.
+The online pull stream bounds individual metadata lines; it never prints raw
+server error messages. No production runtime/model pins or inference settings
+were changed based on an unsupported diagnosis.
+
+`scripts/ollama_qualification_matrix.py` runs exactly one admitted model/case.
+It is not a normal health probe: first stop voice and other inference consumers
+in a controlled maintenance window. The explicit `--maintenance-confirmed`
+flag is an operator assertion, not independent proof of exclusive access. The
+harness also refuses a nonempty `/api/ps` before starting. Do not run it alongside
+production inference. It does not execute returned tools, alter model selection,
+install models, or make hardware claims. Cases are synthetic comparisons, not
+proof of the unknown target HTTP-500 root cause.
+
+Example from the source checkout, during that maintenance window:
+
+```sh
+PYTHONPATH=src python3 scripts/ollama_qualification_matrix.py \
+  --model qwen3:0.6b --case schema --context 2048 --output-tokens 128 \
+  --timeout 60 --maintenance-confirmed --output "$HOME/ollama-schema-case.json"
+```
+
+Use a new output path per case; existing files are refused. `plain`, `json`,
+`schema`, `tools`, and `schema-tools` are separate runs. Change only one setting
+between comparisons. Token/context variants do not require a runtime upgrade.
+API version, admitted full digest, source hash, request shape, result metadata,
+per-stage timings and separate cleanup failure are retained; generated content
+and prompts are not. Target/version rollback is still a separately governed
+experiment, not automatically performed by this tool.

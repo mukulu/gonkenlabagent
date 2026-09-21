@@ -22,7 +22,7 @@ class ErrorTests(unittest.TestCase):
  def test_unknown_body_not_invented(self): self.assertEqual(http_metadata(500,'/api/chat',{},b'not json')['server_error_class'],'UNCLASSIFIED')
  def test_installer_error_metadata_and_privacy(self):
   e=urllib.error.HTTPError('http://127.0.0.1/api/chat',500,'server',{},io.BytesIO(b'{"error":"out of memory token=SECRET_CANARY"}'))
-  with patch.object(om.urllib.request,'urlopen',side_effect=e):
+  with patch.object(om,'_open_api',side_effect=e):
    with self.assertRaises(om.OllamaError) as raised:om._api('http://127.0.0.1:11434','/api/chat',{'model':'qwen3:0.6b'})
   self.assertEqual(raised.exception.diagnostics['server_error_class'],'OUT_OF_MEMORY'); self.assertNotIn('SECRET_CANARY',str(raised.exception))
  def test_runtime_error_metadata(self):
