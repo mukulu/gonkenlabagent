@@ -1,0 +1,12 @@
+{
+  "schema": "gonken-rebuild-source-v1",
+  "baseline_commit": "6aa60fbc2bda3499400d7a0627a6f2a47840a4a2",
+  "baseline_tree": "7e965c13679004fb1ff0c1554ff02c88205faebd",
+  "source_archive_sha256": "8c1cdb247a36bd9fd0bbb43551d76959b3757a702ff10ccbfcf94d3963d096d4",
+  "blueprint_sha256": "4f932dac8b03ffcef03b7fc77a2f67d99966cab460217c59821f8e1535a5e441",
+  "missing_predecessor_commit": "88d23bf3ebd67679db369c5c3e77f87a8d01b4a4",
+  "continuity": "EXPLICIT_RECONSTRUCTION_NOT_RESTORED",
+  "baseline_t0": "PASS_CURRENT_SESSION",
+  "physical_acceptance": false,
+  "remote_reconciliation": "NOT_VERIFIED"
+}

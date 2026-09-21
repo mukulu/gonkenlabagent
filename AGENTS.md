@@ -22,3 +22,11 @@ Read `docs/development/IMPLEMENTATION_STATUS.md`, `MASTER_BLUEPRINT.md`,
   authorization and evidence. No shell/tool execution may be selected by model output.
 - Portable checkpoints contain committed tracked files and `.git`, preserve executable
   modes, and must pass archive integrity, extracted Git cleanliness and object checks.
+
+## Attempt03 reconstruction continuation
+
+For this explicit reconstruction, also read `docs/development/rebuild/RECOVERY.md`
+and the current `docs/CURRENT_STATE.md` when present. Preserve incomplete changes
+on `dev-unstable/attempt03-rebuild` as clearly labeled WIP commits; test before
+promoting any release candidate. Export/save/retrieve code-bearing snapshots
+regularly. Missing original CP46 commits must not be represented as restored.
