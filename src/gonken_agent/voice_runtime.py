@@ -1534,6 +1534,7 @@ class VoiceAppliance:
             "interaction_mode": self.config.runtime.interaction_mode,
             "audio_backend": probe["audio"]["backend"],
             "model": probe["model"]["model"],
+            "model_digest": probe["model"].get("digest"),
             "release_commit": _runtime_release_commit(),
             "release_profile": _runtime_release_profile(),
             "boot_id": _boot_id(),

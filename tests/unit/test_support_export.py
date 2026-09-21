@@ -43,6 +43,7 @@ class SupportTests(unittest.TestCase):
                 'permissions.json',
                 'platform_inventory.json',
                 'runtime_bindings.json',
+                'resource_claims.json',
                 'service_events.json',
                 'systemd_effective.json',
                 'target_manifest.json',
@@ -56,6 +57,8 @@ class SupportTests(unittest.TestCase):
         with zipfile.ZipFile(output) as z:
             index=json.loads(z.read('evidence_index.json'))
             target=json.loads(z.read('target_manifest.json'))
+            resources=json.loads(z.read('resource_claims.json'))
+        self.assertFalse(resources['physical_acceptance_claimed'])
         self.assertIn('target_manifest.json', {item['path'] for item in index['members']})
         self.assertEqual(target['status'], 'UNAVAILABLE')
         self.assertFalse(index['physical_acceptance_claimed'])
@@ -273,7 +276,8 @@ class SupportTests(unittest.TestCase):
             'evidence_phase.json': {'voice_ready': {'status': 'READY'}},
             'service_events.json': {'units': {'gonken-agent.service': {'codes': {'AUDIO_CAPTURE_FAILED': 2}}}},
             'permissions.json': {'entries': []},
-            'component_readiness.json': {'components': {'room_fan_control': {'simulated': True}}},
+            'component_readiness.json': {'components': {'room_fan_control': {'simulated': True},
+                'temperature_humidity_sensor': {'simulated': False, 'backend': 'sht31'}}},
             'ollama_inventory.json': {'status': 'READY'},
         }
         payload = support._diagnostic_summary(files)

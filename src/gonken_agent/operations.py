@@ -10,6 +10,7 @@ from .health import ComponentHealth, Readiness, summary
 from .retrieval.index import build, load, save, sources
 from .llm.ollama import OllamaClient
 from .llm.models import active_model
+from .runtime_readiness import read_ready
 from .runtime import Coordinator, signal_handlers
 from .text_pipeline import TextPipeline
 from .telemetry import Telemetry
@@ -75,7 +76,7 @@ def effective(args):
 
 def doctor(config,index_path=None,probe_ollama=False,probe_audio=False):
     ready_file=Path('/run/gonken-agent/ready.json')
-    voice_runtime_ready=ready_file.is_file()
+    voice_runtime_ready=read_ready(ready_file) is not None
     rows=[ComponentHealth('config',Readiness.READY,'VALID'), ComponentHealth('privacy',Readiness.READY,'OFFLINE_CONTENT_FREE')]
     whisper_ready=Path(config.paths.whisper_binary).is_file() and Path(config.paths.whisper_model).is_file()
     piper_ready=Path('/usr/local/bin/piper').is_file() and Path(config.paths.piper_voice).is_file()

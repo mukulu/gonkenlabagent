@@ -5,7 +5,7 @@
   "blueprint_sha256": "4f932dac8b03ffcef03b7fc77a2f67d99966cab460217c59821f8e1535a5e441",
   "physical_acceptance_claimed": false,
   "package_status": "DEVELOPMENT",
-  "next_action": "Component freshness/status convergence and canonical evidence archive migration.",
+  "next_action": "Canonical evidence archive migration and bounded regression from recovered B3/B4 source.",
   "slots": [
     {
       "id": "46.0.1",
@@ -249,15 +249,21 @@
       "id": "46.6.1",
       "title": "Component readiness layering",
       "source_line": 1852,
-      "status": "NOT_STARTED",
-      "evidence": []
+      "status": "HOST_VERIFIED",
+      "evidence": [
+        "docs/development/rebuild/READINESS_CONVERGENCE.md",
+        "docs/development/rebuild/evidence/continuation/b4-cascade-final.log"
+      ]
     },
     {
       "id": "46.6.2",
       "title": "Active model/tool qualification coupling",
       "source_line": 1853,
-      "status": "NOT_STARTED",
-      "evidence": []
+      "status": "HOST_VERIFIED",
+      "evidence": [
+        "docs/development/rebuild/READINESS_CONVERGENCE.md",
+        "docs/development/rebuild/evidence/continuation/b4-cascade-final.log"
+      ]
     },
     {
       "id": "46.6.3",
@@ -270,15 +276,20 @@
       "id": "46.6.4",
       "title": "Simulation/real-sensor UX correction",
       "source_line": 1855,
-      "status": "NOT_STARTED",
-      "evidence": []
+      "status": "HOST_VERIFIED",
+      "evidence": [
+        "docs/development/rebuild/READINESS_CONVERGENCE.md",
+        "docs/development/rebuild/evidence/continuation/b4-cascade-final.log"
+      ]
     },
     {
       "id": "46.6.5",
       "title": "Evidence contradiction rules + checkpoint close",
       "source_line": 1856,
-      "status": "NOT_STARTED",
-      "evidence": []
+      "status": "WIP",
+      "evidence": [
+        "docs/development/rebuild/READINESS_CONVERGENCE.md"
+      ]
     },
     {
       "id": "46.7.1",
@@ -1311,8 +1322,11 @@
       "id": "46.6.6",
       "title": "display-preparation read-only status contract",
       "source_line": 298,
-      "status": "NOT_STARTED",
-      "evidence": []
+      "status": "HOST_VERIFIED",
+      "evidence": [
+        "docs/development/rebuild/READINESS_CONVERGENCE.md",
+        "docs/development/rebuild/evidence/continuation/b4-cascade-final.log"
+      ]
     },
     {
       "id": "46.6.7",

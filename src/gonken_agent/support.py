@@ -20,6 +20,7 @@ from .health import COMPONENTS
 from .telemetry import validate_event
 from .diagnostics import load_snapshot, collect_environment_diagnostics
 from .evidence import write_bundle
+from .runtime_readiness import read_ready, read_pending
 from .component_status import collect as collect_component_status
 from .llm.models import active_model, selection_status, roster_manifest
 from .tool_broker import TOOL_NAMES
@@ -504,8 +505,8 @@ def _boot_id() -> str | None:
 
 def _evidence_phase_context(install_events: dict[str, object] | None = None) -> dict[str, object]:
     release = _safe_release_identity()
-    readiness = _bounded_json_file(Path("/run/gonken-agent/readiness.json"), max_bytes=8192)
-    ready = _bounded_json_file(Path("/run/gonken-agent/ready.json"), max_bytes=8192)
+    readiness = read_pending()
+    ready = read_ready()
     install_events = install_events if isinstance(install_events, dict) else {}
     return {
         "status": "READY",
@@ -628,11 +629,17 @@ def _ollama_inventory(config) -> dict[str, object]:
         return {"status": "UNAVAILABLE", "code": type(exc).__name__, "selection": selection_status(config.llm.model), "roster": roster_manifest()}
 
 
-def _tool_broker_health(config) -> dict[str, object]:
+def _tool_broker_health(config, component_evidence: dict | None = None) -> dict[str, object]:
+    # Consume the same component result, not a second unconditional READY rule.
+    evidence = component_evidence if isinstance(component_evidence, dict) else {}
+    components = evidence.get("components", {})
+    broker = components.get("llm_environment_tool_broker", {}) if isinstance(components, dict) else {}
     return {
-        "status": "READY",
-        "code": "TYPED_TOOL_BROKER_READY",
+        "status": broker.get("status", "UNAVAILABLE"),
+        "code": broker.get("code", "ACTIVE_MODEL_TOOLS_NOT_QUALIFIED"),
         "active_model": active_model(config.llm.model),
+        "implementation_available": broker.get("implementation_available", False),
+        "active_model_qualified": broker.get("active_model_qualified", False),
         "tools": sorted(TOOL_NAMES),
         "mutation_policy": "explicit_present_tense_user_authorization_required",
         "raw_shell": False,
@@ -650,6 +657,8 @@ def _diagnostic_summary(files: dict[str, object]) -> dict[str, object]:
     units = service_events.get("units") if isinstance(service_events.get("units"), dict) else {}
     voice_events = units.get("gonken-agent.service") if isinstance(units.get("gonken-agent.service"), dict) else {}
     codes = voice_events.get("codes") if isinstance(voice_events.get("codes"), dict) else {}
+    if ready.get("status") != "READY":
+        findings.append({"code": "VOICE_RUNTIME_NOT_CURRENT", "severity": "warning"})
     if ready.get("status") == "READY" and any(code in codes for code in ("AUDIO_CAPTURE_FAILED", "VOICE_DEPENDENCY_WAIT")):
         findings.append({"code": "VOICE_READY_WITH_RECOVERED_HISTORY", "severity": "info", "current_state": "READY", "history": "recoverable_errors_present", "interpretation": "historical errors do not override current semantic readiness"})
     permissions = files.get("permissions.json") if isinstance(files.get("permissions.json"), dict) else {}
@@ -659,7 +668,8 @@ def _diagnostic_summary(files: dict[str, object]) -> dict[str, object]:
     components = files.get("component_readiness.json") if isinstance(files.get("component_readiness.json"), dict) else {}
     comp = components.get("components") if isinstance(components.get("components"), dict) else {}
     fan = comp.get("room_fan_control") if isinstance(comp.get("room_fan_control"), dict) else {}
-    if fan.get("simulated") is True:
+    sensor = comp.get("temperature_humidity_sensor") if isinstance(comp.get("temperature_humidity_sensor"), dict) else {}
+    if fan.get("simulated") is True and sensor.get("simulated") is False and sensor.get("backend") == "sht31":
         findings.append({"code": "REAL_SENSOR_WITH_SIMULATED_ACTUATOR", "severity": "info", "physical_fan_acceptance": False})
     ollama = files.get("ollama_inventory.json") if isinstance(files.get("ollama_inventory.json"), dict) else {}
     if ollama.get("status") != "READY":
@@ -861,7 +871,7 @@ def create_bundle(
             files[name] = {'status': 'UNAVAILABLE', 'code': code}
             collection_errors.append({'section': name, 'error_type': code})
 
-    collect_optional('component_readiness.json', lambda: collect_component_status(effective_config.config))
+    collect_optional('component_readiness.json', lambda: collect_component_status(effective_config.config, environment_evidence=files['environment_control.json']))
     from .resources import resource_document
     collect_optional('resource_claims.json', lambda: resource_document(effective_config.config))
     collect_optional('evidence_phase.json', lambda: _evidence_phase_context(files.get('install_events.json') if isinstance(files.get('install_events.json'), dict) else None))
@@ -869,7 +879,7 @@ def create_bundle(
     collect_optional('systemd_effective.json', _systemd_effective_state)
     collect_optional('configuration_provenance.json', lambda: _configuration_provenance(effective_config))
     collect_optional('ollama_inventory.json', lambda: _ollama_inventory(effective_config.config))
-    collect_optional('tool_broker.json', lambda: _tool_broker_health(effective_config.config))
+    collect_optional('tool_broker.json', lambda: _tool_broker_health(effective_config.config, files.get('component_readiness.json')))
     files['collection_errors.json'] = {
         'status': 'READY' if not collection_errors else 'DEGRADED',
         'errors': collection_errors,

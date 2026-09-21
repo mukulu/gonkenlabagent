@@ -1,0 +1,63 @@
+[RUNNING] code=APPLIANCE_START service=gonken-agent.service
+[READY] code=APPLIANCE_READY service=gonken-agent.service wake_phrase=GonKen reboot_required=false
+[RUNNING] code=APPLIANCE_START service=gonken-agent.service
+[READY] code=APPLIANCE_READY service=gonken-agent.service wake_phrase=Hey_Gonken reboot_required=false
+[MODEL] model=- stage=INVENTORY
+[MODEL] model=- stage=PREREQUISITES
+[MODEL] model=- stage=INVENTORY_AFTER_PULL
+[MODEL] model=qwen3:0.6b stage=IDENTITY
+[MODEL] model=qwen3:0.6b stage=INFERENCE
+[MODEL] model=qwen3:0.6b stage=TOOLS
+[MODEL] model=qwen3:0.6b stage=UNLOAD
+[MODEL] model=lfm2.5-thinking:1.2b stage=IDENTITY
+[MODEL] model=lfm2.5-thinking:1.2b stage=INFERENCE
+[MODEL] model=lfm2.5-thinking:1.2b stage=TOOLS
+[MODEL] model=lfm2.5-thinking:1.2b stage=UNLOAD
+[MODEL] model=qwen3.5:0.8b stage=IDENTITY
+[MODEL] model=qwen3.5:0.8b stage=INFERENCE
+[MODEL] model=qwen3.5:0.8b stage=TOOLS
+[MODEL] model=qwen3.5:0.8b stage=UNLOAD
+[MODEL] model=- stage=ADMISSION
+[MODEL] model=- stage=INVENTORY
+[MODEL] model=- stage=PREREQUISITES
+[MODEL] model=- stage=PULL:qwen3:0.6b
+[MODEL] model=- stage=PULL:lfm2.5-thinking:1.2b
+[MODEL] model=- stage=PULL:qwen3.5:0.8b
+[MODEL] model=- stage=INVENTORY_AFTER_PULL
+[MODEL] model=qwen3:0.6b stage=IDENTITY
+[MODEL] model=qwen3:0.6b stage=INFERENCE
+[MODEL] model=qwen3:0.6b stage=TOOLS
+[MODEL] model=qwen3:0.6b stage=UNLOAD
+[MODEL] model=lfm2.5-thinking:1.2b stage=IDENTITY
+[MODEL] model=lfm2.5-thinking:1.2b stage=INFERENCE
+[MODEL] model=lfm2.5-thinking:1.2b stage=TOOLS
+[MODEL] model=lfm2.5-thinking:1.2b stage=UNLOAD
+[MODEL] model=qwen3.5:0.8b stage=IDENTITY
+[MODEL] model=qwen3.5:0.8b stage=INFERENCE
+[MODEL] model=qwen3.5:0.8b stage=TOOLS
+[MODEL] model=qwen3.5:0.8b stage=UNLOAD
+[MODEL] model=- stage=ADMISSION
+[OK] code=MODEL_ROSTER_READY models=3 default=qwen3:0.6b active=qwen3:0.6b mode=online
+[MODEL] model=- stage=INVENTORY
+[MODEL] model=- stage=PREREQUISITES
+[MODEL] model=- stage=INVENTORY
+[MODEL] model=- stage=PREREQUISITES
+[MODEL] model=- stage=INVENTORY_AFTER_PULL
+[MODEL] model=qwen3:0.6b stage=IDENTITY
+[MODEL] model=qwen3:0.6b stage=INFERENCE
+[MODEL] model=qwen3:0.6b stage=TOOLS
+[MODEL] model=qwen3:0.6b stage=UNLOAD
+[MODEL] model=lfm2.5-thinking:1.2b stage=IDENTITY
+[MODEL] model=lfm2.5-thinking:1.2b stage=INFERENCE
+[MODEL] model=lfm2.5-thinking:1.2b stage=TOOLS
+[MODEL] model=lfm2.5-thinking:1.2b stage=UNLOAD
+[MODEL] model=qwen3.5:0.8b stage=IDENTITY
+[MODEL] model=qwen3.5:0.8b stage=INFERENCE
+[MODEL] model=qwen3.5:0.8b stage=TOOLS
+[MODEL] model=qwen3.5:0.8b stage=UNLOAD
+[MODEL] model=- stage=ADMISSION
+----------------------------------------------------------------------
+Ran 88 tests in 6.417s
+
+OK
+[OK] code=MODEL_ROSTER_READY models=3 default=qwen3:0.6b active=qwen3.5:0.8b mode=online

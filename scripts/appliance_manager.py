@@ -11,6 +11,17 @@ import sys
 import time
 from pathlib import Path
 
+# Source checkout and sealed standalone maintenance both consume the same module.
+_source = Path(__file__).resolve().parents[1] / "src"
+if _source.is_dir():
+    sys.path.insert(0, str(_source))
+try:
+    from gonken_agent import runtime_readiness as rr
+except ModuleNotFoundError as exc:
+    if exc.name not in {"gonken_agent", "gonken_agent.runtime_readiness"}:
+        raise
+    import runtime_readiness as rr
+
 SERVICE = "gonken-agent.service"
 READY_FILE = Path("/run/gonken-agent/ready.json")
 READINESS_FILE = Path("/run/gonken-agent/readiness.json")
@@ -47,118 +58,41 @@ def systemctl(*args: str, check: bool = True) -> subprocess.CompletedProcess[str
 
 
 def current_release_directory() -> Path | None:
-    if not CURRENT_LINK.is_symlink():
-        return None
-    try:
-        resolved = CURRENT_LINK.resolve(strict=True)
-    except OSError:
-        return None
-    if resolved.parent.name != "releases" or not COMMIT_RE.fullmatch(resolved.name):
-        return None
-    return resolved
+    commit, _profile = rr.current_release_identity(CURRENT_LINK)
+    return CURRENT_LINK.parent / "releases" / commit if commit else None
 
 
 def current_release_commit() -> str | None:
-    release = current_release_directory()
-    return release.name if release is not None else None
+    return rr.current_release_identity(CURRENT_LINK)[0]
 
 
 def current_release_profile() -> str | None:
-    release = current_release_directory()
-    if release is None:
-        return None
-    record = release / "release.record"
-    try:
-        if not record.is_file() or record.is_symlink() or record.stat().st_size > 16384:
-            return None
-        for line in record.read_text(encoding="utf-8").splitlines():
-            key, separator, value = line.partition("=")
-            if separator and key == "profile" and re.fullmatch(r"[a-z0-9][a-z0-9_.-]{0,63}", value):
-                return value
-    except (OSError, UnicodeError):
-        return None
-    return None
+    return rr.current_release_identity(CURRENT_LINK)[1]
 
 
 def process_start_ticks(pid: int) -> int | None:
-    try:
-        text = Path(f"/proc/{pid}/stat").read_text(encoding="ascii")
-        closing = text.rfind(")")
-        fields = text[closing + 2 :].split() if closing >= 0 else []
-        value = int(fields[19])
-    except (OSError, UnicodeError, ValueError, IndexError):
-        return None
-    return value if value > 0 else None
+    return rr.process_start_ticks(pid)
 
 
 def current_boot_id() -> str | None:
-    try:
-        value = BOOT_ID_FILE.read_text(encoding="ascii").strip().casefold()
-    except (OSError, UnicodeError):
-        return None
-    return value if re.fullmatch(r"[0-9a-f-]{36}", value) else None
+    return rr.current_boot_id(BOOT_ID_FILE)
+
+
+def _binding() -> rr.Binding:
+    return rr.Binding(current_release_commit(), current_release_profile(), current_boot_id())
 
 
 def _read_state(path: Path, *, expected_status: str | None = None) -> dict[str, object] | None:
-    try:
-        if not path.is_file() or path.is_symlink() or path.stat().st_size > 8192:
-            return None
-        value = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, ValueError, json.JSONDecodeError):
-        return None
-    if not isinstance(value, dict):
-        return None
-    if expected_status is not None and value.get("status") != expected_status:
-        return None
-    current = current_release_commit()
-    recorded = value.get("release_commit")
-    if current is not None and recorded != current:
-        return None
-    recorded_profile = value.get("release_profile")
-    if not isinstance(recorded_profile, str) or not re.fullmatch(r"[a-z0-9][a-z0-9_.-]{0,63}", recorded_profile):
-        return None
-    current_profile = current_release_profile()
-    if current is not None and (current_profile is None or recorded_profile != current_profile):
-        return None
-    boot = current_boot_id()
-    if boot is not None and value.get("boot_id") != boot:
-        return None
-    pid = value.get("service_pid")
-    if not isinstance(pid, int) or pid <= 1 or not Path(f"/proc/{pid}").exists():
-        return None
-    recorded_start = value.get("service_start_ticks")
-    if not isinstance(recorded_start, int) or recorded_start <= 0 or process_start_ticks(pid) != recorded_start:
-        return None
-    observed = value.get("observed_epoch")
-    if not isinstance(observed, int) or observed <= 0:
-        return None
-    return value
+    value = rr.validate_record(rr.bounded_json(path), _binding(), start_ticks=process_start_ticks)
+    return value if value and (expected_status is None or value['status'] == expected_status) else None
 
 
 def read_ready() -> dict[str, object] | None:
-    value = _read_state(READY_FILE, expected_status="READY")
-    if value is None or value.get("code") != "VOICE_RUNTIME_READY":
-        return None
-    if not isinstance(value.get("wake_phrase"), str) or not value["wake_phrase"].strip():
-        return None
-    return value
+    return rr.read_ready(READY_FILE, binding=_binding(), pending_path=READINESS_FILE)
 
 
 def read_readiness() -> dict[str, object] | None:
-    value = _read_state(READINESS_FILE)
-    if value is None or value.get("format") != "gonken-voice-readiness-v1":
-        return None
-    if value.get("status") not in {"WAITING", "READY"}:
-        return None
-    code = value.get("code")
-    component = value.get("component")
-    if not isinstance(code, str) or not re.fullmatch(r"[A-Z0-9_]{3,64}", code):
-        return None
-    if not isinstance(component, str) or not re.fullmatch(r"[a-z0-9_.-]{1,64}", component):
-        return None
-    if not isinstance(value.get("recoverable"), bool):
-        return None
-    return value
+    return rr.read_pending(READINESS_FILE, binding=_binding())
 
 
 def bounded_failure() -> str:

@@ -43,7 +43,8 @@ class LlmAdminComponentTests(unittest.TestCase):
                     "simulation": {"sensor_is_simulated": False, "actuator_is_simulated": True, "evidence_mode": "TARGET_HYBRID_ACTUATOR_SIMULATED"},
                 },
             }
-            with mock.patch("gonken_agent.component_status.collect_environment_diagnostics", return_value=diagnostics):
+            with mock.patch("gonken_agent.component_status.collect_environment_diagnostics", return_value=diagnostics), \
+                 mock.patch("gonken_agent.component_status.read_ready", return_value=json.loads(ready.read_text())):
                 payload = collect(self.config, ready_file=ready)
         components = payload["components"]
         self.assertEqual(components["voice_conversation"]["status"], "READY")
@@ -52,7 +53,8 @@ class LlmAdminComponentTests(unittest.TestCase):
         self.assertEqual(components["room_fan_control"]["backend"], "simulated")
         self.assertTrue(components["room_fan_control"]["simulated"])
         self.assertFalse(components["room_fan_control"]["physical_motion_observed"])
-        self.assertEqual(components["llm_environment_tool_broker"]["status"], "READY")
+        self.assertEqual(components["llm_environment_tool_broker"]["status"], "DEGRADED")
+        self.assertTrue(components["llm_environment_tool_broker"]["implementation_available"])
         self.assertFalse(payload["physical_acceptance_claimed"])
 
     def test_inventory_without_qualification_is_degraded(self):

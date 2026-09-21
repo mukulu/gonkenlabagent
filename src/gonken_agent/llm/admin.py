@@ -21,6 +21,7 @@ from .models import (
 )
 from .ollama import OllamaClient, OllamaError
 from .qualification import qualified_rows
+from ..runtime_readiness import read_ready
 from ..tool_broker import TOOL_SCHEMAS, parse_tool_call, ToolBrokerError
 
 ROSTER_RECORD_PATH = Path("/var/lib/gonken-agent/ollama/roster.json")
@@ -300,8 +301,8 @@ def benchmark(config, model: str, iterations: int = 3, *, thinking: bool = False
 
 
 def _ready_model(path: Path, model: str) -> bool:
-    value = _bounded_json(path, 8192)
-    return bool(value and value.get("status") == "READY" and value.get("code") == "VOICE_RUNTIME_READY" and value.get("model") == model)
+    value = read_ready(path)
+    return bool(value and value.get("model") == model)
 
 
 def _restart_and_wait(model: str, *, ready_file: Path = READY_FILE, timeout_seconds: int = 120) -> None:

@@ -29,14 +29,15 @@ class ApplianceManagerTests(unittest.TestCase):
             payload = {
                 "status": "READY", "code": "VOICE_RUNTIME_READY",
                 "wake_phrase": "Hey Gonken", "audio_backend": "alsa-usb",
-                "model": "qwen3.5:2b-q4_K_M", "release_commit": "fixture",
+                "model": "qwen3.5:2b-q4_K_M", "release_commit": "a" * 40,
                 "release_profile": "development",
                 "boot_id": module.current_boot_id(), "service_pid": __import__("os").getpid(),
                 "service_start_ticks": module.process_start_ticks(__import__("os").getpid()),
                 "observed_epoch": 1,
             }
             path.write_text(__import__("json").dumps(payload) + "\n", encoding="utf-8")
-            with mock.patch.object(module, "current_release_commit", return_value=None):
+            with mock.patch.object(module, "current_release_commit", return_value="a" * 40), \
+                 mock.patch.object(module, "current_release_profile", return_value="development"):
                 self.assertEqual(module.read_ready()["wake_phrase"], "Hey Gonken")
             path.write_text('{"status":"READY","code":"OTHER","wake_phrase":"Hey Gonken"}\n')
             self.assertIsNone(module.read_ready())
@@ -88,19 +89,21 @@ class ApplianceManagerTests(unittest.TestCase):
             payload = {
                 "format": "gonken-voice-readiness-v1", "status": "WAITING",
                 "code": "AUDIO_CAPTURE_FAILED", "component": "audio_capture",
-                "recoverable": True, "release_commit": "development", "release_profile": "development",
+                "recoverable": True, "release_commit": "a" * 40, "release_profile": "development",
                 "boot_id": module.current_boot_id(), "service_pid": __import__("os").getpid(),
                 "service_start_ticks": module.process_start_ticks(__import__("os").getpid()),
                 "observed_epoch": 1,
             }
             path.write_text(__import__("json").dumps(payload) + "\n", encoding="utf-8")
-            with mock.patch.object(module, "current_release_commit", return_value=None):
+            with mock.patch.object(module, "current_release_commit", return_value="a" * 40), \
+                 mock.patch.object(module, "current_release_profile", return_value="development"):
                 value = module.read_readiness()
             self.assertEqual(value["component"], "audio_capture")
             self.assertEqual(value["code"], "AUDIO_CAPTURE_FAILED")
             payload["service_pid"] = 99999999
             path.write_text(__import__("json").dumps(payload) + "\n", encoding="utf-8")
-            with mock.patch.object(module, "current_release_commit", return_value=None):
+            with mock.patch.object(module, "current_release_commit", return_value="a" * 40), \
+                 mock.patch.object(module, "current_release_profile", return_value="development"):
                 self.assertIsNone(module.read_readiness())
 
     def test_status_requires_enabled_active_and_runtime_ready_independently(self) -> None:
