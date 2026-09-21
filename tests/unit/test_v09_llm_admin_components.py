@@ -55,7 +55,7 @@ class LlmAdminComponentTests(unittest.TestCase):
         self.assertEqual(components["llm_environment_tool_broker"]["status"], "READY")
         self.assertFalse(payload["physical_acceptance_claimed"])
 
-    def test_status_reports_governed_roster_and_inventory(self):
+    def test_inventory_without_qualification_is_degraded(self):
         with tempfile.TemporaryDirectory() as temporary:
             selection = Path(temporary) / "active-model.json"
             write_selection("qwen3:0.6b", path=selection, previous_model="qwen3.5:2b-q4_K_M")
@@ -65,7 +65,8 @@ class LlmAdminComponentTests(unittest.TestCase):
                  mock.patch("gonken_agent.llm.admin._loaded_models", return_value=["qwen3:0.6b"]):
                 selection_status_mock.return_value = {"status": "READY", "model": "qwen3:0.6b", "generation": 1, "governed_roster_active": True}
                 payload = admin.status(self.config)
-        self.assertEqual(payload["status"], "READY")
+        self.assertEqual(payload["status"], "DEGRADED")
+        self.assertEqual(payload["collection_status"], "READY")
         self.assertEqual(len(payload["roster"]), 3)
         self.assertEqual(sum(1 for row in payload["roster"] if row["selected"]), 1)
 

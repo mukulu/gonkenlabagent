@@ -9,6 +9,8 @@ keep all three resident on a 4GB Pi.
 from __future__ import annotations
 
 import argparse
+import hashlib
+import uuid
 import json
 import os
 import shutil
@@ -23,9 +25,9 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 import ollama_manager as om  # noqa: E402
+from gonken_agent.llm.qualification import RECORD_FORMAT, qualified_rows
 
 FORMAT = "gonken-ollama-model-roster-v1"
-RECORD_FORMAT = "gonken-ollama-roster-record-v1"
 SELECTION_FORMAT = "gonken-active-model-v1"
 REQUIRED_MODEL_FIELDS = {
     "tag", "digest_prefix", "quantization", "parameter_size", "display_size_mib",
@@ -128,7 +130,9 @@ def _tool_smoke(endpoint: str, model: str, context_tokens: int) -> dict[str, int
     if not isinstance(calls, list) or len(calls) != 1:
         return {"status": "FAILED", "total_ns": int(payload.get("total_duration", 0)) if isinstance(payload, dict) else 0}
     function = calls[0].get("function") if isinstance(calls[0], dict) else None
-    if not isinstance(function, dict) or function.get("name") != "readiness_probe":
+    if (not isinstance(function, dict) or function.get("name") != "readiness_probe"
+            or function.get("arguments") != {} or payload.get("done") is not True
+            or payload.get("model") != model):
         return {"status": "FAILED", "total_ns": int(payload.get("total_duration", 0)) if isinstance(payload, dict) else 0}
     return {"status": "PASS", "total_ns": int(payload.get("total_duration", 0))}
 
@@ -185,6 +189,17 @@ def _write_selection(root: Path, model: str, previous: str | None) -> dict[str, 
     return payload
 
 
+def _roster_fingerprint(roster: Mapping[str, Any]) -> str:
+    return hashlib.sha256(json.dumps(dict(roster), sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+
+
+def _record_error(exc: Exception) -> dict[str, object]:
+    # Messages can contain arbitrary server text. Preserve codes and already
+    # allowlisted structured diagnostics only, never exception strings.
+    return {"code": getattr(exc, "code", type(exc).__name__),
+            "diagnostics": getattr(exc, "diagnostics", {}), "content_logged": False}
+
+
 def status(root: Path, roster: Mapping[str, Any], endpoint: str, *, require_default: bool = False) -> dict[str, Any]:
     models = _tags(endpoint)
     observed = []
@@ -201,81 +216,128 @@ def status(root: Path, roster: Mapping[str, Any], endpoint: str, *, require_defa
         _fail("MODEL_SELECTION_DEFAULT", "active model is not the V04 default", 1)
     record = _read_json(_record_path(root))
     if not record or record.get("format") != RECORD_FORMAT or record.get("status") != "READY":
-        _fail("MODEL_ROSTER_RECORD", "validated model roster record is missing", 1)
+        _fail("MODEL_ROSTER_RECORD", "current qualification record is missing or failed; rerun provisioning", 1)
+    if record.get("roster_sha256") != _roster_fingerprint(roster):
+        _fail("MODEL_ROSTER_RECORD_STALE", "qualification belongs to another roster", 1)
+    qualified = qualified_rows(record, models)
+    if any(item["tag"] not in qualified for item in observed):
+        _fail("MODEL_ROSTER_RECORD_STALE", "model bytes lack completed matching qualification", 1)
+    if not qualified.get(selection["model"], {}).get("tools"):
+        _fail("MODEL_SELECTED_TOOL_SMOKE", "selected model has no passing tool qualification", 1)
     return {"status": "READY", "models": observed, "selection": selection, "record": record}
 
 
 def provision(root: Path, roster: Mapping[str, Any], endpoint: str, context_tokens: int, mode: str) -> dict[str, Any]:
     if mode not in {"online", "preseeded-offline"}:
         _fail("MODEL_ROSTER_MODE", "invalid provisioning mode", 64)
+    previous = _read_json(_record_path(root))
+    record: dict[str, Any] = {
+        "format": RECORD_FORMAT, "status": "QUALIFYING", "attempt_id": uuid.uuid4().hex,
+        "started_epoch": int(time.time()), "roster_sha256": _roster_fingerprint(roster),
+        "provision_mode": mode, "default_model": roster["default_model"],
+        "context_tokens": context_tokens, "max_loaded_models": 1, "num_parallel": 1,
+        "models": [], "stages": [], "current_failure": None,
+        "previous_attempt_status": ("INTERRUPTED" if previous and previous.get("status") == "QUALIFYING" else previous.get("status") if previous else None),
+        "physical_acceptance_claimed": False, "content_logged": False,
+    }
+    def persist():
+        _atomic_json(_record_path(root), record, 0o644)
+    def stage(owner: dict, name: str, action):
+        event = {"stage": name, "status": "RUNNING", "started_epoch": int(time.time())}
+        owner.setdefault("stages", []).append(event)
+        record["current_stage"] = {"model": owner.get("tag"), "stage": name}
+        persist()
+        start = time.monotonic_ns()
+        print(f"[MODEL] model={owner.get('tag', '-')} stage={name}", flush=True)
+        try:
+            value = action()
+        except (om.OllamaError, RosterError, OSError, ValueError) as exc:
+            event.update(status="FAIL", wall_ns=time.monotonic_ns()-start, error=_record_error(exc))
+            if record["current_failure"] is None:
+                record["current_failure"] = {"model": owner.get("tag"), "stage": name, **_record_error(exc)}
+            record["status"] = "FAIL"
+            persist()
+            raise
+        event.update(status="PASS", wall_ns=time.monotonic_ns()-start)
+        persist()
+        return value
+    persist()  # invalidate any prior READY before the first new attempt
     model_store = _mapped(root, "/var/lib/ollama/models")
-    state_dir = _record_path(root).parent
     model_store.mkdir(parents=True, exist_ok=True)
-    state_dir.mkdir(parents=True, exist_ok=True)
-    models = _tags(endpoint)
+    models = stage(record, "INVENTORY", lambda: _tags(endpoint))
     missing = [spec for spec in roster["models"] if _model_item(models, spec) is None]
     required = sum(int(spec["display_size_mib"]) for spec in missing) * 1024 * 1024 + 512 * 1024 * 1024
-    free = shutil.disk_usage(model_store).free
-    if missing and free < required and root == Path("/"):
-        _fail("MODEL_ROSTER_SPACE", f"insufficient free model storage: need {required} bytes, have {free}", 78)
-    if missing and mode == "preseeded-offline":
-        _fail("MODEL_ROSTER_OFFLINE_MISSING", "preseeded-offline mode requires every roster model already present", 78)
+    def prerequisites():
+        if missing and shutil.disk_usage(model_store).free < required and root == Path("/"):
+            _fail("MODEL_ROSTER_SPACE", "insufficient free model storage", 78)
+        if missing and mode == "preseeded-offline":
+            _fail("MODEL_ROSTER_OFFLINE_MISSING", "preseeded-offline mode requires every roster model already present", 78)
+    stage(record, "PREREQUISITES", prerequisites)
     pull_bytes: dict[str, int] = {}
     for spec in missing:
-        pull_bytes[str(spec["tag"])] = om.pull_model(endpoint, str(spec["tag"]))
-    models = _tags(endpoint)
-    rows = []
+        pull_bytes[str(spec["tag"])] = stage(record, "PULL:" + str(spec["tag"]), lambda spec=spec: om.pull_model(endpoint, str(spec["tag"])))
+    models = stage(record, "INVENTORY_AFTER_PULL", lambda: _tags(endpoint))
     for spec in roster["models"]:
-        item = _model_item(models, spec)
-        if item is None:
-            _fail("MODEL_ROSTER_MISSING", f"model absent after provisioning: {spec['tag']}", 69)
-        inference = om.smoke_model(endpoint, str(spec["tag"]), context_tokens)
-        capability = _tool_smoke(endpoint, str(spec["tag"]), context_tokens)
-        rows.append({
-            "tag": spec["tag"],
-            "digest": item["digest"],
-            "digest_prefix": spec["digest_prefix"],
-            "quantization": spec["quantization"],
-            "role": spec["role"],
-            "catalog_tools": bool(spec["tools"]),
-            "catalog_thinking": bool(spec["thinking"]),
-            "tool_call_smoke": capability["status"],
-            "inference_total_ns": int(inference.get("total_ns", 0)),
-            "tool_total_ns": int(capability.get("total_ns", 0)),
-            "pull_total_bytes": int(pull_bytes.get(str(spec["tag"]), 0)),
-        })
+        row: dict[str, Any] = {"tag": spec["tag"], "digest_prefix": spec["digest_prefix"],
+            "quantization": spec["quantization"], "role": spec["role"],
+            "catalog_tools": bool(spec["tools"]), "catalog_thinking": bool(spec["thinking"]),
+            "tool_call_smoke": "NOT_TESTED", "inference_status": "NOT_TESTED",
+            "pull_total_bytes": int(pull_bytes.get(str(spec["tag"]), 0)), "stages": []}
+        record["models"].append(row); persist()
+        problem = None
+        try:
+            def identity():
+                item = _model_item(models, spec)
+                if item is None:
+                    _fail("MODEL_ROSTER_MISSING", "model absent after provisioning", 69)
+                return item
+            item = stage(row, "IDENTITY", identity)
+            row["digest"] = item["digest"]
+            inference = stage(row, "INFERENCE", lambda: om.smoke_model(endpoint, str(spec["tag"]), context_tokens))
+            row.update(inference_status="PASS", inference_total_ns=int(inference.get("total_ns", 0)))
+            persist()
+            capability = stage(row, "TOOLS", lambda: _tool_smoke(endpoint, str(spec["tag"]), context_tokens))
+            row.update(tool_call_smoke=capability["status"], tool_total_ns=int(capability.get("total_ns", 0)))
+            if capability["status"] != "PASS":
+                row["stages"][-1]["status"] = "FAIL"
+            persist()
+        except (om.OllamaError, RosterError, OSError, ValueError) as exc:
+            problem = exc
+        finally:
+            def unload():
+                result = om._api(endpoint, "/api/chat", {"model": str(spec["tag"]), "messages": [], "stream": False, "keep_alive": 0})
+                if not isinstance(result, dict) or result.get("done") is not True:
+                    _fail("MODEL_UNLOAD_UNCONFIRMED", "unload transaction did not finish", 69)
+                loaded = om._api(endpoint, "/api/ps")
+                if not isinstance(loaded, dict) or not isinstance(loaded.get("models"), list) or loaded["models"]:
+                    _fail("MODEL_UNLOAD_UNCONFIRMED", "model still resident or loaded-model inventory unavailable", 69)
+            try:
+                stage(row, "UNLOAD", unload)
+            except (om.OllamaError, RosterError, OSError, ValueError) as exc:
+                if problem is None: problem = exc
+        if problem is not None:
+            if record["current_failure"] is None:
+                record["status"] = "FAIL"; record["current_failure"] = {"model": row["tag"], **_record_error(problem)}; persist()
+            raise problem
     default = str(roster["default_model"])
-    # A tool-smoke failure does not destroy installation; it marks that model
-    # conversation-only until a later target-qualified selection explicitly admits it.
-    default_row = next(row for row in rows if row["tag"] == default)
-    if default_row["tool_call_smoke"] != "PASS":
-        _fail("MODEL_DEFAULT_TOOL_SMOKE", "default model failed typed tool capability smoke", 69)
     selection = _selection(root)
     admitted = {str(item["tag"]) for item in roster["models"]}
-    if selection and isinstance(selection.get("model"), str) and str(selection["model"]) in admitted:
-        # Preserve an operator-selected admitted model across idempotent installer reruns.
-        # Provisioning validates the whole roster; it does not silently reset user choice.
-        selected = selection
-    else:
-        previous = str(selection["model"]) if selection and isinstance(selection.get("model"), str) else "qwen3.5:2b-q4_K_M"
-        selected = _write_selection(root, default, previous)
-    record = {
-        "format": RECORD_FORMAT,
-        "status": "READY",
-        "validated_epoch": int(time.time()),
-        "provision_mode": mode,
-        "default_model": default,
-        "active_model": selected["model"],
-        "max_loaded_models": 1,
-        "num_parallel": 1,
-        "context_tokens": context_tokens,
-        "models": rows,
-        "selection_generation": selected["generation"],
-        "legacy_model_retained": True,
-        "physical_acceptance_claimed": False,
-    }
-    _atomic_json(_record_path(root), record, 0o644)
-    print(f"[OK] code=MODEL_ROSTER_READY models={len(rows)} default={default} active={selected['model']} mode={mode}")
+    selected_tag = str(selection["model"]) if selection and selection.get("model") in admitted else default
+    def admission():
+        for tag, code in ((default, "MODEL_DEFAULT_TOOL_SMOKE"), (selected_tag, "MODEL_SELECTED_TOOL_SMOKE")):
+            row = next(r for r in record["models"] if r["tag"] == tag)
+            if row["tool_call_smoke"] != "PASS":
+                _fail(code, "required model failed typed tool capability smoke", 69)
+    stage(record, "ADMISSION", admission)
+    if not selection or selection.get("model") not in admitted:
+        previous_model = str(selection["model"]) if selection else "qwen3.5:2b-q4_K_M"
+        selection = _write_selection(root, default, previous_model)
+    record.update(status="READY", validated_epoch=int(time.time()),
+                  active_model=selection["model"], selection_generation=selection["generation"],
+                  current_stage=None, legacy_model_retained=True,
+                  roster_capabilities_status="READY" if all(r["tool_call_smoke"] == "PASS" for r in record["models"]) else "DEGRADED")
+    persist()
+    print(f"[OK] code=MODEL_ROSTER_READY models={len(record['models'])} default={default} active={selection['model']} mode={mode}")
     return record
 
 

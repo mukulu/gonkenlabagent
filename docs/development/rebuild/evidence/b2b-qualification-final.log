@@ -1,0 +1,229 @@
+test_admin_ready_requires_current_qualified_selected_model (tests.unit.test_attempt03_roster_progress.RosterProgressTests.test_admin_ready_requires_current_qualified_selected_model) ... [MODEL] model=- stage=INVENTORY
+[MODEL] model=- stage=PREREQUISITES
+[MODEL] model=- stage=INVENTORY_AFTER_PULL
+[MODEL] model=qwen3:0.6b stage=IDENTITY
+[MODEL] model=qwen3:0.6b stage=INFERENCE
+[MODEL] model=qwen3:0.6b stage=TOOLS
+[MODEL] model=qwen3:0.6b stage=UNLOAD
+[MODEL] model=lfm2.5-thinking:1.2b stage=IDENTITY
+[MODEL] model=lfm2.5-thinking:1.2b stage=INFERENCE
+[MODEL] model=lfm2.5-thinking:1.2b stage=TOOLS
+[MODEL] model=lfm2.5-thinking:1.2b stage=UNLOAD
+[MODEL] model=qwen3.5:0.8b stage=IDENTITY
+[MODEL] model=qwen3.5:0.8b stage=INFERENCE
+[MODEL] model=qwen3.5:0.8b stage=TOOLS
+[MODEL] model=qwen3.5:0.8b stage=UNLOAD
+[MODEL] model=- stage=ADMISSION
+ok
+test_context_drift_rejected (tests.unit.test_attempt03_roster_progress.RosterProgressTests.test_context_drift_rejected) ... [OK] code=MODEL_ROSTER_READY models=3 default=qwen3:0.6b active=qwen3:0.6b mode=preseeded-offline
+[MODEL] model=- stage=INVENTORY
+[MODEL] model=- stage=PREREQUISITES
+[MODEL] model=- stage=INVENTORY_AFTER_PULL
+[MODEL] model=qwen3:0.6b stage=IDENTITY
+[MODEL] model=qwen3:0.6b stage=INFERENCE
+[MODEL] model=qwen3:0.6b stage=TOOLS
+[MODEL] model=qwen3:0.6b stage=UNLOAD
+[MODEL] model=lfm2.5-thinking:1.2b stage=IDENTITY
+[MODEL] model=lfm2.5-thinking:1.2b stage=INFERENCE
+[MODEL] model=lfm2.5-thinking:1.2b stage=TOOLS
+[MODEL] model=lfm2.5-thinking:1.2b stage=UNLOAD
+[MODEL] model=qwen3.5:0.8b stage=IDENTITY
+[MODEL] model=qwen3.5:0.8b stage=INFERENCE
+[MODEL] model=qwen3.5:0.8b stage=TOOLS
+[MODEL] model=qwen3.5:0.8b stage=UNLOAD
+[MODEL] model=- stage=ADMISSION
+ok
+test_later_failure_preserves_completed_model_and_stage (tests.unit.test_attempt03_roster_progress.RosterProgressTests.test_later_failure_preserves_completed_model_and_stage) ... [OK] code=MODEL_ROSTER_READY models=3 default=qwen3:0.6b active=qwen3:0.6b mode=preseeded-offline
+[MODEL] model=- stage=INVENTORY
+[MODEL] model=- stage=PREREQUISITES
+[MODEL] model=- stage=INVENTORY_AFTER_PULL
+[MODEL] model=qwen3:0.6b stage=IDENTITY
+[MODEL] model=qwen3:0.6b stage=INFERENCE
+[MODEL] model=qwen3:0.6b stage=TOOLS
+[MODEL] model=qwen3:0.6b stage=UNLOAD
+[MODEL] model=lfm2.5-thinking:1.2b stage=IDENTITY
+[MODEL] model=lfm2.5-thinking:1.2b stage=INFERENCE
+[MODEL] model=lfm2.5-thinking:1.2b stage=UNLOAD
+ok
+test_old_attempt_ready_invalidated_before_network_failure (tests.unit.test_attempt03_roster_progress.RosterProgressTests.test_old_attempt_ready_invalidated_before_network_failure) ... [MODEL] model=- stage=INVENTORY
+[MODEL] model=- stage=PREREQUISITES
+[MODEL] model=- stage=INVENTORY_AFTER_PULL
+[MODEL] model=qwen3:0.6b stage=IDENTITY
+[MODEL] model=qwen3:0.6b stage=INFERENCE
+[MODEL] model=qwen3:0.6b stage=TOOLS
+[MODEL] model=qwen3:0.6b stage=UNLOAD
+[MODEL] model=lfm2.5-thinking:1.2b stage=IDENTITY
+[MODEL] model=lfm2.5-thinking:1.2b stage=INFERENCE
+[MODEL] model=lfm2.5-thinking:1.2b stage=TOOLS
+[MODEL] model=lfm2.5-thinking:1.2b stage=UNLOAD
+[MODEL] model=qwen3.5:0.8b stage=IDENTITY
+[MODEL] model=qwen3.5:0.8b stage=INFERENCE
+[MODEL] model=qwen3.5:0.8b stage=TOOLS
+[MODEL] model=qwen3.5:0.8b stage=UNLOAD
+[MODEL] model=- stage=ADMISSION
+[OK] code=MODEL_ROSTER_READY models=3 default=qwen3:0.6b active=qwen3:0.6b mode=preseeded-offline
+[MODEL] model=- stage=INVENTORY
+ok
+test_record_bound_to_model_digest (tests.unit.test_attempt03_roster_progress.RosterProgressTests.test_record_bound_to_model_digest) ... [MODEL] model=- stage=INVENTORY
+[MODEL] model=- stage=PREREQUISITES
+[MODEL] model=- stage=INVENTORY_AFTER_PULL
+[MODEL] model=qwen3:0.6b stage=IDENTITY
+[MODEL] model=qwen3:0.6b stage=INFERENCE
+[MODEL] model=qwen3:0.6b stage=TOOLS
+[MODEL] model=qwen3:0.6b stage=UNLOAD
+[MODEL] model=lfm2.5-thinking:1.2b stage=IDENTITY
+[MODEL] model=lfm2.5-thinking:1.2b stage=INFERENCE
+[MODEL] model=lfm2.5-thinking:1.2b stage=TOOLS
+[MODEL] model=lfm2.5-thinking:1.2b stage=UNLOAD
+[MODEL] model=qwen3.5:0.8b stage=IDENTITY
+[MODEL] model=qwen3.5:0.8b stage=INFERENCE
+[MODEL] model=qwen3.5:0.8b stage=TOOLS
+[MODEL] model=qwen3.5:0.8b stage=UNLOAD
+[MODEL] model=- stage=ADMISSION
+ok
+test_roster_fingerprint_drift_rejects (tests.unit.test_attempt03_roster_progress.RosterProgressTests.test_roster_fingerprint_drift_rejects) ... [OK] code=MODEL_ROSTER_READY models=3 default=qwen3:0.6b active=qwen3:0.6b mode=preseeded-offline
+[MODEL] model=- stage=INVENTORY
+[MODEL] model=- stage=PREREQUISITES
+[MODEL] model=- stage=INVENTORY_AFTER_PULL
+[MODEL] model=qwen3:0.6b stage=IDENTITY
+[MODEL] model=qwen3:0.6b stage=INFERENCE
+[MODEL] model=qwen3:0.6b stage=TOOLS
+[MODEL] model=qwen3:0.6b stage=UNLOAD
+[MODEL] model=lfm2.5-thinking:1.2b stage=IDENTITY
+[MODEL] model=lfm2.5-thinking:1.2b stage=INFERENCE
+[MODEL] model=lfm2.5-thinking:1.2b stage=TOOLS
+[MODEL] model=lfm2.5-thinking:1.2b stage=UNLOAD
+[MODEL] model=qwen3.5:0.8b stage=IDENTITY
+[MODEL] model=qwen3.5:0.8b stage=INFERENCE
+[MODEL] model=qwen3.5:0.8b stage=TOOLS
+[MODEL] model=qwen3.5:0.8b stage=UNLOAD
+[MODEL] model=- stage=ADMISSION
+ok
+test_tool_arguments_must_be_empty (tests.unit.test_attempt03_roster_progress.RosterProgressTests.test_tool_arguments_must_be_empty) ... [OK] code=MODEL_ROSTER_READY models=3 default=qwen3:0.6b active=qwen3:0.6b mode=preseeded-offline
+[MODEL] model=- stage=INVENTORY
+[MODEL] model=- stage=PREREQUISITES
+[MODEL] model=- stage=INVENTORY_AFTER_PULL
+[MODEL] model=qwen3:0.6b stage=IDENTITY
+[MODEL] model=qwen3:0.6b stage=INFERENCE
+[MODEL] model=qwen3:0.6b stage=TOOLS
+[MODEL] model=qwen3:0.6b stage=UNLOAD
+[MODEL] model=lfm2.5-thinking:1.2b stage=IDENTITY
+[MODEL] model=lfm2.5-thinking:1.2b stage=INFERENCE
+[MODEL] model=lfm2.5-thinking:1.2b stage=TOOLS
+[MODEL] model=lfm2.5-thinking:1.2b stage=UNLOAD
+[MODEL] model=qwen3.5:0.8b stage=IDENTITY
+[MODEL] model=qwen3.5:0.8b stage=INFERENCE
+[MODEL] model=qwen3.5:0.8b stage=TOOLS
+[MODEL] model=qwen3.5:0.8b stage=UNLOAD
+[MODEL] model=- stage=ADMISSION
+ok
+test_unload_failure_does_not_overwrite_original (tests.unit.test_attempt03_roster_progress.RosterProgressTests.test_unload_failure_does_not_overwrite_original) ... [MODEL] model=- stage=INVENTORY
+[MODEL] model=- stage=PREREQUISITES
+[MODEL] model=- stage=INVENTORY_AFTER_PULL
+[MODEL] model=qwen3:0.6b stage=IDENTITY
+[MODEL] model=qwen3:0.6b stage=INFERENCE
+[MODEL] model=qwen3:0.6b stage=UNLOAD
+ok
+test_unload_unconfirmed_prevents_ready (tests.unit.test_attempt03_roster_progress.RosterProgressTests.test_unload_unconfirmed_prevents_ready) ... [MODEL] model=- stage=INVENTORY
+[MODEL] model=- stage=PREREQUISITES
+[MODEL] model=- stage=INVENTORY_AFTER_PULL
+[MODEL] model=qwen3:0.6b stage=IDENTITY
+[MODEL] model=qwen3:0.6b stage=INFERENCE
+[MODEL] model=qwen3:0.6b stage=TOOLS
+[MODEL] model=qwen3:0.6b stage=UNLOAD
+ok
+test_default_tool_smoke_failure_blocks_default_selection (tests.unit.test_v09_model_roster_manager.ModelRosterManagerTests.test_default_tool_smoke_failure_blocks_default_selection) ... [MODEL] model=- stage=INVENTORY
+[MODEL] model=- stage=PREREQUISITES
+[MODEL] model=- stage=INVENTORY_AFTER_PULL
+[MODEL] model=qwen3:0.6b stage=IDENTITY
+[MODEL] model=qwen3:0.6b stage=INFERENCE
+[MODEL] model=qwen3:0.6b stage=TOOLS
+[MODEL] model=qwen3:0.6b stage=UNLOAD
+[MODEL] model=lfm2.5-thinking:1.2b stage=IDENTITY
+[MODEL] model=lfm2.5-thinking:1.2b stage=INFERENCE
+[MODEL] model=lfm2.5-thinking:1.2b stage=TOOLS
+[MODEL] model=lfm2.5-thinking:1.2b stage=UNLOAD
+[MODEL] model=qwen3.5:0.8b stage=IDENTITY
+[MODEL] model=qwen3.5:0.8b stage=INFERENCE
+[MODEL] model=qwen3.5:0.8b stage=TOOLS
+[MODEL] model=qwen3.5:0.8b stage=UNLOAD
+[MODEL] model=- stage=ADMISSION
+ok
+test_manifest_has_exact_roster_and_default (tests.unit.test_v09_model_roster_manager.ModelRosterManagerTests.test_manifest_has_exact_roster_and_default) ... ok
+test_old_ready_record_without_qualification_is_rejected (tests.unit.test_v09_model_roster_manager.ModelRosterManagerTests.test_old_ready_record_without_qualification_is_rejected) ... ok
+test_online_provision_validates_all_models_and_selects_default (tests.unit.test_v09_model_roster_manager.ModelRosterManagerTests.test_online_provision_validates_all_models_and_selects_default) ... [MODEL] model=- stage=INVENTORY
+[MODEL] model=- stage=PREREQUISITES
+[MODEL] model=- stage=PULL:qwen3:0.6b
+[MODEL] model=- stage=PULL:lfm2.5-thinking:1.2b
+[MODEL] model=- stage=PULL:qwen3.5:0.8b
+[MODEL] model=- stage=INVENTORY_AFTER_PULL
+[MODEL] model=qwen3:0.6b stage=IDENTITY
+[MODEL] model=qwen3:0.6b stage=INFERENCE
+[MODEL] model=qwen3:0.6b stage=TOOLS
+[MODEL] model=qwen3:0.6b stage=UNLOAD
+[MODEL] model=lfm2.5-thinking:1.2b stage=IDENTITY
+[MODEL] model=lfm2.5-thinking:1.2b stage=INFERENCE
+[MODEL] model=lfm2.5-thinking:1.2b stage=TOOLS
+[MODEL] model=lfm2.5-thinking:1.2b stage=UNLOAD
+[MODEL] model=qwen3.5:0.8b stage=IDENTITY
+[MODEL] model=qwen3.5:0.8b stage=INFERENCE
+[MODEL] model=qwen3.5:0.8b stage=TOOLS
+[MODEL] model=qwen3.5:0.8b stage=UNLOAD
+[MODEL] model=- stage=ADMISSION
+ok
+test_preseeded_offline_fails_if_any_model_missing_without_pull (tests.unit.test_v09_model_roster_manager.ModelRosterManagerTests.test_preseeded_offline_fails_if_any_model_missing_without_pull) ... [OK] code=MODEL_ROSTER_READY models=3 default=qwen3:0.6b active=qwen3:0.6b mode=online
+[MODEL] model=- stage=INVENTORY
+[MODEL] model=- stage=PREREQUISITES
+ok
+test_provision_preserves_admitted_operator_selection (tests.unit.test_v09_model_roster_manager.ModelRosterManagerTests.test_provision_preserves_admitted_operator_selection) ... [MODEL] model=- stage=INVENTORY
+[MODEL] model=- stage=PREREQUISITES
+[MODEL] model=- stage=INVENTORY_AFTER_PULL
+[MODEL] model=qwen3:0.6b stage=IDENTITY
+[MODEL] model=qwen3:0.6b stage=INFERENCE
+[MODEL] model=qwen3:0.6b stage=TOOLS
+[MODEL] model=qwen3:0.6b stage=UNLOAD
+[MODEL] model=lfm2.5-thinking:1.2b stage=IDENTITY
+[MODEL] model=lfm2.5-thinking:1.2b stage=INFERENCE
+[MODEL] model=lfm2.5-thinking:1.2b stage=TOOLS
+[MODEL] model=lfm2.5-thinking:1.2b stage=UNLOAD
+[MODEL] model=qwen3.5:0.8b stage=IDENTITY
+[MODEL] model=qwen3.5:0.8b stage=INFERENCE
+[MODEL] model=qwen3.5:0.8b stage=TOOLS
+[MODEL] model=qwen3.5:0.8b stage=UNLOAD
+[MODEL] model=- stage=ADMISSION
+ok
+test_all_model_capabilities_reports_each_roster_model (tests.unit.test_v09_llm_admin_components.LlmAdminComponentTests.test_all_model_capabilities_reports_each_roster_model) ... ok
+test_benchmark_records_thinking_and_resource_snapshots_without_content (tests.unit.test_v09_llm_admin_components.LlmAdminComponentTests.test_benchmark_records_thinking_and_resource_snapshots_without_content) ... ok
+test_cli_exposes_components_and_llm_surface (tests.unit.test_v09_llm_admin_components.LlmAdminComponentTests.test_cli_exposes_components_and_llm_surface) ... ok
+test_component_status_keeps_real_sensor_simulated_fan_and_tools_independent (tests.unit.test_v09_llm_admin_components.LlmAdminComponentTests.test_component_status_keeps_real_sensor_simulated_fan_and_tools_independent) ... ok
+test_inventory_without_qualification_is_degraded (tests.unit.test_v09_llm_admin_components.LlmAdminComponentTests.test_inventory_without_qualification_is_degraded) ... ok
+test_semantic_tool_quality_checks_tool_proposals_without_execution (tests.unit.test_v09_llm_admin_components.LlmAdminComponentTests.test_semantic_tool_quality_checks_tool_proposals_without_execution) ... ok
+test_switch_rejects_nonroot_before_mutation (tests.unit.test_v09_llm_admin_components.LlmAdminComponentTests.test_switch_rejects_nonroot_before_mutation) ... ok
+test_switch_rolls_back_selection_when_new_voice_model_does_not_converge (tests.unit.test_v09_llm_admin_components.LlmAdminComponentTests.test_switch_rolls_back_selection_when_new_voice_model_does_not_converge) ... ok
+test_common_temperature_paraphrase_uses_deterministic_environment_fast_path (tests.unit.test_v09_multimodel_tools.ConversationRoutingTests.test_common_temperature_paraphrase_uses_deterministic_environment_fast_path) ... ok
+test_less_direct_paraphrase_can_fall_back_to_typed_tool (tests.unit.test_v09_multimodel_tools.ConversationRoutingTests.test_less_direct_paraphrase_can_fall_back_to_typed_tool) ... ok
+test_model_cannot_mutate_fan_for_hypothetical (tests.unit.test_v09_multimodel_tools.ConversationRoutingTests.test_model_cannot_mutate_fan_for_hypothetical) ... ok
+test_time_bypasses_model (tests.unit.test_v09_multimodel_tools.ConversationRoutingTests.test_time_bypasses_model) ... ok
+test_tool_calls_are_bounded_and_structured (tests.unit.test_v09_multimodel_tools.OllamaToolContractTests.test_tool_calls_are_bounded_and_structured) ... ok
+test_tools_payload_disables_thinking_by_default (tests.unit.test_v09_multimodel_tools.OllamaToolContractTests.test_tools_payload_disables_thinking_by_default) ... ok
+test_atomic_selection_generation_and_legacy_fallback (tests.unit.test_v09_multimodel_tools.RosterTests.test_atomic_selection_generation_and_legacy_fallback) ... ok
+test_exact_three_model_roster_and_default (tests.unit.test_v09_multimodel_tools.RosterTests.test_exact_three_model_roster_and_default) ... ok
+test_duplicate_mutations_in_one_turn_are_rejected (tests.unit.test_v09_multimodel_tools.ToolBrokerTests.test_duplicate_mutations_in_one_turn_are_rejected) ... ok
+test_fan_mutation_requires_independent_explicit_authorization (tests.unit.test_v09_multimodel_tools.ToolBrokerTests.test_fan_mutation_requires_independent_explicit_authorization) ... ok
+test_local_clock_is_read_only_and_deterministic (tests.unit.test_v09_multimodel_tools.ToolBrokerTests.test_local_clock_is_read_only_and_deterministic) ... ok
+test_read_tools_are_typed_and_grounded (tests.unit.test_v09_multimodel_tools.ToolBrokerTests.test_read_tools_are_typed_and_grounded) ... ok
+test_two_read_only_calls_can_share_one_bounded_transaction (tests.unit.test_v09_multimodel_tools.ToolBrokerTests.test_two_read_only_calls_can_share_one_bounded_transaction) ... ok
+test_unknown_raw_execution_tools_are_rejected (tests.unit.test_v09_multimodel_tools.ToolBrokerTests.test_unknown_raw_execution_tools_are_rejected) ... ok
+test_current_pointer_must_match_commit (tests.unit.test_m3_6_install_summary.InstallSummaryTests.test_current_pointer_must_match_commit) ... ok
+test_records_are_closed_schema_private_and_policy_checked (tests.unit.test_m3_6_install_summary.InstallSummaryTests.test_records_are_closed_schema_private_and_policy_checked) ... ok
+test_summary_prefers_governed_roster_active_model_over_legacy_record (tests.unit.test_m3_6_install_summary.InstallSummaryTests.test_summary_prefers_governed_roster_active_model_over_legacy_record) ... ok
+test_summary_rejects_ready_record_from_previous_release (tests.unit.test_m3_6_install_summary.InstallSummaryTests.test_summary_rejects_ready_record_from_previous_release) ... ok
+test_summary_reports_degraded_not_ready_with_exact_next_action (tests.unit.test_m3_6_install_summary.InstallSummaryTests.test_summary_reports_degraded_not_ready_with_exact_next_action) ... ok
+test_summary_reports_ready_when_voice_runtime_ready_file_exists (tests.unit.test_m3_6_install_summary.InstallSummaryTests.test_summary_reports_ready_when_voice_runtime_ready_file_exists) ... ok
+test_summary_reports_service_degraded_when_unit_differs (tests.unit.test_m3_6_install_summary.InstallSummaryTests.test_summary_reports_service_degraded_when_unit_differs) ... ok
+
+----------------------------------------------------------------------
+Ran 44 tests in 0.306s
+
+OK
+[OK] code=MODEL_ROSTER_READY models=3 default=qwen3:0.6b active=qwen3.5:0.8b mode=online

@@ -128,15 +128,20 @@
       "id": "46.3.2",
       "title": "Per-model/per-stage qualification persistence",
       "source_line": 1771,
-      "status": "NOT_STARTED",
-      "evidence": []
+      "status": "HOST_VERIFIED",
+      "evidence": [
+        "scripts/model_roster_manager.py",
+        "docs/development/rebuild/evidence/b2b-qualification-final.log"
+      ]
     },
     {
       "id": "46.3.3",
       "title": "Incident vs collection status",
       "source_line": 1778,
-      "status": "NOT_STARTED",
-      "evidence": []
+      "status": "WIP",
+      "evidence": [
+        "src/gonken_agent/support.py"
+      ]
     },
     {
       "id": "46.3.4",

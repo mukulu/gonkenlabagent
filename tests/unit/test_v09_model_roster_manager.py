@@ -51,6 +51,8 @@ class ModelRosterManagerTests(unittest.TestCase):
             state = {"models": []}
 
             def api(_endpoint, path, payload=None, *, stream=False):
+                if path == "/api/ps":
+                    return {"models": []}
                 if path == "/api/tags":
                     return {"models": list(state["models"])}
                 if path == "/api/chat":
@@ -90,6 +92,8 @@ class ModelRosterManagerTests(unittest.TestCase):
             manager._write_selection(root, "qwen3.5:0.8b", "qwen3:0.6b")
 
             def api(_endpoint, path, payload=None, *, stream=False):
+                if path == "/api/ps":
+                    return {"models": []}
                 if path == "/api/tags":
                     return {"models": models}
                 if path == "/api/chat":
@@ -108,15 +112,15 @@ class ModelRosterManagerTests(unittest.TestCase):
             self.assertEqual(checked["selection"]["model"], "qwen3.5:0.8b")
             self.assertEqual(record["active_model"], "qwen3.5:0.8b")
 
-    def test_status_accepts_admitted_nondefault_selection(self):
+    def test_old_ready_record_without_qualification_is_rejected(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
             models = self._models()
             manager._write_selection(root, "lfm2.5-thinking:1.2b", "qwen3:0.6b")
             manager._atomic_json(manager._record_path(root), {"format": manager.RECORD_FORMAT, "status": "READY"}, 0o644)
             with mock.patch.object(manager.om, "_api", return_value={"models": models}):
-                checked = manager.status(root, self.roster, "http://127.0.0.1:11434")
-            self.assertEqual(checked["selection"]["model"], "lfm2.5-thinking:1.2b")
+                with self.assertRaises(manager.RosterError):
+                    manager.status(root, self.roster, "http://127.0.0.1:11434")
 
     def test_default_tool_smoke_failure_blocks_default_selection(self):
         with tempfile.TemporaryDirectory() as temporary:
@@ -124,6 +128,8 @@ class ModelRosterManagerTests(unittest.TestCase):
             models = self._models()
 
             def api(_endpoint, path, payload=None, *, stream=False):
+                if path == "/api/ps":
+                    return {"models": []}
                 if path == "/api/tags":
                     return {"models": models}
                 if path == "/api/chat":

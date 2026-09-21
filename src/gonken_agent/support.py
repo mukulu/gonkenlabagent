@@ -664,7 +664,7 @@ def _diagnostic_summary(files: dict[str, object]) -> dict[str, object]:
     ollama = files.get("ollama_inventory.json") if isinstance(files.get("ollama_inventory.json"), dict) else {}
     if ollama.get("status") != "READY":
         findings.append({"code": "OLLAMA_ROSTER_NOT_READY", "severity": "warning"})
-    return {"status": "READY", "findings": findings, "finding_count": len(findings), "causal_precedence": "current_state_then_same_boot_history_then_older_install_history"}
+    return {"status": "READY", "collection_status": "READY", "incident_status": "DEGRADED" if any(f.get("severity") in {"error", "warning"} for f in findings) else "NO_CURRENT_FAULT_IDENTIFIED", "findings": findings, "finding_count": len(findings), "causal_precedence": "current_state_then_same_boot_history_then_older_install_history"}
 
 
 def _memory_inventory() -> dict[str, object]:

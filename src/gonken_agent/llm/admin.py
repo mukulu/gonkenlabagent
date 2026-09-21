@@ -20,6 +20,7 @@ from .models import (
     write_selection,
 )
 from .ollama import OllamaClient, OllamaError
+from .qualification import qualified_rows
 from ..tool_broker import TOOL_SCHEMAS, parse_tool_call, ToolBrokerError
 
 ROSTER_RECORD_PATH = Path("/var/lib/gonken-agent/ollama/roster.json")
@@ -103,6 +104,7 @@ def status(config) -> dict[str, object]:
     except (OSError, ValueError, RuntimeError, OllamaError) as exc:
         inventory_error = type(exc).__name__
     installed = {str(item.get("name")) for item in inventory}
+    qualified = qualified_rows(record, inventory, context_tokens=config.llm.context_tokens)
     roster_rows = []
     recorded_rows = {}
     if isinstance(record, dict) and isinstance(record.get("models"), list):
@@ -121,11 +123,18 @@ def status(config) -> dict[str, object]:
             "catalog_tools": spec.tools,
             "catalog_thinking": spec.thinking,
             "tool_call_smoke": recorded.get("tool_call_smoke", "NOT_TESTED"),
+            "qualification_current": spec.tag in qualified,
+            "tools_qualified": bool(qualified.get(spec.tag, {}).get("tools")),
             "inference_total_ns": recorded.get("inference_total_ns"),
             "tool_total_ns": recorded.get("tool_total_ns"),
         })
     return {
-        "status": "READY" if selection.get("governed_roster_active") and all(row["installed"] for row in roster_rows) and len(loaded) <= 1 else "DEGRADED",
+        "status": "READY" if (inventory_error is None and selection.get("governed_roster_active")
+            and all(row["qualification_current"] for row in roster_rows)
+            and qualified.get(selection.get("model"), {}).get("tools") and len(loaded) <= 1) else "DEGRADED",
+        "collection_status": "READY" if inventory_error is None else "UNAVAILABLE",
+        "qualification_status": record.get("status", "NOT_AVAILABLE") if record else "NOT_AVAILABLE",
+        "current_failure": record.get("current_failure") if record else None,
         "selection": selection,
         "roster": roster_rows,
         "policy": {"max_loaded_models": 1, "num_parallel": 1, "thinking_default": False},
@@ -233,7 +242,15 @@ def capability_report(config, model: str, *, thinking: bool = False) -> dict[str
 
 
 def all_model_capabilities(config, *, thinking: bool = False) -> dict[str, object]:
-    rows = [capability_report(config, spec.tag, thinking=thinking) for spec in MODEL_ROSTER]
+    rows = []
+    for spec in MODEL_ROSTER:
+        try:
+            rows.append(capability_report(config, spec.tag, thinking=thinking))
+        except (OllamaError, OSError, ValueError) as exc:
+            rows.append({"status": "FAIL", "model": spec.tag,
+                         "code": getattr(exc, "code", type(exc).__name__),
+                         "diagnostics": getattr(exc, "diagnostics", {}),
+                         "tools_executed": False, "content_logged": False})
     return {
         "status": "PASS" if all(row["status"] == "PASS" for row in rows) else "DEGRADED",
         "thinking": bool(thinking), "models": rows,

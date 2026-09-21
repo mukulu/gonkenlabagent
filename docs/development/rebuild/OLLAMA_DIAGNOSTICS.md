@@ -23,3 +23,23 @@ manager and multimodel tool suites: 28 tests passed. See `evidence/b2-errors.log
 
 These are interface references, not evidence of the user's runtime version or
 hardware behavior.
+
+## Per-model stage repair
+
+The v2 roster record invalidates an old READY before starting a new attempt and
+atomically saves INVENTORY, PREREQUISITES, pull, identity, inference, tools,
+unload and admission progress. A failed later model preserves prior results.
+Cleanup has a separate outcome and cannot replace the first causal failure.
+Unload requires a completed transaction and an empty loaded-model inventory.
+Tool success requires the exact tool, empty arguments, completion and model.
+
+Status no longer promotes model presence or a legacy minimal READY record to
+qualification. It checks full model digests and completed required stages;
+runtime admin additionally rejects context drift. An explicitly selected model
+must have qualified tools. This retains the previous policy for conversation-only
+alternate models but reports their tool limitations. It does not silently change
+which model is selected or lower its required capabilities.
+
+Record migration is deliberate: v1 records trigger a fresh qualification pass
+without deleting model files. The install-summary consumer was migrated to v2.
+44 focused and affected tests passed; see `evidence/b2b-qualification-final.log`.

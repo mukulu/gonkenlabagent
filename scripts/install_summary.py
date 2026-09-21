@@ -40,7 +40,7 @@ SPEECH_FIELDS = (
 )
 
 ROSTER_MODELS = ("qwen3:0.6b", "lfm2.5-thinking:1.2b", "qwen3.5:0.8b")
-ROSTER_RECORD_FORMAT = "gonken-ollama-roster-record-v1"
+ROSTER_RECORD_FORMAT = "gonken-ollama-roster-record-v2"
 SELECTION_FORMAT = "gonken-active-model-v1"
 
 

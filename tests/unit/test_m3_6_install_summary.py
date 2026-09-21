@@ -156,7 +156,7 @@ class InstallSummaryTests(unittest.TestCase):
         for index, tag in enumerate(install_summary.ROSTER_MODELS):
             rows.append({"tag": tag, "digest": f"{index + 1:064x}", "tool_call_smoke": "PASS"})
         (state / "roster.json").write_text(json.dumps({
-            "format": "gonken-ollama-roster-record-v1", "status": "READY", "models": rows,
+            "format": "gonken-ollama-roster-record-v2", "status": "READY", "models": rows,
         }) + "\n", encoding="utf-8")
         ready = self.system / "run/gonken-agent/ready.json"
         ready.parent.mkdir(parents=True, exist_ok=True)
