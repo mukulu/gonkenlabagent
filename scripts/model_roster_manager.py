@@ -225,6 +225,8 @@ def status(root: Path, roster: Mapping[str, Any], endpoint: str, *, require_defa
     qualified = qualified_rows(record, models)
     if any(item["tag"] not in qualified for item in observed):
         _fail("MODEL_ROSTER_RECORD_STALE", "model bytes lack completed matching qualification", 1)
+    if not qualified.get(roster["default_model"], {}).get("tools"):
+        _fail("MODEL_DEFAULT_TOOL_SMOKE", "default model has no passing tool qualification", 1)
     if not qualified.get(selection["model"], {}).get("tools"):
         _fail("MODEL_SELECTED_TOOL_SMOKE", "selected model has no passing tool qualification", 1)
     return {"status": "READY", "models": observed, "selection": selection, "record": record}
@@ -239,13 +241,13 @@ def provision(root: Path, roster: Mapping[str, Any], endpoint: str, context_toke
         "started_epoch": int(time.time()), "roster_sha256": _roster_fingerprint(roster),
         "provision_mode": mode, "default_model": roster["default_model"],
         "context_tokens": context_tokens, "max_loaded_models": 1, "num_parallel": 1,
-        "models": [], "stages": [], "current_failure": None,
+        "models": [], "stages": [], "current_failure": None, "optional_failures": [],
         "previous_attempt_status": ("INTERRUPTED" if previous and previous.get("status") == "QUALIFYING" else previous.get("status") if previous else None),
         "physical_acceptance_claimed": False, "content_logged": False,
     }
     def persist():
         _atomic_json(_record_path(root), record, 0o644)
-    def stage(owner: dict, name: str, action):
+    def stage(owner: dict, name: str, action, *, optional_tool: bool = False):
         event = {"stage": name, "status": "RUNNING", "started_epoch": int(time.time())}
         owner.setdefault("stages", []).append(event)
         record["current_stage"] = {"model": owner.get("tag"), "stage": name}
@@ -256,6 +258,19 @@ def provision(root: Path, roster: Mapping[str, Any], endpoint: str, context_toke
             value = action()
         except (om.OllamaError, RosterError, OSError, ValueError) as exc:
             event.update(status="FAIL", wall_ns=time.monotonic_ns()-start, error=_record_error(exc))
+            # A tool-only server rejection for an alternate is an observed
+            # capability failure, not proof that the default or fan is unusable.
+            # Transport/auth/identity/inference/residency failures remain fatal.
+            diagnostics = getattr(exc, "diagnostics", {})
+            if (optional_tool and name == "TOOLS" and isinstance(exc, om.OllamaError)
+                    and exc.code == "OLLAMA_API_HTTP" and isinstance(diagnostics, dict)
+                    and diagnostics.get("http_status") in {400, 422, 500}):
+                incident = {"model": owner.get("tag"), "stage": name, **_record_error(exc)}
+                record["optional_failures"].append(incident)
+                owner["tool_failure"] = incident
+                persist()
+                print(f"[DEGRADED] code=MODEL_ALTERNATE_TOOL_INCOMPATIBLE model={owner.get('tag')} stage=TOOLS", flush=True)
+                return {"status": "FAILED", "total_ns": 0}
             if record["current_failure"] is None:
                 record["current_failure"] = {"model": owner.get("tag"), "stage": name, **_record_error(exc)}
             record["status"] = "FAIL"
@@ -280,6 +295,10 @@ def provision(root: Path, roster: Mapping[str, Any], endpoint: str, context_toke
     for spec in missing:
         pull_bytes[str(spec["tag"])] = stage(record, "PULL:" + str(spec["tag"]), lambda spec=spec: om.pull_model(endpoint, str(spec["tag"])))
     models = stage(record, "INVENTORY_AFTER_PULL", lambda: _tags(endpoint))
+    initial_selection = _selection(root)
+    required_models = {str(roster["default_model"])}
+    if initial_selection and initial_selection.get("model") in {s["tag"] for s in roster["models"]}:
+        required_models.add(str(initial_selection["model"]))
     for spec in roster["models"]:
         row: dict[str, Any] = {"tag": spec["tag"], "digest_prefix": spec["digest_prefix"],
             "quantization": spec["quantization"], "role": spec["role"],
@@ -299,10 +318,18 @@ def provision(root: Path, roster: Mapping[str, Any], endpoint: str, context_toke
             inference = stage(row, "INFERENCE", lambda: om.smoke_model(endpoint, str(spec["tag"]), context_tokens))
             row.update(inference_status="PASS", inference_total_ns=int(inference.get("total_ns", 0)))
             persist()
-            capability = stage(row, "TOOLS", lambda: _tool_smoke(endpoint, str(spec["tag"]), context_tokens))
+            capability = stage(row, "TOOLS", lambda: _tool_smoke(endpoint, str(spec["tag"]), context_tokens),
+                               optional_tool=spec["tag"] not in required_models)
             row.update(tool_call_smoke=capability["status"], tool_total_ns=int(capability.get("total_ns", 0)))
+            row["capability_status"] = "READY" if capability["status"] == "PASS" else "TOOL_INCOMPATIBLE"
             if capability["status"] != "PASS":
                 row["stages"][-1]["status"] = "FAIL"
+                if spec["tag"] not in required_models and "tool_failure" not in row:
+                    incident = {"model": row["tag"], "stage": "TOOLS",
+                                "code": "MODEL_TOOL_RESULT_INVALID", "content_logged": False}
+                    row["tool_failure"] = incident
+                    record["optional_failures"].append(incident)
+                    print(f"[DEGRADED] code=MODEL_ALTERNATE_TOOL_INCOMPATIBLE model={row['tag']} stage=TOOLS", flush=True)
             persist()
         except (om.OllamaError, RosterError, OSError, ValueError) as exc:
             problem = exc
@@ -369,7 +396,7 @@ def main(argv=None) -> int:
             _fail("MODEL_ROSTER_CONTEXT", "context tokens outside bounded Pi budget", 65)
         if args.command == "status":
             value = status(root, roster, endpoint)
-            print(json.dumps({"status": "READY", "default_model": roster["default_model"], "selection": value["selection"]}, sort_keys=True))
+            print(json.dumps({"status": "READY", "default_model": roster["default_model"], "selection": value["selection"], "roster_capabilities_status": value["record"].get("roster_capabilities_status", "UNKNOWN"), "optional_failures": value["record"].get("optional_failures", [])}, sort_keys=True))
         else:
             provision(root, roster, endpoint, args.context_tokens, args.mode)
     except RosterError as exc:

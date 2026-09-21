@@ -41,3 +41,12 @@ Raw target bundles/transcripts remain outside Git. Only diagnostic metadata and
 synthetic regression cases are exported. Host mocks are not physical evidence.
 
 Execution: implementation in progress, no stable-release promotion.
+
+## B11A outcome
+
+Seven targeted cases replay alternate-tool HTTP/semantic errors, selected/default
+failures, network/auth failures and unsuccessful unload. All pass, with the existing
+roster progress/manager suites: 22 tests. Before repair, three of the original six
+new cases failed. Optional tool rejection has a separate incident list and
+TOOL_INCOMPATIBLE status, while selected/default qualification and residency remain
+strict. No model binary/version was changed and the server-side cause is not claimed.

@@ -95,3 +95,15 @@ class AlternateModelTests(unittest.TestCase):
         record = manager._read_json(manager._record_path(self.root))
         self.assertEqual(record['current_failure']['stage'], 'UNLOAD')
         self.assertEqual(record['status'], 'FAIL')
+
+    def test_network_or_auth_tool_failure_is_not_relabelled_compatibility(self):
+        for code, status in [('OLLAMA_API_HTTP', 401), ('OLLAMA_API_TIMEOUT', None)]:
+            original = self.api
+            def api(e, p, b=None, **kw):
+                if p == '/api/chat' and b.get('tools') and b['model'] == self.failed_tag:
+                    raise manager.om.OllamaError(code, 'PRIVATE_CANARY', 'inspect', 69, diagnostics={'http_status': status})
+                return original(e, p, b, **kw)
+            self.api = api
+            with self.assertRaises(manager.om.OllamaError): self.provision()
+            self.api = original
+            self.assertEqual(manager._read_json(manager._record_path(self.root))['status'], 'FAIL')

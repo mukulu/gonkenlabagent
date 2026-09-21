@@ -126,6 +126,7 @@ def status(config) -> dict[str, object]:
             "tool_call_smoke": recorded.get("tool_call_smoke", "NOT_TESTED"),
             "qualification_current": spec.tag in qualified,
             "tools_qualified": bool(qualified.get(spec.tag, {}).get("tools")),
+            "capability_status": recorded.get("capability_status", "NOT_QUALIFIED"),
             "inference_total_ns": recorded.get("inference_total_ns"),
             "tool_total_ns": recorded.get("tool_total_ns"),
         })
@@ -136,6 +137,8 @@ def status(config) -> dict[str, object]:
         "collection_status": "READY" if inventory_error is None else "UNAVAILABLE",
         "qualification_status": record.get("status", "NOT_AVAILABLE") if record else "NOT_AVAILABLE",
         "current_failure": record.get("current_failure") if record else None,
+        "roster_capabilities_status": record.get("roster_capabilities_status", "NOT_AVAILABLE") if record else "NOT_AVAILABLE",
+        "optional_failures": record.get("optional_failures", []) if record else [],
         "selection": selection,
         "roster": roster_rows,
         "policy": {"max_loaded_models": 1, "num_parallel": 1, "thinking_default": False},
