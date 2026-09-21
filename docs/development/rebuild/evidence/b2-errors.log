@@ -1,0 +1,35 @@
+test_error_object_in_http_success_not_ready (tests.unit.test_attempt03_ollama_errors.ErrorTests.test_error_object_in_http_success_not_ready) ... ok
+test_installer_error_metadata_and_privacy (tests.unit.test_attempt03_ollama_errors.ErrorTests.test_installer_error_metadata_and_privacy) ... ok
+test_oversize_bounded (tests.unit.test_attempt03_ollama_errors.ErrorTests.test_oversize_bounded) ... ok
+test_preserves_shape_but_never_content (tests.unit.test_attempt03_ollama_errors.ErrorTests.test_preserves_shape_but_never_content) ... ok
+test_runtime_error_metadata (tests.unit.test_attempt03_ollama_errors.ErrorTests.test_runtime_error_metadata) ... ok
+test_unknown_body_not_invented (tests.unit.test_attempt03_ollama_errors.ErrorTests.test_unknown_body_not_invented) ... ok
+test_archive_rejects_traversal_devices_and_escaping_links (tests.unit.test_m3_4_ollama_manager.OllamaInputContractTests.test_archive_rejects_traversal_devices_and_escaping_links) ... ok
+test_install_record_parser_is_closed_schema (tests.unit.test_m3_4_ollama_manager.OllamaInputContractTests.test_install_record_parser_is_closed_schema) ... ok
+test_manifest_rejects_unknown_fields_and_non_https_production_url (tests.unit.test_m3_4_ollama_manager.OllamaInputContractTests.test_manifest_rejects_unknown_fields_and_non_https_production_url) ... ok
+test_model_digest_and_quantization_are_both_enforced (tests.unit.test_m3_4_ollama_manager.OllamaInputContractTests.test_model_digest_and_quantization_are_both_enforced) ... ok
+test_only_loopback_http_origins_are_accepted (tests.unit.test_m3_4_ollama_manager.OllamaInputContractTests.test_only_loopback_http_origins_are_accepted) ... ok
+test_qwen_smoke_explicitly_disables_thinking_and_uses_chat (tests.unit.test_m3_4_ollama_manager.OllamaInputContractTests.test_qwen_smoke_explicitly_disables_thinking_and_uses_chat) ... [RUNNING] code=OLLAMA_MODEL_SMOKE model=qwen3.5:2b-q4_K_M think=false
+[OK] code=OLLAMA_MODEL_SMOKE model=qwen3.5:2b-q4_K_M eval_count=2
+ok
+test_redirected_root_requires_explicit_failure_test_gate (tests.unit.test_m3_4_ollama_manager.OllamaInputContractTests.test_redirected_root_requires_explicit_failure_test_gate) ... ok
+test_runtime_freeze_normalizes_root_only_modes (tests.unit.test_m3_4_ollama_manager.OllamaInputContractTests.test_runtime_freeze_normalizes_root_only_modes) ... ok
+test_common_temperature_paraphrase_uses_deterministic_environment_fast_path (tests.unit.test_v09_multimodel_tools.ConversationRoutingTests.test_common_temperature_paraphrase_uses_deterministic_environment_fast_path) ... ok
+test_less_direct_paraphrase_can_fall_back_to_typed_tool (tests.unit.test_v09_multimodel_tools.ConversationRoutingTests.test_less_direct_paraphrase_can_fall_back_to_typed_tool) ... ok
+test_model_cannot_mutate_fan_for_hypothetical (tests.unit.test_v09_multimodel_tools.ConversationRoutingTests.test_model_cannot_mutate_fan_for_hypothetical) ... ok
+test_time_bypasses_model (tests.unit.test_v09_multimodel_tools.ConversationRoutingTests.test_time_bypasses_model) ... ok
+test_tool_calls_are_bounded_and_structured (tests.unit.test_v09_multimodel_tools.OllamaToolContractTests.test_tool_calls_are_bounded_and_structured) ... ok
+test_tools_payload_disables_thinking_by_default (tests.unit.test_v09_multimodel_tools.OllamaToolContractTests.test_tools_payload_disables_thinking_by_default) ... ok
+test_atomic_selection_generation_and_legacy_fallback (tests.unit.test_v09_multimodel_tools.RosterTests.test_atomic_selection_generation_and_legacy_fallback) ... ok
+test_exact_three_model_roster_and_default (tests.unit.test_v09_multimodel_tools.RosterTests.test_exact_three_model_roster_and_default) ... ok
+test_duplicate_mutations_in_one_turn_are_rejected (tests.unit.test_v09_multimodel_tools.ToolBrokerTests.test_duplicate_mutations_in_one_turn_are_rejected) ... ok
+test_fan_mutation_requires_independent_explicit_authorization (tests.unit.test_v09_multimodel_tools.ToolBrokerTests.test_fan_mutation_requires_independent_explicit_authorization) ... ok
+test_local_clock_is_read_only_and_deterministic (tests.unit.test_v09_multimodel_tools.ToolBrokerTests.test_local_clock_is_read_only_and_deterministic) ... ok
+test_read_tools_are_typed_and_grounded (tests.unit.test_v09_multimodel_tools.ToolBrokerTests.test_read_tools_are_typed_and_grounded) ... ok
+test_two_read_only_calls_can_share_one_bounded_transaction (tests.unit.test_v09_multimodel_tools.ToolBrokerTests.test_two_read_only_calls_can_share_one_bounded_transaction) ... ok
+test_unknown_raw_execution_tools_are_rejected (tests.unit.test_v09_multimodel_tools.ToolBrokerTests.test_unknown_raw_execution_tools_are_rejected) ... ok
+
+----------------------------------------------------------------------
+Ran 28 tests in 0.018s
+
+OK

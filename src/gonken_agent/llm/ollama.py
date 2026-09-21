@@ -15,10 +15,15 @@ from collections.abc import Mapping, Sequence
 from urllib.parse import urlsplit
 
 from ..runtime import Cancelled
+from .errors import BODY_LIMIT, http_metadata
 
 
 class OllamaError(RuntimeError):
-    pass
+    def __init__(self, code: str, *, diagnostics: dict | None = None):
+        super().__init__(code)
+        self.code = code
+        self.diagnostics = diagnostics or {}
+
 
 
 class OllamaClient:
@@ -109,7 +114,8 @@ class OllamaClient:
                 code = {404: "OLLAMA_MODEL_MISSING", 503: "OLLAMA_OVERLOADED"}.get(
                     response.status, "OLLAMA_HTTP_ERROR"
                 )
-                raise OllamaError(code)
+                raw_error = response.read(BODY_LIMIT + 1)
+                raise OllamaError(code, diagnostics=http_metadata(response.status, path, payload, raw_error))
             data = response.read(self.max_response + 1)
             if len(data) > self.max_response:
                 raise OllamaError("OLLAMA_RESPONSE_LIMIT")
@@ -120,6 +126,8 @@ class OllamaClient:
             result = json.loads(data)
             if not isinstance(result, dict):
                 raise OllamaError("OLLAMA_MALFORMED_RESPONSE")
+            if "error" in result:
+                raise OllamaError("OLLAMA_API_ERROR", diagnostics=http_metadata(200, path, payload, data[:BODY_LIMIT + 1]))
             return result
         except (socket.timeout, TimeoutError) as exc:
             if cancel.is_set():

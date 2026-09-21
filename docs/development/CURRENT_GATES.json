@@ -118,8 +118,11 @@
       "id": "46.3.1",
       "title": "Structured Ollama HTTP error object",
       "source_line": 1763,
-      "status": "NOT_STARTED",
-      "evidence": []
+      "status": "HOST_VERIFIED",
+      "evidence": [
+        "src/gonken_agent/llm/errors.py",
+        "docs/development/rebuild/evidence/b2-errors.log"
+      ]
     },
     {
       "id": "46.3.2",

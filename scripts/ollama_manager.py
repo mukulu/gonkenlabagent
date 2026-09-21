@@ -29,6 +29,12 @@ import urllib.request
 from pathlib import Path, PurePosixPath
 
 
+SOURCE_ROOT = Path(__file__).resolve().parents[1]
+if str(SOURCE_ROOT / "src") not in sys.path:
+    sys.path.insert(0, str(SOURCE_ROOT / "src"))
+from gonken_agent.llm.errors import BODY_LIMIT, http_metadata
+
+
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 DIGEST_PREFIX_RE = re.compile(r"^[0-9a-f]{12}$")
 VERSION_RE = re.compile(r"^[0-9]+\.[0-9]+\.[0-9]+$")
@@ -44,8 +50,9 @@ RECORD_FIELDS = (
 
 
 class OllamaError(RuntimeError):
-    def __init__(self, code: str, message: str, remediation: str, exit_code: int = 74):
+    def __init__(self, code: str, message: str, remediation: str, exit_code: int = 74, *, diagnostics: dict | None = None):
         super().__init__(message)
+        self.diagnostics = diagnostics or {}
         self.code = code
         self.remediation = remediation
         self.exit_code = exit_code
@@ -488,8 +495,18 @@ def _api(endpoint: str, path: str, payload: dict[str, object] | None = None, *, 
             return response
         with response:
             return json.load(response)
+    except urllib.error.HTTPError as exc:
+        try:
+            body = exc.read(BODY_LIMIT + 1)
+        except (OSError, ValueError):
+            body = b""
+        finally:
+            exc.close()
+        metadata = http_metadata(exc.code, path, payload, body)
+        raise OllamaError("OLLAMA_API_HTTP", f"HTTP {exc.code} during local Ollama API request",
+                          "inspect the structured roster failure record", 69, diagnostics=metadata) from None
     except (OSError, urllib.error.URLError, json.JSONDecodeError) as exc:
-        fail("OLLAMA_API", f"Ollama API request failed for {path}: {exc}", "inspect the loopback service and journal", 69)
+        fail("OLLAMA_API", f"Ollama API request failed: {type(exc).__name__}", "inspect the loopback service and structured diagnostics", 69)
 
 
 def wait_ready(endpoint: str, version: str, attempts: int = 60) -> None:
