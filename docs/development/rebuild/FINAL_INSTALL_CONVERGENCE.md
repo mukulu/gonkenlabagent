@@ -59,3 +59,14 @@ activation/rollback ordering. CP46.5.2 remains WIP because activation ordering a
 configuration-generation binding still require work. Pi install/no-login reboot,
 audio, admitted model usability, sensor/fan and physical acceptance remain open.
 No service was started, no device was actuated, and no stable branch was promoted.
+
+## B7R1: bounded Bluetooth regression timing
+
+The broad unit runner's 15-second module budget interrupted two pre-existing busy
+Bluetooth tests. Each mocked every Bluetooth/device operation but still performed
+20 real half-second sleeps: the pair consumed 20 seconds without hardware evidence.
+The test-only repair mocks sleep and asserts the complete 20 x 0.5-second retry
+schedule. Both USB fallback and no-fallback failure semantics remain tested. The
+production retry loop, deadlines and acceptance criteria are unchanged. All 28
+Bluetooth tests then passed in 0.014 seconds (`b7-bluetooth-timing.log`). The initial
+TIMEOUT log remains in external campaign evidence, not recast as a product failure.

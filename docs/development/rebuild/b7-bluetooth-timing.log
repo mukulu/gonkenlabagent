@@ -1,0 +1,19 @@
+[OK] code=BLUETOOTH_AUDIO_STATUS state=connected output_nodes=1 input_nodes=0 direct_fallback=no
+[OK] code=AUDIO_DIRECT_FALLBACK_READY input=plughw:CARD=A01,DEV=0 output=plughw:CARD=A01,DEV=0
+[OK] code=BLUETOOTH_AUDIO_STATUS state=paired_offline_direct_fallback output_nodes=0 input_nodes=0 direct_fallback=yes
+[FOUND] code=BLUETOOTH_DEVICE_KNOWN address=AA:BB:CC:DD:EE:FF name=Known Headset paired=true
+[OK] code=BLUETOOTH_AUTOCONNECT_MANAGED_UPGRADE path=/tmp/tmpvuuwa3hl/gonken-bluetooth-autoconnect.service
+[OK] code=BLUETOOTH_AUTOCONNECT_INSTALLED
+[RUNNING] code=BLUETOOTH_PAIR address=AA:BB:CC:DD:EE:FF name=Lab Headset
+[OK] code=BLUETOOTH_AUDIO_PAIRED address=AA:BB:CC:DD:EE:FF name=Lab Headset output=bluetooth_ready microphone=direct_ready:plughw:CARD=Mic,DEV=0
+[RUNNING] code=BLUETOOTH_PAIR address=41:42:06:42:05:80 name=AIRHUG 01
+[WARN] code=BLUETOOTH_OPTIONAL_UNAVAILABLE address=41:42:06:42:05:80 fallback_input=plughw:CARD=A01,DEV=0 fallback_output=plughw:CARD=A01,DEV=0 remediation=autoconnect_will_retry_later
+[OK] code=AUDIO_DIRECT_FALLBACK_READY input=plughw:CARD=A01,DEV=0 output=plughw:CARD=A01,DEV=0
+[RUNNING] code=BLUETOOTH_PAIR address=41:42:06:42:05:80 name=AIRHUG 01
+[RUNNING] code=BLUETOOTH_PAIR address=AA:BB:CC:DD:EE:FF name=Lab Headset
+[RUNNING] code=BLUETOOTH_PAIR address=AA:BB:CC:DD:EE:FF name=Lab Headset
+[OK] code=BLUETOOTH_AUDIO_PAIRED address=AA:BB:CC:DD:EE:FF name=Lab Headset output=bluetooth_ready microphone=bluetooth_ready
+----------------------------------------------------------------------
+Ran 28 tests in 0.014s
+
+OK

@@ -257,7 +257,8 @@ card 4: MicB [USB Mic B], device 0: USB Audio [USB Audio]
             "paired": True, "trusted": True, "connected": False,
             "output_capable": True, "headset_capable": True, "name": "AIRHUG 01",
         }
-        with mock.patch.object(bluetooth_manager, "stack_status"), \
+        with mock.patch.object(bluetooth_manager.time, "sleep") as delay, \
+             mock.patch.object(bluetooth_manager, "stack_status"), \
              mock.patch.object(bluetooth_manager, "resolve_candidate", return_value=("41:42:06:42:05:80", "AIRHUG 01", info)), \
              mock.patch.object(bluetooth_manager, "bluetooth_info", return_value=(info, "")), \
              mock.patch.object(bluetooth_manager, "direct_audio_fallback", return_value=("plughw:CARD=A01,DEV=0", "plughw:CARD=A01,DEV=0")), \
@@ -266,13 +267,15 @@ card 4: MicB [USB Mic B], device 0: USB Audio [USB Audio]
                 "41:42:06:42:05:80", "gonken-agent", Path("/tmp/device.record"), 15
             )
         write_record.assert_called_once()
+        self.assertEqual(delay.call_args_list, [mock.call(0.5)] * 20)
 
     def test_pairing_busy_bluetooth_without_direct_audio_still_fails(self) -> None:
         info = {
             "paired": True, "trusted": True, "connected": False,
             "output_capable": True, "headset_capable": True, "name": "AIRHUG 01",
         }
-        with mock.patch.object(bluetooth_manager, "stack_status"), \
+        with mock.patch.object(bluetooth_manager.time, "sleep") as delay, \
+             mock.patch.object(bluetooth_manager, "stack_status"), \
              mock.patch.object(bluetooth_manager, "resolve_candidate", return_value=("41:42:06:42:05:80", "AIRHUG 01", info)), \
              mock.patch.object(bluetooth_manager, "bluetooth_info", return_value=(info, "")), \
              mock.patch.object(bluetooth_manager, "direct_audio_fallback", return_value=None), \
@@ -282,6 +285,7 @@ card 4: MicB [USB Mic B], device 0: USB Audio [USB Audio]
                     "41:42:06:42:05:80", "gonken-agent", Path("/tmp/device.record"), 15
                 )
         self.assertEqual(raised.exception.code, "BLUETOOTH_CONNECT")
+        self.assertEqual(delay.call_args_list, [mock.call(0.5)] * 20)
 
     def test_disconnected_preferred_bluetooth_status_accepts_direct_audio_fallback(self) -> None:
         values = {
