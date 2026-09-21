@@ -755,6 +755,24 @@ gonken_environment_service_action() {
     --systemd-tmpfiles /usr/bin/systemd-tmpfiles
 }
 
+gonken_environment_current_reconciliation() {
+  python3 "$CANDIDATE_RELEASE/maintenance/environment_current_reconcile.py" \
+    --system-root / --release-root "$RELEASE_ROOT" --state-root "$INSTALL_STATE_ROOT" \
+    --candidate-commit "${GONKEN_SOURCE_RECORD[resolved_commit]}" \
+    --mode "${GONKEN_SOURCE_RECORD[environment_mode]}" \
+    --unit-template "$(gonken_environment_service_unit_template)" \
+    --tmpfiles-template "$(gonken_environment_service_tmpfiles_template)" "$@"
+}
+
+gonken_environment_current_postcondition() {
+  gonken_environment_current_reconciliation --check >/dev/null 2>&1 || return 1
+  GONKEN_STEP_EVIDENCE="existing_environment_reconciliation_attempt_recorded_not_candidate_readiness"
+}
+
+gonken_environment_current_action() {
+  gonken_environment_current_reconciliation
+}
+
 gonken_environment_commissioning_postcondition() {
   local profile="${GONKEN_SOURCE_RECORD[environment_profile]}"
   [[ "$profile" != "none" ]] || return 1
@@ -1322,6 +1340,18 @@ if ((ENGINE_ONLY == 0)); then
       "exact_environment_systemd_unit_tmpfiles_and_disabled_autostart" \
       "install_structural_service_files_without_enable_or_start" \
       "generic_upgrade_does_not_actuate_or_claim_physical_acceptance" || exit $?
+
+    # Independent upgrade recovery: an existing thermostat must load the new
+    # explicit real profile even if a later model prerequisite cannot converge.
+    # This never moves current, and does not replace final candidate readiness.
+    if [[ "${GONKEN_SOURCE_RECORD[environment_profile]}" == "full-real" ]]; then
+      gonken_register_step \
+        "environment_current_reconciliation" "1" \
+        "gonken_environment_service_postcondition" "gonken_environment_current_action" "gonken_environment_current_postcondition" \
+        "recorded_existing_thermostat_reconciliation_or_explicit_deferred_state" \
+        "restart_compatible_current_environment_preserve_thresholds_without_global_activation" \
+        "no_arbitrary_gpio_process_termination_no_direct_actuation_no_candidate_ready_claim" || exit $?
+    fi
 
     environment_downstream_postcondition="gonken_environment_service_postcondition"
     if [[ "${GONKEN_SOURCE_RECORD[environment_profile]}" != "none" ]]; then

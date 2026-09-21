@@ -50,3 +50,21 @@ roster progress/manager suites: 22 tests. Before repair, three of the original s
 new cases failed. Optional tool rejection has a separate incident list and
 TOOL_INCOMPATIBLE status, while selected/default qualification and residency remain
 strict. No model binary/version was changed and the server-side cause is not claimed.
+
+## B11B outcome
+
+Added an explicitly scoped existing-thermostat reconciliation phase before model
+provisioning. It checks current release integrity and installed service contract,
+parses configuration without actuation, restarts the sole environment service,
+checks real-backend health and converges mode through versioned IPC. It preserves
+thresholds/dwell, records invocation/config/candidate identity and does not move
+current. No-current/old-runtime failure is reported as deferred/degraded; final
+candidate commissioning remains mandatory. No unrelated GPIO process is killed.
+
+Before any restart, an atomic RUNNING record preserves interruption state and
+unsafe destinations are rejected. Current identity/config changes invalidate the
+receipt. 27 reconciliation/order/wrapper tests passed initially. After hardening,
+13 reconciliation/installed-import tests and 13 real-profile/policy tests passed.
+One larger grouped rerun was INTERRUPTED by its outer 30-second limit after 32
+case markers; it is not counted as a complete suite. No child survived. Narrow
+subsets were isolated, and the final complete-suite campaign will supersede it.

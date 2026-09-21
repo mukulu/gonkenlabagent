@@ -930,7 +930,8 @@ def smoke_installed_maintenance(release: Path) -> None:
     tools = ("ollama_manager.py", "model_roster_manager.py",
              "ollama_qualification_matrix.py", "appliance_manager.py",
              "install_summary.py", "environment_service_manager.py",
-             "environment_profile_manager.py", "environment_readiness.py", "environment_policy_manager.py")
+             "environment_profile_manager.py", "environment_readiness.py", "environment_policy_manager.py",
+             "environment_current_reconcile.py")
     environment = {"PATH": "/usr/bin:/bin", "LANG": "C.UTF-8",
                    "PYTHONDONTWRITEBYTECODE": "1", "PYTHONNOUSERSITE": "1"}
     for name in tools:
@@ -1056,6 +1057,7 @@ def build_release(
             source / "scripts" / "environment_acceptance_runner.py": maintenance / "environment_acceptance_runner.py",
             source / "scripts" / "environment_profile_manager.py": maintenance / "environment_profile_manager.py",
             source / "scripts" / "environment_readiness.py": maintenance / "environment_readiness.py",
+            source / "scripts" / "environment_current_reconcile.py": maintenance / "environment_current_reconcile.py",
             source / "scripts" / "environment_policy_manager.py": maintenance / "environment_policy_manager.py",
             source / "scripts" / "archive_qualifier.py": maintenance / "archive_qualifier.py",
             source / "scripts" / "target_probe.py": maintenance / "target_probe.py",
@@ -1109,6 +1111,7 @@ def build_release(
             maintenance / "environment_acceptance_runner.py",
             maintenance / "environment_profile_manager.py",
             maintenance / "environment_readiness.py",
+            maintenance / "environment_current_reconcile.py",
             maintenance / "environment_policy_manager.py",
             maintenance / "archive_qualifier.py",
             maintenance / "target_probe.py",

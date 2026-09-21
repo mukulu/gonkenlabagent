@@ -10,7 +10,9 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[2]
 # This staging inventory is also checked against the release builder below.
-SCRIPTS = ("ollama_manager.py", "model_roster_manager.py", "ollama_qualification_matrix.py")
+SCRIPTS = ("ollama_manager.py", "model_roster_manager.py", "ollama_qualification_matrix.py",
+           "release_manager.py", "environment_service_manager.py", "environment_profile_manager.py",
+           "environment_readiness.py", "environment_policy_manager.py", "environment_current_reconcile.py")
 SIDECARS = {"ollama_errors.py": "src/gonken_agent/llm/errors.py",
             "model_qualification.py": "src/gonken_agent/llm/qualification.py",
             "model_catalog.py": "src/gonken_agent/llm/models.py"}

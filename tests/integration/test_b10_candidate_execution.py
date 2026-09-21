@@ -49,6 +49,8 @@ gonken_run_registered_steps
         self.assertEqual(result.returncode,75,result.stderr);self.assertEqual(current,'predecessor')
         self.assertNotIn('STEP activate_release',result.stdout)
         self.assertNotIn('STEP environment_commissioning',result.stdout)
+        self.assertIn('STEP environment_current_reconciliation',result.stdout)
+        self.assertLess(result.stdout.index('STEP environment_current_reconciliation'),result.stdout.index('STEP ollama_model_roster'))
     def test_speech_failure_never_switches_current(self):
         result,current=self.run_plan('speech_smoke')
         self.assertEqual(result.returncode,75,result.stderr);self.assertEqual(current,'predecessor')
@@ -64,6 +66,7 @@ gonken_run_registered_steps
         result,current=self.run_plan(profile='none')
         self.assertEqual(result.returncode,0,result.stderr)
         self.assertNotIn('STEP environment_commissioning',result.stdout)
+        self.assertNotIn('STEP environment_current_reconciliation',result.stdout)
     def test_ollama_only_plan_has_a_valid_late_activation_boundary(self):
         result,current=self.run_plan(ollama_only=1)
         self.assertEqual(result.returncode,0,result.stderr);self.assertEqual(current,'candidate')
