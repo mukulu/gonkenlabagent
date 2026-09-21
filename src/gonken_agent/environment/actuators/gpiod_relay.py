@@ -48,6 +48,8 @@ class GpiodRelayFanActuator:
         gpiod_module: Any | None = None,
         chip_paths: Iterable[str] | None = None,
     ) -> None:
+        if type(active_high) is not bool:
+            raise ActuatorAdapterError("ACTUATOR_CONFIG_INVALID", "relay polarity must be a boolean")
         if line_offset is not None and chip_path is None:
             chip_path = "/dev/gpiochip0"
         explicit = chip_path is not None or line_offset is not None
@@ -77,13 +79,18 @@ class GpiodRelayFanActuator:
         self._value = None
         self._request = None
         self._lock = threading.RLock()
-        self._commanded = FanPower.OFF
+        self._commanded = FanPower.OFF  # compatibility: last acknowledged/default logical state
+        self._acknowledged: FanPower | None = None
+        self._write_count = 0
+        self._write_errors = 0
+        self._request_errors = 0
+        self._last_write_result = "NOT_ATTEMPTED"
 
     @classmethod
     def from_config(cls, env_config: Any) -> "GpiodRelayFanActuator":
         return cls(
-            logical_bcm=int(env_config.relay_bcm),
-            active_high=bool(env_config.relay_active_high),
+            logical_bcm=env_config.relay_bcm,
+            active_high=env_config.relay_active_high,
         )
 
     @property
@@ -153,42 +160,69 @@ class GpiodRelayFanActuator:
                     config={identity.line_offset: settings},
                 )
             except Exception as exc:
+                self._request_errors += 1
+                self._last_write_result = "REQUEST_FAILED"
+                self._acknowledged = None
                 raise ActuatorAdapterError("ACTUATOR_UNAVAILABLE", "cannot request relay GPIO line") from exc
             self._commanded = FanPower.OFF
+            self._acknowledged = FanPower.OFF
+            self._write_count += 1  # initial inactive output is an actual kernel command
+            self._last_write_result = "SUCCESS"
+
+    def _write(self, requested: FanPower) -> None:
+        assert self.identity is not None and self._request is not None
+        try:
+            self._request.set_value(self.identity.line_offset,
+                                   self._value.ACTIVE if requested == FanPower.ON else self._value.INACTIVE)
+        except Exception as exc:
+            self._write_errors += 1
+            self._acknowledged = None  # an attempted write is not an acknowledged state
+            self._last_write_result = "FAILED"
+            raise ActuatorAdapterError("ACTUATOR_UNAVAILABLE", "cannot set relay GPIO line") from exc
+        self._write_count += 1
+        self._commanded = self._acknowledged = requested
+        self._last_write_result = "SUCCESS"
 
     def set_power(self, power: FanPower | bool | str) -> None:
         requested = FanPower.parse(power)
         with self._lock:
             self.open()
-            assert self.identity is not None
-            try:
-                self._request.set_value(self.identity.line_offset, self._value.ACTIVE if requested == FanPower.ON else self._value.INACTIVE)
-            except Exception as exc:
-                raise ActuatorAdapterError("ACTUATOR_UNAVAILABLE", "cannot set relay GPIO line") from exc
-            self._commanded = requested
+            if self._acknowledged == requested:
+                return  # retain the exclusive request; identical polls need no GPIO write
+            self._write(requested)
 
     def safe_off(self) -> None:
         with self._lock:
             self.open()
-            assert self.identity is not None
-            try:
-                self._request.set_value(self.identity.line_offset, self._value.INACTIVE)
-            except Exception as exc:
-                raise ActuatorAdapterError("ACTUATOR_UNAVAILABLE", "cannot force relay safe OFF") from exc
-            self._commanded = FanPower.OFF
+            self._write(FanPower.OFF)
 
     def close(self) -> None:
         with self._lock:
             if self._request is not None:
-                assert self.identity is not None
                 try:
-                    self._request.set_value(self.identity.line_offset, self._value.INACTIVE)
+                    self._write(FanPower.OFF)
                 finally:
-                    release = getattr(self._request, "release", None)
+                    request, self._request = self._request, None
+                    # After release the electrical state is not an owned command.
+                    self._acknowledged = None
+                    release = getattr(request, "release", None)
                     if callable(release):
                         release()
-                    self._request = None
-                    self._commanded = FanPower.OFF
+
+    def command_diagnostics(self) -> dict[str, object]:
+        """In-memory transport facts only; does not open/resolve/request/read GPIO."""
+        with self._lock:
+            return {
+                "gpio_claimed": self._request is not None,
+                "gpio_consumer": self._consumer if self._request is not None else None,
+                "relay_commanded": self._acknowledged.value if self._acknowledged is not None else None,
+                "gpio_write_count": self._write_count,
+                "gpio_write_errors": self._write_errors,
+                "gpio_request_errors": self._request_errors,
+                "last_write_result": self._last_write_result,
+                "fan_motion_observed": False,
+                "software_speed_control": False,
+            }
 
     def resolved_identity(self) -> dict[str, object]:
         """Return runtime line identity after open/resolution without physical claims."""
@@ -204,6 +238,7 @@ class GpiodRelayFanActuator:
                 "chip_name": identity.chip_name,
                 "resolution_basis": identity.resolution_basis,
                 "active_high": identity.active_high,
+                **self.command_diagnostics(),
                 "physical_acceptance_claimed": False,
             }
 

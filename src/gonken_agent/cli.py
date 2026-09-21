@@ -694,8 +694,10 @@ def _run_environment_daemon(args: argparse.Namespace) -> int:
             else:
                 print("[OK] code=ENVIRONMENT_DAEMON_CONFIG_OK enabled=true hardware_toggled=false physical_evidence=false")
             return 0
-        daemon = EnvironmentDaemon.from_config(env)
-        daemon.serve_forever()
+        from .environment.journal import EnvironmentEventJournal
+        with EnvironmentEventJournal() as journal:
+            daemon = EnvironmentDaemon.from_config(env, event_sink=journal)
+            daemon.serve_forever()
         return 0
     except KeyboardInterrupt:
         return 0
@@ -900,10 +902,12 @@ def _environment_watch_signature(payload: Mapping[str, object]) -> tuple[object,
     return (
         state.get("mode"), state.get("fan_power"), state.get("sensor_quality"),
         state.get("last_transition_reason"), policy.get("generation"),
-        reading_map.get("temperature_c"), reading_map.get("relative_humidity_pct"),
         reading_map.get("quality"), provenance.get("sensor_backend"),
-        provenance.get("actuator_backend"), polling.get("poll_error_count"),
-        polling.get("last_poll_error_code"),
+        provenance.get("actuator_backend"), polling.get("last_poll_error_code"),
+        provenance.get("release_commit"), provenance.get("configuration_sha256"),
+        (payload.get("actuator_commands") or {}).get("relay_commanded") if isinstance(payload.get("actuator_commands"), Mapping) else None,
+        (payload.get("actuator_commands") or {}).get("last_write_result") if isinstance(payload.get("actuator_commands"), Mapping) else None,
+        (payload.get("health") or {}).get("actuator") if isinstance(payload.get("health"), Mapping) else None,
     )
 
 def _print_environment_watch_row(payload: Mapping[str, object]) -> None:
@@ -921,7 +925,11 @@ def _print_environment_watch_row(payload: Mapping[str, object]) -> None:
         f"sensor={reading_map.get('source_backend', provenance.get('sensor_backend', 'unknown'))}  "
         f"actuator={provenance.get('actuator_backend', 'unknown')}  "
         f"mode={state.get('mode', 'unknown')}  "
-        f"fan={state.get('fan_power', 'unknown')}  "
+        f"controller_desired={state.get('fan_power', 'unknown')}  "
+        f"relay_commanded={(payload.get('actuator_commands') or {}).get('relay_commanded', 'unreported') if isinstance(payload.get('actuator_commands'), Mapping) else 'unreported'}  "
+        f"fan_motion=unobserved  "
+        f"gpio={(payload.get('actuator_runtime_identity') or {}).get('line_name', 'none') if isinstance(payload.get('actuator_runtime_identity'), Mapping) else 'none'}  "
+        f"actuator_errors={(payload.get('actuator_commands') or {}).get('actuator_write_errors', 'unreported') if isinstance(payload.get('actuator_commands'), Mapping) else 'unreported'}  "
         f"quality={reading_map.get('quality', state.get('sensor_quality', 'unknown'))}  "
         f"reason={state.get('last_transition_reason', 'unknown')}  "
         f"policy_generation={policy.get('generation', 'unknown')}  "

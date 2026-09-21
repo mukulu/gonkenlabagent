@@ -68,3 +68,23 @@ receipt. 27 reconciliation/order/wrapper tests passed initially. After hardening
 One larger grouped rerun was INTERRUPTED by its outer 30-second limit after 32
 case markers; it is not counted as a complete suite. No child survived. Narrow
 subsets were isolated, and the final complete-suite campaign will supersede it.
+
+## B11C command truth and passive observation
+
+GPIO diagnostics now report exclusive claim/consumer, last acknowledged command,
+actual write/request error counters and no observed-motion fiction. Repeated equal
+commands retain ownership without repeated GPIO writes. Failed writes and released
+lines expose unknown current commanded state instead of synthesizing OFF success.
+Polarity type is strictly validated at the adapter boundary as well as config.
+
+Service snapshots distinguish controller desire, acknowledged relay command, last
+request/result and command reason/time/counters. State changes and rate-bounded
+write failures enter a content-free, allowlisted, bounded asynchronous journal
+queue. A blocked journal cannot stall the controller; event loss is explicit.
+
+Health/status reads no longer call controller.tick and hence cannot create an
+unapplied control transition. They project staleness without mutating the filter,
+dwell, state or GPIO. Changes-only watch ignores raw temperature/humidity jitter
+and counters; it reports control/quality/error/backend/config transitions. Normal
+watch still shows samples. The old test expecting the ambiguous `fan=off` display
+was changed to assert desired/commanded/unobserved labels. 58 focused tests PASS.

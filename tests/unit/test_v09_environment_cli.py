@@ -434,7 +434,9 @@ class EnvironmentCliTests(unittest.TestCase):
         self.assertEqual(result, 0, stderr)
         self.assertEqual(client.calls, [("snapshot", None), ("snapshot", None)])
         self.assertEqual(stdout.count("physical_evidence=False"), 2)
-        self.assertIn("fan=off", stdout)
+        self.assertIn("controller_desired=off", stdout)
+        self.assertIn("relay_commanded=unreported", stdout)
+        self.assertIn("fan_motion=unobserved", stdout)
         self.assertIn("sensor=simulated", stdout)
         self.assertIn("policy_generation=4", stdout)
 

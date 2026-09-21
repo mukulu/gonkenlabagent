@@ -111,6 +111,7 @@ class EnvironmentServiceCore:
         identity: ServiceIdentity | None = None,
         simulation_state: SimulationState | None = None,
         simulation_runtime_control_enabled: bool = False,
+        event_sink: Callable[[Mapping[str, object]], None] | None = None,
     ) -> None:
         self.controller = controller
         self.bounds = bounds
@@ -142,6 +143,16 @@ class EnvironmentServiceCore:
             self.controller.state.last_transition_monotonic,
         )
         self._closed = False
+        self._event_sink = event_sink
+        self._event_delivery_errors = 0
+        self._actuator_command_count = 0
+        self._actuator_write_errors = 0
+        self._last_actuator_command: FanPower | None = None
+        self._last_actuator_requested: FanPower | None = None
+        self._last_actuator_command_reason: str | None = None
+        self._last_actuator_command_monotonic: float | None = None
+        self._last_actuator_write_result = "NOT_ATTEMPTED"
+        self._last_actuator_error_event: float | None = None
 
     @classmethod
     def with_defaults(
@@ -247,11 +258,9 @@ class EnvironmentServiceCore:
         now = float(self.now())
         if operation == "status.get":
             _reject_unknown_params(params, set())
-            self.controller.tick(now_monotonic=now)
             return self._status_payload(now)
         if operation == "health.get":
             _reject_unknown_params(params, set())
-            self.controller.tick(now_monotonic=now)
             return self._health_payload(now)
         if operation == "sensor.read":
             _reject_unknown_params(params, set())
@@ -379,22 +388,86 @@ class EnvironmentServiceCore:
             }
         raise EnvironmentServiceError("UNKNOWN_OPERATION", f"unsupported operation: {operation}")
 
+    def _observed_sensor_quality(self, now: float) -> SensorQuality:
+        quality = self.controller.state.sensor_quality
+        reading = self.controller.state.last_reading
+        if quality == SensorQuality.READY and reading is not None:
+            return reading.quality(now_monotonic=now, stale_after_seconds=self.controller.stale_after_seconds)
+        return quality
+
+    def _public_state(self, now: float) -> dict[str, object]:
+        payload = self.controller.state.as_dict(now_monotonic=now,
+                                              stale_after_seconds=self.controller.stale_after_seconds)
+        payload["sensor_quality"] = self._observed_sensor_quality(now).value
+        return payload
+
+    def _actuator_command_payload(self) -> dict[str, object]:
+        transport = {}
+        diagnostics = getattr(self.fan_actuator, "command_diagnostics", None)
+        if callable(diagnostics):
+            try:
+                value = diagnostics()
+                if isinstance(value, Mapping):
+                    transport = dict(value)
+            except Exception:
+                transport = {"last_write_result": "DIAGNOSTICS_UNAVAILABLE", "relay_commanded": None}
+        acknowledged = self._last_actuator_command.value if self._last_actuator_command is not None else None
+        return {
+            "controller_desired": self.controller.state.fan_power.value,
+            "relay_commanded": transport.get("relay_commanded", acknowledged),
+            "last_actuator_requested": self._last_actuator_requested.value if self._last_actuator_requested else None,
+            "last_actuator_command": acknowledged,
+            "last_actuator_command_reason": self._last_actuator_command_reason,
+            "last_actuator_command_monotonic": self._last_actuator_command_monotonic,
+            "actuator_command_count": self._actuator_command_count,
+            "actuator_write_errors": self._actuator_write_errors,
+            "last_command_result": self._last_actuator_write_result,
+            "last_write_result": self._last_actuator_write_result,
+            "event_delivery_errors": self._event_delivery_errors,
+            "actuator_simulated": self.identity.actuator_is_simulated,
+            **transport,
+            "fan_motion_observed": False, "physical_evidence": False,
+        }
+
+    def _emit_actuator_event(self, now: float, code: str, previous: FanPower | None,
+                             requested: FanPower, result: str, *, safe_off_result: str | None = None) -> None:
+        if self._event_sink is None:
+            return
+        identity = self._actuator_runtime_identity()
+        state, policy = self.controller.state, self.controller.policy
+        event = {"code": code, "backend": self.identity.actuator_backend,
+                 "actuator_simulated": self.identity.actuator_is_simulated,
+                 "gpio": identity.get("line_name"), "gpio_claimed": identity.get("gpio_claimed"),
+                 "gpio_consumer": identity.get("gpio_consumer"),
+                 "previous": previous.value if previous is not None else None,
+                 "requested": requested.value,
+                 "relay_commanded": self._actuator_command_payload()["relay_commanded"],
+                 "reason": state.last_transition_reason.value, "mode": state.mode.value,
+                 "monotonic": now, "control_temperature_c": state.control_temperature_c,
+                 "start_c": policy.start_c, "stop_c": policy.stop_c,
+                 "write_result": result, "safe_off_result": safe_off_result,
+                 "actuator_write_errors": self._actuator_write_errors,
+                 "fan_motion_observed": False, "physical_evidence": False}
+        try:
+            self._event_sink(event)
+        except Exception:
+            # Diagnostics may fail; they are never authority to interrupt control.
+            self._event_delivery_errors += 1
+
     def _status_payload(self, now: float) -> dict[str, object]:
         return {
             "service": "READY",
-            "environment": self._overall_environment_state(),
-            "state": self.controller.state.as_dict(
-                now_monotonic=now,
-                stale_after_seconds=self.controller.stale_after_seconds,
-            ),
+            "environment": self._overall_environment_state(now),
+            "state": self._public_state(now),
             "capabilities": self._capabilities_payload(),
             "actuator_runtime_identity": self._actuator_runtime_identity(),
+            "actuator_commands": self._actuator_command_payload(),
             "physical_evidence": False,
             "provenance": self._provenance_payload(),
         }
 
     def _health_payload(self, now: float) -> dict[str, object]:
-        sensor_quality = self.controller.state.sensor_quality
+        sensor_quality = self._observed_sensor_quality(now)
         return {
             "process_alive": True,
             "ipc_ready": True,
@@ -402,13 +475,11 @@ class EnvironmentServiceCore:
             "sensor": sensor_quality.value,
             "actuator": self._actuator_health(),
             "actuator_runtime_identity": self._actuator_runtime_identity(),
-            "controller": "ACTIVE" if sensor_quality == SensorQuality.READY else "SUSPENDED_OR_STARTING",
-            "overall": self._overall_environment_state(),
+            "actuator_commands": self._actuator_command_payload(),
+            "controller": "ACTIVE" if sensor_quality == SensorQuality.READY and self._actuator_error_code is None else "SUSPENDED_OR_STARTING",
+            "overall": self._overall_environment_state(now),
             "polling": self._polling_payload(),
-            "state": self.controller.state.as_dict(
-                now_monotonic=now,
-                stale_after_seconds=self.controller.stale_after_seconds,
-            ),
+            "state": self._public_state(now),
             "physical_evidence": False,
             "provenance": self._provenance_payload(),
         }
@@ -424,8 +495,10 @@ class EnvironmentServiceCore:
             "provenance": self._provenance_payload(),
         }
 
-    def _overall_environment_state(self) -> str:
-        quality = self.controller.state.sensor_quality
+    def _overall_environment_state(self, now: float | None = None) -> str:
+        if self._actuator_error_code is not None or self._closed:
+            return "DEGRADED"
+        quality = self._observed_sensor_quality(float(self.now()) if now is None else now)
         if quality == SensorQuality.READY:
             return "READY"
         if quality in {SensorQuality.FAILED, SensorQuality.STALE, SensorQuality.UNAVAILABLE}:
@@ -511,14 +584,12 @@ class EnvironmentServiceCore:
     def _snapshot_payload(self, now: float) -> dict[str, object]:
         return {
             "service": "READY",
-            "environment": self._overall_environment_state(),
-            "state": self.controller.state.as_dict(
-                now_monotonic=now,
-                stale_after_seconds=self.controller.stale_after_seconds,
-            ),
+            "environment": self._overall_environment_state(now),
+            "state": self._public_state(now),
             "capabilities": self._capabilities_payload(),
             "polling": self._polling_payload(),
             "actuator_runtime_identity": self._actuator_runtime_identity(),
+            "actuator_commands": self._actuator_command_payload(),
             "physical_evidence": False,
             "provenance": self._provenance_payload(),
         }
@@ -658,19 +729,45 @@ class EnvironmentServiceCore:
     def _apply_actuator_if_needed(self, now: float) -> None:
         if self.fan_actuator is None:
             return
+        requested = self.controller.state.fan_power
+        previous = self._last_actuator_command
+        recovered = self._actuator_error_code is not None
+        self._last_actuator_requested = requested
         try:
-            self.fan_actuator.set_power(self.controller.state.fan_power)
+            self.fan_actuator.set_power(requested)
         except Exception as exc:
             self._actuator_error_code = "ACTUATOR_UNAVAILABLE"
+            self._actuator_write_errors += 1
+            self._last_actuator_command = None
+            self._last_actuator_write_result = "FAILED"
+            safe_result = "UNAVAILABLE"
             try:
                 safe_off = getattr(self.fan_actuator, "safe_off", None)
                 if callable(safe_off):
                     safe_off()
+                    self._last_actuator_command = FanPower.OFF
+                    safe_result = "SUCCESS"
             except Exception:
-                pass
+                self._actuator_write_errors += 1
+                safe_result = "FAILED"
             self.controller.actuator_error_safe_off(now_monotonic=now)
+            if safe_result == "SUCCESS":
+                self._actuator_command_count += 1
+                self._last_actuator_command_monotonic = now
+                self._last_actuator_command_reason = self.controller.state.last_transition_reason.value
+            if self._last_actuator_error_event is None or now - self._last_actuator_error_event >= 60:
+                self._emit_actuator_event(now, "ENV_ACTUATOR_WRITE_FAILED", previous, requested, "FAILED", safe_off_result=safe_result)
+                self._last_actuator_error_event = now
             raise EnvironmentServiceError("ACTUATOR_UNAVAILABLE", _public_message(exc)) from exc
         self._actuator_error_code = None
+        self._last_actuator_error_event = None
+        self._last_actuator_write_result = "SUCCESS"
+        self._last_actuator_command = requested
+        if previous != requested or recovered:
+            self._actuator_command_count += 1
+            self._last_actuator_command_monotonic = now
+            self._last_actuator_command_reason = self.controller.state.last_transition_reason.value
+            self._emit_actuator_event(now, "ENV_ACTUATOR_TRANSITION", previous, requested, "SUCCESS")
 
     def _save_policy_if_configured(self) -> None:
         if self.policy_store is not None:

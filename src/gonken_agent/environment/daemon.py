@@ -110,6 +110,7 @@ def build_environment_service_core(
     actuator_factory: ActuatorFactory | None = None,
     policy_store_factory: PolicyStoreFactory | None = None,
     initialize_policy: bool = True,
+    event_sink: Callable[[dict[str, object]], None] | None = None,
 ) -> EnvironmentServiceCore:
     """Build the daemon core from static config and daemon-owned policy.
 
@@ -181,6 +182,7 @@ def build_environment_service_core(
         identity=identity,
         simulation_state=simulation_state,
         simulation_runtime_control_enabled=bool(getattr(env_config, "simulation_runtime_control_enabled", False)),
+        event_sink=event_sink,
     )
 
 
@@ -192,6 +194,7 @@ def build_environment_unix_server(
     actuator_factory: ActuatorFactory | None = None,
     policy_store_factory: PolicyStoreFactory | None = None,
     socket_mode: int = 0o660,
+    event_sink: Callable[[dict[str, object]], None] | None = None,
 ) -> EnvironmentUnixServer:
     """Create the AF_UNIX server for the configured environment daemon."""
 
@@ -201,6 +204,7 @@ def build_environment_unix_server(
         sensor_factory=sensor_factory,
         actuator_factory=actuator_factory,
         policy_store_factory=policy_store_factory,
+        event_sink=event_sink,
     )
     return EnvironmentUnixServer(Path(str(env_config.socket_path)), core, socket_mode=socket_mode)
 
