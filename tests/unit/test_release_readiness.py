@@ -12,63 +12,25 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 class ReleaseReadinessTests(unittest.TestCase):
-    def test_report_is_ready_for_target_acceptance_from_clean_tree(self) -> None:
-        result = subprocess.run(
-            [sys.executable, "scripts/release_readiness.py", "--json", "--allow-dirty"],
-            cwd=ROOT,
-            check=False,
-            capture_output=True,
-            text=True,
-            timeout=10,
-        )
+    def test_current_unfinished_program_cannot_be_promoted(self):
+        result = subprocess.run([sys.executable, "scripts/release_readiness.py", "--json", "--allow-dirty"], cwd=ROOT, capture_output=True, text=True, timeout=10)
         self.assertEqual(result.returncode, 0, result.stderr)
         report = json.loads(result.stdout)
-        self.assertEqual(report["status"], "READY_FOR_TARGET_CAMPAIGN")
-        self.assertFalse(report["secret_findings"])
-        self.assertFalse(report["missing_milestones"])
-        self.assertFalse(report["not_host_verified"])
-        self.assertEqual(len(report["target_shadow_passed"]), 24)
-        self.assertFalse(report["target_shadow_failures"])
-        remaining = {gate["id"] for gate in report["target_gates_remaining"]}
-        self.assertIn("M9.1", remaining)
-        self.assertIn("M10.7", remaining)
-        self.assertIn("M10.24", remaining)
-        self.assertIn("M10.30", report["host_verified"])
-        self.assertIn("M10.31", report["host_verified"])
-        self.assertIn("M10.32", report["host_verified"])
-        self.assertIn("M10.33", report["host_verified"])
-        self.assertIn("M10.34", report["host_verified"])
-        self.assertIn("M10.35", report["host_verified"])
-        self.assertIn("M10.36", report["host_verified"])
-        self.assertIn("M10.37", report["host_verified"])
-        self.assertIn("M10.38", report["host_verified"])
-        self.assertIn("M10.39", report["host_verified"])
-        self.assertIn("M10.40", report["host_verified"])
-        self.assertIn("M10.26", report["host_verified"])
-        self.assertIn("M10.28", report["host_verified"])
-        self.assertFalse(report["physical_acceptance_claimed"])
-        self.assertIn("target-shadow", report["readiness_scope"])
-        self.assertIn("no Raspberry Pi release candidate", report["readiness_scope"])
-        self.assertIn("./bootstrap.sh --local-checkpoint", report["next_action"])
-        self.assertIn("governed three-model roster", report["next_action"])
-        self.assertIn("real-SHT31/simulated-fan", report["next_action"])
-        self.assertIn("WP-45C", report["next_action"])
-        self.assertIn("INSTALLATION_COMPLETE", report["next_action"])
-        self.assertIn("target_probe.py", report["next_action"])
+        self.assertEqual(report['status'], 'NOT_READY')
+        self.assertEqual(report['validation_status'], 'PASS')
+        self.assertTrue(report['current_gates_remaining'])
+        self.assertEqual(len(report['target_shadow_passed']), 24)
+        self.assertFalse(report['target_shadow_failures'])
+        self.assertFalse(report['physical_acceptance_claimed'])
+        self.assertNotIn('MILESTONES.json', report['authority'])
 
-    def test_human_report_has_exact_boundary_language(self) -> None:
-        result = subprocess.run(
-            [sys.executable, "scripts/release_readiness.py", "--allow-dirty"],
-            cwd=ROOT,
-            check=False,
-            capture_output=True,
-            text=True,
-            timeout=10,
-        )
+    def test_human_report_has_exact_boundary_language(self):
+        result = subprocess.run([sys.executable, "scripts/release_readiness.py", "--allow-dirty"], cwd=ROOT, capture_output=True, text=True, timeout=10)
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("Status: READY_FOR_TARGET_CAMPAIGN", result.stdout)
-        self.assertIn("Target-shadow fixtures: 24/24", result.stdout)
-        self.assertIn("Target gates remaining:", result.stdout)
+        self.assertIn('Status: NOT_READY', result.stdout)
+        self.assertIn('Current core gates remaining:', result.stdout)
+        self.assertIn('Target-shadow fixtures: 24/24', result.stdout)
+        self.assertIn('Physical acceptance claimed: false', result.stdout)
 
     def test_target_shadow_fixture_failure_blocks_readiness(self) -> None:
         bad_shadow = [{
@@ -88,13 +50,12 @@ class ReleaseReadinessTests(unittest.TestCase):
         self.assertIn("docs/RASPBERRY_PI_ACCEPTANCE_RUN.md", readme)
         for expected in (
             "./bootstrap.sh --local-checkpoint",
-            "sha256sum -c <delivered-sha256-manifest>",
-            "git reset --hard HEAD",
+            'sha256sum -c "$MANIFEST"',
+            'tar --no-same-owner -xjf "$ARCHIVE" -C "$DEST"',
             "test -x ./bootstrap.sh",
-            "gpioinfo --strict GPIO17",
-            "gpioinfo --strict GPIO22",
-            "gpioinfo --strict GPIO23",
-            "gpioinfo --strict GPIO27",
+            "gpio_identity_preflight.py",
+            "--config /etc/gonken-agent/config.toml --json",
+            "Dormant GPIO17/GPIO27",
             "collect-support.sh",
             "journalctl -u gonken-agent.service",
             "sudo reboot",
@@ -104,6 +65,8 @@ class ReleaseReadinessTests(unittest.TestCase):
             "BLOCKED_NO_PREVIOUS_VALIDATED_RELEASE",
         ):
             self.assertIn(expected, runbook)
+        self.assertNotIn("git reset --hard HEAD", runbook)
+        self.assertNotIn("python3 -m zipfile -e", runbook)
 
 
 if __name__ == "__main__":

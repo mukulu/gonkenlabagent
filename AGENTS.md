@@ -30,3 +30,14 @@ and the current `docs/CURRENT_STATE.md` when present. Preserve incomplete change
 on `dev-unstable/attempt03-rebuild` as clearly labeled WIP commits; test before
 promoting any release candidate. Export/save/retrieve code-bearing snapshots
 regularly. Missing original CP46 commits must not be represented as restored.
+
+### Current promotion authority
+
+Use `docs/development/ATTEMPT03_PLAN.json` for requirement inventory and
+`CURRENT_GATES.json`/generated `docs/CURRENT_STATE.md` for current disposition.
+Historical milestone files remain compatibility evidence only. T0 performs
+`release_readiness.py --validate`; strict candidate promotion uses `--check`.
+Never equate development validation or `--allow-dirty` with readiness. Explicit
+`archive_qualifier.py --purpose development` verifies recovery/source packages
+without authorizing target installation. Commit WIP on the development branch
+with its failed/unrun gates recorded; only promote after actual qualification.

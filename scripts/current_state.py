@@ -38,8 +38,27 @@ def validate(data: object, root: Path = ROOT) -> list[str]:
         if identity.startswith(('47.', '49.')) and row.get('status') == 'HOST_VERIFIED':
             errors.append(identity + ':TARGET_SLOT_NOT_HOST_CLOSABLE')
         for path in evidence:
-            if not isinstance(path, str) or Path(path).is_absolute() or '..' in Path(path).parts or not (root / path).is_file():
+            if not isinstance(path, str) or Path(path).is_absolute() or '..' in Path(path).parts or not (root / path).is_file() or (root / path).is_symlink() or not (root / path).resolve().is_relative_to(root.resolve()):
                 errors.append(identity + ':EVIDENCE_PATH')
+    try:
+        plan = json.loads((root / 'docs/development/ATTEMPT03_PLAN.json').read_text())
+        definitions = plan['slots']
+        ids = [row['id'] for row in definitions]
+        if (plan.get('schema') != 'gonken-attempt03-plan-v1'
+                or plan.get('source_sha256') != data.get('blueprint_sha256')
+                or len(ids) != len(set(ids)) or set(ids) != seen):
+            errors.append('BLUEPRINT_COVERAGE_MISMATCH')
+        expected = {row['id']: row for row in definitions}
+        for row in slots:
+            if isinstance(row, dict) and row.get('id') in expected:
+                spec = expected[row['id']]
+                if row.get('title') != spec['title']:
+                    errors.append(row['id'] + ':BLUEPRINT_TITLE_DRIFT')
+                required = row['id'].startswith('46.') and int(row['id'].split('.')[1]) < 13
+                if type(spec.get('required_before_core_candidate')) is not bool or spec['required_before_core_candidate'] != required:
+                    errors.append('BLUEPRINT_REQUIREMENT_CLASS')
+    except (OSError, ValueError, KeyError, TypeError):
+        errors.append('BLUEPRINT_PLAN_UNAVAILABLE')
     if not isinstance(data.get('next_action'), str) or not data['next_action'].strip():
         errors.append('NEXT_ACTION_REQUIRED')
     return errors

@@ -144,30 +144,31 @@ The production GPIO contract does not assume that a BCM number is the same thing
 logical GPIOs by unique kernel line names and fail closed when the mapping is
 missing or ambiguous.
 
-Before connecting the room relay or PTT indicators, collect:
+The current Attempt03 appliance uses wake-word interaction; a physical PTT
+button is not required. Dormant GPIO17/GPIO27 compatibility fields do not reserve
+lines or create current acceptance gates. GPIO22 remains the separate wake/privacy
+indicator under the current backend; do not release it as a side effect of PTT
+cleanup. GPIO23 is required only when a real relay profile is selected.
+
+Use the selected installed configuration, not a fixed four-line list, for
+non-actuating identity evidence in the voice service account context:
 
 ```bash
-gpiodetect
-gpioinfo --strict GPIO17
-gpioinfo --strict GPIO22
-gpioinfo --strict GPIO23
-gpioinfo --strict GPIO27
+sudo -u gonken-agent /usr/local/lib/gonken-agent/current/.venv/bin/python \
+  /usr/local/lib/gonken-agent/current/maintenance/gpio_identity_preflight.py \
+  --config /etc/gonken-agent/config.toml --json
 gonken-agent wake status --json
 gonken-agent env status --json
 gonken-agent env health --json
 ```
 
-Expected logical roles:
-
-- GPIO17 — push-to-talk input;
-- GPIO22 — wake-standby monitoring LED;
-- GPIO23 — room-fan relay candidate;
-- GPIO27 — recording LED.
-
-**STOP and do not actuate** if a required GPIO line is absent, ambiguous, the
-reported runtime identity is unresolved, or the physical header/wiring cannot be
-matched confidently. Return the mapping output for diagnosis instead of
-guessing a chip/offset.
+Inspect `required_claims`, owner/reason, selected GPIO lines and the configuration
+claim fingerprint. A diagnostic header fingerprint is not an ownership claim.
+Explicit PTT compatibility tests remain applicable only when that mode is selected;
+future touch on GPIO17 must conflict with simultaneously selected PTT on GPIO17
+before boot changes or line acquisition. Metadata visibility does not prove real
+fan motion or sensor readings. Broader historical PTT references later in this
+runbook do not add a button requirement to the current wake-word hardware profile.
 
 ## 5. Voice/audio and default `GonKen` wake campaign
 

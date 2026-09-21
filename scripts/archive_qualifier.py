@@ -7,6 +7,7 @@ import argparse
 import hashlib
 import json
 import os
+import re
 import shutil
 import stat
 import subprocess
@@ -174,7 +175,10 @@ def qualify_archive(
     expected_commit: str | None = None,
     expected_tag: str | None = None,
     run_t0: bool = True,
+    purpose: str = "target-candidate",
 ) -> dict[str, object]:
+    if purpose not in {"development", "target-candidate"}:
+        raise ValueError("invalid archive qualification purpose")
     checks: list[dict[str, object]] = []
     archive_path = archive_path.resolve()
     is_tar = archive_path.name.endswith(".tar.bz2")
@@ -188,7 +192,10 @@ def qualify_archive(
         "checks": checks,
         "physical_acceptance_claimed": False,
         "raspberry_pi_candidate": False,
+        "purpose": purpose,
     }
+    if purpose == 'target-candidate' and (not run_t0 or not isinstance(expected_commit, str) or not re.fullmatch(r'[0-9a-f]{40}', expected_commit)):
+        checks.append({'status':'FAIL', 'code':'TARGET_QUALIFICATION_REQUIRES_PINNED_COMMIT_AND_T0'})
     if structure.get("status") != "PASS":
         return report
     with tempfile.TemporaryDirectory(prefix="gonken-archive-qualifier-") as temporary:
@@ -229,17 +236,19 @@ def qualify_archive(
                 "observed": tags,
             })
         _append_command_check(checks, "GIT_FSCK_STRICT", ["git", "fsck", "--strict"], repo, timeout=60)
-        _append_command_check(checks, "MILESTONE_STATUS_CHECK", [sys.executable, "scripts/milestone_status.py", "--check"], repo, timeout=60)
-        _append_command_check(checks, "RELEASE_READINESS_CHECK", [sys.executable, "scripts/release_readiness.py", "--check"], repo, timeout=60)
+        _append_command_check(checks, "CURRENT_STATE_CHECK", [sys.executable, "scripts/current_state.py", "--check"], repo, timeout=60)
+        _append_command_check(checks, "RELEASE_READINESS_CHECK", [sys.executable, "scripts/release_readiness.py", "--validate" if purpose == "development" else "--check"], repo, timeout=60)
         if run_t0:
             _append_command_check(checks, "CI_T0_CHECK", ["./scripts/ci.sh", "--phase", "t0"], repo, timeout=180)
     report["status"] = "PASS" if all(check.get("status") == "PASS" for check in checks) else "FAIL"
+    report["raspberry_pi_candidate"] = report["status"] == "PASS" and purpose == "target-candidate"
     return report
 
 
 def parser() -> argparse.ArgumentParser:
     result = argparse.ArgumentParser(description=__doc__)
     result.add_argument("archive", help="Canonical .tar.bz2 checkpoint (legacy ZIP read-only compatibility)")
+    result.add_argument("--purpose", choices=("development", "target-candidate"), default="target-candidate")
     result.add_argument("--expected-commit", help="Expected Git commit for extracted archive")
     result.add_argument("--expected-tag", help="Expected Git tag pointing at the extracted archive commit")
     result.add_argument("--skip-t0", action="store_true", help="Skip T0 inside the extracted archive")
@@ -254,6 +263,7 @@ def main(argv: list[str] | None = None) -> int:
         expected_commit=args.expected_commit,
         expected_tag=args.expected_tag,
         run_t0=not args.skip_t0,
+        purpose=args.purpose,
     )
     if args.as_json:
         print(json.dumps(report, sort_keys=True, indent=2))

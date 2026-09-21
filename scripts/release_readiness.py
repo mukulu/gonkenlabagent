@@ -12,6 +12,10 @@ import time
 from pathlib import Path
 from typing import Any
 
+if str(Path(__file__).resolve().parent) not in sys.path:
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+import current_state
+
 
 ROOT = Path(__file__).resolve().parents[1]
 DOCS = ROOT / "docs" / "development"
@@ -21,31 +25,6 @@ if _TARGET_PROBE_SPEC is None or _TARGET_PROBE_SPEC.loader is None:
 TARGET_PROBE = importlib.util.module_from_spec(_TARGET_PROBE_SPEC)
 sys.modules[_TARGET_PROBE_SPEC.name] = TARGET_PROBE
 _TARGET_PROBE_SPEC.loader.exec_module(TARGET_PROBE)
-REQUIRED_HOST_VERIFIED = {
-    "M2.1", "M2.2", "M2.3", "M2.4",
-    "M3.1", "M3.2", "M3.3", "M3.4", "M3.5", "M3.6",
-    "M4.1", "M4.2", "M4.3",
-    "M5.1", "M5.2",
-    "M6.1", "M6.2",
-    # M7.1/M7.2/M7.5 intentionally remain evaluation gates because they require
-    # the real lab corpus/model/benchmark campaign.  Core privacy/dashboard
-    # software must nevertheless be host-verified before target handoff.
-    "M7.3", "M7.4",
-    "M8.1", "M8.2", "M8.3",
-    "M9.2", "M9.3", "M9.4", "M9.5",
-    "M10.1", "M10.2", "M10.3", "M10.4", "M10.5", "M10.6",
-    "M10.8", "M10.9", "M10.10", "M10.11", "M10.12", "M10.13", "M10.14", "M10.15",
-    "M10.16", "M10.17", "M10.18", "M10.19", "M10.20", "M10.21", "M10.22", "M10.23", "M10.25", "M10.26", "M10.27", "M10.28", "M10.29", "M10.30", "M10.31", "M10.32", "M10.33", "M10.34", "M10.35", "M10.36", "M10.37", "M10.38", "M10.39", "M10.40",
-}
-TARGET_CAMPAIGN_ITEMS = {
-    "M3.1", "M3.2", "M3.3", "M3.4", "M3.5", "M3.6",
-    "M4.1", "M4.2", "M4.3",
-    "M5.1", "M5.2",
-    "M6.1", "M6.2",
-    "M7.1", "M7.2", "M7.3", "M7.4", "M7.5",
-    "M8.1", "M8.2", "M8.3", "M9.1", "M9.2", "M9.3",
-    "M10.7", "M10.24",
-}
 SECRET_PATTERNS = {
     "private_key": re.compile(r"-----BEGIN (?:RSA |EC |OPENSSH |)PRIVATE KEY-----"),
     "openai_key": re.compile(r"sk-[A-Za-z0-9_-]{20,}"),
@@ -204,85 +183,78 @@ REQUIRED_TARGET_SHADOW_FIXTURES = (
 READY_STATUS = "READY_FOR_TARGET_CAMPAIGN"
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--json", action="store_true", dest="as_json")
-    parser.add_argument("--check", action="store_true", help="exit nonzero unless the host/target-shadow gate is ready")
-    parser.add_argument("--allow-dirty", action="store_true", help="ignore only uncommitted worktree changes")
-    args = parser.parse_args()
-    report = build_report()
-    if (
-        args.allow_dirty
-        and report["git"]["dirty"]
-        and not report["missing_milestones"]
-        and not report["not_host_verified"]
-        and not report["secret_findings"]
-        and not report["target_shadow_failures"]
-    ):
-        report = {**report, "status": READY_STATUS}
+    gates = parser.add_mutually_exclusive_group()
+    gates.add_argument("--check", action="store_true", help="require all current core host gates before target-candidate qualification")
+    gates.add_argument("--validate", action="store_true", help="validate development state and replay integrity; does not require or grant candidate readiness")
+    parser.add_argument("--allow-dirty", action="store_true", help="ignore only uncommitted worktree changes, never unfinished blueprint gates")
+    args = parser.parse_args(argv)
+    report = build_report(allow_dirty=args.allow_dirty)
     if args.as_json:
         print(json.dumps(report, sort_keys=True, indent=2))
     else:
         print(f"Status: {report['status']}")
+        print(f"Validation: {report['validation_status']}")
         print(f"Branch: {report['git']['branch']}")
         print(f"Commit: {report['git']['commit']}")
         print(f"Dirty tree: {report['git']['dirty']}")
-        print(f"Host verified required items: {len(report['host_verified'])}/{len(REQUIRED_HOST_VERIFIED)}")
+        print(f"Current core gates remaining: {len(report['current_gates_remaining'])}")
         print(f"Target-shadow fixtures: {len(report['target_shadow_passed'])}/{len(REQUIRED_TARGET_SHADOW_FIXTURES)}")
         print(f"Target gates remaining: {len(report['target_gates_remaining'])}")
-        for gate in report["target_gates_remaining"][:12]:
-            print(f"- {gate['id']}: {gate['title']}")
-    if args.check and report["status"] != READY_STATUS:
-        return 1
+        for gate in report['current_gates_remaining'][:12]:
+            print(f"- {gate['id']}: {gate['status']} / {gate['title']}")
+        print("Physical acceptance claimed: false")
+    if args.check:
+        return 0 if report['status'] == READY_STATUS else 1
+    if args.validate:
+        return 0 if report['validation_status'] == 'PASS' else 1
     return 0
 
 
-def build_report() -> dict[str, object]:
-    milestones = json.loads((DOCS / "MILESTONES.json").read_text(encoding="utf-8"))
-    rows = milestones["milestones"]
-    by_id = {row["id"]: row for row in rows}
-    missing = sorted(REQUIRED_HOST_VERIFIED - set(by_id))
-    not_host_verified = sorted(
-        item for item in REQUIRED_HOST_VERIFIED
-        if item in by_id and by_id[item]["software"] != "host-verified"
-    )
-    target_gates = [
-        {
-            "id": row["id"],
-            "title": row["title"],
-            "target": row["target"],
-            "remaining": row["remaining"],
-        }
-        for row in rows
-        if row["id"] in TARGET_CAMPAIGN_ITEMS and row["target"] == "not-run"
-    ]
+def current_gate_state() -> dict:
+    try:
+        data = json.loads((DOCS / 'CURRENT_GATES.json').read_text(encoding='utf-8'))
+        errors = current_state.validate(data, ROOT)
+        if errors:
+            return {'errors': errors, 'remaining': [], 'target': [], 'completed': [], 'next_action': 'Repair current-state validation.'}
+        plan = json.loads((DOCS / 'ATTEMPT03_PLAN.json').read_text(encoding='utf-8'))
+        required = {row['id'] for row in plan['slots'] if row['required_before_core_candidate']}
+        remaining = [row for row in data['slots'] if row['id'] in required and row['status'] not in {'HOST_VERIFIED', 'TARGET_VERIFIED'}]
+        return {'errors': [], 'remaining': remaining,
+                'completed': [row['id'] for row in data['slots'] if row['id'] in required and row['status'] in {'HOST_VERIFIED', 'TARGET_VERIFIED'}],
+                'target': [row for row in data['slots'] if row['id'].startswith(('47.', '49.')) and row['status'] != 'TARGET_VERIFIED'],
+                'next_action': data['next_action']}
+    except (OSError, ValueError, KeyError, TypeError) as exc:
+        return {'errors': ['CURRENT_STATE_UNREADABLE:' + type(exc).__name__], 'remaining': [], 'target': [], 'completed': [], 'next_action': 'Recover the current registry and its requirement inventory.'}
+
+
+def build_report(*, allow_dirty: bool = False) -> dict[str, object]:
+    gates = current_gate_state()
     secrets = scan_secrets()
-    target_shadow = target_shadow_results()
-    target_shadow_failures = [item for item in target_shadow if item["status"] != "PASS"]
+    shadow = target_shadow_results()
+    failures = [item for item in shadow if item['status'] != 'PASS']
     git = git_state()
-    status = READY_STATUS
-    if missing or not_host_verified or secrets or git["dirty"] or target_shadow_failures:
-        status = "NOT_READY"
+    valid = not (gates['errors'] or secrets or failures or (git['dirty'] and not allow_dirty))
+    ready = valid and not gates['remaining']
     return {
-        "schema": 1,
-        "status": status,
-        "checkpoint_scope": milestones["checkpoint_scope"],
-        "git": git,
-        "host_verified": sorted(REQUIRED_HOST_VERIFIED - set(not_host_verified) - set(missing)),
-        "missing_milestones": missing,
-        "not_host_verified": not_host_verified,
-        "secret_findings": secrets,
-        "target_shadow_passed": [item for item in target_shadow if item["status"] == "PASS"],
-        "target_shadow_failures": target_shadow_failures,
-        "target_gates_remaining": target_gates,
-        "readiness_scope": "host/software plus required target-shadow replay gate; no Raspberry Pi release candidate or target gate is implied PASS",
-        "physical_acceptance_claimed": False,
-        "next_action": (
-            "Host/software and required target-shadow replay gates are ready. Qualify the exact tagged archive, then on the Raspberry Pi run target_probe.py before installation and install that exact archive with "
-            "./bootstrap.sh --local-checkpoint --environment-profile real-sensor-simulated-actuator --sensor-address 0x44. Require INSTALLATION_COMPLETE, verify the governed three-model roster and active model, "
-            "exercise local time/date plus real-SHT31/simulated-fan tool transactions, measure latency/resource behavior, and verify reboot/no-login/model-selection persistence. "
-            "Do not enable real GPIO23/ELUTENG actuation until the separately supervised WP-45C gate, and do not mark physical acceptance PASS from host or replay evidence."
-        ),
+        'schema': 2,
+        'status': READY_STATUS if ready else 'NOT_READY',
+        'validation_status': 'PASS' if valid else 'FAIL',
+        'checkpoint_scope': 'Attempt03 current core host program; dedicated display/target campaigns remain separate',
+        'git': git,
+        'authority': 'docs/development/CURRENT_GATES.json + ATTEMPT03_PLAN.json',
+        'state_errors': gates['errors'],
+        'current_gates_remaining': gates['remaining'],
+        'current_gates_completed': gates['completed'],
+        'secret_findings': secrets,
+        'target_shadow_passed': [item for item in shadow if item['status'] == 'PASS'],
+        'target_shadow_failures': failures,
+        'target_gates_remaining': gates['target'],
+        'readiness_scope': 'current host requirements plus target-shadow replay; no Raspberry Pi release candidate or physical gate is implied PASS by development validation',
+        'physical_acceptance_claimed': False,
+        'next_action': ('Qualify the exact archive before any Raspberry Pi target campaign; physical acceptance remains open.' if ready else gates['next_action']),
     }
 
 
@@ -347,7 +319,7 @@ def target_shadow_results() -> list[dict[str, Any]]:
 
 def git_state() -> dict[str, object]:
     def run(*args: str) -> str:
-        return subprocess.run(["git", *args], cwd=ROOT, check=True, capture_output=True, text=True).stdout.strip()
+        return subprocess.run(["git", *args], cwd=ROOT, check=True, capture_output=True, text=True, timeout=15).stdout.strip()
     return {
         "branch": run("branch", "--show-current"),
         "commit": run("rev-parse", "HEAD"),

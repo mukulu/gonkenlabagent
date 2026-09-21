@@ -100,7 +100,7 @@ class ArchiveQualifierTests(unittest.TestCase):
             )
         self.assertEqual(report["status"], "PASS")
         self.assertIn(("git", "fsck", "--strict"), commands)
-        self.assertIn((os.sys.executable, "scripts/milestone_status.py", "--check"), commands)
+        self.assertIn((os.sys.executable, "scripts/current_state.py", "--check"), commands)
         self.assertIn((os.sys.executable, "scripts/release_readiness.py", "--check"), commands)
         self.assertIn(("./scripts/ci.sh", "--phase", "t0"), commands)
 

@@ -19,23 +19,8 @@ ROOT = Path(__file__).resolve().parents[1]
 DOCS = ROOT / "docs" / "development"
 READY = "READY_FOR_USER_SIMULATION_AND_SENSOR_DEFERRED_HIL"
 NOT_READY = "NOT_READY_FOR_USER_SIMULATION_AND_SENSOR_DEFERRED_HIL"
-DEVELOPMENT_READY = "DEVELOPMENT_READY_FOR_USER_SIMULATION_AND_SENSOR_DEFERRED_HIL"
+DEVELOPMENT_READY = "DEVELOPMENT_HOST_SIMULATION_VERIFIED"
 SIM_SCHEMA = "gonken-v09-m10.14-simulation-evidence-v1"
-REQUIRED_HOST_MILESTONES = {
-    "M8.1",
-    "M8.2",
-    "M8.3",
-    "M9.3",
-    "M9.5",
-    "M10.6",
-    "M10.8",
-    "M10.9",
-    "M10.10",
-    "M10.11",
-    "M10.12",
-    "M10.13",
-    "M10.15",
-}
 REQUIRED_SIM_STEPS = {
     "full_simulation_provenance",
     "manual_fan_control",
@@ -119,28 +104,6 @@ def validate_simulation_manifest(path: Path, *, current_commit: str) -> tuple[li
 def build_report(*, simulation_manifest: Path | None, allow_dirty: bool) -> dict[str, Any]:
     errors: list[str] = []
     git = git_state()
-    milestones = json.loads((DOCS / "MILESTONES.json").read_text(encoding="utf-8"))
-    by_id = {row["id"]: row for row in milestones["milestones"]}
-
-    missing_milestones = sorted(REQUIRED_HOST_MILESTONES - set(by_id))
-    not_verified = sorted(
-        item for item in REQUIRED_HOST_MILESTONES
-        if item in by_id and by_id[item].get("software") != "host-verified"
-    )
-    if missing_milestones:
-        errors.append("missing required host milestones: " + ", ".join(missing_milestones))
-    if not_verified:
-        errors.append("required host milestones not host-verified: " + ", ".join(not_verified))
-
-    m10_7 = by_id.get("M10.7")
-    if not m10_7 or m10_7.get("target") != "not-run":
-        errors.append("M10.7 physical target acceptance must remain not-run at this gate")
-    m10_14 = by_id.get("M10.14")
-    if not m10_14 or m10_14.get("software") != "host-verified":
-        errors.append("M10.14 software state must be host-verified before the user-test label")
-    if not m10_14 or m10_14.get("target") != "not-run":
-        errors.append("M10.14 target state must remain not-run")
-
     missing_files = sorted(path for path in REQUIRED_HANDOFF_FILES if not (ROOT / path).is_file())
     if missing_files:
         errors.append("missing handoff files: " + ", ".join(missing_files))
@@ -149,8 +112,8 @@ def build_report(*, simulation_manifest: Path | None, allow_dirty: bool) -> dict
     docs_report: dict[str, Any] = {}
     try:
         release_report = run_json([sys.executable, "scripts/release_readiness.py", "--json", "--allow-dirty"])
-        if release_report.get("status") != "READY_FOR_TARGET_ACCEPTANCE":
-            errors.append("base release_readiness.py is not READY_FOR_TARGET_ACCEPTANCE")
+        if release_report.get("validation_status") != "PASS":
+            errors.append("current development-state/replay validation failed")
     except Exception as exc:
         errors.append(f"base release readiness failed: {type(exc).__name__}")
     try:
@@ -178,7 +141,7 @@ def build_report(*, simulation_manifest: Path | None, allow_dirty: bool) -> dict
 
     if errors:
         status = NOT_READY
-    elif dirty_development_override:
+    elif dirty_development_override or release_report.get("status") != "READY_FOR_TARGET_CAMPAIGN":
         status = DEVELOPMENT_READY
     else:
         status = READY
@@ -187,11 +150,10 @@ def build_report(*, simulation_manifest: Path | None, allow_dirty: bool) -> dict
         "status": status,
         "physical_acceptance_claimed": False,
         "development_dirty_override": dirty_development_override,
-        "user_test_scope": "simulation and supervised sensor-deferred HIL readiness",
+        "user_test_scope": "host simulation only unless current core candidate gates also pass",
         "git": git,
-        "required_host_milestones": sorted(REQUIRED_HOST_MILESTONES),
-        "missing_host_milestones": missing_milestones,
-        "not_host_verified": not_verified,
+        "state_authority": "CURRENT_GATES.json + ATTEMPT03_PLAN.json",
+        "current_core_gates_remaining": release_report.get("current_gates_remaining", []),
         "missing_handoff_files": missing_files,
         "simulation_manifest": str(simulation_manifest) if simulation_manifest else None,
         "simulation_summary_status": manifest_payload.get("summary_status"),
@@ -203,9 +165,9 @@ def build_report(*, simulation_manifest: Path | None, allow_dirty: bool) -> dict
         "real_wake_audio_acceptance": "NOT_RUN",
         "errors": errors,
         "next_action": (
-            "Verify and install this exact checkpoint with ./bootstrap.sh --local-checkpoint, then follow "
-            "docs/RASPBERRY_PI_ACCEPTANCE_RUN.md. Run full simulation before dependency-ready supervised HIL/physical stages, "
-            "export the support ZIP and M10.7 private evidence, and do not mark M10.7 PASS locally."
+            "Qualify the exact package before supervised target testing; physical acceptance remains open."
+            if status == READY else
+            "Preserve the host simulation result, continue unfinished current core gates, and do not treat this result as permission for real actuation."
         ),
     }
 

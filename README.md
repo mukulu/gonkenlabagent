@@ -1,5 +1,11 @@
 # GonKenLab Agent
 
+> **Attempt03 development checkpoint:** consult [current implementation state](docs/CURRENT_STATE.md)
+> before installation. A source-recovery package or successful development
+> validation is not a target-qualified release. Installation and usage below
+> describe the intended appliance workflow; exact-package hardware acceptance
+> remains separate.
+
 GonKenLab Agent turns a supported Raspberry Pi into a privacy-oriented, fully
 local voice assistant. Qwen, speech recognition, speech synthesis, and the voice
 runtime operate on the Pi; normal conversation does not require a cloud AI

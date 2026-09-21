@@ -64,7 +64,7 @@ class V09UserTestReleaseCandidateIntegrationTests(unittest.TestCase):
             )
             self.assertEqual(gate.returncode, 0, gate.stderr + gate.stdout)
             report = json.loads(gate.stdout)
-            self.assertEqual(report["status"], "DEVELOPMENT_READY_FOR_USER_SIMULATION_AND_SENSOR_DEFERRED_HIL")
+            self.assertEqual(report["status"], "DEVELOPMENT_HOST_SIMULATION_VERIFIED")
             self.assertTrue(report["development_dirty_override"])
             self.assertFalse(report["physical_acceptance_claimed"])
             self.assertEqual(report["m10_7_physical_acceptance"], "NOT_RUN")
@@ -92,7 +92,7 @@ class V09UserTestReleaseCandidateIntegrationTests(unittest.TestCase):
             strict_report = json.loads(strict_gate.stdout)
             self.assertEqual(
                 strict_report["status"],
-                "DEVELOPMENT_READY_FOR_USER_SIMULATION_AND_SENSOR_DEFERRED_HIL",
+                "DEVELOPMENT_HOST_SIMULATION_VERIFIED",
             )
             self.assertTrue(strict_report["development_dirty_override"])
 

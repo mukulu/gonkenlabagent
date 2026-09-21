@@ -88,7 +88,7 @@ if has_phase t0; then
   "$PYTHON_BIN" "$SCRIPT_DIR/dependencies.py" render --check
 
   "$PYTHON_BIN" "$SCRIPT_DIR/milestone_status.py" --check
-  "$PYTHON_BIN" "$SCRIPT_DIR/release_readiness.py" --check --allow-dirty >/dev/null
+  "$PYTHON_BIN" "$SCRIPT_DIR/release_readiness.py" --validate --allow-dirty >/dev/null
 
   echo "[T0] source/config syntax"
   bash -n bootstrap.sh install-gonken.sh setup.sh scripts/ci.sh scripts/install.sh \
