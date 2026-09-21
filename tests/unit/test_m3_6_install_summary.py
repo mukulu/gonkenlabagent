@@ -185,6 +185,23 @@ class InstallSummaryTests(unittest.TestCase):
         self.assertEqual(components["llm_tool_broker"]["status"], "READY")
         self.assertTrue(data["ready"])
 
+    def test_optional_tool_failures_do_not_block_final_default_summary(self):
+        self.test_summary_prefers_governed_roster_active_model_over_legacy_record()
+        path = self.system / 'var/lib/gonken-agent/ollama/roster.json'
+        payload = json.loads(path.read_text())
+        for row in payload['models'][1:]:
+            row['tool_call_smoke'] = 'FAILED'
+            row['stages'][2]['status'] = 'FAIL'
+        path.write_text(json.dumps(payload))
+        result = install_summary.build_summary(self.system, COMMIT)
+        self.assertTrue(result['ready'])
+        self.assertEqual(result['ollama_roster']['roster_capabilities_status'], 'DEGRADED')
+        self.assertEqual(len(result['ollama_roster']['tool_incompatible_models']), 2)
+        selection = self.system / 'var/lib/gonken-agent/ollama/active-model.json'
+        chosen = json.loads(selection.read_text()); chosen['model'] = install_summary.ROSTER_MODELS[-1]
+        selection.write_text(json.dumps(chosen))
+        with self.assertRaises(install_summary.SummaryError):install_summary.build_summary(self.system, COMMIT)
+
     def test_summary_rejects_ready_record_from_previous_release(self) -> None:
         self.publish_ready(release_commit='b'*40)
         data = install_summary.build_summary(self.system, COMMIT)
@@ -261,7 +278,8 @@ class InstallSummaryTests(unittest.TestCase):
         for source, name in [
             (ROOT/'scripts/install_summary.py','install_summary.py'),
             (ROOT/'src/gonken_agent/runtime_readiness.py','runtime_readiness.py'),
-            (ROOT/'src/gonken_agent/llm/qualification.py','model_qualification.py')]:
+            (ROOT/'src/gonken_agent/llm/qualification.py','model_qualification.py'),
+            (ROOT/'src/gonken_agent/llm/models.py','model_catalog.py')]:
             shutil.copyfile(source, target/name)
         # Remove PYTHONPATH and run outside source to prove maintenance copying.
         result = subprocess.run([sys.executable, str(target/'install_summary.py'), '--help'],

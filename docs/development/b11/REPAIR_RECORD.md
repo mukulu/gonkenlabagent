@@ -88,3 +88,14 @@ dwell, state or GPIO. Changes-only watch ignores raw temperature/humidity jitter
 and counters; it reports control/quality/error/backend/config transitions. Normal
 watch still shows samples. The old test expecting the ambiguous `fan=off` display
 was changed to assert desired/commanded/unobserved labels. 58 focused tests PASS.
+
+## B11D downstream model-authority convergence
+
+The final installer summary contained a second, unconditional all-alternate-tools
+requirement. It now uses the same required default/selected capability predicate
+as provisioning, preserves all three identity/inference/unload requirements, and
+reports optional tool incompatibilities explicitly. No selected-model capability
+is silently downgraded. The installation roster manifest must match the canonical
+model catalog before any API call. Installed maintenance uses that same catalog
+sidecar. 25 focused model/summary/installed-maintenance tests PASS; this closes the
+newly reachable false-red gate rather than merely moving the original failure.

@@ -25,6 +25,10 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 import ollama_manager as om  # noqa: E402
+if (SCRIPT_DIR / "model_catalog.py").is_file():
+    from model_catalog import DEFAULT_MODEL, roster_manifest
+else:
+    from gonken_agent.llm.models import DEFAULT_MODEL, roster_manifest
 if (SCRIPT_DIR / "model_qualification.py").is_file():
     from model_qualification import RECORD_FORMAT, qualified_rows
 else:
@@ -84,6 +88,8 @@ def read_roster(path: Path) -> dict[str, Any]:
             _fail("MODEL_ROSTER_MANIFEST", "V04 roster entry must declare tools and thinking support", 65)
     if data.get("default_model") not in tags:
         _fail("MODEL_ROSTER_MANIFEST", "default model is outside roster", 65)
+    if data["default_model"] != DEFAULT_MODEL or data["models"] != roster_manifest():
+        _fail("MODEL_ROSTER_CATALOG_DRIFT", "packaging manifest differs from canonical runtime catalog", 65)
     return data
 
 

@@ -107,3 +107,9 @@ class AlternateModelTests(unittest.TestCase):
             with self.assertRaises(manager.om.OllamaError): self.provision()
             self.api = original
             self.assertEqual(manager._read_json(manager._record_path(self.root))['status'], 'FAIL')
+
+    def test_catalog_metadata_drift_is_rejected_before_network(self):
+        manifest = self.root / 'roster.toml'
+        manifest.write_text((ROOT / 'packaging/ollama-model-roster.toml').read_text().replace('default-low-latency', 'wrong-role'))
+        with self.assertRaises(manager.RosterError) as error:manager.read_roster(manifest)
+        self.assertEqual(error.exception.code, 'MODEL_ROSTER_CATALOG_DRIFT')

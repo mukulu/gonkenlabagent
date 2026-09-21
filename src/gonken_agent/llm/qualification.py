@@ -36,3 +36,11 @@ def qualified_rows(record: object, inventory: list[dict], *, context_tokens: int
             continue
         result[tag] = {'inference': True, 'tools': row.get('tool_call_smoke') == 'PASS' and stages.get('TOOLS') == 'PASS', 'digest': digest}
     return result
+
+
+def required_tools_ready(qualified: Mapping, required_models: tuple[str, ...]) -> bool:
+    """A capability policy predicate, not inventory/execution/physical evidence."""
+    return bool(required_models) and all(
+        isinstance(qualified.get(tag), Mapping) and qualified[tag].get('tools') is True
+        for tag in required_models
+    )

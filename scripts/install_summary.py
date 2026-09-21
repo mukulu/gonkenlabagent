@@ -18,12 +18,14 @@ if _source.is_dir():
     sys.path.insert(0, str(_source))
 try:
     from gonken_agent import runtime_readiness as rr
-    from gonken_agent.llm.qualification import qualified_rows
+    from gonken_agent.llm.qualification import qualified_rows, required_tools_ready
+    from gonken_agent.llm.models import DEFAULT_MODEL, roster_tags
 except ModuleNotFoundError as exc:
     if not exc.name.startswith('gonken_agent'):
         raise
     import runtime_readiness as rr
-    from model_qualification import qualified_rows
+    from model_qualification import qualified_rows, required_tools_ready
+    from model_catalog import DEFAULT_MODEL, roster_tags
 
 
 COMMIT_RE = re.compile(r"^[0-9a-f]{40}$")
@@ -52,7 +54,7 @@ SPEECH_FIELDS = (
     "validated_epoch", "validation",
 )
 
-ROSTER_MODELS = ("qwen3:0.6b", "lfm2.5-thinking:1.2b", "qwen3.5:0.8b")
+ROSTER_MODELS = roster_tags()
 ROSTER_RECORD_FORMAT = "gonken-ollama-roster-record-v2"
 SELECTION_FORMAT = "gonken-active-model-v1"
 
@@ -218,7 +220,7 @@ def validate_model_roster(root: Path, legacy: dict[str, str]) -> dict[str, objec
         fail('SUMMARY_MODEL_ROSTER', 'roster must contain exactly the admitted models', 'rerun model roster provisioning', 1)
     inventory = [{'name': row['tag'], 'digest': row.get('digest')} for row in rows]
     verified = qualified_rows(roster, inventory, context_tokens=int(legacy['context_tokens']))
-    if set(verified) != set(ROSTER_MODELS) or not all(row['tools'] for row in verified.values()):
+    if set(verified) != set(ROSTER_MODELS) or not required_tools_ready(verified, (DEFAULT_MODEL, model)):
         fail('SUMMARY_MODEL_QUALIFICATION', 'required roster stages are missing, stale or failed', 'rerun the bounded model qualification', 1)
     active_row = by_tag[model]
     digest = active_row.get("digest")
@@ -228,6 +230,8 @@ def validate_model_roster(root: Path, legacy: dict[str, str]) -> dict[str, objec
         "status": "READY", "active_model": model, "active_digest": digest,
         "models": list(ROSTER_MODELS), "generation": generation,
         "governed_roster_active": True, "tool_call_smoke": active_row.get("tool_call_smoke"),
+        "roster_capabilities_status": "READY" if all(row['tools'] for row in verified.values()) else "DEGRADED",
+        "tool_incompatible_models": [tag for tag, row in verified.items() if not row['tools']],
     }
 
 
@@ -321,6 +325,8 @@ def main(argv: list[str] | None = None) -> int:
         if args.json:
             print(json.dumps(summary, sort_keys=True))
         else:
+            for model in summary.get("ollama_roster", {}).get("tool_incompatible_models", []):
+                print(f"[DEGRADED] code=MODEL_ALTERNATE_TOOL_INCOMPATIBLE model={model} selected=false tools_enabled=false")
             label = "OK" if summary["ready"] else "DEGRADED"
             print(f"[{label}] code={summary['code']} status={summary['status']} ready={str(summary['ready']).lower()} next={'USE_ASSISTANT' if summary['ready'] else 'TARGET_ACCEPTANCE'}")
         if args.require_ready and not summary['ready']:
