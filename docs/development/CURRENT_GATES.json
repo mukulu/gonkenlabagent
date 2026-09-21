@@ -5,7 +5,7 @@
   "blueprint_sha256": "4f932dac8b03ffcef03b7fc77a2f67d99966cab460217c59821f8e1535a5e441",
   "physical_acceptance_claimed": false,
   "package_status": "DEVELOPMENT",
-  "next_action": "Capability-derived GPIO resources and consumer migration; target model experiments remain separate.",
+  "next_action": "Component freshness/status convergence and canonical evidence archive migration.",
   "slots": [
     {
       "id": "46.0.1",
@@ -368,36 +368,66 @@
       "id": "46.9.P5",
       "title": "resource-profile false-green/false-red matrix",
       "source_line": 403,
-      "status": "NOT_STARTED",
-      "evidence": []
+      "status": "HOST_VERIFIED",
+      "evidence": [
+        "src/gonken_agent/resources.py",
+        "scripts/gpio_identity_preflight.py",
+        "tests/unit/test_attempt03_resources.py",
+        "tests/unit/test_attempt03_gpio_consumers.py",
+        "docs/development/rebuild/evidence/b3-consumers-final.log"
+      ]
     },
     {
       "id": "46.9.P4",
       "title": "installer postcondition migration",
       "source_line": 388,
-      "status": "NOT_STARTED",
-      "evidence": []
+      "status": "HOST_VERIFIED",
+      "evidence": [
+        "src/gonken_agent/resources.py",
+        "scripts/gpio_identity_preflight.py",
+        "tests/unit/test_attempt03_resources.py",
+        "tests/unit/test_attempt03_gpio_consumers.py",
+        "docs/development/rebuild/evidence/b3-consumers-final.log"
+      ]
     },
     {
       "id": "46.9.P3",
       "title": "GPIO preflight and target-probe parameterization",
       "source_line": 382,
-      "status": "NOT_STARTED",
-      "evidence": []
+      "status": "HOST_VERIFIED",
+      "evidence": [
+        "src/gonken_agent/resources.py",
+        "scripts/gpio_identity_preflight.py",
+        "tests/unit/test_attempt03_resources.py",
+        "tests/unit/test_attempt03_gpio_consumers.py",
+        "docs/development/rebuild/evidence/b3-consumers-final.log"
+      ]
     },
     {
       "id": "46.9.P2",
       "title": "config collision migration",
       "source_line": 371,
-      "status": "NOT_STARTED",
-      "evidence": []
+      "status": "HOST_VERIFIED",
+      "evidence": [
+        "src/gonken_agent/resources.py",
+        "scripts/gpio_identity_preflight.py",
+        "tests/unit/test_attempt03_resources.py",
+        "tests/unit/test_attempt03_gpio_consumers.py",
+        "docs/development/rebuild/evidence/b3-consumers-final.log"
+      ]
     },
     {
       "id": "46.9.P1",
       "title": "pure resource-claim schema/resolver",
       "source_line": 349,
-      "status": "NOT_STARTED",
-      "evidence": []
+      "status": "HOST_VERIFIED",
+      "evidence": [
+        "src/gonken_agent/resources.py",
+        "scripts/gpio_identity_preflight.py",
+        "tests/unit/test_attempt03_resources.py",
+        "tests/unit/test_attempt03_gpio_consumers.py",
+        "docs/development/rebuild/evidence/b3-consumers-final.log"
+      ]
     },
     {
       "id": "46.9.1",
@@ -1271,8 +1301,11 @@
       "id": "46.2.6",
       "title": "current interaction/resource decision record",
       "source_line": 280,
-      "status": "NOT_STARTED",
-      "evidence": []
+      "status": "HOST_VERIFIED",
+      "evidence": [
+        "docs/development/rebuild/RESOURCE_MIGRATION.md",
+        "src/gonken_agent/resources.py"
+      ]
     },
     {
       "id": "46.6.6",

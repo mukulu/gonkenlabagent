@@ -25,6 +25,17 @@
     "raw_audio_included": false,
     "transcripts_included": false
   },
+  "resource_claims": {
+    "format": "gonken-resource-claims-v1",
+    "physical_acceptance_claimed": false,
+    "required_gpio_lines": [
+      17,
+      22,
+      23,
+      27
+    ],
+    "requirement_origin": "explicit historical fixture profile; not current production defaults"
+  },
   "target_shadow_requirements": {
     "environment_profile": true,
     "gpio_identity": false,

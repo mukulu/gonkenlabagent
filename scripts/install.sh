@@ -468,23 +468,19 @@ gonken_gpio_identity_preflight() {
 
 gonken_target_gpio_identity_postcondition() {
   [[ "${GONKEN_SOURCE_RECORD[platform_mode]}" == "target" ]] || return 0
-  local helper artifact
+  local helper artifact fresh
   helper="$(gonken_gpio_identity_preflight)"
   artifact="$STATE_DIR/artifacts/target-gpio-identity.json"
   [[ -x "$helper" && -f "$artifact" && ! -L "$artifact" ]] || return 1
-  runuser -u "$SERVICE_USER" -- env PYTHONDONTWRITEBYTECODE=1 PYTHONNOUSERSITE=1 \
-    "$RELEASE_ROOT/current/.venv/bin/python" "$helper" --json >/dev/null 2>&1 || return 1
-  python3 - "$artifact" <<'PYGPIO' >/dev/null 2>&1 || return 1
-import json, sys
-with open(sys.argv[1], encoding="utf-8") as handle:
-    payload=json.load(handle)
-assert payload.get("format") == "gonken-gpio-identity-preflight-v1"
-assert payload.get("status") == "PASS"
-assert payload.get("code") == "GPIO_HEADER_RESOLVED"
-assert payload.get("physical_acceptance_claimed") is False
-assert {"GPIO17","GPIO22","GPIO23","GPIO27"}.issubset(payload.get("lines", {}))
-PYGPIO
-  GONKEN_STEP_EVIDENCE="pi5_header_gpio17_22_23_27_metadata_resolved_non_actuating"
+  fresh="$(runuser -u "$SERVICE_USER" -- env PYTHONDONTWRITEBYTECODE=1 PYTHONNOUSERSITE=1 \
+    "$RELEASE_ROOT/current/.venv/bin/python" "$helper" --json)" || return 1
+  # Fresh metadata was checked above as the actual voice-service user. Root
+  # checks the protected saved artifact against the same effective claims.
+  env PYTHONDONTWRITEBYTECODE=1 PYTHONNOUSERSITE=1 \
+    "$RELEASE_ROOT/current/.venv/bin/python" "$helper" --config /etc/gonken-agent/config.toml \
+    --validate-record "$artifact" --fresh-json "$fresh" >/dev/null 2>&1 || return 1
+  GONKEN_STEP_EVIDENCE="selected_capability_gpio_metadata_resolved_non_actuating"
+
 }
 
 gonken_target_gpio_identity_action() {
@@ -1284,9 +1280,9 @@ if ((ENGINE_ONLY == 0)); then
       "no_hardware_is_opened_or_actuated_by_import_validation" || exit $?
 
     gonken_register_step \
-      "target_gpio_identity" "1" \
+      "target_gpio_identity" "2" \
       "gonken_target_runtime_bindings_postcondition" "gonken_target_gpio_identity_action" "gonken_target_gpio_identity_postcondition" \
-      "non_actuating_pi5_header_gpio_identity_for_ptt_wake_recording_and_relay" \
+      "non_actuating_selected_capability_gpio_identity" \
       "resolve_gpio17_22_23_27_before_services_and_fail_early_with_candidate_metadata" \
       "does_not_request_write_or_toggle_any_gpio_line" || exit $?
 

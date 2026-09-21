@@ -1907,3 +1907,9 @@ This compatibility is a migration mechanism, not a waiver. The goal is to move s
 ### D45-06 — Evidence precedence is current state, same-boot history, then install history
 - **Decision:** Support evidence binds the current boot/release/readiness and latest install run ID; repeated journal reason codes are bounded aggregates without raw content.
 - **Consequence:** Historical recovered failures remain visible but cannot masquerade as the current cause.
+
+## Attempt03 reconstruction: current capability claims
+
+Historical PTT-mandatory decisions are superseded for the current wake-word
+profile. See [RESOURCE_MIGRATION.md](rebuild/RESOURCE_MIGRATION.md). Inactive
+compatibility fields are not reservations. GPIO22 remains independently governed.

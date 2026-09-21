@@ -14,12 +14,16 @@ import json
 import os
 import sys
 import tempfile
+import time
+import re
 from pathlib import Path
 
 from gonken_agent.gpio_resolver import GpioResolveError, resolve_named_gpio_line
 
 FORMAT = "gonken-gpio-identity-preflight-v1"
-DEFAULT_LINES = (17, 22, 23, 27)
+from gonken_agent.config import ConfigError, DEFAULT_SITE_PATH, load_config
+from gonken_agent.resources import resource_document
+
 
 
 def _atomic_json(path: Path, payload: dict[str, object]) -> None:
@@ -38,6 +42,10 @@ def _atomic_json(path: Path, payload: dict[str, object]) -> None:
 
 
 def probe(lines: tuple[int, ...], *, gpiod_module=None, chip_paths: tuple[str, ...] | None = None) -> dict[str, object]:
+    if any(type(v) is not int or not 0 <= v <= 53 for v in lines) or len(set(lines)) != len(lines):
+        return {"format": FORMAT, "status": "FAIL", "code": "GPIO_PREFLIGHT_INPUT", "lines": {}, "physical_acceptance_claimed": False}
+    if not lines:
+        return {"format": FORMAT, "status": "PASS", "code": "GPIO_HEADER_NOT_REQUIRED", "lines": {}, "physical_acceptance_claimed": False}
     if gpiod_module is None:
         try:
             import gpiod as gpiod_module  # type: ignore[import-not-found]
@@ -75,26 +83,86 @@ def probe(lines: tuple[int, ...], *, gpiod_module=None, chip_paths: tuple[str, .
     return {"format": FORMAT, "status": "PASS", "code": "GPIO_HEADER_RESOLVED", "chip_path": next(iter(chips)), "lines": resolved, "physical_acceptance_claimed": False}
 
 
+def configured_requirements(site: Path) -> dict:
+    if not site.is_file() or site.is_symlink():
+        raise ConfigError("preflight requires the installed regular site configuration")
+    # The system service consumes packaged defaults + installed site config;
+    # caller-only shell overrides must not silently change its claims.
+    return resource_document(load_config(site_path=site, environ={}).config)
+
+
+def boot_id() -> str:
+    try:
+        value = Path("/proc/sys/kernel/random/boot_id").read_text().strip()
+        return value if re.fullmatch(r"[0-9a-f-]{36}", value) else ""
+    except OSError:
+        return ""
+
+
+def record_matches(payload: object, requirements: dict, fresh: object | None = None) -> bool:
+    expected = {f"GPIO{n}" for n in requirements["required_gpio_lines"]}
+    valid = (isinstance(payload, dict) and payload.get("format") == FORMAT
+            and payload.get("status") == "PASS" and payload.get("physical_acceptance_claimed") is False
+            and payload.get("code") == ("GPIO_HEADER_RESOLVED" if expected else "GPIO_HEADER_NOT_REQUIRED")
+            and bool(boot_id()) and payload.get("boot_id") == boot_id()
+            and payload.get("claims_sha256") == requirements["claims_sha256"]
+            and payload.get("required_claims") == requirements["claims"]
+            and isinstance(payload.get("lines"),dict) and set(payload["lines"]) == expected)
+    if not valid: return False
+    if fresh is not None:
+        return record_matches(fresh, requirements) and payload["lines"] == fresh["lines"]
+    return True
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--line", action="append", type=int, dest="lines")
+    parser.add_argument("--line", action="append", type=int, dest="lines", help="Explicit diagnostic line set; not an installer profile")
+    parser.add_argument("--config", type=Path, default=DEFAULT_SITE_PATH)
+    parser.add_argument("--validate-record", type=Path, help="Validate saved claim/config binding only; does not probe devices")
+    parser.add_argument("--fresh-json", help="Fresh service-context metadata for record comparison")
     parser.add_argument("--output")
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args(argv)
-    lines = tuple(args.lines or DEFAULT_LINES)
-    if not lines or any(value < 0 or value > 53 for value in lines) or len(set(lines)) != len(lines):
-        print("[ERROR] code=GPIO_PREFLIGHT_INPUT message=lines must be unique BCM 0..53", file=sys.stderr)
+    requirements = None
+    try:
+        if args.lines is not None:
+            if args.validate_record: raise ValueError("record validation requires a configured profile")
+            lines = tuple(args.lines)
+        else:
+            requirements = configured_requirements(args.config)
+            lines = tuple(requirements["required_gpio_lines"])
+        if any(type(value) is not int or value < 0 or value > 53 for value in lines) or len(set(lines)) != len(lines):
+            raise ValueError("lines must be unique BCM 0..53")
+        if args.validate_record:
+            path = args.validate_record
+            if path.is_symlink() or not path.is_file() or path.stat().st_size > 131072:
+                raise ValueError("unsafe GPIO evidence record")
+            payload = json.loads(path.read_text(encoding="utf-8"))
+            fresh = json.loads(args.fresh_json) if args.fresh_json else None
+            if not record_matches(payload, requirements, fresh):
+                print("[ERROR] code=GPIO_EVIDENCE_STALE_OR_INVALID", file=sys.stderr); return 75
+            if args.json: print(json.dumps({"status":"PASS","code":"GPIO_RECORD_CURRENT","physical_acceptance_claimed":False}))
+            return 0
+    except (ConfigError, OSError, ValueError) as exc:
+        print(f"[ERROR] code=GPIO_PREFLIGHT_INPUT type={type(exc).__name__}", file=sys.stderr)
         return 64
     payload = probe(lines)
+    payload["requested_lines"] = list(lines)
+    payload["boot_id"] = boot_id()
+    payload["observed_epoch"] = int(time.time())
+    payload["physical_acceptance_claimed"] = False
+    if requirements:
+        payload["claims_sha256"] = requirements["claims_sha256"]
+        payload["required_claims"] = requirements["claims"]
     if args.output:
         _atomic_json(Path(args.output), payload)
     if args.json:
         print(json.dumps(payload, sort_keys=True))
     if payload["status"] != "PASS":
-        print(f"[ERROR] code={payload['code']} message={payload.get('detail','')} remediation=inspect gpiochip metadata and Pi5 RP1 header mapping", file=sys.stderr)
+        print(f"[ERROR] code={payload['code']} message={payload.get('detail','')} remediation=inspect selected-capability GPIO metadata", file=sys.stderr)
         return 75
     if not args.json:
-        print(f"[OK] code=GPIO_HEADER_RESOLVED chip={payload['chip_path']} lines={','.join(map(str, lines))} physical_acceptance_claimed=false")
+        print(f"[OK] code={payload['code']} chip={payload.get('chip_path','not-required')} lines={','.join(map(str, lines))} physical_acceptance_claimed=false")
     return 0
 
 

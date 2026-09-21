@@ -1,41 +1,79 @@
 {
   "audio": {
     "capture_routes": [
-      {"id": "usb-airhug-capture", "source": "arecord -l", "status": "observed"}
+      {
+        "id": "usb-airhug-capture",
+        "source": "arecord -l",
+        "status": "observed"
+      }
     ],
     "playback_routes": [
-      {"hdmi": false, "id": "usb-airhug-playback", "source": "aplay -l", "status": "observed"}
+      {
+        "hdmi": false,
+        "id": "usb-airhug-playback",
+        "source": "aplay -l",
+        "status": "observed"
+      }
     ],
-    "selected_route": {
-      "ambiguous": false,
-      "capture": {"id": "usb-airhug-capture", "status": "available", "transport": "usb"},
-      "playback": {"hdmi": false, "id": "usb-airhug-playback", "status": "available", "transport": "usb"},
-      "selection_basis": "service-runtime-wired-first"
-    },
     "runtime": {
-      "service_user": "gonken-agent",
-      "runtime_dir_ready": true,
+      "capture_probe": {
+        "backend": "pipewire-usb+alsa-usb",
+        "code": "AUDIO_CAPTURE_FAILED",
+        "content_persisted": false,
+        "route_codes": [
+          "AUDIO_CAPTURE_INVALID",
+          "AUDIO_CAPTURE_FAILED"
+        ],
+        "status": "failed"
+      },
       "pipewire_socket_exists": true,
       "pulse_socket_exists": true,
-      "capture_probe": {
-        "status": "failed",
-        "code": "AUDIO_CAPTURE_FAILED",
-        "backend": "pipewire-usb+alsa-usb",
-        "route_codes": ["AUDIO_CAPTURE_INVALID", "AUDIO_CAPTURE_FAILED"],
-        "content_persisted": false
-      }
+      "runtime_dir_ready": true,
+      "service_user": "gonken-agent"
+    },
+    "selected_route": {
+      "ambiguous": false,
+      "capture": {
+        "id": "usb-airhug-capture",
+        "status": "available",
+        "transport": "usb"
+      },
+      "playback": {
+        "hdmi": false,
+        "id": "usb-airhug-playback",
+        "status": "available",
+        "transport": "usb"
+      },
+      "selection_basis": "service-runtime-wired-first"
     }
   },
   "captured_at": "2026-09-17T13:41:39+00:00",
   "format": "gonken-target-hardware-manifest-v1",
   "gpiochips": [
     {
-      "alias_paths": ["/dev/gpiochip0"],
+      "alias_paths": [
+        "/dev/gpiochip0"
+      ],
       "canonical_chip_id": "char:254:0:/sys/devices/platform/rp1/gpiochip0",
-      "chip_info": {"label": "pinctrl-rp1", "name": "gpiochip0", "num_lines": 54},
-      "line_names": {"2": "GPIO2", "3": "GPIO3", "17": "GPIO17", "22": "GPIO22", "23": "GPIO23", "27": "GPIO27"},
+      "chip_info": {
+        "label": "pinctrl-rp1",
+        "name": "gpiochip0",
+        "num_lines": 54
+      },
+      "line_names": {
+        "17": "GPIO17",
+        "2": "GPIO2",
+        "22": "GPIO22",
+        "23": "GPIO23",
+        "27": "GPIO27",
+        "3": "GPIO3"
+      },
       "path": "/dev/gpiochip0",
-      "stat": {"kind": "char", "major": 254, "minor": 0},
+      "stat": {
+        "kind": "char",
+        "major": 254,
+        "minor": 0
+      },
       "sysfs_realpath": "/sys/devices/platform/rp1/gpiochip0"
     }
   ],
@@ -44,6 +82,17 @@
     "prompts_or_model_responses_included": false,
     "raw_audio_included": false,
     "transcripts_included": false
+  },
+  "resource_claims": {
+    "format": "gonken-resource-claims-v1",
+    "physical_acceptance_claimed": false,
+    "required_gpio_lines": [
+      17,
+      22,
+      23,
+      27
+    ],
+    "requirement_origin": "explicit historical fixture profile; not current production defaults"
   },
   "target_shadow_requirements": {
     "audio_duplex": true,

@@ -55,13 +55,18 @@ class V09EnvironmentConfigTests(unittest.TestCase):
             with self.assertRaisesRegex(ConfigError, "maximum_hysteresis"):
                 load_config(defaults_path=DEFAULTS, site_path=site, environ={})
 
-    def test_environment_relay_pin_must_not_reuse_i2c_or_existing_interaction_gpios(self) -> None:
-        for pin in (2, 3, 17, 22, 27):
-            with self.subTest(pin=pin), tempfile.TemporaryDirectory() as temporary:
-                site = Path(temporary) / "site.toml"
-                site.write_text(f"[extensions.environment]\nrelay_bcm = {pin}\n", encoding="utf-8")
-                with self.assertRaisesRegex(ConfigError, "relay_bcm"):
-                    load_config(defaults_path=DEFAULTS, site_path=site, environ={})
+    def test_enabled_relay_cannot_reuse_other_enabled_resources(self) -> None:
+        for mode, pins in (("wake_word", (2,3,22)), ("push_to_talk", (2,3,17,27))):
+            for pin in pins:
+                with self.subTest(mode=mode,pin=pin), self.assertRaisesRegex(ConfigError, "conflict"):
+                    load_config(defaults_path=DEFAULTS,site_path=None,environ={},cli_overrides={
+                        "runtime.interaction_mode": mode, "extensions.environment.enabled":True,
+                        "extensions.environment.relay_bcm":pin})
+
+    def test_dormant_relay_field_is_not_a_reservation(self) -> None:
+        for pin in (2,3,17,22,27):
+            value=load_config(defaults_path=DEFAULTS,site_path=None,environ={},cli_overrides={"extensions.environment.relay_bcm":pin})
+            self.assertFalse(value.config.extensions.environment.enabled)
 
 
 if __name__ == "__main__":

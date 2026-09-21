@@ -613,8 +613,6 @@ def _validate_values(config: Config) -> None:
         raise ConfigError("stt.threads must be between 1 and 16")
     _validate_gpio(config.interaction.push_to_talk_gpio, "interaction.push_to_talk_gpio")
     _validate_gpio(config.interaction.recording_led_gpio, "interaction.recording_led_gpio")
-    if config.interaction.push_to_talk_gpio == config.interaction.recording_led_gpio:
-        raise ConfigError("push-to-talk and recording LED GPIO pins must differ")
     if not 1 <= config.retrieval.top_k <= 20:
         raise ConfigError("retrieval.top_k must be between 1 and 20")
     if config.privacy.raw_audio_retention != "delete":
@@ -640,12 +638,12 @@ def _validate_values(config: Config) -> None:
     if not 0.0 < wake.threshold < 1.0:
         raise ConfigError("extensions.wake_word.threshold must be between 0 and 1")
     _validate_gpio(wake.monitoring_led_gpio, "extensions.wake_word.monitoring_led_gpio")
-    if wake.monitoring_led_gpio in {
-        config.interaction.push_to_talk_gpio,
-        config.interaction.recording_led_gpio,
-    }:
-        raise ConfigError("wake monitoring LED GPIO must be distinct")
     _validate_environment_config(config)
+    from .resources import claims_for_config, ResourceConflict
+    try:
+        claims_for_config(config)
+    except ResourceConflict as exc:
+        raise ConfigError(str(exc)) from exc
 
 
 def _validate_environment_config(config: Config) -> None:
@@ -667,15 +665,6 @@ def _validate_environment_config(config: Config) -> None:
     if env.relay_backend not in {"libgpiod", "simulated"}:
         raise ConfigError("extensions.environment.relay_backend supports only libgpiod or simulated")
     _validate_gpio(env.relay_bcm, "extensions.environment.relay_bcm")
-    reserved = {
-        config.interaction.push_to_talk_gpio,
-        config.interaction.recording_led_gpio,
-        config.extensions.wake_word.monitoring_led_gpio,
-        2,
-        3,
-    }
-    if env.relay_bcm in reserved:
-        raise ConfigError("extensions.environment.relay_bcm must not collide with interaction, wake, or I2C GPIO pins")
     if env.safe_state != "off":
         raise ConfigError("extensions.environment.safe_state supports only off")
     _validate_absolute_path(env.socket_path, "extensions.environment.socket_path", allow_empty=False)

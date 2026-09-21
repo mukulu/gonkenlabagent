@@ -27,7 +27,7 @@ from typing import Any, Iterable
 FORMAT = "gonken-target-hardware-manifest-v1"
 REPLAY_FORMAT = "gonken-target-shadow-replay-v1"
 HEADER_SIGNATURE = frozenset({"GPIO2", "GPIO3", "GPIO17", "GPIO22", "GPIO23", "GPIO27"})
-DEFAULT_REQUIRED_GPIOS = (17, 22, 23, 27)
+
 SERVICE_UNITS = (
     "gonken-agent.service",
     "gonken-environment.service",
@@ -345,6 +345,18 @@ def _resource_inventory() -> dict[str, object]:
     }
 
 
+def _effective_resource_claims(site=None) -> dict:
+    try:
+        from gonken_agent.config import load_config, DEFAULT_SITE_PATH
+        from gonken_agent.resources import resource_document
+        path = Path(site) if site else DEFAULT_SITE_PATH
+        if not path.is_file() or path.is_symlink():
+            return {"status":"INVALID","code":"TARGET_CONFIG_UNAVAILABLE"}
+        return resource_document(load_config(site_path=path, environ={}).config)
+    except (ImportError, OSError, ValueError):
+        return {"status":"INVALID","code":"TARGET_CONFIG_INVALID"}
+
+
 def collect_manifest(*, gpiod_module=None, chip_paths: Iterable[str] | None = None, stat_func=os.stat) -> dict[str, object]:
     return {
         "format": FORMAT,
@@ -352,6 +364,7 @@ def collect_manifest(*, gpiod_module=None, chip_paths: Iterable[str] | None = No
         "commit": _git_commit(),
         "raspberry_pi": _pi_model(),
         "python": _python_info(),
+        "resource_claims": _effective_resource_claims(),
         "gpiochips": _collect_gpiochips(gpiod_module=gpiod_module, chip_paths=chip_paths, stat_func=stat_func),
         "i2c": _i2c_inventory(),
         "audio": _audio_inventory(),
@@ -421,7 +434,17 @@ def _manifest_line_matches(chips: list[dict[str, object]], logical_bcm: int) -> 
     return matches
 
 
-def replay_gpio_identity(manifest: dict[str, object], required_gpios: Iterable[int] = DEFAULT_REQUIRED_GPIOS) -> dict[str, object]:
+def replay_gpio_identity(manifest: dict[str, object], required_gpios: Iterable[int] | None = None) -> dict[str, object]:
+    if required_gpios is None:
+        claims = manifest.get("resource_claims")
+        if not isinstance(claims, dict) or claims.get("format") != "gonken-resource-claims-v1" or not isinstance(claims.get("required_gpio_lines"), list):
+            return {"status":"FAIL","code":"GPIO_REQUIREMENTS_MISSING","lines":{}}
+        required_gpios = claims["required_gpio_lines"]
+    required_gpios = tuple(required_gpios)
+    if any(type(n) is not int or not 0 <= n <= 53 for n in required_gpios) or len(set(required_gpios)) != len(required_gpios):
+        return {"status":"FAIL","code":"GPIO_REQUIREMENTS_INVALID","lines":{}}
+    if not required_gpios:
+        return {"status":"PASS","code":"GPIO_HEADER_NOT_REQUIRED","lines":{},"physical_acceptance_claimed":False}
     chips_raw = manifest.get("gpiochips")
     chips = _dedup_manifest_chips(chips_raw if isinstance(chips_raw, list) else [])
     resolved: dict[str, object] = {}
@@ -894,7 +917,7 @@ def _first_failed_code(checks: Iterable[dict[str, object]]) -> str:
     return "TARGET_SHADOW_READY"
 
 
-def replay_manifest(manifest: dict[str, object], required_gpios: Iterable[int] = DEFAULT_REQUIRED_GPIOS) -> dict[str, object]:
+def replay_manifest(manifest: dict[str, object], required_gpios: Iterable[int] | None = None) -> dict[str, object]:
     requirements = _manifest_requirements(manifest)
     gpio = replay_gpio_identity(manifest, required_gpios)
     format_check = {
@@ -987,8 +1010,10 @@ def atomic_json(path: Path, payload: dict[str, object]) -> None:
             temporary.unlink()
 
 
-def _parse_lines(values: list[int] | None) -> tuple[int, ...]:
-    lines = tuple(values or DEFAULT_REQUIRED_GPIOS)
+def _parse_lines(values: list[int] | None) -> tuple[int, ...] | None:
+    if values is None:
+        return None
+    lines = tuple(values)
     if not lines or any(isinstance(value, bool) or value < 0 or value > 53 for value in lines) or len(set(lines)) != len(lines):
         raise SystemExit("required GPIO lines must be unique BCM values 0..53")
     return lines
