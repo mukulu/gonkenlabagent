@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Classify the installed boundary after M3.5 without claiming appliance readiness."""
+"""Validate final installed release/runtime facts without claiming physical acceptance."""
 
 from __future__ import annotations
 
@@ -11,6 +11,19 @@ import stat
 import subprocess
 import sys
 from pathlib import Path
+
+
+_source = Path(__file__).resolve().parents[1] / 'src'
+if _source.is_dir():
+    sys.path.insert(0, str(_source))
+try:
+    from gonken_agent import runtime_readiness as rr
+    from gonken_agent.llm.qualification import qualified_rows
+except ModuleNotFoundError as exc:
+    if not exc.name.startswith('gonken_agent'):
+        raise
+    import runtime_readiness as rr
+    from model_qualification import qualified_rows
 
 
 COMMIT_RE = re.compile(r"^[0-9a-f]{40}$")
@@ -171,13 +184,7 @@ def validate_service(root: Path, commit: str) -> bool:
     return True
 
 def read_bounded_json(path: Path, max_bytes: int = 256 * 1024) -> dict[str, object] | None:
-    try:
-        if path.is_symlink() or not path.is_file() or path.stat().st_size > max_bytes:
-            return None
-        value = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, ValueError, json.JSONDecodeError):
-        return None
-    return value if isinstance(value, dict) else None
+    return rr.bounded_json(path, max_bytes)
 
 
 def validate_model_roster(root: Path, legacy: dict[str, str]) -> dict[str, object]:
@@ -195,16 +202,24 @@ def validate_model_roster(root: Path, legacy: dict[str, str]) -> dict[str, objec
         fail("SUMMARY_MODEL_SELECTION", "active model selection is missing or invalid", "rerun model roster provisioning", 1)
     model = selection.get("model")
     generation = selection.get("generation")
-    if model not in ROSTER_MODELS or not isinstance(generation, int) or generation < 1:
+    if model not in ROSTER_MODELS or type(generation) is not int or generation < 1:
         fail("SUMMARY_MODEL_SELECTION", "active model selection is outside the governed roster", "rerun model roster provisioning", 1)
     if not roster or roster.get("format") != ROSTER_RECORD_FORMAT or roster.get("status") != "READY":
         fail("SUMMARY_MODEL_ROSTER", "validated roster record is missing or invalid", "rerun model roster provisioning", 1)
     rows = roster.get("models")
     if not isinstance(rows, list):
         fail("SUMMARY_MODEL_ROSTER", "roster record model list is invalid", "rerun model roster provisioning", 1)
-    by_tag = {row.get("tag"): row for row in rows if isinstance(row, dict) and row.get("tag") in ROSTER_MODELS}
+    if len(rows) != len(ROSTER_MODELS) or any(not isinstance(row, dict) for row in rows):
+        fail('SUMMARY_MODEL_ROSTER', 'roster membership is invalid', 'rerun model roster provisioning', 1)
+    if any(not isinstance(row.get('tag'), str) for row in rows):
+        fail('SUMMARY_MODEL_ROSTER', 'roster tags are invalid', 'rerun model roster provisioning', 1)
+    by_tag = {row['tag']: row for row in rows}
     if set(by_tag) != set(ROSTER_MODELS):
-        fail("SUMMARY_MODEL_ROSTER", "roster record does not contain all governed models", "rerun model roster provisioning", 1)
+        fail('SUMMARY_MODEL_ROSTER', 'roster must contain exactly the admitted models', 'rerun model roster provisioning', 1)
+    inventory = [{'name': row['tag'], 'digest': row.get('digest')} for row in rows]
+    verified = qualified_rows(roster, inventory, context_tokens=int(legacy['context_tokens']))
+    if set(verified) != set(ROSTER_MODELS) or not all(row['tools'] for row in verified.values()):
+        fail('SUMMARY_MODEL_QUALIFICATION', 'required roster stages are missing, stale or failed', 'rerun the bounded model qualification', 1)
     active_row = by_tag[model]
     digest = active_row.get("digest")
     if not isinstance(digest, str) or not SHA256_RE.fullmatch(digest):
@@ -216,21 +231,18 @@ def validate_model_roster(root: Path, legacy: dict[str, str]) -> dict[str, objec
     }
 
 
-def validate_appliance(root: Path, expected_commit: str | None = None, expected_model: str | None = None) -> dict[str, object] | None:
-    path = mapped(root, "/run/gonken-agent/ready.json")
-    if not path.is_file() or path.is_symlink() or path.stat().st_size > 8192:
+def validate_appliance(root: Path, expected_commit: str | None = None,
+                       expected_model: str | None = None, expected_digest: str | None = None) -> dict[str, object] | None:
+    current = mapped(root, '/usr/local/lib/gonken-agent/current')
+    commit, profile = rr.current_release_identity(current)
+    if expected_commit is not None and commit != expected_commit:
         return None
-    try:
-        value = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, ValueError, json.JSONDecodeError):
+    binding = rr.Binding(commit, profile, rr.current_boot_id(mapped(root, '/proc/sys/kernel/random/boot_id')))
+    value = rr.read_ready(mapped(root, '/run/gonken-agent/ready.json'), binding=binding,
+                          pending_path=mapped(root, '/run/gonken-agent/readiness.json'))
+    if value is None or (expected_model is not None and value.get('model') != expected_model):
         return None
-    if not isinstance(value, dict) or value.get("status") != "READY" or value.get("code") != "VOICE_RUNTIME_READY":
-        return None
-    if not isinstance(value.get("wake_phrase"), str) or not value["wake_phrase"].strip():
-        return None
-    if expected_commit is not None and value.get("release_commit") != expected_commit:
-        return None
-    if expected_model is not None and value.get("model") != expected_model:
+    if expected_digest is not None and value.get('model_digest') != expected_digest:
         return None
     return value
 
@@ -247,7 +259,7 @@ def build_summary(root: Path, commit: str) -> dict[str, object]:
     roster = validate_model_roster(root, ollama)
     speech = validate_speech(root)
     service_ready = validate_service(root, commit)
-    appliance = validate_appliance(root, commit, str(roster["active_model"]))
+    appliance = validate_appliance(root, commit, str(roster["active_model"]), str(roster["active_digest"]))
     appliance_ready = service_ready and appliance is not None
     milestones = ["M3.3", "M3.4", "M3.5"]
     if service_ready:
@@ -270,7 +282,7 @@ def build_summary(root: Path, commit: str) -> dict[str, object]:
             component("release", "READY", "ACTIVE_RELEASE_VALIDATED"),
             component("ollama", "READY", "LOCAL_MODEL_VALIDATED"),
             component("ollama_roster", "READY" if roster["governed_roster_active"] else "DEGRADED", "THREE_MODEL_ROSTER_VALIDATED" if roster["governed_roster_active"] else "LEGACY_MODEL_FALLBACK"),
-            component("llm_tool_broker", "READY", "TYPED_TOOL_BROKER_READY"),
+            component("llm_tool_broker", "READY" if appliance_ready and roster.get("tool_call_smoke") == "PASS" else "DEGRADED", "TYPED_TOOL_BROKER_READY" if appliance_ready and roster.get("tool_call_smoke") == "PASS" else "MODEL_TOOLS_NOT_QUALIFIED"),
             component("speech_artifacts", "READY", "PINNED_SPEECH_SMOKE_VALIDATED"),
             component("app_service", "READY" if service_ready else "DEGRADED", "HEADLESS_SERVICE_VALIDATED" if service_ready else "HEADLESS_SERVICE_NOT_READY"),
             component("input_audio", "READY" if appliance_ready else "DEGRADED", "PHYSICAL_INPUT_OPENED" if appliance_ready else "PHYSICAL_ACCEPTANCE_PENDING"),
@@ -293,6 +305,7 @@ def parser() -> argparse.ArgumentParser:
     result.add_argument("--system-root", default="/")
     result.add_argument("--commit", required=True)
     result.add_argument("--json", action="store_true")
+    result.add_argument("--require-ready", action="store_true", help="nonzero unless fresh selected runtime and service facts are ready")
     return result
 
 
@@ -308,7 +321,10 @@ def main(argv: list[str] | None = None) -> int:
         if args.json:
             print(json.dumps(summary, sort_keys=True))
         else:
-            print(f"[OK] code={summary['code']} status={summary['status']} ready={str(summary['ready']).lower()} next={'USE_ASSISTANT' if summary['ready'] else 'TARGET_ACCEPTANCE'}")
+            label = "OK" if summary["ready"] else "DEGRADED"
+            print(f"[{label}] code={summary['code']} status={summary['status']} ready={str(summary['ready']).lower()} next={'USE_ASSISTANT' if summary['ready'] else 'TARGET_ACCEPTANCE'}")
+        if args.require_ready and not summary['ready']:
+            return 75
     except SummaryError as error:
         emit_error(error)
         return error.status

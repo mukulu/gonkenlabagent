@@ -443,7 +443,10 @@ class IntegrityAndPrivilegeTests(unittest.TestCase):
         self.assertIn("environment_service", installer)
         self.assertIn("--speech-only", installer)
         self.assertIn("M3_5_SPEECH_COMPLETE", installer)
-        self.assertIn("M3_6_INSTALL_SUMMARY", installer)
+        self.assertIn("gonken_final_convergence", installer)
+        self.assertIn("--require-ready", installer)
+        self.assertIn("runtime_readiness.py", manager)
+        self.assertIn("model_qualification.py", manager)
         self.assertIn("M6_2_SERVICE_COMPLETE", installer)
         self.assertNotIn("M3_6_UNAVAILABLE", installer)
 

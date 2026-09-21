@@ -107,6 +107,7 @@ def _build_parser() -> argparse.ArgumentParser:
         "components", help="show independent voice/model/environment/sensor/fan/tool states"
     )
     components_parser.add_argument("--json", action="store_true", dest="as_json")
+    components_parser.add_argument("--require-ready", action="store_true", help="require fresh selected-profile component readiness; never physical acceptance")
     config_arguments(components_parser)
 
     llm_parser = subparsers.add_parser("llm", help="inspect and administer the governed local-model roster")
@@ -218,8 +219,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     if args.command == "components":
         try:
             from .operations import effective
-            from .component_status import collect
-            payload = collect(effective(args))
+            from .component_status import collect, required_ready
+            config = effective(args)
+            payload = collect(config)
         except (ValueError, OSError, RuntimeError, ConfigError) as exc:
             print(json.dumps({"status": "FAILED", "code": "COMPONENT_STATUS_FAILED", "error_type": type(exc).__name__}), file=sys.stderr)
             return EXIT_FAILED
@@ -228,7 +230,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         else:
             for name, row in payload["components"].items():
                 print(f"{name}: {row['status']} ({row['code']})")
-        return 0
+            print("physical_motion_observed=false software_speed_control=false physical_acceptance=false")
+        return EXIT_FAILED if args.require_ready and not required_ready(config, payload) else 0
     if args.command == "llm":
         try:
             from .operations import effective

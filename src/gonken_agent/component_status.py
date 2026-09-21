@@ -95,3 +95,30 @@ def collect(config, *, ready_file: Path = READY_FILE, environment_client_factory
         "environment_evidence_mode": simulation.get("evidence_mode", "UNKNOWN"),
         "physical_acceptance_claimed": False,
     }
+
+
+def required_ready(config, payload: object) -> bool:
+    """Pure selected-profile final gate. No polling, actuation or LLM execution."""
+    if (not isinstance(payload, dict) or payload.get('format') != 'gonken-component-status-v1'
+            or payload.get('physical_acceptance_claimed') is not False):
+        return False
+    rows = payload.get('components')
+    if not isinstance(rows, dict):
+        return False
+    required = ['voice_conversation', 'ollama_inference', 'llm_environment_tool_broker']
+    env = config.extensions.environment
+    if env.enabled:
+        required.extend(['environment_controller', 'temperature_humidity_sensor', 'room_fan_control'])
+    if any(not isinstance(rows.get(name), dict) or rows[name].get('status') != 'READY' for name in required):
+        return False
+    if rows['llm_environment_tool_broker'].get('active_model_qualified') is not True:
+        return False
+    if env.enabled:
+        sensor, fan = rows['temperature_humidity_sensor'], rows['room_fan_control']
+        if (rows['environment_controller'].get('enabled') is not True
+                or sensor.get('backend') != env.sensor_backend
+                or fan.get('backend') != env.relay_backend
+                or sensor.get('simulated') is not (env.sensor_backend == 'simulated')
+                or fan.get('simulated') is not (env.relay_backend == 'simulated')):
+            return False
+    return True

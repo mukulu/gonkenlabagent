@@ -239,8 +239,12 @@
       "id": "46.5.2",
       "title": "Activation ordering / stale-readiness rejection",
       "source_line": 1839,
-      "status": "NOT_STARTED",
-      "evidence": []
+      "status": "WIP",
+      "evidence": [
+        "docs/development/rebuild/FINAL_INSTALL_CONVERGENCE.md",
+        "docs/development/rebuild/b7-cascade.log",
+        "tests/unit/test_attempt03_final_convergence.py"
+      ]
     },
     {
       "id": "46.5.3",

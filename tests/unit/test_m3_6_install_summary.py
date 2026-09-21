@@ -1,10 +1,17 @@
 from __future__ import annotations
 
+import contextlib
+import io
+import subprocess
+import sys
+import shutil
+from unittest import mock
 import importlib.util
 import json
 import os
 import stat
 import tempfile
+import time
 import unittest
 from pathlib import Path
 
@@ -38,6 +45,9 @@ class InstallSummaryTests(unittest.TestCase):
         self.root = Path(self.temporary.name)
         self.system = self.root / "system"
         self.system.mkdir()
+        boot = self.system / 'proc/sys/kernel/random/boot_id'
+        boot.parent.mkdir(parents=True)
+        boot.write_text(install_summary.rr.current_boot_id())
         self.release = self.system / "usr/local/lib/gonken-agent/releases" / COMMIT
         self.release.mkdir(parents=True)
         (self.system / "usr/local/lib/gonken-agent/current").symlink_to(f"releases/{COMMIT}")
@@ -117,6 +127,19 @@ class InstallSummaryTests(unittest.TestCase):
             },
         )
 
+    def publish_ready(self, model='qwen3.5:2b-q4_K_M', digest=SHA, **overrides):
+        ready = self.system / 'run/gonken-agent/ready.json'
+        ready.parent.mkdir(parents=True, exist_ok=True)
+        value = {'status':'READY','code':'VOICE_RUNTIME_READY','wake_phrase':'GonKen',
+                 'model':model,'model_digest':digest,'release_commit':COMMIT,
+                 'release_profile':'core-pi-trixie-py313',
+                 'boot_id':install_summary.rr.current_boot_id(),'service_pid':os.getpid(),
+                 'service_start_ticks':install_summary.rr.process_start_ticks(os.getpid()),
+                 'observed_epoch':int(time.time())}
+        value.update(overrides)
+        ready.write_text(json.dumps(value))
+        return ready
+
     def test_summary_reports_degraded_not_ready_with_exact_next_action(self) -> None:
         data = install_summary.build_summary(self.system, COMMIT)
         self.assertEqual(data["status"], "DEGRADED")
@@ -130,17 +153,11 @@ class InstallSummaryTests(unittest.TestCase):
         self.assertNotIn(str(self.system), str(data))
 
     def test_summary_reports_ready_when_voice_runtime_ready_file_exists(self) -> None:
-        ready = self.system / "run/gonken-agent/ready.json"
-        ready.parent.mkdir(parents=True, exist_ok=True)
-        ready.write_text(
-            '{"status":"READY","code":"VOICE_RUNTIME_READY","wake_phrase":"Hey Gonken",'
-            '"model":"qwen3.5:2b-q4_K_M","release_commit":"' + COMMIT + '"}\n',
-            encoding="utf-8",
-        )
+        self.publish_ready()
         data = install_summary.build_summary(self.system, COMMIT)
         self.assertEqual(data["status"], "READY")
         self.assertTrue(data["ready"])
-        self.assertEqual(data["wake_phrase"], "Hey Gonken")
+        self.assertEqual(data["wake_phrase"], "GonKen")
         components = {row["component"]: row for row in data["components"]}
         self.assertEqual(components["input_audio"]["status"], "READY")
         self.assertEqual(components["wake_runtime"]["code"], "WAKE_STANDBY_READY")
@@ -154,16 +171,12 @@ class InstallSummaryTests(unittest.TestCase):
         }) + "\n", encoding="utf-8")
         rows = []
         for index, tag in enumerate(install_summary.ROSTER_MODELS):
-            rows.append({"tag": tag, "digest": f"{index + 1:064x}", "tool_call_smoke": "PASS"})
+            rows.append({"tag": tag, "digest": f"{index + 1:064x}", "tool_call_smoke": "PASS", "inference_status":"PASS",
+                         "stages":[{"stage":s,"status":"PASS"} for s in ("IDENTITY","INFERENCE","TOOLS","UNLOAD")]})
         (state / "roster.json").write_text(json.dumps({
-            "format": "gonken-ollama-roster-record-v2", "status": "READY", "models": rows,
+            "format": "gonken-ollama-roster-record-v2", "status": "READY", "models": rows, "context_tokens":2048,
         }) + "\n", encoding="utf-8")
-        ready = self.system / "run/gonken-agent/ready.json"
-        ready.parent.mkdir(parents=True, exist_ok=True)
-        ready.write_text(json.dumps({
-            "status": "READY", "code": "VOICE_RUNTIME_READY", "wake_phrase": "GonKen",
-            "model": "qwen3:0.6b", "release_commit": COMMIT,
-        }) + "\n", encoding="utf-8")
+        self.publish_ready('qwen3:0.6b', '1'.zfill(64))
         data = install_summary.build_summary(self.system, COMMIT)
         self.assertEqual(data["ollama_model"], "qwen3:0.6b")
         self.assertTrue(data["ollama_roster"]["governed_roster_active"])
@@ -173,13 +186,7 @@ class InstallSummaryTests(unittest.TestCase):
         self.assertTrue(data["ready"])
 
     def test_summary_rejects_ready_record_from_previous_release(self) -> None:
-        ready = self.system / "run/gonken-agent/ready.json"
-        ready.parent.mkdir(parents=True, exist_ok=True)
-        ready.write_text(
-            '{"status":"READY","code":"VOICE_RUNTIME_READY","wake_phrase":"GonKen",'
-            '"model":"qwen3.5:2b-q4_K_M","release_commit":"' + ("b" * 40) + '"}\n',
-            encoding="utf-8",
-        )
+        self.publish_ready(release_commit='b'*40)
         data = install_summary.build_summary(self.system, COMMIT)
         self.assertEqual(data["status"], "DEGRADED")
         self.assertFalse(data["ready"])
@@ -192,6 +199,76 @@ class InstallSummaryTests(unittest.TestCase):
         self.assertEqual(components["app_service"]["status"], "DEGRADED")
         self.assertEqual(components["app_service"]["code"], "HEADLESS_SERVICE_NOT_READY")
         self.assertNotIn("M6.2", data["completed_milestones"])
+
+    def test_final_required_exit_rejects_degraded_and_accepts_fresh(self):
+        args = ['--system-root', str(self.system), '--commit', COMMIT, '--require-ready', '--json']
+        with mock.patch.dict(os.environ, {'GONKEN_ENABLE_TEST_FAILURES': '1'}):
+            output = io.StringIO()
+            with contextlib.redirect_stdout(output):
+                self.assertEqual(install_summary.main(args), 75)
+            self.assertFalse(json.loads(output.getvalue())['ready'])
+            self.publish_ready()
+            with contextlib.redirect_stdout(io.StringIO()):
+                self.assertEqual(install_summary.main(args), 0)
+            # Inspection without a completion claim remains supported.
+            (self.system / 'run/gonken-agent/ready.json').unlink()
+            with contextlib.redirect_stdout(io.StringIO()):
+                self.assertEqual(install_summary.main(args[:-2] + ['--json']), 0)
+
+    def test_boot_process_and_digest_drift_reject_final_ready(self):
+        for field, bad in [('boot_id','old-boot'), ('service_start_ticks',0), ('model_digest','c'*64), ('release_profile','wrong')]:
+            with self.subTest(field=field):
+                self.publish_ready(**{field:bad})
+                self.assertFalse(install_summary.build_summary(self.system, COMMIT)['ready'])
+
+    def test_newer_waiting_record_rejects_old_success(self):
+        self.publish_ready()
+        directory = self.system / 'run/gonken-agent'
+        value = json.loads((directory / 'ready.json').read_text())
+        value.update(status='WAITING', code='AUDIO_UNAVAILABLE', observed_epoch=int(time.time()),
+                     format='gonken-voice-readiness-v1', component='capture', recoverable=True)
+        (directory / 'readiness.json').write_text(json.dumps(value))
+        self.assertFalse(install_summary.build_summary(self.system, COMMIT)['ready'])
+
+    def test_roster_labels_without_stages_are_not_qualification(self):
+        self.test_summary_prefers_governed_roster_active_model_over_legacy_record()
+        path = self.system / 'var/lib/gonken-agent/ollama/roster.json'
+        payload = json.loads(path.read_text())
+        payload['models'][0]['stages'] = []
+        path.write_text(json.dumps(payload))
+        with self.assertRaises(install_summary.SummaryError) as raised:
+            install_summary.build_summary(self.system, COMMIT)
+        self.assertEqual(raised.exception.code, 'SUMMARY_MODEL_QUALIFICATION')
+
+    def test_selection_boolean_generation_and_duplicate_roster_are_rejected(self):
+        self.test_summary_prefers_governed_roster_active_model_over_legacy_record()
+        path = self.system / 'var/lib/gonken-agent/ollama/active-model.json'
+        value = json.loads(path.read_text()); value['generation'] = True
+        path.write_text(json.dumps(value))
+        with self.assertRaises(install_summary.SummaryError) as raised:
+            install_summary.build_summary(self.system, COMMIT)
+        self.assertEqual(raised.exception.code, 'SUMMARY_MODEL_SELECTION')
+        value['generation'] = 1; path.write_text(json.dumps(value))
+        path = self.system / 'var/lib/gonken-agent/ollama/roster.json'
+        value = json.loads(path.read_text()); value['models'][-1] = value['models'][0]
+        path.write_text(json.dumps(value))
+        with self.assertRaises(install_summary.SummaryError) as raised:
+            install_summary.build_summary(self.system, COMMIT)
+        self.assertEqual(raised.exception.code, 'SUMMARY_MODEL_ROSTER')
+
+    def test_standalone_maintenance_dependencies_are_sufficient(self):
+        target = self.root / 'isolated-maintenance'; target.mkdir()
+        for source, name in [
+            (ROOT/'scripts/install_summary.py','install_summary.py'),
+            (ROOT/'src/gonken_agent/runtime_readiness.py','runtime_readiness.py'),
+            (ROOT/'src/gonken_agent/llm/qualification.py','model_qualification.py')]:
+            shutil.copyfile(source, target/name)
+        # Remove PYTHONPATH and run outside source to prove maintenance copying.
+        result = subprocess.run([sys.executable, str(target/'install_summary.py'), '--help'],
+                                capture_output=True, text=True, timeout=5, cwd=target,
+                                env={k:v for k,v in os.environ.items() if k!='PYTHONPATH'})
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn('--require-ready', result.stdout)
 
     def test_records_are_closed_schema_private_and_policy_checked(self) -> None:
         record = self.system / "var/lib/gonken-agent/install/speech.record"

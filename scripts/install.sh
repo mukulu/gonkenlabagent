@@ -790,33 +790,23 @@ gonken_environment_readiness_action() {
 }
 
 gonken_print_component_summary() {
-  local profile="${GONKEN_SOURCE_RECORD[environment_profile]:-none}"
-  printf '[COMPONENT] id=voice_conversation status=READY required=true evidence=semantic_runtime physical_acceptance=false\n'
-  OLLAMA_ACTIVE_MODEL="${OLLAMA_ACTIVE_MODEL:-$(python3 -c 'import json; print(json.load(open("/var/lib/gonken-agent/ollama/active-model.json"))["model"])' 2>/dev/null || printf '%s' "$OLLAMA_MODEL")}"
-  printf '[COMPONENT] id=ollama_inference status=READY required=true evidence=three_model_roster model=%s physical_acceptance=false\n' "$OLLAMA_ACTIVE_MODEL"
-  case "$profile" in
-    none)
-      printf '[COMPONENT] id=environment_controller status=NOT_COMMISSIONED required=false profile=none\n'
-      printf '[COMPONENT] id=temperature_humidity_sensor status=NOT_COMMISSIONED required=false profile=none\n'
-      printf '[COMPONENT] id=room_fan_control status=NOT_COMMISSIONED required=false physical_motion_observed=false software_speed_control=false\n'
-      ;;
-    full-simulation)
-      printf '[COMPONENT] id=environment_controller status=READY required=true profile=full-simulation evidence=simulation\n'
-      printf '[COMPONENT] id=temperature_humidity_sensor status=READY required=true backend=simulated evidence=simulation physical_acceptance=false\n'
-      printf '[COMPONENT] id=room_fan_control status=READY required=true backend=simulated evidence=simulation physical_motion_observed=false software_speed_control=false\n'
-      ;;
-    real-sensor-simulated-actuator)
-      printf '[COMPONENT] id=environment_controller status=READY required=true profile=real-sensor-simulated-actuator evidence=target_runtime_nonacceptance\n'
-      printf '[COMPONENT] id=temperature_humidity_sensor status=READY required=true backend=sht31 evidence=daemon_semantic_health physical_acceptance=false\n'
-      printf '[COMPONENT] id=room_fan_control status=NOT_TESTED required=false backend=simulated physical_motion_observed=false software_speed_control=false\n'
-      ;;
-    *)
-      printf '[COMPONENT] id=environment_controller status=BLOCKED required=true profile=%s code=ENVIRONMENT_PHYSICAL_COMMISSION_REQUIRED\n' "$profile"
-      printf '[COMPONENT] id=temperature_humidity_sensor status=UNKNOWN required=true profile=%s physical_acceptance=false\n' "$profile"
-      printf '[COMPONENT] id=room_fan_control status=BLOCKED required=true profile=%s code=ENVIRONMENT_PHYSICAL_COMMISSION_REQUIRED physical_motion_observed=false software_speed_control=false\n' "$profile"
-      ;;
-  esac
-  printf '[COMPONENT] id=llm_environment_tool_broker status=READY required=true code=V04_TYPED_TOOL_BROKER_READY raw_shell=false raw_gpio=false raw_i2c=false\n'
+  # One canonical selected-profile reader, not status constants reconstructed here.
+  timeout --kill-after=2s 20s "$RELEASE_ROOT/current/.venv/bin/gonken-agent" components --require-ready
+}
+
+gonken_collect_install_failure() {
+  local result="$1"
+  if [[ "${GONKEN_SOURCE_RECORD[platform_mode]}" == "target" && -x "$INSTALL_FAILURE_BUNDLE" ]]; then
+    python3 "$INSTALL_FAILURE_BUNDLE" \
+      --state-dir "$STATE_DIR" --log-dir "$LOG_DIR" --source-record "$GONKEN_SOURCE_RECORD_PATH" \
+      --exit-code "$result" || true
+  fi
+}
+
+gonken_final_convergence() {
+  timeout --kill-after=2s 30s python3 "$(gonken_install_summary_manager)" \
+    --system-root / --commit "${GONKEN_SOURCE_RECORD[resolved_commit]}" --require-ready || return $?
+  gonken_print_component_summary
 }
 
 gonken_bluetooth_manager() {
@@ -1423,11 +1413,7 @@ else
     printf '[PAUSED] code=INSTALLATION_PAUSED reason=planned_system_transition action=follow_previous_pause_instruction_then_rerun_same_installer\n'
     exit 78
   fi
-  if [[ "${GONKEN_SOURCE_RECORD[platform_mode]}" == "target" && -x "$INSTALL_FAILURE_BUNDLE" ]]; then
-    python3 "$INSTALL_FAILURE_BUNDLE" \
-      --state-dir "$STATE_DIR" --log-dir "$LOG_DIR" --source-record "$GONKEN_SOURCE_RECORD_PATH" \
-      --exit-code "$result" || true
-  fi
+  gonken_collect_install_failure "$result"
   exit "$result"
 fi
 
@@ -1472,16 +1458,17 @@ if ((SPEECH_ONLY == 1)); then
   exit 0
 fi
 
-python3 "$(gonken_install_summary_manager)" \
-  --system-root / \
-  --commit "${GONKEN_SOURCE_RECORD[resolved_commit]}" \
-  --json
-printf '[OK] code=M3_6_INSTALL_SUMMARY status=READY ready=true next=USE_ASSISTANT\n'
-printf '[OK] code=M6_2_SERVICE_COMPLETE status=READY ready=true autostart=enabled\n'
-if [[ "${GONKEN_SOURCE_RECORD[bluetooth_audio]:-disabled}" == "requested" ]]; then
-  printf '[OK] code=X4_BLUETOOTH_SETUP status=READY paired=true autoconnect=true usb_fallback=true\n'
+if gonken_final_convergence; then
+  printf '[OK] code=M6_2_SERVICE_COMPLETE status=READY ready=true autostart=enabled\n'
+else
+  result=$?
+  gonken_log_event error INSTALL_FINAL_CONVERGENCE_FAILED final_convergence "fresh_selected_profile_postconditions_failed" || true
+  gonken_collect_install_failure "$result"
+  exit "$result"
 fi
-gonken_print_component_summary
+if [[ "${GONKEN_SOURCE_RECORD[bluetooth_audio]:-disabled}" == "requested" ]]; then
+  printf '[INFO] code=X4_BLUETOOTH_PREFERENCE requested=true paired_state=see_evidence usb_fallback=true\n'
+fi
 printf '[READY] code=INSTALLATION_COMPLETE service=gonken-agent.service autostart=enabled reboot_required=false wake_phrase=GonKen\n'
 if [[ "${GONKEN_SOURCE_RECORD[invoking_user]}" != "root" ]]; then
   printf '[INFO] code=ENV_OPERATOR_SESSION_REFRESH operator=%s group=gonken-envctl action=disconnect_and_reconnect_before_running_gonken-agent_env_commands\n' \

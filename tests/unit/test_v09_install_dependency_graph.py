@@ -55,13 +55,15 @@ class TargetInstallDependencyGraphTests(unittest.TestCase):
         self.assertEqual(positions, sorted(positions))
 
     def test_i2c_planned_pause_is_handled_before_failure_bundle(self) -> None:
-        pause = self.text.find('if [[ "$result" == "78" ]]')
-        bundle = self.text.find('INSTALL_FAILURE_BUNDLE', pause)
-        self.assertGreaterEqual(pause, 0)
-        self.assertGreater(bundle, pause)
-        block = self.text[pause:bundle]
+        engine = self.text[self.text.index('if gonken_run_registered_steps; then'):]
+        pause = engine.index('if [[ "$result" == "78" ]]')
+        bundle = engine.index('gonken_collect_install_failure "$result"')
+        self.assertLess(pause, bundle)
+        block = engine[pause:bundle]
         self.assertIn("INSTALLATION_PAUSED", block)
         self.assertIn("exit 78", block)
+        helper = self.text[self.text.index('gonken_collect_install_failure()'):self.text.index('gonken_final_convergence()')]
+        self.assertIn('python3 "$INSTALL_FAILURE_BUNDLE"', helper)
 
     def test_environment_service_precedes_application_service_and_stays_non_actuating(self) -> None:
         self.assertLess(self.position("environment_service"), self.position("application_service"))
@@ -81,19 +83,17 @@ class TargetInstallDependencyGraphTests(unittest.TestCase):
         self.assertIn("real_relay_profiles_pause_for_supervision", region)
         self.assertIn("generic_install_never_auto_actuates_real_room_fan_gpio", region)
 
-    def test_install_completion_reports_independent_component_truth(self) -> None:
-        for component in (
-            "voice_conversation",
-            "ollama_inference",
-            "environment_controller",
-            "temperature_humidity_sensor",
-            "room_fan_control",
-            "llm_environment_tool_broker",
-        ):
-            self.assertIn(f"id={component}", self.text)
-        self.assertIn("physical_motion_observed=false software_speed_control=false", self.text)
-        self.assertIn("V04_TYPED_TOOL_BROKER_READY", self.text)
-        self.assertIn("raw_shell=false raw_gpio=false raw_i2c=false", self.text)
+    def test_install_completion_reports_independent_component_truth(self):
+        body = self.text[self.text.index('gonken_print_component_summary()'):self.text.index('gonken_collect_install_failure()')]
+        self.assertIn('components --require-ready', body)
+        self.assertNotIn('status=READY', body)
+        components = (ROOT / 'src/gonken_agent/component_status.py').read_text()
+        for name in ('voice_conversation','ollama_inference','environment_controller',
+                     'temperature_humidity_sensor','room_fan_control','llm_environment_tool_broker'):
+            self.assertIn(name, components)
+        self.assertIn('if gonken_final_convergence; then', self.text)
+        self.assertIn('INSTALL_FINAL_CONVERGENCE_FAILED', self.text)
+        self.assertLess(self.text.index('if gonken_final_convergence; then'), self.text.index("printf '[READY] code=INSTALLATION_COMPLETE"))
 
     def test_bluetooth_capture_route_is_proven_before_appliance_readiness(self) -> None:
         self.assertLess(self.position("bluetooth_audio_pairing"), self.position("appliance_readiness"))
@@ -162,7 +162,7 @@ class TargetInstallDependencyGraphTests(unittest.TestCase):
         self.assertLess(self.position("target_gpio_identity"), self.position("environment_service"))
         self.assertLess(self.position("target_gpio_identity"), self.position("appliance_readiness"))
         registration = self.text[self.position("target_gpio_identity"):self.position("environment_service")]
-        self.assertIn("non_actuating_pi5_header_gpio_identity", registration)
+        self.assertIn("non_actuating_selected_capability_gpio_identity", registration)
         self.assertIn("does_not_request_write_or_toggle_any_gpio_line", registration)
 
     def test_runtime_context_is_transport_neutral_when_bluetooth_is_requested(self) -> None:
@@ -184,8 +184,10 @@ class TargetInstallDependencyGraphTests(unittest.TestCase):
         appliance = (ROOT / "scripts" / "appliance_manager.py").read_text(encoding="utf-8")
         summary = (ROOT / "scripts" / "install_summary.py").read_text(encoding="utf-8")
         self.assertIn('"release_commit": _runtime_release_commit()', runtime)
-        self.assertIn('recorded = value.get("release_commit")', appliance)
-        self.assertIn('validate_appliance(root, commit, str(roster["active_model"]))', summary)
+        self.assertIn('rr.read_ready(READY_FILE', appliance)
+        canonical = (ROOT / 'src/gonken_agent/runtime_readiness.py').read_text()
+        self.assertIn("value.get('release_commit') != binding.commit", canonical)
+        self.assertIn('validate_appliance(root, commit, str(roster["active_model"]), str(roster["active_digest"]))', summary)
 
 
 if __name__ == "__main__":
