@@ -18,7 +18,7 @@ class TargetInstallDependencyGraphTests(unittest.TestCase):
         self.assertGreaterEqual(value, 0, f"missing installer step {step_id}")
         return value
 
-    def test_target_install_dependency_order_is_explicit(self) -> None:
+    def test_registration_order_is_explicit_before_candidate_phase_finalization(self) -> None:
         ordered = [
             "release_prerequisites",
             "target_platform_preflight",
@@ -79,7 +79,8 @@ class TargetInstallDependencyGraphTests(unittest.TestCase):
         self.assertLess(self.position("environment_service"), self.position("environment_commissioning"))
         self.assertLess(self.position("environment_profile"), self.position("environment_commissioning"))
         self.assertLess(self.position("environment_commissioning"), self.position("environment_readiness"))
-        self.assertLess(self.position("environment_readiness"), self.position("ollama_account_and_store"))
+        self.assertIn("installer_plan.py", self.text)
+        self.assertIn("gonken_environment_activation_precondition", self.text)
         region = self.text[self.position("environment_service"):self.position("ollama_account_and_store")]
         self.assertIn('GONKEN_SOURCE_RECORD[environment_profile]', region)
         self.assertIn("explicit_full_real_or_simulated_profile_enable_restart_and_verify_current_daemon", region)

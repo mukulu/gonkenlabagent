@@ -50,3 +50,20 @@ B10B focused chain: 61 tests PASS (14.476 s); earlier two static-order expectati
 failed because they encoded the old profile-after-GPIO order. They now require the
 intentional profile-before-GPIO order and explicit full-real authorization contract.
 Real backend controller tests inject host adapters: not physical acceptance.
+
+## B10C candidate preparation before activation
+
+Provisioning helpers and effective config readers now use the exact candidate
+release instead of following `current` before the candidate is ready. The engine
+finalizes its selected target phase order through a pure validated planner:
+model/roster/speech prerequisites precede activation; environment restart/readiness
+and policy occur after activation; voice service/readiness follows. Release-only
+host tests retain their explicit narrower boundary. Existing mutable dependency
+provisioning is still convergent, not a claim of atomic rollback of apt/models.
+
+Actual release build + installer-engine tests: 11 PASS in 37.598 s. The tool
+reported timeout after the child completed; its full result log was inspected and
+no surviving child process remained. Actual shell registration/planner/engine
+fault fixtures plus ordering tests: 24 PASS in 3.669 s. Model/speech failure fixtures
+prove the simulated current pointer is unchanged and environment startup was not
+called. These are host execution proofs, not real Pi provisioning.

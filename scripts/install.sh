@@ -186,6 +186,8 @@ gonken_validate_absolute_path "$LOG_DIR" "install log directory" || exit 73
   exit 66
 }
 
+CANDIDATE_RELEASE="$RELEASE_ROOT/releases/${GONKEN_SOURCE_RECORD[resolved_commit]}"
+
 gonken_source_marker_content() {
   local record_hash
   record_hash="$(sha256sum "$GONKEN_SOURCE_RECORD_PATH" | awk '{print $1}')" || return 74
@@ -463,7 +465,7 @@ gonken_target_runtime_bindings_action() {
 
 
 gonken_gpio_identity_preflight() {
-  printf '%s\n' "$RELEASE_ROOT/current/maintenance/gpio_identity_preflight.py"
+  printf '%s\n' "$CANDIDATE_RELEASE/maintenance/gpio_identity_preflight.py"
 }
 
 gonken_target_gpio_identity_postcondition() {
@@ -473,11 +475,11 @@ gonken_target_gpio_identity_postcondition() {
   artifact="$STATE_DIR/artifacts/target-gpio-identity.json"
   [[ -x "$helper" && -f "$artifact" && ! -L "$artifact" ]] || return 1
   fresh="$(runuser -u "$SERVICE_USER" -- env PYTHONDONTWRITEBYTECODE=1 PYTHONNOUSERSITE=1 \
-    "$RELEASE_ROOT/current/.venv/bin/python" "$helper" --json)" || return 1
+    "$CANDIDATE_RELEASE/.venv/bin/python" "$helper" --json)" || return 1
   # Fresh metadata was checked above as the actual voice-service user. Root
   # checks the protected saved artifact against the same effective claims.
   env PYTHONDONTWRITEBYTECODE=1 PYTHONNOUSERSITE=1 \
-    "$RELEASE_ROOT/current/.venv/bin/python" "$helper" --config /etc/gonken-agent/config.toml \
+    "$CANDIDATE_RELEASE/.venv/bin/python" "$helper" --config /etc/gonken-agent/config.toml \
     --validate-record "$artifact" --fresh-json "$fresh" >/dev/null 2>&1 || return 1
   GONKEN_STEP_EVIDENCE="selected_capability_gpio_metadata_resolved_non_actuating"
 
@@ -493,9 +495,9 @@ gonken_target_gpio_identity_action() {
   }
   gonken_step_checkpoint "$step_id" "during" || return $?
   runuser -u "$SERVICE_USER" -- env PYTHONDONTWRITEBYTECODE=1 PYTHONNOUSERSITE=1 \
-    "$RELEASE_ROOT/current/.venv/bin/python" "$helper" --json >/dev/null || return $?
+    "$CANDIDATE_RELEASE/.venv/bin/python" "$helper" --json >/dev/null || return $?
   env PYTHONDONTWRITEBYTECODE=1 PYTHONNOUSERSITE=1 \
-    "$RELEASE_ROOT/current/.venv/bin/python" "$helper" --output "$artifact" --json >/dev/null
+    "$CANDIDATE_RELEASE/.venv/bin/python" "$helper" --output "$artifact" --json >/dev/null
 }
 
 gonken_layout_precondition() {
@@ -545,7 +547,13 @@ gonken_release_action() {
 }
 
 gonken_activation_precondition() {
-  gonken_release_postcondition
+  gonken_release_postcondition || return $?
+  if [[ "${GONKEN_SOURCE_RECORD[platform_mode]}" == "target" && "$RELEASE_ONLY" == "0" ]]; then
+    gonken_model_roster_postcondition || return $?
+    if ((OLLAMA_ONLY == 0)); then
+      gonken_speech_smoke_postcondition || return $?
+    fi
+  fi
 }
 
 gonken_activation_postcondition() {
@@ -601,7 +609,7 @@ gonken_ollama_account_action() {
 
 gonken_load_effective_ollama_config() {
   local config_json
-  config_json="$("$BIN_ROOT/gonken-agent" config show --effective --json)" || return 65
+  config_json="$("$CANDIDATE_RELEASE/.venv/bin/gonken-agent" config show --effective --json)" || return 65
   mapfile -t OLLAMA_EFFECTIVE < <(python3 -c '
 import json, sys
 value = json.load(sys.stdin)["config"]
@@ -616,49 +624,49 @@ print(value["llm"]["context_tokens"])
 }
 
 gonken_ollama_manager() {
-  printf '%s\n' "$RELEASE_ROOT/current/maintenance/ollama_manager.py"
+  printf '%s\n' "$CANDIDATE_RELEASE/maintenance/ollama_manager.py"
 }
 
 gonken_ollama_manifest() {
-  printf '%s\n' "$RELEASE_ROOT/current/maintenance/packaging/ollama-artifacts.toml"
+  printf '%s\n' "$CANDIDATE_RELEASE/maintenance/packaging/ollama-artifacts.toml"
 }
 
 gonken_model_roster_manager() {
-  printf '%s\n' "$RELEASE_ROOT/current/maintenance/model_roster_manager.py"
+  printf '%s\n' "$CANDIDATE_RELEASE/maintenance/model_roster_manager.py"
 }
 
 gonken_model_roster_manifest() {
-  printf '%s\n' "$RELEASE_ROOT/current/maintenance/packaging/ollama-model-roster.toml"
+  printf '%s\n' "$CANDIDATE_RELEASE/maintenance/packaging/ollama-model-roster.toml"
 }
 
 gonken_speech_manager() {
-  printf '%s\n' "$RELEASE_ROOT/current/maintenance/speech_manager.py"
+  printf '%s\n' "$CANDIDATE_RELEASE/maintenance/speech_manager.py"
 }
 
 gonken_speech_manifest() {
-  printf '%s\n' "$RELEASE_ROOT/current/maintenance/packaging/speech-artifacts.toml"
+  printf '%s\n' "$CANDIDATE_RELEASE/maintenance/packaging/speech-artifacts.toml"
 }
 
 gonken_install_summary_manager() {
-  printf '%s\n' "$RELEASE_ROOT/current/maintenance/install_summary.py"
+  printf '%s\n' "$CANDIDATE_RELEASE/maintenance/install_summary.py"
 }
 
 gonken_service_manager() {
-  printf '%s\n' "$RELEASE_ROOT/current/maintenance/service_manager.py"
+  printf '%s\n' "$CANDIDATE_RELEASE/maintenance/service_manager.py"
 }
 
 gonken_service_unit_template() {
-  printf '%s\n' "$RELEASE_ROOT/current/maintenance/packaging/systemd/gonken-agent.service"
+  printf '%s\n' "$CANDIDATE_RELEASE/maintenance/packaging/systemd/gonken-agent.service"
 }
 
 gonken_service_tmpfiles_template() {
-  printf '%s\n' "$RELEASE_ROOT/current/maintenance/packaging/tmpfiles/gonken-agent.conf"
+  printf '%s\n' "$CANDIDATE_RELEASE/maintenance/packaging/tmpfiles/gonken-agent.conf"
 }
 
 
 
 gonken_i2c_manager() {
-  printf '%s\n' "$RELEASE_ROOT/current/maintenance/i2c_manager.py"
+  printf '%s\n' "$CANDIDATE_RELEASE/maintenance/i2c_manager.py"
 }
 
 gonken_i2c_platform_postcondition() {
@@ -691,15 +699,15 @@ gonken_i2c_platform_action() {
 }
 
 gonken_environment_service_manager() {
-  printf '%s\n' "$RELEASE_ROOT/current/maintenance/environment_service_manager.py"
+  printf '%s\n' "$CANDIDATE_RELEASE/maintenance/environment_service_manager.py"
 }
 
 gonken_environment_profile_manager() {
-  printf '%s\n' "$RELEASE_ROOT/current/maintenance/environment_profile_manager.py"
+  printf '%s\n' "$CANDIDATE_RELEASE/maintenance/environment_profile_manager.py"
 }
 
 gonken_environment_readiness_manager() {
-  printf '%s\n' "$RELEASE_ROOT/current/maintenance/environment_readiness.py"
+  printf '%s\n' "$CANDIDATE_RELEASE/maintenance/environment_readiness.py"
 }
 
 gonken_environment_profile_postcondition() {
@@ -721,11 +729,11 @@ gonken_environment_profile_action() {
 }
 
 gonken_environment_service_unit_template() {
-  printf '%s\n' "$RELEASE_ROOT/current/maintenance/packaging/systemd/gonken-environment.service"
+  printf '%s\n' "$CANDIDATE_RELEASE/maintenance/packaging/systemd/gonken-environment.service"
 }
 
 gonken_environment_service_tmpfiles_template() {
-  printf '%s\n' "$RELEASE_ROOT/current/maintenance/packaging/tmpfiles/gonken-environment.conf"
+  printf '%s\n' "$CANDIDATE_RELEASE/maintenance/packaging/tmpfiles/gonken-environment.conf"
 }
 
 gonken_environment_service_postcondition() {
@@ -758,10 +766,14 @@ gonken_environment_commissioning_postcondition() {
     --systemctl /usr/bin/systemctl \
     --systemd-tmpfiles /usr/bin/systemd-tmpfiles >/dev/null 2>&1 || return 1
   python3 "$(gonken_environment_readiness_manager)" \
-    --agent "$RELEASE_ROOT/current/.venv/bin/gonken-agent" \
+    --agent "$CANDIDATE_RELEASE/.venv/bin/gonken-agent" \
     --profile "$profile" --expect-commit "${GONKEN_SOURCE_RECORD[resolved_commit]}" \
     --check-config --binding-only --timeout 5 --interval 0.25 >/dev/null 2>&1 || return 1
   GONKEN_STEP_EVIDENCE="gonken_environment_service_commissioned_profile_${profile}"
+}
+
+gonken_environment_activation_precondition() {
+  gonken_activation_postcondition && gonken_environment_service_postcondition && gonken_environment_profile_postcondition
 }
 
 gonken_environment_commissioning_action() {
@@ -780,7 +792,7 @@ gonken_environment_readiness_postcondition() {
   local profile="${GONKEN_SOURCE_RECORD[environment_profile]}"
   [[ "$profile" != "none" ]] || return 1
   python3 "$(gonken_environment_readiness_manager)" \
-    --agent "$RELEASE_ROOT/current/.venv/bin/gonken-agent" \
+    --agent "$CANDIDATE_RELEASE/.venv/bin/gonken-agent" \
     --profile "$profile" --expect-commit "${GONKEN_SOURCE_RECORD[resolved_commit]}" --check-config --timeout 5 --interval 0.25 >/dev/null 2>&1 || return 1
   GONKEN_STEP_EVIDENCE="environment_semantic_ready_profile_${profile}_physical_evidence_false"
 }
@@ -789,26 +801,26 @@ gonken_environment_readiness_action() {
   local profile="${GONKEN_SOURCE_RECORD[environment_profile]}"
   [[ "$profile" != "none" ]] || return 64
   python3 "$(gonken_environment_readiness_manager)" \
-    --agent "$RELEASE_ROOT/current/.venv/bin/gonken-agent" \
+    --agent "$CANDIDATE_RELEASE/.venv/bin/gonken-agent" \
     --profile "$profile" --expect-commit "${GONKEN_SOURCE_RECORD[resolved_commit]}" --check-config --timeout 30 --interval 1
 }
 
 gonken_environment_policy_postcondition() {
-  python3 "$RELEASE_ROOT/current/maintenance/environment_policy_manager.py" \
-    --agent "$RELEASE_ROOT/current/.venv/bin/gonken-agent" \
+  python3 "$CANDIDATE_RELEASE/maintenance/environment_policy_manager.py" \
+    --agent "$CANDIDATE_RELEASE/.venv/bin/gonken-agent" \
     --mode "${GONKEN_SOURCE_RECORD[environment_mode]}" --check >/dev/null 2>&1 || return 1
   GONKEN_STEP_EVIDENCE="environment_mode_${GONKEN_SOURCE_RECORD[environment_mode]}_thresholds_preserved"
 }
 
 gonken_environment_policy_action() {
-  python3 "$RELEASE_ROOT/current/maintenance/environment_policy_manager.py" \
-    --agent "$RELEASE_ROOT/current/.venv/bin/gonken-agent" \
+  python3 "$CANDIDATE_RELEASE/maintenance/environment_policy_manager.py" \
+    --agent "$CANDIDATE_RELEASE/.venv/bin/gonken-agent" \
     --mode "${GONKEN_SOURCE_RECORD[environment_mode]}"
 }
 
 gonken_print_component_summary() {
   # One canonical selected-profile reader, not status constants reconstructed here.
-  timeout --kill-after=2s 20s "$RELEASE_ROOT/current/.venv/bin/gonken-agent" components --require-ready
+  timeout --kill-after=2s 20s "$CANDIDATE_RELEASE/.venv/bin/gonken-agent" components --require-ready
 }
 
 gonken_collect_install_failure() {
@@ -827,15 +839,15 @@ gonken_final_convergence() {
 }
 
 gonken_bluetooth_manager() {
-  printf '%s\n' "$RELEASE_ROOT/current/maintenance/bluetooth_manager.py"
+  printf '%s\n' "$CANDIDATE_RELEASE/maintenance/bluetooth_manager.py"
 }
 
 gonken_bluetooth_unit_template() {
-  printf '%s\n' "$RELEASE_ROOT/current/maintenance/packaging/systemd/gonken-bluetooth-autoconnect.service"
+  printf '%s\n' "$CANDIDATE_RELEASE/maintenance/packaging/systemd/gonken-bluetooth-autoconnect.service"
 }
 
 gonken_appliance_manager() {
-  printf '%s\n' "$RELEASE_ROOT/current/maintenance/appliance_manager.py"
+  printf '%s\n' "$CANDIDATE_RELEASE/maintenance/appliance_manager.py"
 }
 
 readonly BLUETOOTH_RECORD="/etc/gonken-agent/bluetooth-device.record"
@@ -845,8 +857,8 @@ gonken_ollama_template_arguments() {
   printf '%s\n' \
     --endpoint "$OLLAMA_ENDPOINT" \
     --context-tokens "$OLLAMA_CONTEXT_TOKENS" \
-    --unit-template "$RELEASE_ROOT/current/maintenance/packaging/systemd/ollama.service" \
-    --dropin-template "$RELEASE_ROOT/current/maintenance/packaging/systemd/ollama.service.d/gonken-agent.conf" \
+    --unit-template "$CANDIDATE_RELEASE/maintenance/packaging/systemd/ollama.service" \
+    --dropin-template "$CANDIDATE_RELEASE/maintenance/packaging/systemd/ollama.service.d/gonken-agent.conf" \
     --systemctl /usr/bin/systemctl
 }
 
@@ -921,7 +933,7 @@ gonken_model_roster_action() {
 
 gonken_load_effective_speech_config() {
   local config_json
-  config_json="$("$BIN_ROOT/gonken-agent" config show --effective --json --show-paths)" || return 65
+  config_json="$("$CANDIDATE_RELEASE/.venv/bin/gonken-agent" config show --effective --json --show-paths)" || return 65
   mapfile -t SPEECH_EFFECTIVE < <(python3 -c '
 import json, sys
 value = json.load(sys.stdin)["config"]
@@ -1139,7 +1151,7 @@ gonken_bluetooth_autoconnect_action() {
 
 
 gonken_runtime_context_manager() {
-  printf '%s\n' "$RELEASE_ROOT/current/maintenance/runtime_context_preflight.py"
+  printf '%s\n' "$CANDIDATE_RELEASE/maintenance/runtime_context_preflight.py"
 }
 
 gonken_runtime_context_postcondition() {
@@ -1260,7 +1272,7 @@ if ((ENGINE_ONLY == 0)); then
   if [[ "${GONKEN_SOURCE_RECORD[platform_mode]}" == "target" && "$RELEASE_ONLY" == "0" ]]; then
     gonken_register_step \
       "environment_account" "2" \
-      "gonken_activation_postcondition" "gonken_env_account_action" "gonken_env_account_postcondition" \
+      "gonken_release_postcondition" "gonken_env_account_action" "gonken_env_account_postcondition" \
       "dedicated_environment_owner_and_control_socket_client_group_plus_invoking_operator" \
       "create_nonlogin_gonken-env_and_authorize_the_validated_operator_without_starting_hardware" \
       "operator_gets_only_socket_control_group_not_raw_environment_hardware" || exit $?
@@ -1317,7 +1329,7 @@ if ((ENGINE_ONLY == 0)); then
 
       gonken_register_step \
         "environment_commissioning" "2" \
-        "gonken_environment_profile_postcondition" "gonken_environment_commissioning_action" "gonken_environment_commissioning_postcondition" \
+        "gonken_environment_activation_precondition" "gonken_environment_commissioning_action" "gonken_environment_commissioning_postcondition" \
         "profile_service_enablement_runtime_ownership_and_restart_state_converged" \
         "explicit_full_real_or_simulated_profile_enable_restart_and_verify_current_daemon" \
         "only_environment_daemon_owns_relay_safe_off_and_selected_policy" || exit $?
@@ -1328,7 +1340,7 @@ if ((ENGINE_ONLY == 0)); then
         "daemon_ipc_current_release_config_and_real_or_simulated_backend_readiness" \
         "poll_passive_env_health_until_profile_backends_and_sensor_quality_are_ready" \
         "does_not_directly_read_i2c_write_gpio_or_claim_physical_acceptance" || exit $?
-      environment_downstream_postcondition="gonken_environment_readiness_postcondition"
+      environment_downstream_postcondition="gonken_environment_service_postcondition"
       if [[ "${GONKEN_SOURCE_RECORD[environment_mode]}" != "preserve" ]]; then
         gonken_register_step \
           "environment_policy" "1" \
@@ -1336,7 +1348,7 @@ if ((ENGINE_ONLY == 0)); then
           "daemon_owned_mode_selection_with_generation_check" \
           "preserve_existing_valid_thresholds_and_dwell_on_mode_change" \
           "no_raw_gpio_no_direct_policy_file_write" || exit $?
-        environment_downstream_postcondition="gonken_environment_policy_postcondition"
+        environment_downstream_postcondition="gonken_environment_service_postcondition"
       fi
     fi
 
@@ -1436,6 +1448,12 @@ if ((ENGINE_ONLY == 0)); then
     fi
   fi
 fi
+
+plan_arguments=(--platform "${GONKEN_SOURCE_RECORD[platform_mode]}")
+if ((RELEASE_ONLY == 1)); then plan_arguments+=(--release-only); fi
+finalized_plan="$(python3 "$SCRIPT_DIR/installer_plan.py" "${plan_arguments[@]}" "${GONKEN_STEP_ORDER[@]}")" || exit $?
+mapfile -t GONKEN_STEP_ORDER <<<"$finalized_plan"
+printf '[PLAN] candidate=%s steps=%s policy=prerequisites_before_activation\n' "${GONKEN_SOURCE_RECORD[resolved_commit]}" "${#GONKEN_STEP_ORDER[@]}"
 
 if gonken_run_registered_steps; then
   :

@@ -65,8 +65,9 @@ not work around socket permissions by giving the operator raw GPIO privileges.
 wanted. The plain room-appliance command explicitly reselects automatic mode.
 
 A failing voice/model dependency must produce a failure, not a fabricated
-`INSTALLATION_COMPLETE`. The independently supervised environment daemon may
-already be operating correctly even if later voice provisioning fails. Upload the
+`INSTALLATION_COMPLETE`. Model/speech prerequisites are prepared from the exact candidate before the
+current-release switch. The independently supervised environment daemon may
+already be operating correctly even if later voice-service readiness fails. Upload the
 single `.tar.bz2` evidence bundle printed by the installer. Do not assume a failed
 voice install means the thermostat is disabled; inspect the environment service.
 
