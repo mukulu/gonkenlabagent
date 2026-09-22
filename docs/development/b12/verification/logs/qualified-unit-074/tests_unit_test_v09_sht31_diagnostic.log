@@ -1,0 +1,17 @@
+# command: /mnt/data/b12_test_venv/bin/python -m unittest -v tests.unit.test_v09_sht31_diagnostic
+# started_utc: 2026-09-22T01:10:13Z
+test_campaign_reports_every_invalid_read_and_never_claims_physical_acceptance (tests.unit.test_v09_sht31_diagnostic.SHT31DiagnosticTests.test_campaign_reports_every_invalid_read_and_never_claims_physical_acceptance) ... ok
+test_campaign_turns_heater_off_before_room_monitoring (tests.unit.test_v09_sht31_diagnostic.SHT31DiagnosticTests.test_campaign_turns_heater_off_before_room_monitoring) ... ok
+test_discover_accepts_exactly_one_valid_supported_address (tests.unit.test_v09_sht31_diagnostic.SHT31DiagnosticTests.test_discover_accepts_exactly_one_valid_supported_address) ... ok
+test_discover_rejects_ambiguous_two_sensor_result (tests.unit.test_v09_sht31_diagnostic.SHT31DiagnosticTests.test_discover_rejects_ambiguous_two_sensor_result) ... ok
+test_discover_rejects_no_valid_sensor (tests.unit.test_v09_sht31_diagnostic.SHT31DiagnosticTests.test_discover_rejects_no_valid_sensor) ... ok
+test_json_output_is_bounded_and_marks_acceptance_false (tests.unit.test_v09_sht31_diagnostic.SHT31DiagnosticTests.test_json_output_is_bounded_and_marks_acceptance_false) ... ok
+test_usage_rejects_unsupported_address_without_opening_sensor (tests.unit.test_v09_sht31_diagnostic.SHT31DiagnosticTests.test_usage_rejects_unsupported_address_without_opening_sensor) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.002s
+
+OK
+# finished_utc: 2026-09-22T01:10:13Z
+# duration_seconds: 0.107
+# returncode: 0

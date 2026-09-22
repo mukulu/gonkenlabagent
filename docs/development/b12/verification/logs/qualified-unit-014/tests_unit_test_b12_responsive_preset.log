@@ -1,0 +1,37 @@
+# command: /mnt/data/b12_test_venv/bin/python -m unittest -v tests.unit.test_b12_responsive_preset
+# started_utc: 2026-09-22T01:09:20Z
+test_catalog_default_and_policy_are_aligned (tests.unit.test_b12_responsive_preset.ResponsivePresetTests.test_catalog_default_and_policy_are_aligned) ... ok
+test_check_is_nonmutating (tests.unit.test_b12_responsive_preset.ResponsivePresetTests.test_check_is_nonmutating) ... ok
+test_complete_inline_command_never_requests_extra_capture (tests.unit.test_b12_responsive_preset.ResponsivePresetTests.test_complete_inline_command_never_requests_extra_capture) ... ok
+test_explicit_default_migration_does_not_require_failed_old_alternate (tests.unit.test_b12_responsive_preset.ResponsivePresetTests.test_explicit_default_migration_does_not_require_failed_old_alternate) ... [MODEL] model=- stage=INVENTORY
+[MODEL] model=- stage=PREREQUISITES
+[MODEL] model=- stage=INVENTORY_AFTER_PULL
+[MODEL] model=qwen3:0.6b stage=IDENTITY
+[MODEL] model=qwen3:0.6b stage=INFERENCE
+[MODEL] model=qwen3:0.6b stage=TOOLS
+[MODEL] model=qwen3:0.6b stage=UNLOAD
+[MODEL] model=lfm2.5-thinking:1.2b stage=IDENTITY
+[MODEL] model=lfm2.5-thinking:1.2b stage=INFERENCE
+[MODEL] model=lfm2.5-thinking:1.2b stage=TOOLS
+[MODEL] model=lfm2.5-thinking:1.2b stage=UNLOAD
+[MODEL] model=qwen3.5:0.8b stage=IDENTITY
+[MODEL] model=qwen3.5:0.8b stage=INFERENCE
+[MODEL] model=qwen3.5:0.8b stage=TOOLS
+[DEGRADED] code=MODEL_ALTERNATE_TOOL_INCOMPATIBLE model=qwen3.5:0.8b stage=TOOLS
+[MODEL] model=qwen3.5:0.8b stage=UNLOAD
+[MODEL] model=- stage=ADMISSION
+ok
+test_partial_wake_window_keeps_followup_and_removes_overlap (tests.unit.test_b12_responsive_preset.ResponsivePresetTests.test_partial_wake_window_keeps_followup_and_removes_overlap) ... ok
+test_preset_preserves_hardware_and_backs_up_old_bytes (tests.unit.test_b12_responsive_preset.ResponsivePresetTests.test_preset_preserves_hardware_and_backs_up_old_bytes) ... ok
+test_profile_manager_rerun_keeps_other_settings (tests.unit.test_b12_responsive_preset.ResponsivePresetTests.test_profile_manager_rerun_keeps_other_settings) ... ok
+test_symlink_unknown_and_malformed_site_rejected (tests.unit.test_b12_responsive_preset.ResponsivePresetTests.test_symlink_unknown_and_malformed_site_rejected) ... ok
+test_threshold_migration_keeps_dwell_and_uses_generation (tests.unit.test_b12_responsive_preset.ResponsivePresetTests.test_threshold_migration_keeps_dwell_and_uses_generation) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.040s
+
+OK
+[OK] code=MODEL_ROSTER_READY models=3 default=qwen3:0.6b active=qwen3:0.6b mode=preseeded-offline
+# finished_utc: 2026-09-22T01:09:20Z
+# duration_seconds: 0.177
+# returncode: 0

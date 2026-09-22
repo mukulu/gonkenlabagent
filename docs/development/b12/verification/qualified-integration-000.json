@@ -1,0 +1,85 @@
+{
+  "active_module": null,
+  "created_utc": "2026-09-22T01:10:34Z",
+  "execution_state": "COMPLETED",
+  "granularity": "module",
+  "label": "qualified-integration-000",
+  "module_count": 7,
+  "modules": [
+    {
+      "duration_seconds": 0.297,
+      "log_file": "logs/qualified-integration-000/tests_integration_test_b10_candidate_execution.log",
+      "module": "tests.integration.test_b10_candidate_execution",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.918,
+      "log_file": "logs/qualified-integration-000/tests_integration_test_b12_operational_transactions.log",
+      "module": "tests.integration.test_b12_operational_transactions",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.957,
+      "log_file": "logs/qualified-integration-000/tests_integration_test_bootstrap_preflight_process.log",
+      "module": "tests.integration.test_bootstrap_preflight_process",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.71,
+      "log_file": "logs/qualified-integration-000/tests_integration_test_cli_process.log",
+      "module": "tests.integration.test_cli_process",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.086,
+      "log_file": "logs/qualified-integration-000/tests_integration_test_first_install_launcher.log",
+      "module": "tests.integration.test_first_install_launcher",
+      "returncode": 1,
+      "status": "FAIL",
+      "timed_out": false,
+      "superseded_by": "qualified-launcher-r1"
+    },
+    {
+      "duration_seconds": 3.162,
+      "log_file": "logs/qualified-integration-000/tests_integration_test_install_engine_process.log",
+      "module": "tests.integration.test_install_engine_process",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 6.326,
+      "log_file": "logs/qualified-integration-000/tests_integration_test_ollama_lifecycle_process.log",
+      "module": "tests.integration.test_ollama_lifecycle_process",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    }
+  ],
+  "pending_modules": [],
+  "planned_count": 7,
+  "planned_modules": [
+    "tests.integration.test_b10_candidate_execution",
+    "tests.integration.test_b12_operational_transactions",
+    "tests.integration.test_bootstrap_preflight_process",
+    "tests.integration.test_cli_process",
+    "tests.integration.test_first_install_launcher",
+    "tests.integration.test_install_engine_process",
+    "tests.integration.test_ollama_lifecycle_process"
+  ],
+  "result": "FAIL",
+  "runner_pid": 13895,
+  "schema": "gonken-bounded-unittest-v1",
+  "status_counts": {
+    "FAIL": 1,
+    "PASS": 6
+  }
+}

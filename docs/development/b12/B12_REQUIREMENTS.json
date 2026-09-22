@@ -10,8 +10,10 @@
     "confirmed_power": "HOST_VERIFIED",
     "readme_commands": "HOST_VERIFIED",
     "svg_architecture": "HOST_VERIFIED",
-    "full_regression": "NOT_STARTED",
-    "exact_package": "NOT_STARTED"
+    "full_regression": "HOST_VERIFIED",
+    "exact_package": "EXTERNAL_DELIVERY_RECEIPT_REQUIRED"
   },
-  "physical_acceptance_claimed": false
+  "physical_acceptance_claimed": false,
+  "verification": "verification/VERIFICATION.json",
+  "not_a_whole_blueprint_completion_claim": true
 }

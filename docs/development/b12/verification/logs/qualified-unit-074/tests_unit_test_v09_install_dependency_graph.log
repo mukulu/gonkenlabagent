@@ -1,0 +1,23 @@
+# command: /mnt/data/b12_test_venv/bin/python -m unittest -v tests.unit.test_v09_install_dependency_graph
+# started_utc: 2026-09-22T01:10:12Z
+test_appliance_readiness_record_is_bound_to_release_commit (tests.unit.test_v09_install_dependency_graph.TargetInstallDependencyGraphTests.test_appliance_readiness_record_is_bound_to_release_commit) ... ok
+test_bluetooth_capture_route_is_proven_before_appliance_readiness (tests.unit.test_v09_install_dependency_graph.TargetInstallDependencyGraphTests.test_bluetooth_capture_route_is_proven_before_appliance_readiness) ... ok
+test_bluetooth_preference_allows_direct_audio_fallback (tests.unit.test_v09_install_dependency_graph.TargetInstallDependencyGraphTests.test_bluetooth_preference_allows_direct_audio_fallback) ... ok
+test_checkpoint32_managed_service_templates_are_accepted_as_upgrade_predecessors (tests.unit.test_v09_install_dependency_graph.TargetInstallDependencyGraphTests.test_checkpoint32_managed_service_templates_are_accepted_as_upgrade_predecessors) ... ok
+test_environment_profile_and_commissioning_are_explicit_optional_boundaries (tests.unit.test_v09_install_dependency_graph.TargetInstallDependencyGraphTests.test_environment_profile_and_commissioning_are_explicit_optional_boundaries) ... ok
+test_environment_service_precedes_application_service_and_stays_non_actuating (tests.unit.test_v09_install_dependency_graph.TargetInstallDependencyGraphTests.test_environment_service_precedes_application_service_and_stays_non_actuating) ... ok
+test_gpio_identity_is_proven_non_actuating_before_services_and_appliance (tests.unit.test_v09_install_dependency_graph.TargetInstallDependencyGraphTests.test_gpio_identity_is_proven_non_actuating_before_services_and_appliance) ... ok
+test_i2c_planned_pause_is_handled_before_failure_bundle (tests.unit.test_v09_install_dependency_graph.TargetInstallDependencyGraphTests.test_i2c_planned_pause_is_handled_before_failure_bundle) ... ok
+test_install_completion_reports_independent_component_truth (tests.unit.test_v09_install_dependency_graph.TargetInstallDependencyGraphTests.test_install_completion_reports_independent_component_truth) ... ok
+test_post_seal_installer_and_services_disable_python_bytecode_writes (tests.unit.test_v09_install_dependency_graph.TargetInstallDependencyGraphTests.test_post_seal_installer_and_services_disable_python_bytecode_writes) ... ok
+test_registration_order_is_explicit_before_candidate_phase_finalization (tests.unit.test_v09_install_dependency_graph.TargetInstallDependencyGraphTests.test_registration_order_is_explicit_before_candidate_phase_finalization) ... ok
+test_release_seal_and_runtime_checks_are_separate_current_release_gates (tests.unit.test_v09_install_dependency_graph.TargetInstallDependencyGraphTests.test_release_seal_and_runtime_checks_are_separate_current_release_gates) ... ok
+test_runtime_context_is_transport_neutral_when_bluetooth_is_requested (tests.unit.test_v09_install_dependency_graph.TargetInstallDependencyGraphTests.test_runtime_context_is_transport_neutral_when_bluetooth_is_requested) ... ok
+
+----------------------------------------------------------------------
+Ran 13 tests in 0.002s
+
+OK
+# finished_utc: 2026-09-22T01:10:12Z
+# duration_seconds: 0.042
+# returncode: 0

@@ -1,0 +1,18 @@
+# command: /mnt/data/b12_test_venv/bin/python -m unittest -v tests.unit.test_b11_environment_lifecycle
+# started_utc: 2026-09-22T01:09:19Z
+test_sigterm_and_sigint_call_safe_off_and_close (tests.unit.test_b11_environment_lifecycle.SignalCleanupTests.test_sigterm_and_sigint_call_safe_off_and_close) ... ok
+test_bind_failure_releases_lock_without_hardware_cleanup (tests.unit.test_b11_environment_lifecycle.SocketOwnerTests.test_bind_failure_releases_lock_without_hardware_cleanup) ... ok
+test_close_does_not_unlink_replacement_socket (tests.unit.test_b11_environment_lifecycle.SocketOwnerTests.test_close_does_not_unlink_replacement_socket) ... ok
+test_legacy_live_socket_without_lock_is_not_replaced (tests.unit.test_b11_environment_lifecycle.SocketOwnerTests.test_legacy_live_socket_without_lock_is_not_replaced) ... ok
+test_lock_symlink_and_non_socket_refused (tests.unit.test_b11_environment_lifecycle.SocketOwnerTests.test_lock_symlink_and_non_socket_refused) ... ok
+test_second_server_cannot_replace_first (tests.unit.test_b11_environment_lifecycle.SocketOwnerTests.test_second_server_cannot_replace_first) ... ok
+test_stale_socket_is_recovered (tests.unit.test_b11_environment_lifecycle.SocketOwnerTests.test_stale_socket_is_recovered) ... ok
+test_symlink_socket_is_rejected (tests.unit.test_b11_environment_lifecycle.SocketOwnerTests.test_symlink_socket_is_rejected) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 0.309s
+
+OK
+# finished_utc: 2026-09-22T01:09:19Z
+# duration_seconds: 0.433
+# returncode: 0

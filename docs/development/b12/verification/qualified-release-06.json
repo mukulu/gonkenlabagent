@@ -1,0 +1,38 @@
+{
+  "active_module": null,
+  "created_utc": "2026-09-22T01:12:23Z",
+  "execution_state": "COMPLETED",
+  "granularity": "module",
+  "label": "qualified-release-06",
+  "module_count": 2,
+  "modules": [
+    {
+      "duration_seconds": 9.377,
+      "log_file": "logs/qualified-release-06/tests_integration_test_release_lifecycle_process_EndToEndReleaseTests_test_release_only_repeat_is_idempotent.log",
+      "module": "tests.integration.test_release_lifecycle_process.EndToEndReleaseTests.test_release_only_repeat_is_idempotent",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 8.063,
+      "log_file": "logs/qualified-release-06/tests_integration_test_release_lifecycle_process_EndToEndReleaseTests_test_same_commit_repeat_ignores_standard_runtime_cache_without_repairing_release.log",
+      "module": "tests.integration.test_release_lifecycle_process.EndToEndReleaseTests.test_same_commit_repeat_ignores_standard_runtime_cache_without_repairing_release",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    }
+  ],
+  "pending_modules": [],
+  "planned_count": 2,
+  "planned_modules": [
+    "tests.integration.test_release_lifecycle_process.EndToEndReleaseTests.test_release_only_repeat_is_idempotent",
+    "tests.integration.test_release_lifecycle_process.EndToEndReleaseTests.test_same_commit_repeat_ignores_standard_runtime_cache_without_repairing_release"
+  ],
+  "result": "PASS",
+  "runner_pid": 18411,
+  "schema": "gonken-bounded-unittest-v1",
+  "status_counts": {
+    "PASS": 2
+  }
+}

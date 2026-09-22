@@ -1,0 +1,11 @@
+# command: /mnt/data/b12_test_venv/bin/python -m unittest -v tests.integration.test_v09_user_test_release_candidate
+# started_utc: 2026-09-22T01:11:13Z
+test_full_simulation_runner_and_release_gate (tests.integration.test_v09_user_test_release_candidate.V09UserTestReleaseCandidateIntegrationTests.test_full_simulation_runner_and_release_gate) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 3.807s
+
+OK
+# finished_utc: 2026-09-22T01:11:17Z
+# duration_seconds: 3.857
+# returncode: 0

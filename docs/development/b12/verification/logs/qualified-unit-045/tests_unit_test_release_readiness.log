@@ -1,0 +1,14 @@
+# command: /mnt/data/b12_test_venv/bin/python -m unittest -v tests.unit.test_release_readiness
+# started_utc: 2026-09-22T01:09:45Z
+test_current_unfinished_program_cannot_be_promoted (tests.unit.test_release_readiness.ReleaseReadinessTests.test_current_unfinished_program_cannot_be_promoted) ... ok
+test_human_report_has_exact_boundary_language (tests.unit.test_release_readiness.ReleaseReadinessTests.test_human_report_has_exact_boundary_language) ... ok
+test_target_acceptance_runbook_is_user_facing (tests.unit.test_release_readiness.ReleaseReadinessTests.test_target_acceptance_runbook_is_user_facing) ... ok
+test_target_shadow_fixture_failure_blocks_readiness (tests.unit.test_release_readiness.ReleaseReadinessTests.test_target_shadow_fixture_failure_blocks_readiness) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.181s
+
+OK
+# finished_utc: 2026-09-22T01:09:46Z
+# duration_seconds: 0.256
+# returncode: 0

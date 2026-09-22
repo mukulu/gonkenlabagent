@@ -1,0 +1,29 @@
+{
+  "active_module": null,
+  "created_utc": "2026-09-22T01:10:56Z",
+  "execution_state": "COMPLETED",
+  "granularity": "module",
+  "label": "qualified-launcher-r1",
+  "module_count": 1,
+  "modules": [
+    {
+      "duration_seconds": 0.08,
+      "log_file": "logs/qualified-launcher-r1/tests_integration_test_first_install_launcher.log",
+      "module": "tests.integration.test_first_install_launcher",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    }
+  ],
+  "pending_modules": [],
+  "planned_count": 1,
+  "planned_modules": [
+    "tests.integration.test_first_install_launcher"
+  ],
+  "result": "PASS",
+  "runner_pid": 16965,
+  "schema": "gonken-bounded-unittest-v1",
+  "status_counts": {
+    "PASS": 1
+  }
+}

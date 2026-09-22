@@ -1,0 +1,11 @@
+# command: /mnt/data/b12_test_venv/bin/python -m unittest -v tests.integration.test_release_lifecycle_process.EndToEndReleaseTests.test_same_commit_repeat_ignores_standard_runtime_cache_without_repairing_release
+# started_utc: 2026-09-22T01:12:15Z
+test_same_commit_repeat_ignores_standard_runtime_cache_without_repairing_release (tests.integration.test_release_lifecycle_process.EndToEndReleaseTests.test_same_commit_repeat_ignores_standard_runtime_cache_without_repairing_release) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 8.009s
+
+OK
+# finished_utc: 2026-09-22T01:12:23Z
+# duration_seconds: 8.063
+# returncode: 0

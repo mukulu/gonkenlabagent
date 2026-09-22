@@ -1,0 +1,21 @@
+# command: /mnt/data/b12_test_venv/bin/python -m unittest -v tests.unit.test_v09_i2c_manager
+# started_utc: 2026-09-22T01:10:05Z
+test_cli_reports_planned_pause_not_error_when_reboot_is_required (tests.unit.test_v09_i2c_manager.I2CManagerTests.test_cli_reports_planned_pause_not_error_when_reboot_is_required) ... ok
+test_enable_accepts_delayed_device_without_reboot (tests.unit.test_v09_i2c_manager.I2CManagerTests.test_enable_accepts_delayed_device_without_reboot) ... ok
+test_enable_requires_root_and_never_runs_raspi_config (tests.unit.test_v09_i2c_manager.I2CManagerTests.test_enable_requires_root_and_never_runs_raspi_config) ... ok
+test_enable_uses_noninteractive_raspi_config_and_reports_reboot (tests.unit.test_v09_i2c_manager.I2CManagerTests.test_enable_uses_noninteractive_raspi_config_and_reports_reboot) ... ok
+test_require_ready_returns_75_without_mutating_system (tests.unit.test_v09_i2c_manager.I2CManagerTests.test_require_ready_returns_75_without_mutating_system) ... [ERROR] code=I2C_NOT_READY message=I2C device/service-user prerequisites are not ready remediation=run sudo i2c_manager.py enable, reboot if requested, then rerun status
+ok
+test_status_fails_readiness_when_service_user_lacks_i2c (tests.unit.test_v09_i2c_manager.I2CManagerTests.test_status_fails_readiness_when_service_user_lacks_i2c) ... ok
+test_status_requires_device_and_service_user_group (tests.unit.test_v09_i2c_manager.I2CManagerTests.test_status_requires_device_and_service_user_group) ... ok
+test_status_requires_real_service_context_openability_not_group_name_only (tests.unit.test_v09_i2c_manager.I2CManagerTests.test_status_requires_real_service_context_openability_not_group_name_only) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 0.004s
+
+OK
+[PAUSED] code=I2C_REBOOT_REQUIRED configured=true device_exists=false action=reboot_then_resume_same_installer
+[OK] code=I2C_STATUS status=NOT_READY device_exists=false user_i2c_group=true service_user_can_open=false
+# finished_utc: 2026-09-22T01:10:05Z
+# duration_seconds: 0.076
+# returncode: 0

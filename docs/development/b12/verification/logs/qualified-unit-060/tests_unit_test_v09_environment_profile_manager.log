@@ -1,0 +1,23 @@
+# command: /mnt/data/b12_test_venv/bin/python -m unittest -v tests.unit.test_v09_environment_profile_manager
+# started_utc: 2026-09-22T01:10:02Z
+test_backward_compatible_sensor_deferred_wrapper (tests.unit.test_v09_environment_profile_manager.EnvironmentProfileManagerTests.test_backward_compatible_sensor_deferred_wrapper) ... ok
+test_checkpoint43_manual_partial_environment_config_is_safely_completed (tests.unit.test_v09_environment_profile_manager.EnvironmentProfileManagerTests.test_checkpoint43_manual_partial_environment_config_is_safely_completed) ... ok
+test_every_governed_profile_is_atomic_exact_and_idempotent (tests.unit.test_v09_environment_profile_manager.EnvironmentProfileManagerTests.test_every_governed_profile_is_atomic_exact_and_idempotent) ... ok
+test_existing_unknown_admin_configuration_is_never_overwritten (tests.unit.test_v09_environment_profile_manager.EnvironmentProfileManagerTests.test_existing_unknown_admin_configuration_is_never_overwritten) ... ok
+test_managed_profiles_transition_atomically_without_actuation (tests.unit.test_v09_environment_profile_manager.EnvironmentProfileManagerTests.test_managed_profiles_transition_atomically_without_actuation) ... ok
+test_managed_real_sensor_profile_can_transition_between_44_and_45 (tests.unit.test_v09_environment_profile_manager.EnvironmentProfileManagerTests.test_managed_real_sensor_profile_can_transition_between_44_and_45) ... ok
+test_partial_environment_config_with_conflicting_value_fails_closed (tests.unit.test_v09_environment_profile_manager.EnvironmentProfileManagerTests.test_partial_environment_config_with_conflicting_value_fails_closed) ... ok
+test_profiles_cover_all_backend_parity_combinations_and_safe_off (tests.unit.test_v09_environment_profile_manager.EnvironmentProfileManagerTests.test_profiles_cover_all_backend_parity_combinations_and_safe_off) ... ok
+test_real_sensor_profiles_pin_bus_address_and_high_repeatability (tests.unit.test_v09_environment_profile_manager.EnvironmentProfileManagerTests.test_real_sensor_profiles_pin_bus_address_and_high_repeatability) ... ok
+test_real_sensor_profiles_support_only_governed_44_or_45_addresses (tests.unit.test_v09_environment_profile_manager.EnvironmentProfileManagerTests.test_real_sensor_profiles_support_only_governed_44_or_45_addresses) ... ok
+test_simulated_sensor_profile_rejects_nondefault_sensor_address_flag (tests.unit.test_v09_environment_profile_manager.EnvironmentProfileManagerTests.test_simulated_sensor_profile_rejects_nondefault_sensor_address_flag) ... ok
+test_status_can_require_exact_profile_without_mutating_site (tests.unit.test_v09_environment_profile_manager.EnvironmentProfileManagerTests.test_status_can_require_exact_profile_without_mutating_site) ... ok
+test_symlink_site_is_refused (tests.unit.test_v09_environment_profile_manager.EnvironmentProfileManagerTests.test_symlink_site_is_refused) ... ok
+
+----------------------------------------------------------------------
+Ran 13 tests in 0.077s
+
+OK
+# finished_utc: 2026-09-22T01:10:03Z
+# duration_seconds: 0.128
+# returncode: 0

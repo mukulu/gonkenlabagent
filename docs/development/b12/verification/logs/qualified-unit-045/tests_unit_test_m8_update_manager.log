@@ -1,0 +1,16 @@
+# command: /mnt/data/b12_test_venv/bin/python -m unittest -v tests.unit.test_m8_update_manager
+# started_utc: 2026-09-22T01:09:45Z
+test_resolve_ref_accepts_unambiguous_local_branch_under_test_gate (tests.unit.test_m8_update_manager.UpdateManagerTests.test_resolve_ref_accepts_unambiguous_local_branch_under_test_gate) ... ok
+test_source_and_ref_validation_fail_closed (tests.unit.test_m8_update_manager.UpdateManagerTests.test_source_and_ref_validation_fail_closed) ... ok
+test_update_builds_activates_prunes_and_restarts_service (tests.unit.test_m8_update_manager.UpdateManagerTests.test_update_builds_activates_prunes_and_restarts_service) ... ok
+test_update_noop_does_not_restart_service (tests.unit.test_m8_update_manager.UpdateManagerTests.test_update_noop_does_not_restart_service) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.072s
+
+OK
+[OK] code=UPDATE_COMPLETE commit=b28dcdb9e7f4d7a7c86fd26d68b01a211eb36ff7 previous=27afb3f86ff14e5c69f5dada21f93e4dc039dca8
+[OK] code=UPDATE_ALREADY_CURRENT commit=b28dcdb9e7f4d7a7c86fd26d68b01a211eb36ff7
+# finished_utc: 2026-09-22T01:09:45Z
+# duration_seconds: 0.118
+# returncode: 0

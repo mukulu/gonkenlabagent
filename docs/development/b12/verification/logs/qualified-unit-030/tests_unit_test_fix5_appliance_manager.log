@@ -1,0 +1,21 @@
+# command: /mnt/data/b12_test_venv/bin/python -m unittest -v tests.unit.test_fix5_appliance_manager
+# started_utc: 2026-09-22T01:09:32Z
+test_activate_is_level_triggered_when_ready_exists_on_first_poll (tests.unit.test_fix5_appliance_manager.ApplianceManagerTests.test_activate_is_level_triggered_when_ready_exists_on_first_poll) ... [RUNNING] code=APPLIANCE_START service=gonken-agent.service
+[READY] code=APPLIANCE_READY service=gonken-agent.service wake_phrase=GonKen reboot_required=false
+ok
+test_activate_restarts_enabled_service_then_waits_for_ready (tests.unit.test_fix5_appliance_manager.ApplianceManagerTests.test_activate_restarts_enabled_service_then_waits_for_ready) ... [RUNNING] code=APPLIANCE_START service=gonken-agent.service
+[READY] code=APPLIANCE_READY service=gonken-agent.service wake_phrase=Hey_Gonken reboot_required=false
+ok
+test_fix7_installer_revalidates_service_and_physical_readiness_contract (tests.unit.test_fix5_appliance_manager.ApplianceManagerTests.test_fix7_installer_revalidates_service_and_physical_readiness_contract) ... ok
+test_pending_readiness_rejects_stale_process_and_exposes_causal_code (tests.unit.test_fix5_appliance_manager.ApplianceManagerTests.test_pending_readiness_rejects_stale_process_and_exposes_causal_code) ... ok
+test_ready_record_is_bound_to_current_immutable_release_and_boot (tests.unit.test_fix5_appliance_manager.ApplianceManagerTests.test_ready_record_is_bound_to_current_immutable_release_and_boot) ... ok
+test_ready_record_requires_content_free_runtime_contract (tests.unit.test_fix5_appliance_manager.ApplianceManagerTests.test_ready_record_requires_content_free_runtime_contract) ... ok
+test_status_requires_enabled_active_and_runtime_ready_independently (tests.unit.test_fix5_appliance_manager.ApplianceManagerTests.test_status_requires_enabled_active_and_runtime_ready_independently) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.014s
+
+OK
+# finished_utc: 2026-09-22T01:09:32Z
+# duration_seconds: 0.090
+# returncode: 0

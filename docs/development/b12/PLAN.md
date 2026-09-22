@@ -142,3 +142,16 @@ redistribution prohibition was restored verbatim rather than weakening its old
 governance check. An initially selected nonexistent environment test module was
 replaced by the actual test_v09_environment_voice_intents module. The corrected
 routing/documentation/provenance/power/number-word cascade passes.
+
+## B12-09 final current-corpus qualification
+
+The final frozen product code passes 972 unit and 88 integration tests: 1,060
+unique test cases, zero skips, and full discovery-to-log coverage. Source/test
+fingerprints and normalized relative logs are in verification/VERIFICATION.json.
+The old remote-main README assertion failed and was replaced with the deliberately
+selected exact-candidate wrapper contract; original launcher behavior tests remain.
+No production criteria were relaxed to remove that outdated documentation fixture.
+T0/current-state and 40 final control/documentation tests pass. Native SVGs were
+rendered again and all three visually inspected. Whole-program promotion remains
+NOT_READY and physical target claims are not inferred. Exact exported-byte tests
+are recorded in the adjacent delivery receipt after package creation.

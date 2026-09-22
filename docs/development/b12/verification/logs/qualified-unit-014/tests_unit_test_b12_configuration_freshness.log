@@ -1,0 +1,17 @@
+# command: /mnt/data/b12_test_venv/bin/python -m unittest -v tests.unit.test_b12_configuration_freshness
+# started_utc: 2026-09-22T01:09:20Z
+test_actual_same_configuration_accepted (tests.unit.test_b12_configuration_freshness.ConfigurationFreshnessTests.test_actual_same_configuration_accepted) ... ok
+test_changed_audio_endpoint_refused (tests.unit.test_b12_configuration_freshness.ConfigurationFreshnessTests.test_changed_audio_endpoint_refused) ... ok
+test_fingerprint_deterministic_and_not_private_text (tests.unit.test_b12_configuration_freshness.ConfigurationFreshnessTests.test_fingerprint_deterministic_and_not_private_text) ... ok
+test_invalid_power_support_file_not_green (tests.unit.test_b12_configuration_freshness.ConfigurationFreshnessTests.test_invalid_power_support_file_not_green) ... ok
+test_old_record_without_digest_not_full_config_evidence (tests.unit.test_b12_configuration_freshness.ConfigurationFreshnessTests.test_old_record_without_digest_not_full_config_evidence) ... ok
+test_power_support_allowlist_excludes_canary (tests.unit.test_b12_configuration_freshness.ConfigurationFreshnessTests.test_power_support_allowlist_excludes_canary) ... ok
+test_same_process_release_but_changed_power_refused (tests.unit.test_b12_configuration_freshness.ConfigurationFreshnessTests.test_same_process_release_but_changed_power_refused) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.015s
+
+OK
+# finished_utc: 2026-09-22T01:09:20Z
+# duration_seconds: 0.102
+# returncode: 0

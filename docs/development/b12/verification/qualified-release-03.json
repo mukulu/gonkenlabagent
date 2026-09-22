@@ -1,0 +1,47 @@
+{
+  "active_module": null,
+  "created_utc": "2026-09-22T01:11:59Z",
+  "execution_state": "COMPLETED",
+  "granularity": "module",
+  "label": "qualified-release-03",
+  "module_count": 3,
+  "modules": [
+    {
+      "duration_seconds": 7.337,
+      "log_file": "logs/qualified-release-03/tests_integration_test_release_lifecycle_process_EndToEndReleaseTests_test_default_install_after_release_boundary_stops_before_target_only_steps.log",
+      "module": "tests.integration.test_release_lifecycle_process.EndToEndReleaseTests.test_default_install_after_release_boundary_stops_before_target_only_steps",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 1.164,
+      "log_file": "logs/qualified-release-03/tests_integration_test_release_lifecycle_process_EndToEndReleaseTests_test_low_space_never_creates_or_switches_release.log",
+      "module": "tests.integration.test_release_lifecycle_process.EndToEndReleaseTests.test_low_space_never_creates_or_switches_release",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 7.021,
+      "log_file": "logs/qualified-release-03/tests_integration_test_release_lifecycle_process_EndToEndReleaseTests_test_release_only_builds_activates_and_freezes_release.log",
+      "module": "tests.integration.test_release_lifecycle_process.EndToEndReleaseTests.test_release_only_builds_activates_and_freezes_release",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    }
+  ],
+  "pending_modules": [],
+  "planned_count": 3,
+  "planned_modules": [
+    "tests.integration.test_release_lifecycle_process.EndToEndReleaseTests.test_default_install_after_release_boundary_stops_before_target_only_steps",
+    "tests.integration.test_release_lifecycle_process.EndToEndReleaseTests.test_low_space_never_creates_or_switches_release",
+    "tests.integration.test_release_lifecycle_process.EndToEndReleaseTests.test_release_only_builds_activates_and_freezes_release"
+  ],
+  "result": "PASS",
+  "runner_pid": 17349,
+  "schema": "gonken-bounded-unittest-v1",
+  "status_counts": {
+    "PASS": 3
+  }
+}

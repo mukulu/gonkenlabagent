@@ -1,0 +1,17 @@
+# command: /mnt/data/b12_test_venv/bin/python -m unittest -v tests.unit.test_b11_actuator_truth
+# started_utc: 2026-09-22T01:09:18Z
+test_failed_close_releases_but_does_not_claim_off (tests.unit.test_b11_actuator_truth.RelayCommandTruthTests.test_failed_close_releases_but_does_not_claim_off) ... ok
+test_initial_off_and_exclusive_owner_then_on_are_acknowledged (tests.unit.test_b11_actuator_truth.RelayCommandTruthTests.test_initial_off_and_exclusive_owner_then_on_are_acknowledged) ... ok
+test_invalid_polarity_fails_closed (tests.unit.test_b11_actuator_truth.RelayCommandTruthTests.test_invalid_polarity_fails_closed) ... ok
+test_no_command_or_claim_before_open (tests.unit.test_b11_actuator_truth.RelayCommandTruthTests.test_no_command_or_claim_before_open) ... ok
+test_request_busy_and_recovery_are_separate_from_physical_motion (tests.unit.test_b11_actuator_truth.RelayCommandTruthTests.test_request_busy_and_recovery_are_separate_from_physical_motion) ... ok
+test_successful_close_has_no_live_command_after_release (tests.unit.test_b11_actuator_truth.RelayCommandTruthTests.test_successful_close_has_no_live_command_after_release) ... ok
+test_write_failure_cannot_report_intended_on_as_commanded (tests.unit.test_b11_actuator_truth.RelayCommandTruthTests.test_write_failure_cannot_report_intended_on_as_commanded) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.001s
+
+OK
+# finished_utc: 2026-09-22T01:09:18Z
+# duration_seconds: 0.127
+# returncode: 0

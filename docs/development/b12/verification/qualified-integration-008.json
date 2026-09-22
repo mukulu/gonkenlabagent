@@ -1,0 +1,74 @@
+{
+  "active_module": null,
+  "created_utc": "2026-09-22T01:11:17Z",
+  "execution_state": "COMPLETED",
+  "granularity": "module",
+  "label": "qualified-integration-008",
+  "module_count": 6,
+  "modules": [
+    {
+      "duration_seconds": 5.296,
+      "log_file": "logs/qualified-integration-008/tests_integration_test_speech_lifecycle_process.log",
+      "module": "tests.integration.test_speech_lifecycle_process",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.174,
+      "log_file": "logs/qualified-integration-008/tests_integration_test_support_collection_process.log",
+      "module": "tests.integration.test_support_collection_process",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 1.548,
+      "log_file": "logs/qualified-integration-008/tests_integration_test_text_runtime_process.log",
+      "module": "tests.integration.test_text_runtime_process",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.164,
+      "log_file": "logs/qualified-integration-008/tests_integration_test_uninstall_lifecycle_process.log",
+      "module": "tests.integration.test_uninstall_lifecycle_process",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 1.141,
+      "log_file": "logs/qualified-integration-008/tests_integration_test_v09_environment_voice_transaction.log",
+      "module": "tests.integration.test_v09_environment_voice_transaction",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 3.857,
+      "log_file": "logs/qualified-integration-008/tests_integration_test_v09_user_test_release_candidate.log",
+      "module": "tests.integration.test_v09_user_test_release_candidate",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    }
+  ],
+  "pending_modules": [],
+  "planned_count": 6,
+  "planned_modules": [
+    "tests.integration.test_speech_lifecycle_process",
+    "tests.integration.test_support_collection_process",
+    "tests.integration.test_text_runtime_process",
+    "tests.integration.test_uninstall_lifecycle_process",
+    "tests.integration.test_v09_environment_voice_transaction",
+    "tests.integration.test_v09_user_test_release_candidate"
+  ],
+  "result": "PASS",
+  "runner_pid": 17008,
+  "schema": "gonken-bounded-unittest-v1",
+  "status_counts": {
+    "PASS": 6
+  }
+}

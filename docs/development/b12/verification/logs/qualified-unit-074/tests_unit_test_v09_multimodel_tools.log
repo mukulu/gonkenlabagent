@@ -1,0 +1,24 @@
+# command: /mnt/data/b12_test_venv/bin/python -m unittest -v tests.unit.test_v09_multimodel_tools
+# started_utc: 2026-09-22T01:10:12Z
+test_common_temperature_paraphrase_uses_deterministic_environment_fast_path (tests.unit.test_v09_multimodel_tools.ConversationRoutingTests.test_common_temperature_paraphrase_uses_deterministic_environment_fast_path) ... ok
+test_less_direct_paraphrase_can_fall_back_to_typed_tool (tests.unit.test_v09_multimodel_tools.ConversationRoutingTests.test_less_direct_paraphrase_can_fall_back_to_typed_tool) ... ok
+test_model_cannot_mutate_fan_for_hypothetical (tests.unit.test_v09_multimodel_tools.ConversationRoutingTests.test_model_cannot_mutate_fan_for_hypothetical) ... ok
+test_time_bypasses_model (tests.unit.test_v09_multimodel_tools.ConversationRoutingTests.test_time_bypasses_model) ... ok
+test_tool_calls_are_bounded_and_structured (tests.unit.test_v09_multimodel_tools.OllamaToolContractTests.test_tool_calls_are_bounded_and_structured) ... ok
+test_tools_payload_disables_thinking_by_default (tests.unit.test_v09_multimodel_tools.OllamaToolContractTests.test_tools_payload_disables_thinking_by_default) ... ok
+test_atomic_selection_generation_and_legacy_fallback (tests.unit.test_v09_multimodel_tools.RosterTests.test_atomic_selection_generation_and_legacy_fallback) ... ok
+test_exact_three_model_roster_and_default (tests.unit.test_v09_multimodel_tools.RosterTests.test_exact_three_model_roster_and_default) ... ok
+test_duplicate_mutations_in_one_turn_are_rejected (tests.unit.test_v09_multimodel_tools.ToolBrokerTests.test_duplicate_mutations_in_one_turn_are_rejected) ... ok
+test_fan_mutation_requires_independent_explicit_authorization (tests.unit.test_v09_multimodel_tools.ToolBrokerTests.test_fan_mutation_requires_independent_explicit_authorization) ... ok
+test_local_clock_is_read_only_and_deterministic (tests.unit.test_v09_multimodel_tools.ToolBrokerTests.test_local_clock_is_read_only_and_deterministic) ... ok
+test_read_tools_are_typed_and_grounded (tests.unit.test_v09_multimodel_tools.ToolBrokerTests.test_read_tools_are_typed_and_grounded) ... ok
+test_two_read_only_calls_can_share_one_bounded_transaction (tests.unit.test_v09_multimodel_tools.ToolBrokerTests.test_two_read_only_calls_can_share_one_bounded_transaction) ... ok
+test_unknown_raw_execution_tools_are_rejected (tests.unit.test_v09_multimodel_tools.ToolBrokerTests.test_unknown_raw_execution_tools_are_rejected) ... ok
+
+----------------------------------------------------------------------
+Ran 14 tests in 0.011s
+
+OK
+# finished_utc: 2026-09-22T01:10:13Z
+# duration_seconds: 0.149
+# returncode: 0

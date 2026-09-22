@@ -1,0 +1,129 @@
+# command: /mnt/data/b12_test_venv/bin/python -m unittest -v tests.unit.test_b11_alternate_models
+# started_utc: 2026-09-22T01:09:18Z
+test_alternate_http_error_is_reported_but_default_remains_qualified (tests.unit.test_b11_alternate_models.AlternateModelTests.test_alternate_http_error_is_reported_but_default_remains_qualified) ... [MODEL] model=- stage=INVENTORY
+[MODEL] model=- stage=PREREQUISITES
+[MODEL] model=- stage=INVENTORY_AFTER_PULL
+[MODEL] model=qwen3:0.6b stage=IDENTITY
+[MODEL] model=qwen3:0.6b stage=INFERENCE
+[MODEL] model=qwen3:0.6b stage=TOOLS
+[MODEL] model=qwen3:0.6b stage=UNLOAD
+[MODEL] model=lfm2.5-thinking:1.2b stage=IDENTITY
+[MODEL] model=lfm2.5-thinking:1.2b stage=INFERENCE
+[MODEL] model=lfm2.5-thinking:1.2b stage=TOOLS
+[MODEL] model=lfm2.5-thinking:1.2b stage=UNLOAD
+[MODEL] model=qwen3.5:0.8b stage=IDENTITY
+[MODEL] model=qwen3.5:0.8b stage=INFERENCE
+[MODEL] model=qwen3.5:0.8b stage=TOOLS
+[DEGRADED] code=MODEL_ALTERNATE_TOOL_INCOMPATIBLE model=qwen3.5:0.8b stage=TOOLS
+[MODEL] model=qwen3.5:0.8b stage=UNLOAD
+[MODEL] model=- stage=ADMISSION
+ok
+test_catalog_metadata_drift_is_rejected_before_network (tests.unit.test_b11_alternate_models.AlternateModelTests.test_catalog_metadata_drift_is_rejected_before_network) ... ok
+test_existing_selected_alternate_is_not_silently_downgraded (tests.unit.test_b11_alternate_models.AlternateModelTests.test_existing_selected_alternate_is_not_silently_downgraded) ... [OK] code=MODEL_ROSTER_READY models=3 default=qwen3:0.6b active=qwen3:0.6b mode=preseeded-offline
+[MODEL] model=- stage=INVENTORY
+[MODEL] model=- stage=PREREQUISITES
+[MODEL] model=- stage=INVENTORY_AFTER_PULL
+[MODEL] model=qwen3:0.6b stage=IDENTITY
+[MODEL] model=qwen3:0.6b stage=INFERENCE
+[MODEL] model=qwen3:0.6b stage=TOOLS
+[MODEL] model=qwen3:0.6b stage=UNLOAD
+[MODEL] model=lfm2.5-thinking:1.2b stage=IDENTITY
+[MODEL] model=lfm2.5-thinking:1.2b stage=INFERENCE
+[MODEL] model=lfm2.5-thinking:1.2b stage=TOOLS
+[MODEL] model=lfm2.5-thinking:1.2b stage=UNLOAD
+[MODEL] model=qwen3.5:0.8b stage=IDENTITY
+[MODEL] model=qwen3.5:0.8b stage=INFERENCE
+[MODEL] model=qwen3.5:0.8b stage=TOOLS
+[MODEL] model=qwen3.5:0.8b stage=UNLOAD
+ok
+test_network_or_auth_tool_failure_is_not_relabelled_compatibility (tests.unit.test_b11_alternate_models.AlternateModelTests.test_network_or_auth_tool_failure_is_not_relabelled_compatibility) ... [MODEL] model=- stage=INVENTORY
+[MODEL] model=- stage=PREREQUISITES
+[MODEL] model=- stage=INVENTORY_AFTER_PULL
+[MODEL] model=qwen3:0.6b stage=IDENTITY
+[MODEL] model=qwen3:0.6b stage=INFERENCE
+[MODEL] model=qwen3:0.6b stage=TOOLS
+[MODEL] model=qwen3:0.6b stage=UNLOAD
+[MODEL] model=lfm2.5-thinking:1.2b stage=IDENTITY
+[MODEL] model=lfm2.5-thinking:1.2b stage=INFERENCE
+[MODEL] model=lfm2.5-thinking:1.2b stage=TOOLS
+[MODEL] model=lfm2.5-thinking:1.2b stage=UNLOAD
+[MODEL] model=qwen3.5:0.8b stage=IDENTITY
+[MODEL] model=qwen3.5:0.8b stage=INFERENCE
+[MODEL] model=qwen3.5:0.8b stage=TOOLS
+[MODEL] model=qwen3.5:0.8b stage=UNLOAD
+[MODEL] model=- stage=INVENTORY
+[MODEL] model=- stage=PREREQUISITES
+[MODEL] model=- stage=INVENTORY_AFTER_PULL
+[MODEL] model=qwen3:0.6b stage=IDENTITY
+[MODEL] model=qwen3:0.6b stage=INFERENCE
+[MODEL] model=qwen3:0.6b stage=TOOLS
+[MODEL] model=qwen3:0.6b stage=UNLOAD
+[MODEL] model=lfm2.5-thinking:1.2b stage=IDENTITY
+[MODEL] model=lfm2.5-thinking:1.2b stage=INFERENCE
+[MODEL] model=lfm2.5-thinking:1.2b stage=TOOLS
+[MODEL] model=lfm2.5-thinking:1.2b stage=UNLOAD
+[MODEL] model=qwen3.5:0.8b stage=IDENTITY
+[MODEL] model=qwen3.5:0.8b stage=INFERENCE
+[MODEL] model=qwen3.5:0.8b stage=TOOLS
+[MODEL] model=qwen3.5:0.8b stage=UNLOAD
+ok
+test_post_tool_failure_residency_still_aborts (tests.unit.test_b11_alternate_models.AlternateModelTests.test_post_tool_failure_residency_still_aborts) ... [MODEL] model=- stage=INVENTORY
+[MODEL] model=- stage=PREREQUISITES
+[MODEL] model=- stage=INVENTORY_AFTER_PULL
+[MODEL] model=qwen3:0.6b stage=IDENTITY
+[MODEL] model=qwen3:0.6b stage=INFERENCE
+[MODEL] model=qwen3:0.6b stage=TOOLS
+[MODEL] model=qwen3:0.6b stage=UNLOAD
+[MODEL] model=lfm2.5-thinking:1.2b stage=IDENTITY
+[MODEL] model=lfm2.5-thinking:1.2b stage=INFERENCE
+[MODEL] model=lfm2.5-thinking:1.2b stage=TOOLS
+[MODEL] model=lfm2.5-thinking:1.2b stage=UNLOAD
+[MODEL] model=qwen3.5:0.8b stage=IDENTITY
+[MODEL] model=qwen3.5:0.8b stage=INFERENCE
+[MODEL] model=qwen3.5:0.8b stage=TOOLS
+[DEGRADED] code=MODEL_ALTERNATE_TOOL_INCOMPATIBLE model=qwen3.5:0.8b stage=TOOLS
+[MODEL] model=qwen3.5:0.8b stage=UNLOAD
+ok
+test_required_default_http_error_still_aborts (tests.unit.test_b11_alternate_models.AlternateModelTests.test_required_default_http_error_still_aborts) ... [MODEL] model=- stage=INVENTORY
+[MODEL] model=- stage=PREREQUISITES
+[MODEL] model=- stage=INVENTORY_AFTER_PULL
+[MODEL] model=qwen3:0.6b stage=IDENTITY
+[MODEL] model=qwen3:0.6b stage=INFERENCE
+[MODEL] model=qwen3:0.6b stage=TOOLS
+[MODEL] model=qwen3:0.6b stage=UNLOAD
+ok
+test_semantic_alternate_failure_has_the_same_explicit_disposition (tests.unit.test_b11_alternate_models.AlternateModelTests.test_semantic_alternate_failure_has_the_same_explicit_disposition) ... [MODEL] model=- stage=INVENTORY
+[MODEL] model=- stage=PREREQUISITES
+[MODEL] model=- stage=INVENTORY_AFTER_PULL
+[MODEL] model=qwen3:0.6b stage=IDENTITY
+[MODEL] model=qwen3:0.6b stage=INFERENCE
+[MODEL] model=qwen3:0.6b stage=TOOLS
+[MODEL] model=qwen3:0.6b stage=UNLOAD
+[MODEL] model=lfm2.5-thinking:1.2b stage=IDENTITY
+[MODEL] model=lfm2.5-thinking:1.2b stage=INFERENCE
+[MODEL] model=lfm2.5-thinking:1.2b stage=TOOLS
+[MODEL] model=lfm2.5-thinking:1.2b stage=UNLOAD
+[MODEL] model=qwen3.5:0.8b stage=IDENTITY
+[MODEL] model=qwen3.5:0.8b stage=INFERENCE
+[MODEL] model=qwen3.5:0.8b stage=TOOLS
+[DEGRADED] code=MODEL_ALTERNATE_TOOL_INCOMPATIBLE model=qwen3.5:0.8b stage=TOOLS
+[MODEL] model=qwen3.5:0.8b stage=UNLOAD
+[MODEL] model=- stage=ADMISSION
+ok
+test_unload_failure_is_not_optional (tests.unit.test_b11_alternate_models.AlternateModelTests.test_unload_failure_is_not_optional) ... [OK] code=MODEL_ROSTER_READY models=3 default=qwen3:0.6b active=qwen3:0.6b mode=preseeded-offline
+[MODEL] model=- stage=INVENTORY
+[MODEL] model=- stage=PREREQUISITES
+[MODEL] model=- stage=INVENTORY_AFTER_PULL
+[MODEL] model=qwen3:0.6b stage=IDENTITY
+[MODEL] model=qwen3:0.6b stage=INFERENCE
+[MODEL] model=qwen3:0.6b stage=TOOLS
+[MODEL] model=qwen3:0.6b stage=UNLOAD
+ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 0.110s
+
+OK
+# finished_utc: 2026-09-22T01:09:19Z
+# duration_seconds: 0.209
+# returncode: 0

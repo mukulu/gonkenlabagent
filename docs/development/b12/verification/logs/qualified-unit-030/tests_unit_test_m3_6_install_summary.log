@@ -1,0 +1,24 @@
+# command: /mnt/data/b12_test_venv/bin/python -m unittest -v tests.unit.test_m3_6_install_summary
+# started_utc: 2026-09-22T01:09:37Z
+test_boot_process_and_digest_drift_reject_final_ready (tests.unit.test_m3_6_install_summary.InstallSummaryTests.test_boot_process_and_digest_drift_reject_final_ready) ... ok
+test_current_pointer_must_match_commit (tests.unit.test_m3_6_install_summary.InstallSummaryTests.test_current_pointer_must_match_commit) ... ok
+test_final_required_exit_rejects_degraded_and_accepts_fresh (tests.unit.test_m3_6_install_summary.InstallSummaryTests.test_final_required_exit_rejects_degraded_and_accepts_fresh) ... ok
+test_newer_waiting_record_rejects_old_success (tests.unit.test_m3_6_install_summary.InstallSummaryTests.test_newer_waiting_record_rejects_old_success) ... ok
+test_optional_tool_failures_do_not_block_final_default_summary (tests.unit.test_m3_6_install_summary.InstallSummaryTests.test_optional_tool_failures_do_not_block_final_default_summary) ... ok
+test_records_are_closed_schema_private_and_policy_checked (tests.unit.test_m3_6_install_summary.InstallSummaryTests.test_records_are_closed_schema_private_and_policy_checked) ... ok
+test_roster_labels_without_stages_are_not_qualification (tests.unit.test_m3_6_install_summary.InstallSummaryTests.test_roster_labels_without_stages_are_not_qualification) ... ok
+test_selection_boolean_generation_and_duplicate_roster_are_rejected (tests.unit.test_m3_6_install_summary.InstallSummaryTests.test_selection_boolean_generation_and_duplicate_roster_are_rejected) ... ok
+test_standalone_maintenance_dependencies_are_sufficient (tests.unit.test_m3_6_install_summary.InstallSummaryTests.test_standalone_maintenance_dependencies_are_sufficient) ... ok
+test_summary_prefers_governed_roster_active_model_over_legacy_record (tests.unit.test_m3_6_install_summary.InstallSummaryTests.test_summary_prefers_governed_roster_active_model_over_legacy_record) ... ok
+test_summary_rejects_ready_record_from_previous_release (tests.unit.test_m3_6_install_summary.InstallSummaryTests.test_summary_rejects_ready_record_from_previous_release) ... ok
+test_summary_reports_degraded_not_ready_with_exact_next_action (tests.unit.test_m3_6_install_summary.InstallSummaryTests.test_summary_reports_degraded_not_ready_with_exact_next_action) ... ok
+test_summary_reports_ready_when_voice_runtime_ready_file_exists (tests.unit.test_m3_6_install_summary.InstallSummaryTests.test_summary_reports_ready_when_voice_runtime_ready_file_exists) ... ok
+test_summary_reports_service_degraded_when_unit_differs (tests.unit.test_m3_6_install_summary.InstallSummaryTests.test_summary_reports_service_degraded_when_unit_differs) ... ok
+
+----------------------------------------------------------------------
+Ran 14 tests in 0.086s
+
+OK
+# finished_utc: 2026-09-22T01:09:37Z
+# duration_seconds: 0.161
+# returncode: 0

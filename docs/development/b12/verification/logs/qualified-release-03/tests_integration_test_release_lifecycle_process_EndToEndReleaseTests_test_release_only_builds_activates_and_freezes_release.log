@@ -1,0 +1,11 @@
+# command: /mnt/data/b12_test_venv/bin/python -m unittest -v tests.integration.test_release_lifecycle_process.EndToEndReleaseTests.test_release_only_builds_activates_and_freezes_release
+# started_utc: 2026-09-22T01:11:52Z
+test_release_only_builds_activates_and_freezes_release (tests.integration.test_release_lifecycle_process.EndToEndReleaseTests.test_release_only_builds_activates_and_freezes_release) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 6.967s
+
+OK
+# finished_utc: 2026-09-22T01:11:59Z
+# duration_seconds: 7.021
+# returncode: 0

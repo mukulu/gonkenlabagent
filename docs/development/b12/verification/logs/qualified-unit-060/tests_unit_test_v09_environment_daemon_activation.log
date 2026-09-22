@@ -1,0 +1,17 @@
+# command: /mnt/data/b12_test_venv/bin/python -m unittest -v tests.unit.test_v09_environment_daemon_activation
+# started_utc: 2026-09-22T01:10:00Z
+test_bounds_are_derived_from_static_config (tests.unit.test_v09_environment_daemon_activation.EnvironmentDaemonActivationTests.test_bounds_are_derived_from_static_config) ... ok
+test_build_core_creates_default_policy_and_uses_injected_adapters_without_hardware_evidence (tests.unit.test_v09_environment_daemon_activation.EnvironmentDaemonActivationTests.test_build_core_creates_default_policy_and_uses_injected_adapters_without_hardware_evidence) ... ok
+test_cli_env_serve_check_builds_config_without_starting_socket_or_claiming_physical_evidence (tests.unit.test_v09_environment_daemon_activation.EnvironmentDaemonActivationTests.test_cli_env_serve_check_builds_config_without_starting_socket_or_claiming_physical_evidence) ... ok
+test_cli_env_serve_check_is_side_effect_free_when_policy_is_missing (tests.unit.test_v09_environment_daemon_activation.EnvironmentDaemonActivationTests.test_cli_env_serve_check_is_side_effect_free_when_policy_is_missing) ... ok
+test_corrupt_policy_fails_closed_without_replacing_operator_file (tests.unit.test_v09_environment_daemon_activation.EnvironmentDaemonActivationTests.test_corrupt_policy_fails_closed_without_replacing_operator_file) ... ok
+test_disabled_config_refuses_core_build (tests.unit.test_v09_environment_daemon_activation.EnvironmentDaemonActivationTests.test_disabled_config_refuses_core_build) ... ok
+test_unix_server_uses_configured_socket_and_cleans_up_safe_off (tests.unit.test_v09_environment_daemon_activation.EnvironmentDaemonActivationTests.test_unix_server_uses_configured_socket_and_cleans_up_safe_off) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.546s
+
+OK
+# finished_utc: 2026-09-22T01:10:01Z
+# duration_seconds: 0.663
+# returncode: 0

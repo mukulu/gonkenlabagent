@@ -1,0 +1,22 @@
+# command: /mnt/data/b12_test_venv/bin/python -m unittest -v tests.unit.test_b12_spoken_numbers
+# started_utc: 2026-09-22T01:09:30Z
+test_ambiguous_two_power_states (tests.unit.test_b12_spoken_numbers.SpokenNumbersTests.test_ambiguous_two_power_states) ... ok
+test_ambiguous_units_not_converted (tests.unit.test_b12_spoken_numbers.SpokenNumbersTests.test_ambiguous_units_not_converted) ... ok
+test_article_is_not_changed (tests.unit.test_b12_spoken_numbers.SpokenNumbersTests.test_article_is_not_changed) ... ok
+test_decimal (tests.unit.test_b12_spoken_numbers.SpokenNumbersTests.test_decimal) ... ok
+test_delay_phrase (tests.unit.test_b12_spoken_numbers.SpokenNumbersTests.test_delay_phrase) ... ok
+test_extreme_input_bounded (tests.unit.test_b12_spoken_numbers.SpokenNumbersTests.test_extreme_input_bounded) ... ok
+test_negative_delay_not_made_positive (tests.unit.test_b12_spoken_numbers.SpokenNumbersTests.test_negative_delay_not_made_positive) ... ok
+test_query_does_not_set_threshold (tests.unit.test_b12_spoken_numbers.SpokenNumbersTests.test_query_does_not_set_threshold) ... ok
+test_quote_and_hypothetical_threshold_not_action (tests.unit.test_b12_spoken_numbers.SpokenNumbersTests.test_quote_and_hypothetical_threshold_not_action) ... ok
+test_repeated_words_not_guessed (tests.unit.test_b12_spoken_numbers.SpokenNumbersTests.test_repeated_words_not_guessed) ... ok
+test_report_invalid_lease (tests.unit.test_b12_spoken_numbers.SpokenNumbersTests.test_report_invalid_lease) ... ok
+test_threshold_pair_spoken (tests.unit.test_b12_spoken_numbers.SpokenNumbersTests.test_threshold_pair_spoken) ... ok
+
+----------------------------------------------------------------------
+Ran 12 tests in 0.006s
+
+OK
+# finished_utc: 2026-09-22T01:09:30Z
+# duration_seconds: 0.107
+# returncode: 0

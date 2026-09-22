@@ -4,8 +4,8 @@
   "blueprint": "Attempt03 (Attempt02 execution + original V7 + Display V2)",
   "blueprint_sha256": "4f932dac8b03ffcef03b7fc77a2f67d99966cab460217c59821f8e1535a5e441",
   "physical_acceptance_claimed": false,
-  "package_status": "B12_RESPONSIVE_ROOM_INSTALLATION_CANDIDATE_IN_QUALIFICATION; not full Attempt03 stable release",
-  "next_action": "Complete B12 full regression and exact-package qualification, then run the explicit responsive-room installer on the target; continue independent Attempt03 work from the verified B12 source.",
+  "package_status": "B12_RESPONSIVE_ROOM_CANDIDATE_HOST_TESTED; exact exported bytes require the adjacent qualification receipt; not full Attempt03 stable release",
+  "next_action": "Verify the B12 delivery receipt, run install-room-appliance.sh on the wired target, and continue remaining Attempt03 work from this actual source. Next core engineering tranche: 46.5.3 late semantic rollback, without undoing the B12 real-thermostat/model/commands work.",
   "slots": [
     {
       "id": "46.0.1",
@@ -218,8 +218,14 @@
       "id": "46.4.6",
       "title": "Model authority consolidation and degradation policy",
       "source_line": 1824,
-      "status": "NOT_STARTED",
-      "evidence": []
+      "status": "WIP",
+      "evidence": [
+        "scripts/model_roster_manager.py",
+        "src/gonken_agent/llm/qualification.py",
+        "tests/unit/test_b11_alternate_models.py",
+        "docs/development/b12/verification/VERIFICATION.json"
+      ],
+      "note": "B11/B12 required-default versus optional-alternate degradation and runtime admission are host-verified. Full removal of historical model authorities remains separate cleanup work."
     },
     {
       "id": "46.4.7",
@@ -605,8 +611,17 @@
       "id": "46.10.6",
       "title": "CP46.10 close",
       "source_line": 1916,
-      "status": "NOT_STARTED",
-      "evidence": []
+      "status": "HOST_VERIFIED",
+      "evidence": [
+        "src/gonken_agent/power.py",
+        "src/gonken_agent/power_policy.py",
+        "src/gonken_agent/power_install.py",
+        "tests/unit/test_b12_commands_power.py",
+        "tests/integration/test_b12_operational_transactions.py",
+        "tests/unit/test_m8_uninstall_manager.py",
+        "docs/development/b12/verification/VERIFICATION.json"
+      ],
+      "note": "Current host policy/adapter/voice/CLI/uninstall contracts pass. Exact target PolicyKit, inhibitor, acoustic, shutdown and reboot acceptance remains CP47.2."
     },
     {
       "id": "46.11.1",
@@ -667,10 +682,10 @@
       "source_line": 1942,
       "status": "WIP",
       "evidence": [
-        "docs/development/rebuild/FINAL_VERIFICATION.md",
-        "docs/development/rebuild/verification/VERIFICATION.json"
+        "docs/development/b12/verification/VERIFICATION.json",
+        "docs/development/b12/VERIFICATION.md"
       ],
-      "note": "Current recovered implementation corpus passed; final blueprint-wide convergence is not claimed while earlier implementation remains open."
+      "note": "B12 current implementation corpus is 972 unit + 88 integration tests, no skips. Whole-program final convergence remains open where preceding implementation is unfinished. Exact exported-byte qualification is an adjacent receipt, not inferred here."
     },
     {
       "id": "46.12.2",
@@ -678,10 +693,10 @@
       "source_line": 1943,
       "status": "WIP",
       "evidence": [
-        "docs/development/rebuild/FINAL_VERIFICATION.md",
-        "docs/development/rebuild/verification/VERIFICATION.json"
+        "docs/development/b12/verification/VERIFICATION.json",
+        "docs/development/b12/VERIFICATION.md"
       ],
-      "note": "Current recovered implementation corpus passed; final blueprint-wide convergence is not claimed while earlier implementation remains open."
+      "note": "B12 current implementation corpus is 972 unit + 88 integration tests, no skips. Whole-program final convergence remains open where preceding implementation is unfinished. Exact exported-byte qualification is an adjacent receipt, not inferred here."
     },
     {
       "id": "46.12.3",
@@ -689,10 +704,10 @@
       "source_line": 1944,
       "status": "WIP",
       "evidence": [
-        "docs/development/rebuild/FINAL_VERIFICATION.md",
-        "docs/development/rebuild/verification/VERIFICATION.json"
+        "docs/development/b12/verification/VERIFICATION.json",
+        "docs/development/b12/VERIFICATION.md"
       ],
-      "note": "Current recovered implementation corpus passed; final blueprint-wide convergence is not claimed while earlier implementation remains open."
+      "note": "B12 current implementation corpus is 972 unit + 88 integration tests, no skips. Whole-program final convergence remains open where preceding implementation is unfinished. Exact exported-byte qualification is an adjacent receipt, not inferred here."
     },
     {
       "id": "46.12.4",
@@ -700,10 +715,10 @@
       "source_line": 1945,
       "status": "WIP",
       "evidence": [
-        "docs/development/rebuild/FINAL_VERIFICATION.md",
-        "docs/development/rebuild/verification/VERIFICATION.json"
+        "docs/development/b12/verification/VERIFICATION.json",
+        "docs/development/b12/VERIFICATION.md"
       ],
-      "note": "Current recovered implementation corpus passed; final blueprint-wide convergence is not claimed while earlier implementation remains open."
+      "note": "B12 current implementation corpus is 972 unit + 88 integration tests, no skips. Whole-program final convergence remains open where preceding implementation is unfinished. Exact exported-byte qualification is an adjacent receipt, not inferred here."
     },
     {
       "id": "46.12.5",
@@ -711,24 +726,32 @@
       "source_line": 1946,
       "status": "WIP",
       "evidence": [
-        "docs/development/rebuild/FINAL_VERIFICATION.md",
-        "docs/development/rebuild/verification/VERIFICATION.json"
+        "docs/development/b12/verification/VERIFICATION.json",
+        "docs/development/b12/VERIFICATION.md"
       ],
-      "note": "Current recovered implementation corpus passed; final blueprint-wide convergence is not claimed while earlier implementation remains open."
+      "note": "B12 current implementation corpus is 972 unit + 88 integration tests, no skips. Whole-program final convergence remains open where preceding implementation is unfinished. Exact exported-byte qualification is an adjacent receipt, not inferred here."
     },
     {
       "id": "46.12.6",
       "title": "Exact archive qualifier + fresh extraction",
       "source_line": 1947,
-      "status": "NOT_STARTED",
-      "evidence": []
+      "status": "WIP",
+      "evidence": [
+        "docs/development/b12/verification/VERIFICATION.json",
+        "docs/development/b12/VERIFICATION.md"
+      ],
+      "note": "B12 current implementation corpus is 972 unit + 88 integration tests, no skips. Whole-program final convergence remains open where preceding implementation is unfinished. Exact exported-byte qualification is an adjacent receipt, not inferred here."
     },
     {
       "id": "46.12.7",
       "title": "Package-size/tracked-file/provenance review",
       "source_line": 1948,
-      "status": "NOT_STARTED",
-      "evidence": []
+      "status": "WIP",
+      "evidence": [
+        "docs/development/b12/verification/VERIFICATION.json",
+        "docs/development/b12/VERIFICATION.md"
+      ],
+      "note": "B12 current implementation corpus is 972 unit + 88 integration tests, no skips. Whole-program final convergence remains open where preceding implementation is unfinished. Exact exported-byte qualification is an adjacent receipt, not inferred here."
     },
     {
       "id": "47.0.1",

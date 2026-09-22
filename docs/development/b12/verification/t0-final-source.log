@@ -1,0 +1,6 @@
+CURRENT_STATE_VALID slots=179 physical_acceptance=false
+[T0] dependency lock drift
+verified 5 installable dependency profiles
+[T0] source/config syntax
+[T0] V09 documentation/evidence boundary
+Selected T0/T1 checks passed: t0

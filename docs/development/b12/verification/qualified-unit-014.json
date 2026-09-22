@@ -1,0 +1,164 @@
+{
+  "active_module": null,
+  "created_utc": "2026-09-22T01:09:21Z",
+  "execution_state": "COMPLETED",
+  "granularity": "module",
+  "label": "qualified-unit-014",
+  "module_count": 16,
+  "modules": [
+    {
+      "duration_seconds": 0.312,
+      "log_file": "logs/qualified-unit-014/tests_unit_test_b10_real_environment.log",
+      "module": "tests.unit.test_b10_real_environment",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.125,
+      "log_file": "logs/qualified-unit-014/tests_unit_test_b10_room_installer.log",
+      "module": "tests.unit.test_b10_room_installer",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.127,
+      "log_file": "logs/qualified-unit-014/tests_unit_test_b11_actuator_truth.log",
+      "module": "tests.unit.test_b11_actuator_truth",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.209,
+      "log_file": "logs/qualified-unit-014/tests_unit_test_b11_alternate_models.log",
+      "module": "tests.unit.test_b11_alternate_models",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.13,
+      "log_file": "logs/qualified-unit-014/tests_unit_test_b11_environment_evidence.log",
+      "module": "tests.unit.test_b11_environment_evidence",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.433,
+      "log_file": "logs/qualified-unit-014/tests_unit_test_b11_environment_lifecycle.log",
+      "module": "tests.unit.test_b11_environment_lifecycle",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.143,
+      "log_file": "logs/qualified-unit-014/tests_unit_test_b11_environment_observability.log",
+      "module": "tests.unit.test_b11_environment_observability",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.102,
+      "log_file": "logs/qualified-unit-014/tests_unit_test_b11_environment_reconciliation.log",
+      "module": "tests.unit.test_b11_environment_reconciliation",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.158,
+      "log_file": "logs/qualified-unit-014/tests_unit_test_b11_voice_tool_admission.log",
+      "module": "tests.unit.test_b11_voice_tool_admission",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.13,
+      "log_file": "logs/qualified-unit-014/tests_unit_test_b12_automation.log",
+      "module": "tests.unit.test_b12_automation",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.279,
+      "log_file": "logs/qualified-unit-014/tests_unit_test_b12_commands_power.log",
+      "module": "tests.unit.test_b12_commands_power",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.102,
+      "log_file": "logs/qualified-unit-014/tests_unit_test_b12_configuration_freshness.log",
+      "module": "tests.unit.test_b12_configuration_freshness",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.142,
+      "log_file": "logs/qualified-unit-014/tests_unit_test_b12_documented_commands.log",
+      "module": "tests.unit.test_b12_documented_commands",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.131,
+      "log_file": "logs/qualified-unit-014/tests_unit_test_b12_inline_cache.log",
+      "module": "tests.unit.test_b12_inline_cache",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.177,
+      "log_file": "logs/qualified-unit-014/tests_unit_test_b12_responsive_preset.log",
+      "module": "tests.unit.test_b12_responsive_preset",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.219,
+      "log_file": "logs/qualified-unit-014/tests_unit_test_b12_speech_latency.log",
+      "module": "tests.unit.test_b12_speech_latency",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    }
+  ],
+  "pending_modules": [],
+  "planned_count": 16,
+  "planned_modules": [
+    "tests.unit.test_b10_real_environment",
+    "tests.unit.test_b10_room_installer",
+    "tests.unit.test_b11_actuator_truth",
+    "tests.unit.test_b11_alternate_models",
+    "tests.unit.test_b11_environment_evidence",
+    "tests.unit.test_b11_environment_lifecycle",
+    "tests.unit.test_b11_environment_observability",
+    "tests.unit.test_b11_environment_reconciliation",
+    "tests.unit.test_b11_voice_tool_admission",
+    "tests.unit.test_b12_automation",
+    "tests.unit.test_b12_commands_power",
+    "tests.unit.test_b12_configuration_freshness",
+    "tests.unit.test_b12_documented_commands",
+    "tests.unit.test_b12_inline_cache",
+    "tests.unit.test_b12_responsive_preset",
+    "tests.unit.test_b12_speech_latency"
+  ],
+  "result": "PASS",
+  "runner_pid": 12360,
+  "schema": "gonken-bounded-unittest-v1",
+  "status_counts": {
+    "PASS": 16
+  }
+}
