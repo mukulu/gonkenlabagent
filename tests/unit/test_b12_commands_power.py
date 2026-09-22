@@ -55,7 +55,7 @@ class PowerTests(unittest.TestCase):
         self.tmp=tempfile.TemporaryDirectory();self.addCleanup(self.tmp.cleanup)
         self.audit=Path(self.tmp.name)/'audit'
         self.client=Mock();self.client.health.return_value={'provenance':{'actuator_backend':'libgpiod','actuator_is_simulated':False}}
-        self.client.prepare_power.return_value={'token':'a'*32,'safe_off_acknowledged':True,'action':'REBOOT_DEVICE'}
+        self.client.prepare_power.return_value={'token':'a'*32,'safe_off_acknowledged':True,'provenance':{'actuator_backend':'libgpiod','actuator_is_simulated':False},'action':'REBOOT_DEVICE'}
         self.execute=Mock()
     def arm(self):
         self.session.handle('restart the Raspberry Pi');self.session.handle('confirm restart');return self.session.consume()
@@ -79,7 +79,7 @@ class PowerTests(unittest.TestCase):
                 self.session.handle(text);self.assertIsNone(self.session.pending);self.assertIsNone(self.session.consume())
     def test_safe_off_before_fixed_execution_and_audit(self):
         events=[]
-        self.client.prepare_power.side_effect=lambda action:(events.append('off') or {'token':'a'*32,'safe_off_acknowledged':True,'action':action})
+        self.client.prepare_power.side_effect=lambda action:(events.append('off') or {'token':'a'*32,'safe_off_acknowledged':True,'provenance':{'actuator_backend':'libgpiod','actuator_is_simulated':False},'action':action})
         def run(action):
             self.assertTrue((self.audit/'last-action.json').is_file());events.append('power')
         result=execute_confirmed(self.arm(),client_factory=lambda:self.client,environment_required=True,real_environment=True,audit_dir=self.audit,execute=run,clock=lambda:self.now)
@@ -102,12 +102,12 @@ class PowerTests(unittest.TestCase):
         with self.assertRaises(PowerError):execute_confirmed(auth,client_factory=lambda:self.client,environment_required=True,audit_dir=self.audit,execute=self.execute,clock=lambda:self.now)
         self.client.prepare_power.assert_not_called()
     def test_fixed_argv_no_inhibitor_bypass_or_shell(self):
-        run=Mock(return_value=SimpleNamespace(returncode=0));logind_action('REBOOT_DEVICE',run=run)
+        run=Mock(return_value=SimpleNamespace(returncode=0));logind_action('REBOOT_DEVICE',run=run,effective_uid=lambda:1000)
         args=run.call_args.args[0];self.assertEqual(args[-3:],['Reboot','b','false']);self.assertEqual(args[0],'/usr/bin/busctl');self.assertNotIn('shell',run.call_args.kwargs)
         with self.assertRaises(PowerError):logind_action('reboot;rm -rf /',run=run)
         self.assertEqual(run.call_count,1)
     def test_denied_is_not_success(self):
-        with self.assertRaisesRegex(PowerError,'DENIED'):logind_action('POWEROFF_DEVICE',run=Mock(return_value=SimpleNamespace(returncode=1)))
+        with self.assertRaisesRegex(PowerError,'DENIED'):logind_action('POWEROFF_DEVICE',run=Mock(return_value=SimpleNamespace(returncode=1)),effective_uid=lambda:1000)
     def test_policy_exact_and_idempotent_no_other_authority(self):
         root=Path(self.tmp.name)/'root'
         (root/'usr/bin').mkdir(parents=True);(root/'usr/bin/busctl').write_text('fixture')
@@ -130,7 +130,7 @@ class IntegrationTests(unittest.TestCase):
         self.client.automation_add.return_value={'job':{'id':'1234abcd'}}
         brain=ConversationBrain.__new__(ConversationBrain);brain.client=Mock();brain.environment_client_factory=lambda:self.client;brain.operations=self.ops
         reply=brain.reply('turn the fan on in two minutes for three minutes',threading.Event())
-        self.assertIn('scheduled',reply);brain.client.chat_text.assert_not_called();brain.client.chat_message.assert_not_called()
+        self.assertIn('Scheduled',reply);brain.client.chat_text.assert_not_called();brain.client.chat_message.assert_not_called()
         self.client.automation_add.assert_called_once_with(kind='fan_run',delay_seconds=120,duration_seconds=180)
     def test_action_waits_for_ack_speech(self):
         self.ops.handle('restart the Raspberry Pi');self.ops.handle('confirm restart');self.executor.assert_not_called()
@@ -199,3 +199,6 @@ gonken_ollama_model_action || exit $?
         self.assertIn('"ollama_model_roster" "1"',script)
         self.assertIn('gonken_model_roster_postcondition ||',script)
         self.assertIn('optional_packages=(polkitd dbus)',script)
+
+if __name__ == "__main__":
+    unittest.main()

@@ -227,9 +227,9 @@ class EnvironmentServiceCore:
             now = float(self.now())
             self._last_poll_monotonic = now
             try:
-                self._expire_power_hold(now)
                 reading = self._read_sensor_locked(now)
                 state = self.controller.observe(reading, now_monotonic=now)
+                self._expire_power_hold(now)
                 self._apply_actuator_if_needed(now)
                 self._record_controller_transition_if_changed(now, self.controller.state)
                 self._tick_automation(now)
@@ -350,7 +350,7 @@ class EnvironmentServiceCore:
         if operation == "events.get":
             _reject_unknown_params(params, {"limit"})
             limit = _optional_int(params, "limit")
-            return {"events": self._events_payload(limit=limit), "provenance": self._provenance_payload(), "physical_evidence": False}
+            return {"generation": self.automation.generation, "events": self._events_payload(limit=limit), "provenance": self._provenance_payload(), "physical_evidence": False}
         if operation == "simulation.status.get":
             _reject_unknown_params(params, set())
             return {"simulation": self._simulation_payload(), "provenance": self._provenance_payload(), "physical_evidence": False}
@@ -480,7 +480,8 @@ class EnvironmentServiceCore:
             if self._last_actuator_command != FanPower.OFF or self._last_actuator_write_result != "SUCCESS":
                 raise EnvironmentServiceError("ACTUATOR_UNAVAILABLE", "safe OFF was not acknowledged")
             return {"token": token, "safe_off_acknowledged": True, "expires_in_seconds": 30,
-                    "generation": self.automation.generation, "action": action, "physical_acceptance_claimed": False}
+                    "generation": self.automation.generation, "action": action, "provenance": self._provenance_payload(),
+                    "actuator_commands": self._actuator_command_payload(), "physical_acceptance_claimed": False}
         if operation == "power.release":
             _reject_unknown_params(params, {"token"})
             token = _required_string(params, "token")
@@ -600,6 +601,7 @@ class EnvironmentServiceCore:
                 stale_after_seconds=self.controller.stale_after_seconds,
             ),
             "policy": self.controller.policy.to_mapping(),
+            "actuator_commands": self._actuator_command_payload(),
             "physical_evidence": False,
             "provenance": self._provenance_payload(),
         }

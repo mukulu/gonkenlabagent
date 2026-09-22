@@ -116,8 +116,9 @@ def audit(record: dict, directory: Path) -> None:
         if os.path.exists(tmp): os.unlink(tmp)
 
 
-def logind_action(action: str, *, run=subprocess.run) -> None:
+def logind_action(action: str, *, run=subprocess.run, effective_uid=os.geteuid) -> None:
     if action not in ACTIONS: raise PowerError('POWER_ACTION_INVALID')
+    if effective_uid() == 0: raise PowerError('POWER_RUN_AS_GONKEN_AGENT_NOT_ROOT')
     argv=['/usr/bin/busctl','--system','--timeout=5','call','org.freedesktop.login1',
           '/org/freedesktop/login1','org.freedesktop.login1.Manager',ACTIONS[action],'b','false']
     try:
@@ -148,6 +149,9 @@ def execute_confirmed(authorization: Authorization, *, client_factory, environme
             if (prepared.get('safe_off_acknowledged') is not True or not isinstance(token,str)
                     or not re.fullmatch('[0-9a-f]{32}', token) or prepared.get('action') != authorization.action):
                 raise PowerError('POWER_SAFE_OFF_NOT_ACKNOWLEDGED')
+            final_provenance=prepared.get('provenance',{})
+            if real_environment and (final_provenance.get('actuator_backend')!='libgpiod' or final_provenance.get('actuator_is_simulated') is not False):
+                raise PowerError('POWER_ENVIRONMENT_IDENTITY_CHANGED')
         if clock()>=authorization.expires: raise PowerError('POWER_CONFIRMATION_EXPIRED')
         record['status']='AUTHORIZED_SAFE_OFF'
         audit(record,audit_dir)

@@ -11,6 +11,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 from typing import Any, Mapping
+from ..spoken_numbers import normalize_spoken_numbers
 
 
 @dataclass(frozen=True, slots=True)
@@ -57,6 +58,8 @@ def parse_environment_intent(text: str) -> EnvironmentIntent | EnvironmentClarif
     related but unsafe or underspecified for actuation.
     """
 
+    if not isinstance(text, str) or len(text) > 4096:
+        return EnvironmentClarification("No setting was changed. The command is invalid or too long.")
     normalized = _normalize(text)
     if not normalized:
         return None
@@ -64,7 +67,7 @@ def parse_environment_intent(text: str) -> EnvironmentIntent | EnvironmentClarif
     # Quoted, negated and hypothetical control language is not authorization.
     if (_is_environment_related(normalized) and
             (re.search(r"\b(?:not|never|dont|don t|should|would|could|hypothetical|example|say|imagine)\b", normalized)
-             or re.match(r"(?:what happens|how |if |suppose |imagine )", normalized)
+             or re.match(r"(?:what happens|what if |how |if |suppose |imagine )", normalized)
              or any(c in text for c in ('"', "'", "\u201c", "\u201d")))):
         if re.search(r"\b(?:turn|switch|set|start|stop|change|enable|disable)\b", normalized):
             return EnvironmentClarification("No setting was changed. Use a direct, unquoted command with explicit values.")
@@ -73,6 +76,9 @@ def parse_environment_intent(text: str) -> EnvironmentIntent | EnvironmentClarif
     stop_c = _extract_number(normalized, _STOP_PATTERNS)
     requested_mode = _requested_mode(normalized)
     if start_c is not None or stop_c is not None:
+        direct = re.sub(r"^(?:(?:hey )?gonken |please )+", "", normalized)
+        if not re.match(r"(?:use|set|change|update|turn|switch|start|stop|on threshold|off threshold)\b", direct):
+            return EnvironmentClarification("No threshold was changed. Use a direct setting command, such as set fan on threshold to 28 and off threshold to 26.")
         params: dict[str, Any] = {}
         if requested_mode is not None:
             params["mode"] = requested_mode
@@ -95,6 +101,8 @@ def parse_environment_intent(text: str) -> EnvironmentIntent | EnvironmentClarif
             mutating=True,
         )
 
+    if _contains_any(normalized, ("fan",)) and re.search(r"\bon\b", normalized) and re.search(r"\boff\b", normalized) and re.search(r"\b(?:turn|switch|start|stop)\b", normalized):
+        return EnvironmentClarification("No fan command was sent. Choose on or off, or specify a complete timed cycle.")
     fan_power = _requested_fan_power(normalized)
     if fan_power is not None:
         return EnvironmentIntent(
@@ -125,7 +133,7 @@ def parse_environment_intent(text: str) -> EnvironmentIntent | EnvironmentClarif
 
 
 def _normalize(text: str) -> str:
-    text = text.casefold().replace("°", "°")
+    text = normalize_spoken_numbers(text.casefold())
     text = re.sub(r"[^a-z0-9.°%+-]+", " ", text)
     return " ".join(text.split())
 

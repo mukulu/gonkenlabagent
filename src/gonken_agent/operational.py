@@ -69,7 +69,7 @@ class OperationalCommands:
         except EnvironmentClientError as exc: return environment_error_response(exc)
         if intent.operation=='sensor.read' and intent.response_kind != 'humidity':
             self.reading_receipt=result.get('announcement_token')
-        return environment_success_response(intent,result)
+        return environment_success_response(intent,result,concise=True)
 
     def speech_failed(self):
         self.reading_receipt=None; self.power.cancel()

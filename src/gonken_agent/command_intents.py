@@ -4,6 +4,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 from typing import Any
+from .spoken_numbers import normalize_spoken_numbers
 
 @dataclass(frozen=True)
 class CommandIntent:
@@ -36,6 +37,7 @@ def seconds(value: str, unit: str) -> float:
 def parse_command(text: str) -> CommandIntent | CommandClarification | None:
     """Only full, direct commands produce intents; ambiguity cannot enter an LLM action path."""
     value = normalized(text)
+    if value is not None: value = normalize_spoken_numbers(value)
     if value is None:
         return CommandClarification('That command contains invalid or excessive text.')
     if value in {'cancel timers', 'cancel all timers', 'cancel all schedules', 'stop all timers'}:
@@ -92,14 +94,14 @@ def execute_command(intent: CommandIntent, client) -> tuple[str, dict]:
         job = result.get('job', result)
         if not isinstance(job, dict) or not isinstance(job.get('id'), str):
             raise ValueError('invalid_schedule_reply')
-        text = f"Timer {job['id']} scheduled. "
         kind = str(intent.params['kind'])
+        text = f"Scheduled {kind.replace('_',' ')}. Timer {job['id']}. "
         if kind.startswith('fan_'):
-            text += 'Fan timing respects the safety dwell; timed fan commands use manual control. '
-        if kind=='temperature_delta': text += f"I will report a rise of {intent.params['delta_c']:g} degrees Celsius from the last spoken reading. "
+            text += 'Manual override; safety dwell applies. '
+        if kind=='temperature_delta':
+            text += f"Report a {intent.params['delta_c']:g} degree rise from the last spoken reading. "
         if intent.params.get('interval_seconds') or kind=='temperature_delta':
-            text += f"It expires after {intent.params.get('lease_seconds', 28800)/3600:g} hours. "
-        text += 'Timers clear on daemon restart. Say cancel all timers to cancel.'
+            text += f"Expires in {intent.params.get('lease_seconds', 28800)/3600:g} hours."
         return text, result
     if intent.operation == 'automation.list':
         result = client.automation_list()

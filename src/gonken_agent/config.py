@@ -66,6 +66,9 @@ class AudioConfig:
     output_match: str
     capture_rate: int
     processing_rate: int
+    speech_endpointing: bool
+    speech_end_silence_ms: int
+    speech_energy_threshold: int
 
 
 @dataclass(frozen=True, slots=True)
@@ -605,6 +608,10 @@ def _validate_values(config: Config) -> None:
         config.tts.voice,
     ):
         raise ConfigError("tts.voice must be a safe Piper voice identifier")
+    if not 500 <= config.audio.speech_end_silence_ms <= 2000:
+        raise ConfigError("audio.speech_end_silence_ms must be 500..2000")
+    if not 50 <= config.audio.speech_energy_threshold <= 2000:
+        raise ConfigError("audio.speech_energy_threshold must be 50..2000")
     if not 8000 <= config.audio.processing_rate <= config.audio.capture_rate <= 192000:
         raise ConfigError("audio rates must satisfy 8000 <= processing <= capture <= 192000")
     if config.audio.capture_rate % config.audio.processing_rate:

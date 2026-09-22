@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 from collections.abc import Mapping
 from typing import Any
 
@@ -9,7 +10,7 @@ from .client import EnvironmentClientError
 from .intents import EnvironmentIntent
 
 
-def environment_success_response(intent: EnvironmentIntent, result: Mapping[str, Any]) -> str:
+def environment_success_response(intent: EnvironmentIntent, result: Mapping[str, Any], *, concise: bool = False) -> str:
     """Render a concise human response from the daemon-confirmed result only.
 
     Simulation/hybrid provenance is part of the spoken truth boundary.  Voice may
@@ -18,6 +19,8 @@ def environment_success_response(intent: EnvironmentIntent, result: Mapping[str,
     or a simulated actuator sound like observed fan hardware.
     """
 
+    if concise:
+        return _concise_response(intent, result)
     kind = intent.response_kind
     if kind == "temperature":
         return _temperature_response(result)
@@ -244,3 +247,35 @@ def _value(value: object, default: str) -> str:
     if value is None or isinstance(value, bool):
         return default
     return str(value).replace("_", "-")
+
+
+def _concise_response(intent: EnvironmentIntent, result: Mapping[str, Any]) -> str:
+    """Short operational speech still distinguishes measurement/command/motion."""
+    kind=intent.response_kind
+    reading=_reading(result)
+    if kind in {"temperature", "humidity", "sensor_read"}:
+        if reading.get("valid") is not True or reading.get("quality") != "ready":
+            return f"The sensor is {_quality(reading)}. I do not have a current room reading."
+        values=[reading.get("temperature_c"),reading.get("relative_humidity_pct")]
+        if any(type(v) not in (int,float) or not math.isfinite(v) for v in values):
+            return "The sensor did not return a valid current reading."
+        temp,humidity=values
+        simulated=_sensor_is_simulated(result)
+        prefix="In simulation, " if simulated else ""
+        if kind=="temperature": text=f"{prefix}the room temperature is {temp:.1f} degrees Celsius."
+        elif kind=="humidity": text=f"{prefix}relative humidity is {humidity:.1f} percent."
+        else: text=f"{prefix}the room temperature is {temp:.1f} degrees Celsius; humidity is {humidity:.1f} percent."
+        return text + (" This is not a physical room reading." if simulated else "")
+    state=_state(result)
+    if kind in {"fan_set", "fan_status", "mode_set"}:
+        commands=result.get("actuator_commands",{})
+        requested=state.get("fan_power","unknown")
+        if isinstance(commands,Mapping) and commands.get("last_command_result") in {"FAILED","ERROR"}:
+            return "The relay command failed. Actual fan power is unconfirmed."
+        return f"{_fan_power_label(result)} is {_value(requested,'unknown')} by command. Control mode is {_mode(state)}."
+    if kind in {"policy", "policy_update"}:
+        policy=_policy(result)
+        if not policy: return "The daemon did not return a fan policy."
+        prefix = "Fan policy is updated" if kind == "policy_update" else "Fan policy"
+        return f"{prefix}: {_value(policy.get('mode'),'unknown')}; on at {_format_c(policy.get('start_c'))}, off at {_format_c(policy.get('stop_c'))}."
+    return f"Environment {_value(result.get('environment'),'unknown')}; sensor {_value(state.get('sensor_quality'),'unknown')}; fan command {_value(state.get('fan_power'),'unknown')}."

@@ -100,6 +100,8 @@ class Automation:
             raise AutomationError('fan_duration_must_respect_minimum_on')
         if kind == 'fan_cycle' and (not interval or interval < max(minimum_on, minimum_off) or duration or 'delta_c' in params):
             raise AutomationError('fan_cycle_must_respect_dwell')
+        if kind in REPORT_KINDS and kind != 'temperature_delta' and not interval and 'lease_seconds' in params:
+            raise AutomationError('one_shot_report_has_no_lease')
         if kind in REPORT_KINDS and duration:
             raise AutomationError('report_duration_not_applicable')
         if kind != 'temperature_delta' and 'delta_c' in params:

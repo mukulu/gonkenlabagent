@@ -21,6 +21,9 @@ input_match = "auto"
 output_match = "auto"
 capture_rate = 48000
 processing_rate = 16000
+speech_endpointing = true
+speech_end_silence_ms = 900
+speech_energy_threshold = 250
 
 [stt]
 model = "base.en-q5_1"

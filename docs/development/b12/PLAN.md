@@ -66,3 +66,19 @@ required model/tool qualification still runs. Explicit legacy rollback remains.
 Power provisioning includes polkitd/dbus prerequisites, uses the existing writable
 runtime state directory, and is ordered after environment convergence and before
 voice startup. Direct voice/model and new command/power cascade: 79 tests PASS.
+
+## B12-04 speech and safety refinement
+
+Question capture uses conservative PCM speech endpointing: 160 ms sustained
+energy and 900 ms trailing silence, with a 1.2-second minimum. Wake/probe/PTT
+windows are unchanged; no-speech and continuous noise retain the bounded max.
+Operational responses are compact without converting relay-command truth into
+physical motion. Number-word thresholds/timers are deterministic. Hypothetical,
+quoted and ambiguous fan actions are rejected. Power execution rechecks the
+prepared real actuator identity and refuses root to avoid logind root semantics.
+
+122 affected tests pass in the current source, including 14 endpoint/latency
+tests and 12 spoken-number/safety cases. An earlier command selected a nonexistent
+voice test module; the actual test_voice_appliance module replaced that selection.
+The older policy-update wording expectation was preserved in the concise reply.
+No Raspberry Pi latency or physical acceptance is inferred from host checks.

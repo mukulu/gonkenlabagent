@@ -30,6 +30,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from .operational import OperationalCommands, NotificationAnnouncer
+from .audio.endpoint import SpeechEndpoint
 from .audio.speech import Piper, Whisper, validate_wav
 from .audio.process import ProcessFailure
 from .environment import (
@@ -561,7 +562,7 @@ def _transition_announcement_text(event: dict[str, object]) -> str | None:
     if reason == "SENSOR_STALE_SAFE_OFF":
         return f"{prefix}sensor data became stale, so environment control forced safe off."
     if reason == "ACTUATOR_ERROR_SAFE_OFF":
-        return f"{prefix}the actuator reported an error, so environment control forced safe off."
+        return f"{prefix}the actuator reported an error. Safe off was requested; actual relay state is unconfirmed."
     return None
 
 
@@ -572,12 +573,19 @@ class EnvironmentTransitionAnnouncer:
     them into speech, preserving the single audio owner boundary.
     """
 
-    def __init__(self, client_factory, *, limit: int = 8) -> None:
+    def __init__(self, client_factory, *, limit: int = 8, clock=time.monotonic) -> None:
         self.client_factory = client_factory
         self.limit = limit
         self._seen: set[tuple[str, int]] = set()
+        self._seen_order = []
+        self._generation = None
+        self._clock = clock
+        self._next_poll = 0.0
 
     def pending(self) -> str | None:
+        now = self._clock()
+        if now < self._next_poll: return None
+        self._next_poll = now + 1.0
         try:
             payload = self.client_factory().events(limit=self.limit)
         except EnvironmentClientError:
@@ -585,6 +593,9 @@ class EnvironmentTransitionAnnouncer:
         events = payload.get("events") if isinstance(payload, dict) else None
         if not isinstance(events, list):
             return None
+        generation = payload.get("generation")
+        if generation != self._generation:
+            self._seen.clear(); self._seen_order.clear(); self._generation = generation
         for event in events:
             if not isinstance(event, dict):
                 continue
@@ -597,6 +608,9 @@ class EnvironmentTransitionAnnouncer:
             if key in self._seen:
                 continue
             self._seen.add(key)
+            self._seen_order.append(key)
+            if len(self._seen_order) > 128:
+                self._seen.discard(self._seen_order.pop(0))
             text = _transition_announcement_text(event)
             if text:
                 return text
@@ -854,6 +868,7 @@ class AudioBackend:
         *,
         cancel: threading.Event | None = None,
         keep_on_cancel: bool = False,
+        end_on_silence: bool = False,
     ) -> None:
         args = [
             str(self.arecord), "-q", "-D", self.input_device,
@@ -867,10 +882,18 @@ class AudioBackend:
         deadline = time.monotonic() + seconds + 8.0
         stderr = ""
         cancelled = False
+        ended = False
+        detector = SpeechEndpoint(int(self.config.audio.processing_rate),
+                    threshold=getattr(self.config.audio, "speech_energy_threshold", 250),
+                    silence_ms=getattr(self.config.audio, "speech_end_silence_ms", 900)) if end_on_silence else None
         try:
             while process.poll() is None:
                 if cancel is not None and cancel.is_set():
                     cancelled = True
+                    process.send_signal(signal.SIGINT)
+                    break
+                if detector is not None and detector.observe(destination):
+                    ended = True
                     process.send_signal(signal.SIGINT)
                     break
                 if time.monotonic() >= deadline:
@@ -888,7 +911,7 @@ class AudioBackend:
                 process.wait(timeout=3)
         if cancelled and not keep_on_cancel:
             raise VoiceRuntimeError("AUDIO_CAPTURE_CANCELLED")
-        if process.returncode != 0 and not (cancelled and keep_on_cancel):
+        if process.returncode != 0 and not (ended or (cancelled and keep_on_cancel)):
             detail = stderr or "arecord returned nonzero"
             code = _classify_audio_capture_failure(detail, backend="alsa")
             raise VoiceRuntimeError(code, f"backend=alsa device={self.input_device} {_diagnostic_text(detail)}")
@@ -900,6 +923,7 @@ class AudioBackend:
         *,
         cancel: threading.Event | None = None,
         keep_on_cancel: bool = False,
+        end_on_silence: bool = False,
     ) -> None:
         if self.parecord is None:
             raise VoiceRuntimeError("PARECORD_MISSING")
@@ -915,6 +939,10 @@ class AudioBackend:
         process: subprocess.Popen[str] | None = None
         stderr = ""
         cancelled = False
+        ended = False
+        detector = SpeechEndpoint(int(self.config.audio.processing_rate),
+                    threshold=getattr(self.config.audio, "speech_energy_threshold", 250),
+                    silence_ms=getattr(self.config.audio, "speech_end_silence_ms", 900)) if end_on_silence else None
         try:
             with os.fdopen(descriptor, "wb") as raw_output:
                 try:
@@ -929,6 +957,9 @@ class AudioBackend:
                 while time.monotonic() - started < seconds:
                     if cancel is not None and cancel.is_set():
                         cancelled = True
+                        break
+                    if detector is not None and detector.observe(raw_path, raw=True):
+                        ended = True
                         break
                     if process.poll() is not None:
                         _stdout, stderr = process.communicate(timeout=3)
@@ -979,13 +1010,14 @@ class AudioBackend:
         *,
         cancel: threading.Event | None = None,
         keep_on_cancel: bool = False,
+        end_on_silence: bool = False,
     ) -> None:
         if not 1 <= seconds <= 30:
             raise ValueError("capture seconds must be 1..30")
         if self.input_mode.startswith("pipewire-"):
-            self._pulse_record_to(destination, seconds, cancel=cancel, keep_on_cancel=keep_on_cancel)
+            self._pulse_record_to(destination, seconds, cancel=cancel, keep_on_cancel=keep_on_cancel, end_on_silence=end_on_silence)
         else:
-            self._alsa_record_to(destination, seconds, cancel=cancel, keep_on_cancel=keep_on_cancel)
+            self._alsa_record_to(destination, seconds, cancel=cancel, keep_on_cancel=keep_on_cancel, end_on_silence=end_on_silence)
         try:
             metadata = validate_wav(destination, max_seconds=seconds + 1)
         except Exception as exc:
@@ -994,6 +1026,8 @@ class AudioBackend:
                 "AUDIO_CAPTURE_WAV_INVALID",
                 f"backend={self.input_mode} device={self.input_device} {detail}",
             ) from exc
+        self.last_capture_metadata = {"rate": metadata["rate"], "maximum_seconds": seconds,
+                                      "speech_endpointing": end_on_silence}
         if metadata["rate"] != self.config.audio.processing_rate:
             raise VoiceRuntimeError("AUDIO_CAPTURE_RATE_MISMATCH", f"expected={self.config.audio.processing_rate} observed={metadata['rate']}")
 
@@ -1003,6 +1037,7 @@ class AudioBackend:
         *,
         cancel: threading.Event | None = None,
         keep_on_cancel: bool = False,
+        end_on_silence: bool = False,
     ) -> Path:
         if not self._input_candidates:
             self.refresh()
@@ -1018,7 +1053,7 @@ class AudioBackend:
                 path.unlink(missing_ok=True)
                 path.touch(mode=0o600)
                 try:
-                    self._record_to(path, seconds, cancel=cancel, keep_on_cancel=keep_on_cancel)
+                    self._record_to(path, seconds, cancel=cancel, keep_on_cancel=keep_on_cancel, end_on_silence=end_on_silence)
                     return path
                 except VoiceRuntimeError as exc:
                     if exc.code == "AUDIO_CAPTURE_CANCELLED":
@@ -1459,7 +1494,12 @@ class VoiceAppliance:
         return " ".join(text.split())
 
     def capture_text(self, seconds: int) -> str:
-        path = self.audio.capture(seconds)
+        audio_config = getattr(getattr(self, "config", None), "audio", None)
+        if (getattr(audio_config, "speech_endpointing", False) is True
+                and audio_config.processing_rate % 50 == 0):
+            path = self.audio.capture(seconds, cancel=self.stop, end_on_silence=True)
+        else:
+            path = self.audio.capture(seconds)
         return self._transcribe_captured_audio(path)
 
     def _question_after_wake(self, remainder: str) -> str:
