@@ -1,0 +1,47 @@
+{
+  "active_module": null,
+  "created_utc": "2026-09-22T14:16:45Z",
+  "execution_state": "COMPLETED",
+  "granularity": "module",
+  "label": "b15-final-cleanup-regression",
+  "module_count": 3,
+  "modules": [
+    {
+      "duration_seconds": 0.981,
+      "log_file": "logs/cleanup_final__tests_unit_test_b15_streaming_wake.log",
+      "module": "tests.unit.test_b15_streaming_wake",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.754,
+      "log_file": "logs/cleanup_final__tests_unit_test_b15_capture_repair.log",
+      "module": "tests.unit.test_b15_capture_repair",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.931,
+      "log_file": "logs/cleanup_final__tests_unit_test_voice_appliance.log",
+      "module": "tests.unit.test_voice_appliance",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    }
+  ],
+  "pending_modules": [],
+  "planned_count": 3,
+  "planned_modules": [
+    "tests.unit.test_b15_streaming_wake",
+    "tests.unit.test_b15_capture_repair",
+    "tests.unit.test_voice_appliance"
+  ],
+  "result": "PASS",
+  "runner_pid": 28661,
+  "schema": "gonken-bounded-unittest-v1",
+  "status_counts": {
+    "PASS": 3
+  }
+}

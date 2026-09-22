@@ -1,0 +1,20 @@
+# command: /opt/pyvenv/bin/python -m unittest -v tests.unit.test_b11_environment_reconciliation
+# started_utc: 2026-09-22T14:13:38Z
+test_bad_current_integrity_defers_to_new_candidate_not_old_code (tests.unit.test_b11_environment_reconciliation.ExistingEnvironmentTests.test_bad_current_integrity_defers_to_new_candidate_not_old_code) ... ok
+test_config_drift_invalidates_restart_receipt (tests.unit.test_b11_environment_reconciliation.ExistingEnvironmentTests.test_config_drift_invalidates_restart_receipt) ... ok
+test_existing_runtime_restart_and_policy_precede_model_work (tests.unit.test_b11_environment_reconciliation.ExistingEnvironmentTests.test_existing_runtime_restart_and_policy_precede_model_work) ... ok
+test_failed_or_simulated_daemon_is_not_claimed_ready (tests.unit.test_b11_environment_reconciliation.ExistingEnvironmentTests.test_failed_or_simulated_daemon_is_not_claimed_ready) ... ok
+test_mid_restart_config_change_is_not_ready (tests.unit.test_b11_environment_reconciliation.ExistingEnvironmentTests.test_mid_restart_config_change_is_not_ready) ... ok
+test_new_service_invocation_invalidates_receipt (tests.unit.test_b11_environment_reconciliation.ExistingEnvironmentTests.test_new_service_invocation_invalidates_receipt) ... ok
+test_no_current_defers_without_service_or_hardware_touch (tests.unit.test_b11_environment_reconciliation.ExistingEnvironmentTests.test_no_current_defers_without_service_or_hardware_touch) ... ok
+test_readonly_parse_failure_prevents_restart (tests.unit.test_b11_environment_reconciliation.ExistingEnvironmentTests.test_readonly_parse_failure_prevents_restart) ... ok
+test_symlink_receipt_refused (tests.unit.test_b11_environment_reconciliation.ExistingEnvironmentTests.test_symlink_receipt_refused) ... ok
+test_unknown_profile_never_kills_external_gpio_owner (tests.unit.test_b11_environment_reconciliation.ExistingEnvironmentTests.test_unknown_profile_never_kills_external_gpio_owner) ... ok
+
+----------------------------------------------------------------------
+Ran 10 tests in 0.021s
+
+OK
+# finished_utc: 2026-09-22T14:13:39Z
+# duration_seconds: 0.790
+# returncode: 0

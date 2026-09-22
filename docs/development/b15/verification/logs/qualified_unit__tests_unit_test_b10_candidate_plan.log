@@ -1,0 +1,16 @@
+# command: /opt/pyvenv/bin/python -m unittest -v tests.unit.test_b10_candidate_plan
+# started_utc: 2026-09-22T14:13:16Z
+test_disabled_environment_does_not_invent_feature_steps (tests.unit.test_b10_candidate_plan.CandidatePlanTests.test_disabled_environment_does_not_invent_feature_steps) ... ok
+test_full_target_delays_switch_and_hardware_start_until_candidate_ready (tests.unit.test_b10_candidate_plan.CandidatePlanTests.test_full_target_delays_switch_and_hardware_start_until_candidate_ready) ... ok
+test_host_and_release_only_keep_explicit_narrow_boundary (tests.unit.test_b10_candidate_plan.CandidatePlanTests.test_host_and_release_only_keep_explicit_narrow_boundary) ... ok
+test_installer_uses_qualified_candidate_helpers_and_finalized_plan (tests.unit.test_b10_candidate_plan.CandidatePlanTests.test_installer_uses_qualified_candidate_helpers_and_finalized_plan) ... ok
+test_invalid_or_incomplete_plan_rejected (tests.unit.test_b10_candidate_plan.CandidatePlanTests.test_invalid_or_incomplete_plan_rejected) ... ok
+test_target_ollama_only_uses_roster_anchor (tests.unit.test_b10_candidate_plan.CandidatePlanTests.test_target_ollama_only_uses_roster_anchor) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.001s
+
+OK
+# finished_utc: 2026-09-22T14:13:17Z
+# duration_seconds: 0.907
+# returncode: 0

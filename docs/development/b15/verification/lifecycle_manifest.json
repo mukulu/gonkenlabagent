@@ -1,0 +1,236 @@
+{
+  "active_module": null,
+  "created_utc": "2026-09-22T14:05:40Z",
+  "execution_state": "COMPLETED",
+  "granularity": "case",
+  "label": "b15-lifecycle",
+  "module_count": 24,
+  "modules": [
+    {
+      "duration_seconds": 8.037,
+      "log_file": "logs/lifecycle__tests_integration_test_release_lifecycle_process_ActivationInterruptionTests_test_every_journal_switch_and_postcheck_boundary_reconciles.log",
+      "module": "tests.integration.test_release_lifecycle_process.ActivationInterruptionTests.test_every_journal_switch_and_postcheck_boundary_reconciles",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 2.078,
+      "log_file": "logs/lifecycle__tests_integration_test_release_lifecycle_process_ActivationInterruptionTests_test_operator_rollback_script_restarts_service_after_validated_switch.log",
+      "module": "tests.integration.test_release_lifecycle_process.ActivationInterruptionTests.test_operator_rollback_script_restarts_service_after_validated_switch",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 1.485,
+      "log_file": "logs/lifecycle__tests_integration_test_release_lifecycle_process_ActivationInterruptionTests_test_tampered_candidate_is_rejected_before_switching_current.log",
+      "module": "tests.integration.test_release_lifecycle_process.ActivationInterruptionTests.test_tampered_candidate_is_rejected_before_switching_current",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 33.65,
+      "log_file": "logs/lifecycle__tests_integration_test_release_lifecycle_process_EndToEndReleaseTests_test_default_install_after_release_boundary_stops_before_target_only_steps.log",
+      "module": "tests.integration.test_release_lifecycle_process.EndToEndReleaseTests.test_default_install_after_release_boundary_stops_before_target_only_steps",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 10.612,
+      "log_file": "logs/lifecycle__tests_integration_test_release_lifecycle_process_EndToEndReleaseTests_test_low_space_never_creates_or_switches_release.log",
+      "module": "tests.integration.test_release_lifecycle_process.EndToEndReleaseTests.test_low_space_never_creates_or_switches_release",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 26.423,
+      "log_file": "logs/lifecycle__tests_integration_test_release_lifecycle_process_EndToEndReleaseTests_test_release_only_builds_activates_and_freezes_release.log",
+      "module": "tests.integration.test_release_lifecycle_process.EndToEndReleaseTests.test_release_only_builds_activates_and_freezes_release",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 32.626,
+      "log_file": "logs/lifecycle__tests_integration_test_release_lifecycle_process_EndToEndReleaseTests_test_release_only_repeat_is_idempotent.log",
+      "module": "tests.integration.test_release_lifecycle_process.EndToEndReleaseTests.test_release_only_repeat_is_idempotent",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 38.202,
+      "log_file": "logs/lifecycle__tests_integration_test_release_lifecycle_process_EndToEndReleaseTests_test_same_commit_repeat_ignores_standard_runtime_cache_without_repairing_release.log",
+      "module": "tests.integration.test_release_lifecycle_process.EndToEndReleaseTests.test_same_commit_repeat_ignores_standard_runtime_cache_without_repairing_release",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 4.004,
+      "log_file": "logs/lifecycle__tests_integration_test_release_lifecycle_process_FinalizationInterruptionTests_test_candidate_finalize_boundaries_leave_recoverable_old_or_new_state.log",
+      "module": "tests.integration.test_release_lifecycle_process.FinalizationInterruptionTests.test_candidate_finalize_boundaries_leave_recoverable_old_or_new_state",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 1.561,
+      "log_file": "logs/lifecycle__tests_integration_test_release_lifecycle_process_TargetBridgeUpgradeCompatibilityTests_test_process_activation_does_not_execute_or_revalidate_previous_current_release.log",
+      "module": "tests.integration.test_release_lifecycle_process.TargetBridgeUpgradeCompatibilityTests.test_process_activation_does_not_execute_or_revalidate_previous_current_release",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 1.752,
+      "log_file": "logs/lifecycle__tests_integration_test_release_lifecycle_process_TargetBridgeUpgradeCompatibilityTests_test_process_activation_does_not_fail_after_success_when_older_stale_release_is_pre_bridge.log",
+      "module": "tests.integration.test_release_lifecycle_process.TargetBridgeUpgradeCompatibilityTests.test_process_activation_does_not_fail_after_success_when_older_stale_release_is_pre_bridge",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 1.72,
+      "log_file": "logs/lifecycle__tests_integration_test_release_lifecycle_process_TargetBridgeUpgradeCompatibilityTests_test_process_activation_migrates_from_post_verified_pre_bridge_target_release.log",
+      "module": "tests.integration.test_release_lifecycle_process.TargetBridgeUpgradeCompatibilityTests.test_process_activation_migrates_from_post_verified_pre_bridge_target_release",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 18.013,
+      "log_file": "logs/lifecycle__tests_integration_test_speech_lifecycle_process_SpeechLifecycleProcessTests_test_full_lifecycle_repeat_status_and_private_record.log",
+      "module": "tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_full_lifecycle_repeat_status_and_private_record",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 5.832,
+      "log_file": "logs/lifecycle__tests_integration_test_speech_lifecycle_process_SpeechLifecycleProcessTests_test_interrupt_piper_finalize_during_converges_on_rerun.log",
+      "module": "tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_interrupt_piper_finalize_during_converges_on_rerun",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 3.787,
+      "log_file": "logs/lifecycle__tests_integration_test_speech_lifecycle_process_SpeechLifecycleProcessTests_test_interrupt_piper_install_during_converges_on_rerun.log",
+      "module": "tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_interrupt_piper_install_during_converges_on_rerun",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 6.445,
+      "log_file": "logs/lifecycle__tests_integration_test_speech_lifecycle_process_SpeechLifecycleProcessTests_test_interrupt_piper_pair_download_during_converges_on_rerun.log",
+      "module": "tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_interrupt_piper_pair_download_during_converges_on_rerun",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 6.686,
+      "log_file": "logs/lifecycle__tests_integration_test_speech_lifecycle_process_SpeechLifecycleProcessTests_test_interrupt_piper_pair_finalize_during_converges_on_rerun.log",
+      "module": "tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_interrupt_piper_pair_finalize_during_converges_on_rerun",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 4.412,
+      "log_file": "logs/lifecycle__tests_integration_test_speech_lifecycle_process_SpeechLifecycleProcessTests_test_interrupt_whisper_finalize_during_converges_on_rerun.log",
+      "module": "tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_interrupt_whisper_finalize_during_converges_on_rerun",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 7.506,
+      "log_file": "logs/lifecycle__tests_integration_test_speech_lifecycle_process_SpeechLifecycleProcessTests_test_interrupt_whisper_model_download_during_converges_on_rerun.log",
+      "module": "tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_interrupt_whisper_model_download_during_converges_on_rerun",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 3.559,
+      "log_file": "logs/lifecycle__tests_integration_test_speech_lifecycle_process_SpeechLifecycleProcessTests_test_interrupt_whisper_source_before_converges_on_rerun.log",
+      "module": "tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_interrupt_whisper_source_before_converges_on_rerun",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 3.249,
+      "log_file": "logs/lifecycle__tests_integration_test_speech_lifecycle_process_SpeechLifecycleProcessTests_test_interrupt_whisper_source_during_converges_on_rerun.log",
+      "module": "tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_interrupt_whisper_source_during_converges_on_rerun",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 11.92,
+      "log_file": "logs/lifecycle__tests_integration_test_speech_lifecycle_process_SpeechLifecycleProcessTests_test_smoke_failure_does_not_create_success_record_and_reruns.log",
+      "module": "tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_smoke_failure_does_not_create_success_record_and_reruns",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 10.073,
+      "log_file": "logs/lifecycle__tests_integration_test_speech_lifecycle_process_SpeechLifecycleProcessTests_test_wrong_architecture_native_payload_is_rejected_and_repaired.log",
+      "module": "tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_wrong_architecture_native_payload_is_rejected_and_repaired",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 13.347,
+      "log_file": "logs/lifecycle__tests_integration_test_speech_lifecycle_process_SpeechLifecycleProcessTests_test_zero_byte_bad_checksum_and_missing_pair_repair.log",
+      "module": "tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_zero_byte_bad_checksum_and_missing_pair_repair",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    }
+  ],
+  "pending_modules": [],
+  "planned_count": 24,
+  "planned_modules": [
+    "tests.integration.test_release_lifecycle_process.ActivationInterruptionTests.test_every_journal_switch_and_postcheck_boundary_reconciles",
+    "tests.integration.test_release_lifecycle_process.ActivationInterruptionTests.test_operator_rollback_script_restarts_service_after_validated_switch",
+    "tests.integration.test_release_lifecycle_process.ActivationInterruptionTests.test_tampered_candidate_is_rejected_before_switching_current",
+    "tests.integration.test_release_lifecycle_process.EndToEndReleaseTests.test_default_install_after_release_boundary_stops_before_target_only_steps",
+    "tests.integration.test_release_lifecycle_process.EndToEndReleaseTests.test_low_space_never_creates_or_switches_release",
+    "tests.integration.test_release_lifecycle_process.EndToEndReleaseTests.test_release_only_builds_activates_and_freezes_release",
+    "tests.integration.test_release_lifecycle_process.EndToEndReleaseTests.test_release_only_repeat_is_idempotent",
+    "tests.integration.test_release_lifecycle_process.EndToEndReleaseTests.test_same_commit_repeat_ignores_standard_runtime_cache_without_repairing_release",
+    "tests.integration.test_release_lifecycle_process.FinalizationInterruptionTests.test_candidate_finalize_boundaries_leave_recoverable_old_or_new_state",
+    "tests.integration.test_release_lifecycle_process.TargetBridgeUpgradeCompatibilityTests.test_process_activation_does_not_execute_or_revalidate_previous_current_release",
+    "tests.integration.test_release_lifecycle_process.TargetBridgeUpgradeCompatibilityTests.test_process_activation_does_not_fail_after_success_when_older_stale_release_is_pre_bridge",
+    "tests.integration.test_release_lifecycle_process.TargetBridgeUpgradeCompatibilityTests.test_process_activation_migrates_from_post_verified_pre_bridge_target_release",
+    "tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_full_lifecycle_repeat_status_and_private_record",
+    "tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_interrupt_piper_finalize_during_converges_on_rerun",
+    "tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_interrupt_piper_install_during_converges_on_rerun",
+    "tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_interrupt_piper_pair_download_during_converges_on_rerun",
+    "tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_interrupt_piper_pair_finalize_during_converges_on_rerun",
+    "tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_interrupt_whisper_finalize_during_converges_on_rerun",
+    "tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_interrupt_whisper_model_download_during_converges_on_rerun",
+    "tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_interrupt_whisper_source_before_converges_on_rerun",
+    "tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_interrupt_whisper_source_during_converges_on_rerun",
+    "tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_smoke_failure_does_not_create_success_record_and_reruns",
+    "tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_wrong_architecture_native_payload_is_rejected_and_repaired",
+    "tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_zero_byte_bad_checksum_and_missing_pair_repair"
+  ],
+  "result": "PASS",
+  "runner_pid": 10395,
+  "schema": "gonken-bounded-unittest-v1",
+  "status_counts": {
+    "PASS": 24
+  }
+}

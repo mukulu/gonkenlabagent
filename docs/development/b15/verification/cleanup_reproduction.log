@@ -1,0 +1,17 @@
+test_stop_failure_cleans_consumer_owned_audio_without_routing (tests.unit.test_b15_streaming_wake.StreamingConversationTests.test_stop_failure_cleans_consumer_owned_audio_without_routing) ... FAIL
+
+======================================================================
+FAIL: test_stop_failure_cleans_consumer_owned_audio_without_routing (tests.unit.test_b15_streaming_wake.StreamingConversationTests.test_stop_failure_cleans_consumer_owned_audio_without_routing)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/data/b15_work/gonkenlabagent/tests/unit/test_b15_streaming_wake.py", line 128, in test_stop_failure_cleans_consumer_owned_audio_without_routing
+    a=self.run_turn(native=True,activity=True,heard='GonKen turn on the fan',stop_failure=True)
+  File "/mnt/data/b15_work/gonkenlabagent/tests/unit/test_b15_streaming_wake.py", line 125, in run_turn
+    self.assertFalse(path.exists())
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+AssertionError: True is not false
+
+----------------------------------------------------------------------
+Ran 1 test in 0.002s
+
+FAILED (failures=1)

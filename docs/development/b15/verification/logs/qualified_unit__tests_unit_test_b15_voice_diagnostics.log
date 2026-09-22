@@ -1,0 +1,14 @@
+# command: /opt/pyvenv/bin/python -m unittest -v tests.unit.test_b15_voice_diagnostics
+# started_utc: 2026-09-22T14:13:49Z
+test_invalid_unbounded_or_nonfinite_values_omitted (tests.unit.test_b15_voice_diagnostics.VoiceDiagnosticsTests.test_invalid_unbounded_or_nonfinite_values_omitted) ... ok
+test_metrics_preserve_latency_not_private_content (tests.unit.test_b15_voice_diagnostics.VoiceDiagnosticsTests.test_metrics_preserve_latency_not_private_content) ... ok
+test_missing_native_dependency_not_an_infinite_recoverable_start (tests.unit.test_b15_voice_diagnostics.VoiceDiagnosticsTests.test_missing_native_dependency_not_an_infinite_recoverable_start) ... ok
+test_support_owns_a_bounded_content_free_metrics_list (tests.unit.test_b15_voice_diagnostics.VoiceDiagnosticsTests.test_support_owns_a_bounded_content_free_metrics_list) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.004s
+
+OK
+# finished_utc: 2026-09-22T14:13:50Z
+# duration_seconds: 0.832
+# returncode: 0

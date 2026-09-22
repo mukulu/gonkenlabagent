@@ -1,0 +1,15 @@
+# command: /opt/pyvenv/bin/python -m unittest -v tests.unit.test_v09_user_test_readiness
+# started_utc: 2026-09-22T14:16:21Z
+test_false_physical_claim_is_rejected (tests.unit.test_v09_user_test_readiness.UserTestReadinessValidationTests.test_false_physical_claim_is_rejected) ... ok
+test_missing_required_simulation_step_is_rejected (tests.unit.test_v09_user_test_readiness.UserTestReadinessValidationTests.test_missing_required_simulation_step_is_rejected) ... ok
+test_unknown_manifest_commit_is_rejected_when_repository_commit_is_known (tests.unit.test_v09_user_test_readiness.UserTestReadinessValidationTests.test_unknown_manifest_commit_is_rejected_when_repository_commit_is_known) ... ok
+test_valid_simulation_manifest_keeps_physical_gates_open (tests.unit.test_v09_user_test_readiness.UserTestReadinessValidationTests.test_valid_simulation_manifest_keeps_physical_gates_open) ... ok
+test_wrong_commit_is_rejected (tests.unit.test_v09_user_test_readiness.UserTestReadinessValidationTests.test_wrong_commit_is_rejected) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.003s
+
+OK
+# finished_utc: 2026-09-22T14:16:22Z
+# duration_seconds: 0.777
+# returncode: 0

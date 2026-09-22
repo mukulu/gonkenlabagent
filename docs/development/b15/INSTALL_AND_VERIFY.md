@@ -26,13 +26,13 @@ that the checksum passes, extract into a *new* directory, and leave the old
 checkout untouched:
 
 ```bash
-cd "$HOME"
-sha256sum -c GonKen_B15_SHA256SUMS.txt
-B15_DIR="$(mktemp -d "$HOME/gonken-b15-XXXXXX")"
-tar -xjf "$HOME/gonkenlabagent-attempt03-b15-voice-repair.tar.bz2" -C "$B15_DIR"
-cd "$B15_DIR/gonkenlabagent"
-git status --short
-git log -1 --oneline
+cd "$HOME" &&
+sha256sum -c GonKen_B15_SHA256SUMS.txt &&
+B15_DIR="$(mktemp -d "$HOME/gonken-b15-XXXXXX")" &&
+tar -xjf "$HOME/gonkenlabagent-attempt03-b15-voice-repair.tar.bz2" -C "$B15_DIR" &&
+cd "$B15_DIR/gonkenlabagent" &&
+git status --short &&
+git log -1 --oneline &&
 git tag --points-at HEAD
 ```
 

@@ -1,0 +1,137 @@
+{
+  "active_module": null,
+  "created_utc": "2026-09-22T14:15:14Z",
+  "execution_state": "COMPLETED",
+  "granularity": "module",
+  "label": "b15-qualified-integration",
+  "module_count": 13,
+  "modules": [
+    {
+      "duration_seconds": 5.656,
+      "log_file": "logs/qualified_integration__tests_integration_test_b10_candidate_execution.log",
+      "module": "tests.integration.test_b10_candidate_execution",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 7.02,
+      "log_file": "logs/qualified_integration__tests_integration_test_b12_operational_transactions.log",
+      "module": "tests.integration.test_b12_operational_transactions",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 6.15,
+      "log_file": "logs/qualified_integration__tests_integration_test_b15_pcm_stream_process.log",
+      "module": "tests.integration.test_b15_pcm_stream_process",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 10.57,
+      "log_file": "logs/qualified_integration__tests_integration_test_bootstrap_preflight_process.log",
+      "module": "tests.integration.test_bootstrap_preflight_process",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 5.391,
+      "log_file": "logs/qualified_integration__tests_integration_test_cli_process.log",
+      "module": "tests.integration.test_cli_process",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.788,
+      "log_file": "logs/qualified_integration__tests_integration_test_first_install_launcher.log",
+      "module": "tests.integration.test_first_install_launcher",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 16.276,
+      "log_file": "logs/qualified_integration__tests_integration_test_install_engine_process.log",
+      "module": "tests.integration.test_install_engine_process",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 31.165,
+      "log_file": "logs/qualified_integration__tests_integration_test_ollama_lifecycle_process.log",
+      "module": "tests.integration.test_ollama_lifecycle_process",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 3.946,
+      "log_file": "logs/qualified_integration__tests_integration_test_support_collection_process.log",
+      "module": "tests.integration.test_support_collection_process",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 11.539,
+      "log_file": "logs/qualified_integration__tests_integration_test_text_runtime_process.log",
+      "module": "tests.integration.test_text_runtime_process",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 2.838,
+      "log_file": "logs/qualified_integration__tests_integration_test_uninstall_lifecycle_process.log",
+      "module": "tests.integration.test_uninstall_lifecycle_process",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 2.11,
+      "log_file": "logs/qualified_integration__tests_integration_test_v09_environment_voice_transaction.log",
+      "module": "tests.integration.test_v09_environment_voice_transaction",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 26.671,
+      "log_file": "logs/qualified_integration__tests_integration_test_v09_user_test_release_candidate.log",
+      "module": "tests.integration.test_v09_user_test_release_candidate",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    }
+  ],
+  "pending_modules": [],
+  "planned_count": 13,
+  "planned_modules": [
+    "tests.integration.test_b10_candidate_execution",
+    "tests.integration.test_b12_operational_transactions",
+    "tests.integration.test_b15_pcm_stream_process",
+    "tests.integration.test_bootstrap_preflight_process",
+    "tests.integration.test_cli_process",
+    "tests.integration.test_first_install_launcher",
+    "tests.integration.test_install_engine_process",
+    "tests.integration.test_ollama_lifecycle_process",
+    "tests.integration.test_support_collection_process",
+    "tests.integration.test_text_runtime_process",
+    "tests.integration.test_uninstall_lifecycle_process",
+    "tests.integration.test_v09_environment_voice_transaction",
+    "tests.integration.test_v09_user_test_release_candidate"
+  ],
+  "result": "PASS",
+  "runner_pid": 20034,
+  "schema": "gonken-bounded-unittest-v1",
+  "status_counts": {
+    "PASS": 13
+  }
+}

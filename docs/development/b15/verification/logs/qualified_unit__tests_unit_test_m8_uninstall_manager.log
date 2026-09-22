@@ -1,0 +1,16 @@
+# command: /opt/pyvenv/bin/python -m unittest -v tests.unit.test_m8_uninstall_manager
+# started_utc: 2026-09-22T14:14:40Z
+test_installed_sidecar_needs_no_source_pythonpath (tests.unit.test_m8_uninstall_manager.UninstallManagerTests.test_installed_sidecar_needs_no_source_pythonpath) ... ok
+test_keep_data_default_removes_code_and_service_but_retains_data (tests.unit.test_m8_uninstall_manager.UninstallManagerTests.test_keep_data_default_removes_code_and_service_but_retains_data) ... ok
+test_modified_power_rule_conflicts_before_service_stop_or_deletion (tests.unit.test_m8_uninstall_manager.UninstallManagerTests.test_modified_power_rule_conflicts_before_service_stop_or_deletion) ... ok
+test_modified_service_or_entrypoint_fails_before_mutation (tests.unit.test_m8_uninstall_manager.UninstallManagerTests.test_modified_service_or_entrypoint_fails_before_mutation) ... ok
+test_power_rule_removed_without_purging_data (tests.unit.test_m8_uninstall_manager.UninstallManagerTests.test_power_rule_removed_without_purging_data) ... ok
+test_purge_requires_confirmation_and_never_touches_ollama (tests.unit.test_m8_uninstall_manager.UninstallManagerTests.test_purge_requires_confirmation_and_never_touches_ollama) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 7.763s
+
+OK
+# finished_utc: 2026-09-22T14:14:49Z
+# duration_seconds: 8.585
+# returncode: 0

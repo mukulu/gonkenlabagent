@@ -1,0 +1,22 @@
+# command: /opt/pyvenv/bin/python -m unittest -v tests.unit.test_v09_environment_policy
+# started_utc: 2026-09-22T14:15:48Z
+test_capability_boundary_never_claims_speed_or_motion_feedback (tests.unit.test_v09_environment_policy.EnvironmentDomainTests.test_capability_boundary_never_claims_speed_or_motion_feedback) ... ok
+test_mode_parser_accepts_operator_aliases_without_llm_authority (tests.unit.test_v09_environment_policy.EnvironmentDomainTests.test_mode_parser_accepts_operator_aliases_without_llm_authority) ... ok
+test_sensor_reading_quality_rejects_crc_error_and_staleness (tests.unit.test_v09_environment_policy.EnvironmentDomainTests.test_sensor_reading_quality_rejects_crc_error_and_staleness) ... ok
+test_corrupt_policy_file_fails_closed_instead_of_guessing_auto_defaults (tests.unit.test_v09_environment_policy.EnvironmentPolicyTests.test_corrupt_policy_file_fails_closed_instead_of_guessing_auto_defaults) ... ok
+test_default_policy_is_manual_with_demonstration_thresholds (tests.unit.test_v09_environment_policy.EnvironmentPolicyTests.test_default_policy_is_manual_with_demonstration_thresholds) ... ok
+test_generation_conflict_rejects_stale_policy_writer (tests.unit.test_v09_environment_policy.EnvironmentPolicyTests.test_generation_conflict_rejects_stale_policy_writer) ... ok
+test_invalid_thresholds_and_dwell_are_rejected_before_persistence (tests.unit.test_v09_environment_policy.EnvironmentPolicyTests.test_invalid_thresholds_and_dwell_are_rejected_before_persistence) ... ok
+test_mapping_contract_is_closed_and_round_trips (tests.unit.test_v09_environment_policy.EnvironmentPolicyTests.test_mapping_contract_is_closed_and_round_trips) ... ok
+test_nonmutating_default_and_access_validation_do_not_create_policy (tests.unit.test_v09_environment_policy.EnvironmentPolicyTests.test_nonmutating_default_and_access_validation_do_not_create_policy) ... ok
+test_permission_error_is_not_mislabeled_invalid_json (tests.unit.test_v09_environment_policy.EnvironmentPolicyTests.test_permission_error_is_not_mislabeled_invalid_json) ... ok
+test_policy_store_creates_default_atomically_with_restricted_mode (tests.unit.test_v09_environment_policy.EnvironmentPolicyTests.test_policy_store_creates_default_atomically_with_restricted_mode) ... ok
+test_policy_store_preserves_old_generation_when_new_policy_is_invalid (tests.unit.test_v09_environment_policy.EnvironmentPolicyTests.test_policy_store_preserves_old_generation_when_new_policy_is_invalid) ... ok
+
+----------------------------------------------------------------------
+Ran 12 tests in 0.005s
+
+OK
+# finished_utc: 2026-09-22T14:15:49Z
+# duration_seconds: 0.693
+# returncode: 0

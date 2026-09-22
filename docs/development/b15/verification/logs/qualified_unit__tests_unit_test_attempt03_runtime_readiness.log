@@ -1,0 +1,32 @@
+# command: /opt/pyvenv/bin/python -m unittest -v tests.unit.test_attempt03_runtime_readiness
+# started_utc: 2026-09-22T14:13:14Z
+test_broker_implementation_not_model_tool_qualification (tests.unit.test_attempt03_runtime_readiness.ComponentTests.test_broker_implementation_not_model_tool_qualification) ... ok
+test_disabled_environment_is_not_ready_or_fault (tests.unit.test_attempt03_runtime_readiness.ComponentTests.test_disabled_environment_is_not_ready_or_fault) ... ok
+test_qualified_bound_model_tools_ready (tests.unit.test_attempt03_runtime_readiness.ComponentTests.test_qualified_bound_model_tools_ready) ... ok
+test_stale_voice_does_not_hide_healthy_environment (tests.unit.test_attempt03_runtime_readiness.ComponentTests.test_stale_voice_does_not_hide_healthy_environment) ... ok
+test_wrong_selected_model_not_ready (tests.unit.test_attempt03_runtime_readiness.ComponentTests.test_wrong_selected_model_not_ready) ... ok
+test_current_binding_requires_valid_current_record (tests.unit.test_attempt03_runtime_readiness.ReadinessTests.test_current_binding_requires_valid_current_record) ... ok
+test_fifo_refused_without_blocking (tests.unit.test_attempt03_runtime_readiness.ReadinessTests.test_fifo_refused_without_blocking) ... ok
+test_identity_and_type_mutations_rejected (tests.unit.test_attempt03_runtime_readiness.ReadinessTests.test_identity_and_type_mutations_rejected) ... ok
+test_live_bound_record_passes (tests.unit.test_attempt03_runtime_readiness.ReadinessTests.test_live_bound_record_passes) ... ok
+test_long_running_ready_not_expired_by_arbitrary_ttl (tests.unit.test_attempt03_runtime_readiness.ReadinessTests.test_long_running_ready_not_expired_by_arbitrary_ttl) ... ok
+test_missing_boot_identity_rejected (tests.unit.test_attempt03_runtime_readiness.ReadinessTests.test_missing_boot_identity_rejected) ... ok
+test_missing_file (tests.unit.test_attempt03_runtime_readiness.ReadinessTests.test_missing_file) ... ok
+test_model_switch_rejects_stale_ready (tests.unit.test_attempt03_runtime_readiness.ReadinessTests.test_model_switch_rejects_stale_ready) ... ok
+test_new_waiting_state_overrides_ready (tests.unit.test_attempt03_runtime_readiness.ReadinessTests.test_new_waiting_state_overrides_ready) ... ok
+test_old_or_different_process_waiting_does_not_override (tests.unit.test_attempt03_runtime_readiness.ReadinessTests.test_old_or_different_process_waiting_does_not_override) ... ok
+test_oversize_invalid_utf8_nonfinite_and_duplicate_refused (tests.unit.test_attempt03_runtime_readiness.ReadinessTests.test_oversize_invalid_utf8_nonfinite_and_duplicate_refused) ... ok
+test_private_extra_fields_are_not_exported (tests.unit.test_attempt03_runtime_readiness.ReadinessTests.test_private_extra_fields_are_not_exported) ... ok
+test_standalone_maintenance_import_has_no_package_dependency (tests.unit.test_attempt03_runtime_readiness.ReadinessTests.test_standalone_maintenance_import_has_no_package_dependency) ... ok
+test_stopped_producer_rejected (tests.unit.test_attempt03_runtime_readiness.ReadinessTests.test_stopped_producer_rejected) ... ok
+test_support_phase_filters_untrusted_record_contents (tests.unit.test_attempt03_runtime_readiness.ReadinessTests.test_support_phase_filters_untrusted_record_contents) ... ok
+test_symlink_refused (tests.unit.test_attempt03_runtime_readiness.ReadinessTests.test_symlink_refused) ... ok
+test_unknown_release_never_grants_ready (tests.unit.test_attempt03_runtime_readiness.ReadinessTests.test_unknown_release_never_grants_ready) ... ok
+
+----------------------------------------------------------------------
+Ran 22 tests in 0.936s
+
+OK
+# finished_utc: 2026-09-22T14:13:16Z
+# duration_seconds: 1.919
+# returncode: 0

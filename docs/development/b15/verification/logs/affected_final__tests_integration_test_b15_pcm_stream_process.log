@@ -1,0 +1,19 @@
+# command: /opt/pyvenv/bin/python -m unittest -v tests.integration.test_b15_pcm_stream_process
+# started_utc: 2026-09-22T14:16:59Z
+test_actual_native_abi_silence_reset_close_and_invalid_input (tests.integration.test_b15_pcm_stream_process.PCMProcessTests.test_actual_native_abi_silence_reset_close_and_invalid_input) ... ok
+test_cancel_during_prime_does_not_wait_for_deadline (tests.integration.test_b15_pcm_stream_process.PCMProcessTests.test_cancel_during_prime_does_not_wait_for_deadline) ... ok
+test_device_error_not_reported_ready (tests.integration.test_b15_pcm_stream_process.PCMProcessTests.test_device_error_not_reported_ready) ... ok
+test_forced_cleanup_of_child_ignoring_sigint_is_bounded (tests.integration.test_b15_pcm_stream_process.PCMProcessTests.test_forced_cleanup_of_child_ignoring_sigint_is_bounded) ... ok
+test_fragmented_raw_reads_are_lossless_and_stderr_is_bounded (tests.integration.test_b15_pcm_stream_process.PCMProcessTests.test_fragmented_raw_reads_are_lossless_and_stderr_is_bounded) ... ok
+test_native_missing_library_fails_closed_before_decoder_creation (tests.integration.test_b15_pcm_stream_process.PCMProcessTests.test_native_missing_library_fails_closed_before_decoder_creation) ... ok
+test_native_missing_model_fails_closed (tests.integration.test_b15_pcm_stream_process.PCMProcessTests.test_native_missing_model_fails_closed) ... ok
+test_real_raw_recording_child_endpoints_and_gonken_finalizes_both_transports (tests.integration.test_b15_pcm_stream_process.PCMProcessTests.test_real_raw_recording_child_endpoints_and_gonken_finalizes_both_transports) ... ok
+test_stalled_child_is_not_silence_and_is_reaped (tests.integration.test_b15_pcm_stream_process.PCMProcessTests.test_stalled_child_is_not_silence_and_is_reaped) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 4.678s
+
+OK
+# finished_utc: 2026-09-22T14:17:05Z
+# duration_seconds: 5.428
+# returncode: 0

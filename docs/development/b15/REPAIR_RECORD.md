@@ -4,7 +4,8 @@
 
 B15 is a host-tested repair checkpoint descended from the exact B14 installed
 source. It is not a claim of an error-free system, physical Raspberry Pi audio
-acceptance, or completion of the larger Attempt03 programme. See
+acceptance, or completion of the larger Attempt03 programme. The final selected corpus contains 1,011 unit and 97 integration/lifecycle tests
+(1,108 distinct tests, no skips or missing cases). See
 `verification/VERIFICATION.json` for final test accounting and the adjacent
 package receipt for exact exported-byte qualification.
 

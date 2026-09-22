@@ -1,0 +1,11 @@
+# command: /opt/pyvenv/bin/python -m unittest -v tests.integration.test_release_lifecycle_process.EndToEndReleaseTests.test_low_space_never_creates_or_switches_release
+# started_utc: 2026-09-22T14:02:09Z
+test_low_space_never_creates_or_switches_release (tests.integration.test_release_lifecycle_process.EndToEndReleaseTests.test_low_space_never_creates_or_switches_release) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 9.803s
+
+OK
+# finished_utc: 2026-09-22T14:02:19Z
+# duration_seconds: 10.612
+# returncode: 0

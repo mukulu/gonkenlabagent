@@ -1,0 +1,12 @@
+# command: /opt/pyvenv/bin/python -m unittest -v tests.unit.test_v09_doctor_context
+# started_utc: 2026-09-22T14:15:10Z
+test_direct_audio_probe_failure_does_not_overwrite_ready_service_truth (tests.unit.test_v09_doctor_context.DoctorContextTests.test_direct_audio_probe_failure_does_not_overwrite_ready_service_truth) ... ok
+test_existing_but_empty_ready_file_does_not_prove_service_truth (tests.unit.test_v09_doctor_context.DoctorContextTests.test_existing_but_empty_ready_file_does_not_prove_service_truth) ... ok
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.038s
+
+OK
+# finished_utc: 2026-09-22T14:15:11Z
+# duration_seconds: 0.961
+# returncode: 0

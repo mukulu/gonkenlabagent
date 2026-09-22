@@ -1,0 +1,11 @@
+# command: /opt/pyvenv/bin/python -m unittest -v tests.integration.test_release_lifecycle_process.TargetBridgeUpgradeCompatibilityTests.test_process_activation_does_not_execute_or_revalidate_previous_current_release
+# started_utc: 2026-09-22T14:04:01Z
+test_process_activation_does_not_execute_or_revalidate_previous_current_release (tests.integration.test_release_lifecycle_process.TargetBridgeUpgradeCompatibilityTests.test_process_activation_does_not_execute_or_revalidate_previous_current_release) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.780s
+
+OK
+# finished_utc: 2026-09-22T14:04:02Z
+# duration_seconds: 1.561
+# returncode: 0

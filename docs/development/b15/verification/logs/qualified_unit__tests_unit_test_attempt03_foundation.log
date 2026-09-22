@@ -1,0 +1,24 @@
+# command: /opt/pyvenv/bin/python -m unittest -v tests.unit.test_attempt03_foundation
+# started_utc: 2026-09-22T14:13:07Z
+test_current_registry_valid (tests.unit.test_attempt03_foundation.CurrentStateTests.test_current_registry_valid) ... ok
+test_duplicate_slot_rejected (tests.unit.test_attempt03_foundation.CurrentStateTests.test_duplicate_slot_rejected) ... ok
+test_evidence_traversal_rejected (tests.unit.test_attempt03_foundation.CurrentStateTests.test_evidence_traversal_rejected) ... ok
+test_fake_physical_pass_rejected (tests.unit.test_attempt03_foundation.CurrentStateTests.test_fake_physical_pass_rejected) ... ok
+test_missing_evidence_rejected (tests.unit.test_attempt03_foundation.CurrentStateTests.test_missing_evidence_rejected) ... ok
+test_render_current (tests.unit.test_attempt03_foundation.CurrentStateTests.test_render_current) ... ok
+test_target_not_closed_by_host (tests.unit.test_attempt03_foundation.CurrentStateTests.test_target_not_closed_by_host) ... ok
+test_unknown_status_rejected (tests.unit.test_attempt03_foundation.CurrentStateTests.test_unknown_status_rejected) ... ok
+test_duplicates_refused (tests.unit.test_attempt03_foundation.TarTests.test_duplicates_refused) ... ok
+test_empty_refused (tests.unit.test_attempt03_foundation.TarTests.test_empty_refused) ... ok
+test_links_refused (tests.unit.test_attempt03_foundation.TarTests.test_links_refused) ... ok
+test_normal_tar_preserves_executable (tests.unit.test_attempt03_foundation.TarTests.test_normal_tar_preserves_executable) ... ok
+test_traversal_refused (tests.unit.test_attempt03_foundation.TarTests.test_traversal_refused) ... ok
+test_two_roots_refused (tests.unit.test_attempt03_foundation.TarTests.test_two_roots_refused) ... ok
+
+----------------------------------------------------------------------
+Ran 14 tests in 0.089s
+
+OK
+# finished_utc: 2026-09-22T14:13:08Z
+# duration_seconds: 1.027
+# returncode: 0

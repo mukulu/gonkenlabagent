@@ -1,0 +1,11 @@
+# command: /opt/pyvenv/bin/python -m unittest -v tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_interrupt_piper_pair_download_during_converges_on_rerun
+# started_utc: 2026-09-22T14:04:33Z
+test_interrupt_piper_pair_download_during_converges_on_rerun (tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_interrupt_piper_pair_download_during_converges_on_rerun) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 5.630s
+
+OK
+# finished_utc: 2026-09-22T14:04:40Z
+# duration_seconds: 6.445
+# returncode: 0

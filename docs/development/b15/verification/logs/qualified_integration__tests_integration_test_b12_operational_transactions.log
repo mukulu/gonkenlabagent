@@ -1,0 +1,18 @@
+# command: /opt/pyvenv/bin/python -m unittest -v tests.integration.test_b12_operational_transactions
+# started_utc: 2026-09-22T14:13:09Z
+test_bad_sensor_cancels_pending_fan_job_without_recovery_replay (tests.integration.test_b12_operational_transactions.OperationalTransactionTests.test_bad_sensor_cancels_pending_fan_job_without_recovery_replay) ... ok
+test_cli_add_list_cancel_are_real_ipc (tests.integration.test_b12_operational_transactions.OperationalTransactionTests.test_cli_add_list_cancel_are_real_ipc) ... ok
+test_cli_invalid_boolean_numeric_never_adds_job (tests.integration.test_b12_operational_transactions.OperationalTransactionTests.test_cli_invalid_boolean_numeric_never_adds_job) ... ok
+test_confirmed_power_prepares_same_daemon_and_audit_before_injected_logind (tests.integration.test_b12_operational_transactions.OperationalTransactionTests.test_confirmed_power_prepares_same_daemon_and_audit_before_injected_logind) ... ok
+test_delayed_voice_run_executes_only_owner_after_due_time (tests.integration.test_b12_operational_transactions.OperationalTransactionTests.test_delayed_voice_run_executes_only_owner_after_due_time) ... ok
+test_direct_query_baseline_changes_only_after_spoken (tests.integration.test_b12_operational_transactions.OperationalTransactionTests.test_direct_query_baseline_changes_only_after_spoken) ... ok
+test_manual_action_cancels_pending_fan_timer_but_not_sensor_timer (tests.integration.test_b12_operational_transactions.OperationalTransactionTests.test_manual_action_cancels_pending_fan_timer_but_not_sensor_timer) ... ok
+test_numeric_notice_then_spoken_ack_changes_baseline (tests.integration.test_b12_operational_transactions.OperationalTransactionTests.test_numeric_notice_then_spoken_ack_changes_baseline) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 5.945s
+
+OK
+# finished_utc: 2026-09-22T14:13:16Z
+# duration_seconds: 7.020
+# returncode: 0

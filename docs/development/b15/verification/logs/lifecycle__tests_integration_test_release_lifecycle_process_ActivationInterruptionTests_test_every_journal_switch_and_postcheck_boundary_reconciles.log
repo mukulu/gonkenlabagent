@@ -1,0 +1,11 @@
+# command: /opt/pyvenv/bin/python -m unittest -v tests.integration.test_release_lifecycle_process.ActivationInterruptionTests.test_every_journal_switch_and_postcheck_boundary_reconciles
+# started_utc: 2026-09-22T14:01:23Z
+test_every_journal_switch_and_postcheck_boundary_reconciles (tests.integration.test_release_lifecycle_process.ActivationInterruptionTests.test_every_journal_switch_and_postcheck_boundary_reconciles) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 7.334s
+
+OK
+# finished_utc: 2026-09-22T14:01:31Z
+# duration_seconds: 8.037
+# returncode: 0

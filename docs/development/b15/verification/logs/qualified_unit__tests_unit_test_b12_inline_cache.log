@@ -1,0 +1,17 @@
+# command: /opt/pyvenv/bin/python -m unittest -v tests.unit.test_b12_inline_cache
+# started_utc: 2026-09-22T14:13:43Z
+test_acoustic_tail_not_text_shape_decides_completeness (tests.unit.test_b12_inline_cache.InlineCacheTests.test_acoustic_tail_not_text_shape_decides_completeness) ... ok
+test_cache_reuses_only_hashed_governed_audio (tests.unit.test_b12_inline_cache.InlineCacheTests.test_cache_reuses_only_hashed_governed_audio) ... ok
+test_cache_symlink_refused (tests.unit.test_b12_inline_cache.InlineCacheTests.test_cache_symlink_refused) ... ok
+test_speech_resumption_invalidates_quiet_tail (tests.unit.test_b12_inline_cache.InlineCacheTests.test_speech_resumption_invalidates_quiet_tail) ... ok
+test_trailing_timer_qualifier_preserved (tests.unit.test_b12_inline_cache.InlineCacheTests.test_trailing_timer_qualifier_preserved) ... ok
+test_truncated_fast_command_not_executed_when_continuation_missing (tests.unit.test_b12_inline_cache.InlineCacheTests.test_truncated_fast_command_not_executed_when_continuation_missing) ... ok
+test_untrusted_or_missing_wave_not_complete (tests.unit.test_b12_inline_cache.InlineCacheTests.test_untrusted_or_missing_wave_not_complete) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.011s
+
+OK
+# finished_utc: 2026-09-22T14:13:44Z
+# duration_seconds: 0.857
+# returncode: 0

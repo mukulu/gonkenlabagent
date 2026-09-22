@@ -1,0 +1,12 @@
+# command: /opt/pyvenv/bin/python -m unittest -v tests.integration.test_release_lifecycle_process.TargetBridgeUpgradeCompatibilityTests.test_process_activation_does_not_fail_after_success_when_older_stale_release_is_pre_bridge
+# started_utc: 2026-09-22T14:04:02Z
+test_process_activation_does_not_fail_after_success_when_older_stale_release_is_pre_bridge (tests.integration.test_release_lifecycle_process.TargetBridgeUpgradeCompatibilityTests.test_process_activation_does_not_fail_after_success_when_older_stale_release_is_pre_bridge)
+Reproduce checkpoint-30 Pi: stale legacy A, active legacy B, new strict C. ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.899s
+
+OK
+# finished_utc: 2026-09-22T14:04:04Z
+# duration_seconds: 1.752
+# returncode: 0

@@ -1,0 +1,12 @@
+# command: /opt/pyvenv/bin/python -m unittest -v tests.integration.test_release_lifecycle_process.TargetBridgeUpgradeCompatibilityTests.test_process_activation_migrates_from_post_verified_pre_bridge_target_release
+# started_utc: 2026-09-22T14:04:04Z
+test_process_activation_migrates_from_post_verified_pre_bridge_target_release (tests.integration.test_release_lifecycle_process.TargetBridgeUpgradeCompatibilityTests.test_process_activation_migrates_from_post_verified_pre_bridge_target_release)
+Exact checkpoint-29 target failure: reconcile old active, then activate bridge release. ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.826s
+
+OK
+# finished_utc: 2026-09-22T14:04:06Z
+# duration_seconds: 1.720
+# returncode: 0

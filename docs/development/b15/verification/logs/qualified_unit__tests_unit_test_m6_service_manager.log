@@ -1,0 +1,18 @@
+# command: /opt/pyvenv/bin/python -m unittest -v tests.unit.test_m6_service_manager
+# started_utc: 2026-09-22T14:14:29Z
+test_conflicting_installed_unit_fails_closed (tests.unit.test_m6_service_manager.ServiceManagerTests.test_conflicting_installed_unit_fails_closed) ... ok
+test_fix6_managed_unit_is_upgraded_to_generated_runtime_environment (tests.unit.test_m6_service_manager.ServiceManagerTests.test_fix6_managed_unit_is_upgraded_to_generated_runtime_environment) ... ok
+test_install_status_remove_are_exact_and_reversible (tests.unit.test_m6_service_manager.ServiceManagerTests.test_install_status_remove_are_exact_and_reversible) ... ok
+test_installed_status_is_not_race_sensitive_to_runtime_activity (tests.unit.test_m6_service_manager.ServiceManagerTests.test_installed_status_is_not_race_sensitive_to_runtime_activity) ... ok
+test_known_previous_managed_unit_is_upgraded_in_place (tests.unit.test_m6_service_manager.ServiceManagerTests.test_known_previous_managed_unit_is_upgraded_in_place) ... ok
+test_optional_corpus_does_not_make_namespace_start_fatal (tests.unit.test_m6_service_manager.ServiceManagerTests.test_optional_corpus_does_not_make_namespace_start_fatal) ... ok
+test_system_unit_never_uses_manager_uid_specifier_for_audio (tests.unit.test_m6_service_manager.ServiceManagerTests.test_system_unit_never_uses_manager_uid_specifier_for_audio) ... ok
+test_template_contract_rejects_power_and_privilege_grants (tests.unit.test_m6_service_manager.ServiceManagerTests.test_template_contract_rejects_power_and_privilege_grants) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 10.966s
+
+OK
+# finished_utc: 2026-09-22T14:14:40Z
+# duration_seconds: 11.668
+# returncode: 0

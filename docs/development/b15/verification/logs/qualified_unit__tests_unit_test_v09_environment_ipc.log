@@ -1,0 +1,19 @@
+# command: /opt/pyvenv/bin/python -m unittest -v tests.unit.test_v09_environment_ipc
+# started_utc: 2026-09-22T14:15:46Z
+test_ipc_modules_do_not_import_hardware_or_shell_surfaces (tests.unit.test_v09_environment_ipc.EnvironmentProtocolTests.test_ipc_modules_do_not_import_hardware_or_shell_surfaces) ... ok
+test_protocol_rejects_unsafe_or_unknown_shapes (tests.unit.test_v09_environment_ipc.EnvironmentProtocolTests.test_protocol_rejects_unsafe_or_unknown_shapes) ... ok
+test_request_encoding_is_bounded (tests.unit.test_v09_environment_ipc.EnvironmentProtocolTests.test_request_encoding_is_bounded) ... ok
+test_service_core_exposes_status_health_and_sensor_read_without_physical_claims (tests.unit.test_v09_environment_ipc.EnvironmentServiceCoreTests.test_service_core_exposes_status_health_and_sensor_read_without_physical_claims) ... ok
+test_service_mutations_validate_policy_generation_and_disabled_mode (tests.unit.test_v09_environment_ipc.EnvironmentServiceCoreTests.test_service_mutations_validate_policy_generation_and_disabled_mode) ... ok
+test_service_rejects_bad_operation_parameters (tests.unit.test_v09_environment_ipc.EnvironmentServiceCoreTests.test_service_rejects_bad_operation_parameters) ... ok
+test_client_surfaces_daemon_rejections_without_fake_success (tests.unit.test_v09_environment_ipc.EnvironmentUnixIpcTests.test_client_surfaces_daemon_rejections_without_fake_success) ... ok
+test_server_rejects_non_socket_path_and_removes_socket_on_close (tests.unit.test_v09_environment_ipc.EnvironmentUnixIpcTests.test_server_rejects_non_socket_path_and_removes_socket_on_close) ... ok
+test_unix_socket_contract_status_sensor_fan_mode_policy (tests.unit.test_v09_environment_ipc.EnvironmentUnixIpcTests.test_unix_socket_contract_status_sensor_fan_mode_policy) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 1.517s
+
+OK
+# finished_utc: 2026-09-22T14:15:48Z
+# duration_seconds: 2.263
+# returncode: 0

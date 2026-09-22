@@ -1,0 +1,18 @@
+# command: /opt/pyvenv/bin/python -m unittest -v tests.unit.test_b12_documented_commands
+# started_utc: 2026-09-22T14:13:42Z
+test_ambiguous_new_requirements_are_not_silently_acted_on (tests.unit.test_b12_documented_commands.DocumentationTests.test_ambiguous_new_requirements_are_not_silently_acted_on) ... ok
+test_catalogue_is_visible_in_root_readme_not_buried (tests.unit.test_b12_documented_commands.DocumentationTests.test_catalogue_is_visible_in_root_readme_not_buried) ... ok
+test_conceptual_sensor_questions_reach_conversation_not_live_reading (tests.unit.test_b12_documented_commands.DocumentationTests.test_conceptual_sensor_questions_reach_conversation_not_live_reading) ... ok
+test_current_document_local_links_exist (tests.unit.test_b12_documented_commands.DocumentationTests.test_current_document_local_links_exist) ... ok
+test_every_terminal_example_parses_without_execution (tests.unit.test_b12_documented_commands.DocumentationTests.test_every_terminal_example_parses_without_execution) ... ok
+test_every_voice_example_maps_to_documented_operation_and_arguments (tests.unit.test_b12_documented_commands.DocumentationTests.test_every_voice_example_maps_to_documented_operation_and_arguments) ... ok
+test_future_display_not_presented_as_shipped_command (tests.unit.test_b12_documented_commands.DocumentationTests.test_future_display_not_presented_as_shipped_command) ... ok
+test_svg_architecture_is_native_accessible_and_passive (tests.unit.test_b12_documented_commands.DocumentationTests.test_svg_architecture_is_native_accessible_and_passive) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 0.031s
+
+OK
+# finished_utc: 2026-09-22T14:13:43Z
+# duration_seconds: 0.974
+# returncode: 0

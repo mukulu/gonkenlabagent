@@ -1,0 +1,839 @@
+{
+  "active_module": null,
+  "created_utc": "2026-09-22T14:16:24Z",
+  "execution_state": "COMPLETED",
+  "granularity": "module",
+  "label": "b15-qualified-unit",
+  "module_count": 91,
+  "modules": [
+    {
+      "duration_seconds": 1.07,
+      "log_file": "logs/qualified_unit__tests_unit_test_attempt03_api_bounds.log",
+      "module": "tests.unit.test_attempt03_api_bounds",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 1.195,
+      "log_file": "logs/qualified_unit__tests_unit_test_attempt03_evidence_transport.log",
+      "module": "tests.unit.test_attempt03_evidence_transport",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 1.21,
+      "log_file": "logs/qualified_unit__tests_unit_test_attempt03_final_convergence.log",
+      "module": "tests.unit.test_attempt03_final_convergence",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 1.027,
+      "log_file": "logs/qualified_unit__tests_unit_test_attempt03_foundation.log",
+      "module": "tests.unit.test_attempt03_foundation",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 1.035,
+      "log_file": "logs/qualified_unit__tests_unit_test_attempt03_gpio_consumers.log",
+      "module": "tests.unit.test_attempt03_gpio_consumers",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 1.056,
+      "log_file": "logs/qualified_unit__tests_unit_test_attempt03_model_experiment.log",
+      "module": "tests.unit.test_attempt03_model_experiment",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.924,
+      "log_file": "logs/qualified_unit__tests_unit_test_attempt03_ollama_errors.log",
+      "module": "tests.unit.test_attempt03_ollama_errors",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 1.096,
+      "log_file": "logs/qualified_unit__tests_unit_test_attempt03_promotion_gates.log",
+      "module": "tests.unit.test_attempt03_promotion_gates",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.881,
+      "log_file": "logs/qualified_unit__tests_unit_test_attempt03_resources.log",
+      "module": "tests.unit.test_attempt03_resources",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 1.175,
+      "log_file": "logs/qualified_unit__tests_unit_test_attempt03_roster_progress.log",
+      "module": "tests.unit.test_attempt03_roster_progress",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 1.919,
+      "log_file": "logs/qualified_unit__tests_unit_test_attempt03_runtime_readiness.log",
+      "module": "tests.unit.test_attempt03_runtime_readiness",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.907,
+      "log_file": "logs/qualified_unit__tests_unit_test_b10_candidate_plan.log",
+      "module": "tests.unit.test_b10_candidate_plan",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 8.638,
+      "log_file": "logs/qualified_unit__tests_unit_test_b10_installed_maintenance.log",
+      "module": "tests.unit.test_b10_installed_maintenance",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.947,
+      "log_file": "logs/qualified_unit__tests_unit_test_b10_policy_safety.log",
+      "module": "tests.unit.test_b10_policy_safety",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 3.128,
+      "log_file": "logs/qualified_unit__tests_unit_test_b10_real_environment.log",
+      "module": "tests.unit.test_b10_real_environment",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 2.377,
+      "log_file": "logs/qualified_unit__tests_unit_test_b10_room_installer.log",
+      "module": "tests.unit.test_b10_room_installer",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.737,
+      "log_file": "logs/qualified_unit__tests_unit_test_b11_actuator_truth.log",
+      "module": "tests.unit.test_b11_actuator_truth",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.907,
+      "log_file": "logs/qualified_unit__tests_unit_test_b11_alternate_models.log",
+      "module": "tests.unit.test_b11_alternate_models",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.781,
+      "log_file": "logs/qualified_unit__tests_unit_test_b11_environment_evidence.log",
+      "module": "tests.unit.test_b11_environment_evidence",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 2.435,
+      "log_file": "logs/qualified_unit__tests_unit_test_b11_environment_lifecycle.log",
+      "module": "tests.unit.test_b11_environment_lifecycle",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.848,
+      "log_file": "logs/qualified_unit__tests_unit_test_b11_environment_observability.log",
+      "module": "tests.unit.test_b11_environment_observability",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.79,
+      "log_file": "logs/qualified_unit__tests_unit_test_b11_environment_reconciliation.log",
+      "module": "tests.unit.test_b11_environment_reconciliation",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.878,
+      "log_file": "logs/qualified_unit__tests_unit_test_b11_voice_tool_admission.log",
+      "module": "tests.unit.test_b11_voice_tool_admission",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.768,
+      "log_file": "logs/qualified_unit__tests_unit_test_b12_automation.log",
+      "module": "tests.unit.test_b12_automation",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.9,
+      "log_file": "logs/qualified_unit__tests_unit_test_b12_commands_power.log",
+      "module": "tests.unit.test_b12_commands_power",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.916,
+      "log_file": "logs/qualified_unit__tests_unit_test_b12_configuration_freshness.log",
+      "module": "tests.unit.test_b12_configuration_freshness",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.974,
+      "log_file": "logs/qualified_unit__tests_unit_test_b12_documented_commands.log",
+      "module": "tests.unit.test_b12_documented_commands",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.857,
+      "log_file": "logs/qualified_unit__tests_unit_test_b12_inline_cache.log",
+      "module": "tests.unit.test_b12_inline_cache",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 1.722,
+      "log_file": "logs/qualified_unit__tests_unit_test_b12_responsive_preset.log",
+      "module": "tests.unit.test_b12_responsive_preset",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 1.079,
+      "log_file": "logs/qualified_unit__tests_unit_test_b12_speech_latency.log",
+      "module": "tests.unit.test_b12_speech_latency",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.82,
+      "log_file": "logs/qualified_unit__tests_unit_test_b12_spoken_numbers.log",
+      "module": "tests.unit.test_b12_spoken_numbers",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.858,
+      "log_file": "logs/qualified_unit__tests_unit_test_b15_capture_repair.log",
+      "module": "tests.unit.test_b15_capture_repair",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 1.145,
+      "log_file": "logs/qualified_unit__tests_unit_test_b15_streaming_wake.log",
+      "module": "tests.unit.test_b15_streaming_wake",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.832,
+      "log_file": "logs/qualified_unit__tests_unit_test_b15_voice_diagnostics.log",
+      "module": "tests.unit.test_b15_voice_diagnostics",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 15.412,
+      "log_file": "logs/qualified_unit__tests_unit_test_bounded_unittest_runner.log",
+      "module": "tests.unit.test_bounded_unittest_runner",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 1.143,
+      "log_file": "logs/qualified_unit__tests_unit_test_diagnostics_snapshot.log",
+      "module": "tests.unit.test_diagnostics_snapshot",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.753,
+      "log_file": "logs/qualified_unit__tests_unit_test_fix5_appliance_manager.log",
+      "module": "tests.unit.test_fix5_appliance_manager",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 1.123,
+      "log_file": "logs/qualified_unit__tests_unit_test_grounding_observability.log",
+      "module": "tests.unit.test_grounding_observability",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 2.189,
+      "log_file": "logs/qualified_unit__tests_unit_test_legacy_router.log",
+      "module": "tests.unit.test_legacy_router",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 2.83,
+      "log_file": "logs/qualified_unit__tests_unit_test_m2_1.log",
+      "module": "tests.unit.test_m2_1",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 1.042,
+      "log_file": "logs/qualified_unit__tests_unit_test_m2_2_config.log",
+      "module": "tests.unit.test_m2_2_config",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 2.612,
+      "log_file": "logs/qualified_unit__tests_unit_test_m2_3_dependencies.log",
+      "module": "tests.unit.test_m2_3_dependencies",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 1.12,
+      "log_file": "logs/qualified_unit__tests_unit_test_m3_1_preflight.log",
+      "module": "tests.unit.test_m3_1_preflight",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 1.482,
+      "log_file": "logs/qualified_unit__tests_unit_test_m3_2_install_engine.log",
+      "module": "tests.unit.test_m3_2_install_engine",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 4.283,
+      "log_file": "logs/qualified_unit__tests_unit_test_m3_3_release_manager.log",
+      "module": "tests.unit.test_m3_3_release_manager",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.921,
+      "log_file": "logs/qualified_unit__tests_unit_test_m3_4_ollama_manager.log",
+      "module": "tests.unit.test_m3_4_ollama_manager",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.897,
+      "log_file": "logs/qualified_unit__tests_unit_test_m3_5_speech_manager.log",
+      "module": "tests.unit.test_m3_5_speech_manager",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 1.75,
+      "log_file": "logs/qualified_unit__tests_unit_test_m3_6_install_summary.log",
+      "module": "tests.unit.test_m3_6_install_summary",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.914,
+      "log_file": "logs/qualified_unit__tests_unit_test_m5_1_ptt_runtime.log",
+      "module": "tests.unit.test_m5_1_ptt_runtime",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 11.668,
+      "log_file": "logs/qualified_unit__tests_unit_test_m6_service_manager.log",
+      "module": "tests.unit.test_m6_service_manager",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 8.585,
+      "log_file": "logs/qualified_unit__tests_unit_test_m8_uninstall_manager.log",
+      "module": "tests.unit.test_m8_uninstall_manager",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.98,
+      "log_file": "logs/qualified_unit__tests_unit_test_m8_update_manager.log",
+      "module": "tests.unit.test_m8_update_manager",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.937,
+      "log_file": "logs/qualified_unit__tests_unit_test_qwen_runtime_contract.log",
+      "module": "tests.unit.test_qwen_runtime_contract",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 2.8,
+      "log_file": "logs/qualified_unit__tests_unit_test_release_readiness.log",
+      "module": "tests.unit.test_release_readiness",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 3.487,
+      "log_file": "logs/qualified_unit__tests_unit_test_runtime_audio.log",
+      "module": "tests.unit.test_runtime_audio",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 7.998,
+      "log_file": "logs/qualified_unit__tests_unit_test_support_export.log",
+      "module": "tests.unit.test_support_export",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 3.568,
+      "log_file": "logs/qualified_unit__tests_unit_test_test_architecture.log",
+      "module": "tests.unit.test_test_architecture",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.856,
+      "log_file": "logs/qualified_unit__tests_unit_test_v09_archive_qualifier.log",
+      "module": "tests.unit.test_v09_archive_qualifier",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.777,
+      "log_file": "logs/qualified_unit__tests_unit_test_v09_component_readiness.log",
+      "module": "tests.unit.test_v09_component_readiness",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.961,
+      "log_file": "logs/qualified_unit__tests_unit_test_v09_doctor_context.log",
+      "module": "tests.unit.test_v09_doctor_context",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 2.891,
+      "log_file": "logs/qualified_unit__tests_unit_test_v09_documentation_hardening.log",
+      "module": "tests.unit.test_v09_documentation_hardening",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 26.688,
+      "log_file": "logs/qualified_unit__tests_unit_test_v09_environment_acceptance_runner.log",
+      "module": "tests.unit.test_v09_environment_acceptance_runner",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.996,
+      "log_file": "logs/qualified_unit__tests_unit_test_v09_environment_cli.log",
+      "module": "tests.unit.test_v09_environment_cli",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.746,
+      "log_file": "logs/qualified_unit__tests_unit_test_v09_environment_config.log",
+      "module": "tests.unit.test_v09_environment_config",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.748,
+      "log_file": "logs/qualified_unit__tests_unit_test_v09_environment_controller.log",
+      "module": "tests.unit.test_v09_environment_controller",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 1.385,
+      "log_file": "logs/qualified_unit__tests_unit_test_v09_environment_daemon_activation.log",
+      "module": "tests.unit.test_v09_environment_daemon_activation",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.768,
+      "log_file": "logs/qualified_unit__tests_unit_test_v09_environment_hardware_adapters.log",
+      "module": "tests.unit.test_v09_environment_hardware_adapters",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 2.263,
+      "log_file": "logs/qualified_unit__tests_unit_test_v09_environment_ipc.log",
+      "module": "tests.unit.test_v09_environment_ipc",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.693,
+      "log_file": "logs/qualified_unit__tests_unit_test_v09_environment_policy.log",
+      "module": "tests.unit.test_v09_environment_policy",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.754,
+      "log_file": "logs/qualified_unit__tests_unit_test_v09_environment_polling_loop.log",
+      "module": "tests.unit.test_v09_environment_polling_loop",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 2.137,
+      "log_file": "logs/qualified_unit__tests_unit_test_v09_environment_profile_manager.log",
+      "module": "tests.unit.test_v09_environment_profile_manager",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.841,
+      "log_file": "logs/qualified_unit__tests_unit_test_v09_environment_readiness.log",
+      "module": "tests.unit.test_v09_environment_readiness",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 10.068,
+      "log_file": "logs/qualified_unit__tests_unit_test_v09_environment_service_manager.log",
+      "module": "tests.unit.test_v09_environment_service_manager",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 1.82,
+      "log_file": "logs/qualified_unit__tests_unit_test_v09_environment_simulation.log",
+      "module": "tests.unit.test_v09_environment_simulation",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.7,
+      "log_file": "logs/qualified_unit__tests_unit_test_v09_environment_voice_intents.log",
+      "module": "tests.unit.test_v09_environment_voice_intents",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.785,
+      "log_file": "logs/qualified_unit__tests_unit_test_v09_gpio_identity_preflight.log",
+      "module": "tests.unit.test_v09_gpio_identity_preflight",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.819,
+      "log_file": "logs/qualified_unit__tests_unit_test_v09_i2c_manager.log",
+      "module": "tests.unit.test_v09_i2c_manager",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.764,
+      "log_file": "logs/qualified_unit__tests_unit_test_v09_install_dependency_graph.log",
+      "module": "tests.unit.test_v09_install_dependency_graph",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.769,
+      "log_file": "logs/qualified_unit__tests_unit_test_v09_installer_failure_bundle.log",
+      "module": "tests.unit.test_v09_installer_failure_bundle",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.847,
+      "log_file": "logs/qualified_unit__tests_unit_test_v09_llm_admin_components.log",
+      "module": "tests.unit.test_v09_llm_admin_components",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.851,
+      "log_file": "logs/qualified_unit__tests_unit_test_v09_model_roster_manager.log",
+      "module": "tests.unit.test_v09_model_roster_manager",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.845,
+      "log_file": "logs/qualified_unit__tests_unit_test_v09_multimodel_tools.log",
+      "module": "tests.unit.test_v09_multimodel_tools",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.75,
+      "log_file": "logs/qualified_unit__tests_unit_test_v09_release_identity.log",
+      "module": "tests.unit.test_v09_release_identity",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.903,
+      "log_file": "logs/qualified_unit__tests_unit_test_v09_responsibility_boundaries.log",
+      "module": "tests.unit.test_v09_responsibility_boundaries",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.733,
+      "log_file": "logs/qualified_unit__tests_unit_test_v09_runtime_context_preflight.log",
+      "module": "tests.unit.test_v09_runtime_context_preflight",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.79,
+      "log_file": "logs/qualified_unit__tests_unit_test_v09_sht31_diagnostic.log",
+      "module": "tests.unit.test_v09_sht31_diagnostic",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.65,
+      "log_file": "logs/qualified_unit__tests_unit_test_v09_target_preflight.log",
+      "module": "tests.unit.test_v09_target_preflight",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 6.833,
+      "log_file": "logs/qualified_unit__tests_unit_test_v09_target_probe.log",
+      "module": "tests.unit.test_v09_target_probe",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.777,
+      "log_file": "logs/qualified_unit__tests_unit_test_v09_user_test_readiness.log",
+      "module": "tests.unit.test_v09_user_test_readiness",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.828,
+      "log_file": "logs/qualified_unit__tests_unit_test_voice_appliance.log",
+      "module": "tests.unit.test_voice_appliance",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    },
+    {
+      "duration_seconds": 0.65,
+      "log_file": "logs/qualified_unit__tests_unit_test_x4_bluetooth_manager.log",
+      "module": "tests.unit.test_x4_bluetooth_manager",
+      "returncode": 0,
+      "status": "PASS",
+      "timed_out": false
+    }
+  ],
+  "pending_modules": [],
+  "planned_count": 91,
+  "planned_modules": [
+    "tests.unit.test_attempt03_api_bounds",
+    "tests.unit.test_attempt03_evidence_transport",
+    "tests.unit.test_attempt03_final_convergence",
+    "tests.unit.test_attempt03_foundation",
+    "tests.unit.test_attempt03_gpio_consumers",
+    "tests.unit.test_attempt03_model_experiment",
+    "tests.unit.test_attempt03_ollama_errors",
+    "tests.unit.test_attempt03_promotion_gates",
+    "tests.unit.test_attempt03_resources",
+    "tests.unit.test_attempt03_roster_progress",
+    "tests.unit.test_attempt03_runtime_readiness",
+    "tests.unit.test_b10_candidate_plan",
+    "tests.unit.test_b10_installed_maintenance",
+    "tests.unit.test_b10_policy_safety",
+    "tests.unit.test_b10_real_environment",
+    "tests.unit.test_b10_room_installer",
+    "tests.unit.test_b11_actuator_truth",
+    "tests.unit.test_b11_alternate_models",
+    "tests.unit.test_b11_environment_evidence",
+    "tests.unit.test_b11_environment_lifecycle",
+    "tests.unit.test_b11_environment_observability",
+    "tests.unit.test_b11_environment_reconciliation",
+    "tests.unit.test_b11_voice_tool_admission",
+    "tests.unit.test_b12_automation",
+    "tests.unit.test_b12_commands_power",
+    "tests.unit.test_b12_configuration_freshness",
+    "tests.unit.test_b12_documented_commands",
+    "tests.unit.test_b12_inline_cache",
+    "tests.unit.test_b12_responsive_preset",
+    "tests.unit.test_b12_speech_latency",
+    "tests.unit.test_b12_spoken_numbers",
+    "tests.unit.test_b15_capture_repair",
+    "tests.unit.test_b15_streaming_wake",
+    "tests.unit.test_b15_voice_diagnostics",
+    "tests.unit.test_bounded_unittest_runner",
+    "tests.unit.test_diagnostics_snapshot",
+    "tests.unit.test_fix5_appliance_manager",
+    "tests.unit.test_grounding_observability",
+    "tests.unit.test_legacy_router",
+    "tests.unit.test_m2_1",
+    "tests.unit.test_m2_2_config",
+    "tests.unit.test_m2_3_dependencies",
+    "tests.unit.test_m3_1_preflight",
+    "tests.unit.test_m3_2_install_engine",
+    "tests.unit.test_m3_3_release_manager",
+    "tests.unit.test_m3_4_ollama_manager",
+    "tests.unit.test_m3_5_speech_manager",
+    "tests.unit.test_m3_6_install_summary",
+    "tests.unit.test_m5_1_ptt_runtime",
+    "tests.unit.test_m6_service_manager",
+    "tests.unit.test_m8_uninstall_manager",
+    "tests.unit.test_m8_update_manager",
+    "tests.unit.test_qwen_runtime_contract",
+    "tests.unit.test_release_readiness",
+    "tests.unit.test_runtime_audio",
+    "tests.unit.test_support_export",
+    "tests.unit.test_test_architecture",
+    "tests.unit.test_v09_archive_qualifier",
+    "tests.unit.test_v09_component_readiness",
+    "tests.unit.test_v09_doctor_context",
+    "tests.unit.test_v09_documentation_hardening",
+    "tests.unit.test_v09_environment_acceptance_runner",
+    "tests.unit.test_v09_environment_cli",
+    "tests.unit.test_v09_environment_config",
+    "tests.unit.test_v09_environment_controller",
+    "tests.unit.test_v09_environment_daemon_activation",
+    "tests.unit.test_v09_environment_hardware_adapters",
+    "tests.unit.test_v09_environment_ipc",
+    "tests.unit.test_v09_environment_policy",
+    "tests.unit.test_v09_environment_polling_loop",
+    "tests.unit.test_v09_environment_profile_manager",
+    "tests.unit.test_v09_environment_readiness",
+    "tests.unit.test_v09_environment_service_manager",
+    "tests.unit.test_v09_environment_simulation",
+    "tests.unit.test_v09_environment_voice_intents",
+    "tests.unit.test_v09_gpio_identity_preflight",
+    "tests.unit.test_v09_i2c_manager",
+    "tests.unit.test_v09_install_dependency_graph",
+    "tests.unit.test_v09_installer_failure_bundle",
+    "tests.unit.test_v09_llm_admin_components",
+    "tests.unit.test_v09_model_roster_manager",
+    "tests.unit.test_v09_multimodel_tools",
+    "tests.unit.test_v09_release_identity",
+    "tests.unit.test_v09_responsibility_boundaries",
+    "tests.unit.test_v09_runtime_context_preflight",
+    "tests.unit.test_v09_sht31_diagnostic",
+    "tests.unit.test_v09_target_preflight",
+    "tests.unit.test_v09_target_probe",
+    "tests.unit.test_v09_user_test_readiness",
+    "tests.unit.test_voice_appliance",
+    "tests.unit.test_x4_bluetooth_manager"
+  ],
+  "result": "PASS",
+  "runner_pid": 20035,
+  "schema": "gonken-bounded-unittest-v1",
+  "status_counts": {
+    "PASS": 91
+  }
+}

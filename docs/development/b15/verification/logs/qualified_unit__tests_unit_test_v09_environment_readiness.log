@@ -1,0 +1,14 @@
+# command: /opt/pyvenv/bin/python -m unittest -v tests.unit.test_v09_environment_readiness
+# started_utc: 2026-09-22T14:15:51Z
+test_backend_mismatch_fails_instead_of_accepting_process_liveness (tests.unit.test_v09_environment_readiness.EnvironmentReadinessTests.test_backend_mismatch_fails_instead_of_accepting_process_liveness) ... ok
+test_full_real_rejects_a_simulated_actuator (tests.unit.test_v09_environment_readiness.EnvironmentReadinessTests.test_full_real_rejects_a_simulated_actuator) ... ok
+test_physical_evidence_claim_is_rejected (tests.unit.test_v09_environment_readiness.EnvironmentReadinessTests.test_physical_evidence_claim_is_rejected) ... ok
+test_real_sensor_simulated_actuator_requires_semantic_sensor_ready (tests.unit.test_v09_environment_readiness.EnvironmentReadinessTests.test_real_sensor_simulated_actuator_requires_semantic_sensor_ready) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.125s
+
+OK
+# finished_utc: 2026-09-22T14:15:52Z
+# duration_seconds: 0.841
+# returncode: 0

@@ -1,0 +1,16 @@
+# command: /opt/pyvenv/bin/python -m unittest -v tests.integration.test_support_collection_process
+# started_utc: 2026-09-22T14:17:10Z
+test_child_failure_is_preserved_no_destination_created (tests.integration.test_support_collection_process.SupportCollectionProcessTests.test_child_failure_is_preserved_no_destination_created) ... ok
+test_help_works_without_installed_command (tests.integration.test_support_collection_process.SupportCollectionProcessTests.test_help_works_without_installed_command) ... ok
+test_installed_wrapper_uses_release_local_entrypoint (tests.integration.test_support_collection_process.SupportCollectionProcessTests.test_installed_wrapper_uses_release_local_entrypoint) ... ok
+test_missing_flag_value_has_bounded_clear_error (tests.integration.test_support_collection_process.SupportCollectionProcessTests.test_missing_flag_value_has_bounded_clear_error) ... ok
+test_output_dir_forwarded_once_and_single_bundle_created (tests.integration.test_support_collection_process.SupportCollectionProcessTests.test_output_dir_forwarded_once_and_single_bundle_created) ... ok
+test_target_manifest_auto_embedded_and_temporary_file_removed (tests.integration.test_support_collection_process.SupportCollectionProcessTests.test_target_manifest_auto_embedded_and_temporary_file_removed) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 2.838s
+
+OK
+# finished_utc: 2026-09-22T14:17:13Z
+# duration_seconds: 3.562
+# returncode: 0

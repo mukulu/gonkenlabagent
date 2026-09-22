@@ -1,0 +1,20 @@
+# command: /opt/pyvenv/bin/python -m unittest -v tests.integration.test_install_engine_process
+# started_utc: 2026-09-22T14:13:39Z
+test_duplicate_or_permissive_record_fails_before_state_mutation (tests.integration.test_install_engine_process.InstallProcessTests.test_duplicate_or_permissive_record_fails_before_state_mutation) ... ok
+test_engine_only_stops_before_release_provisioning (tests.integration.test_install_engine_process.InstallProcessTests.test_engine_only_stops_before_release_provisioning) ... ok
+test_false_complete_state_is_repaired_from_probe_truth (tests.integration.test_install_engine_process.InstallProcessTests.test_false_complete_state_is_repaired_from_probe_truth) ... ok
+test_good_probe_repairs_missing_advisory_state_without_action (tests.integration.test_install_engine_process.InstallProcessTests.test_good_probe_repairs_missing_advisory_state_without_action) ... ok
+test_moved_remote_ref_fails_before_state_mutation (tests.integration.test_install_engine_process.InstallProcessTests.test_moved_remote_ref_fails_before_state_mutation) ... ok
+test_record_is_data_and_never_shell_executed (tests.integration.test_install_engine_process.InstallProcessTests.test_record_is_data_and_never_shell_executed) ... ok
+test_successful_engine_run_is_private_and_repeatable (tests.integration.test_install_engine_process.InstallProcessTests.test_successful_engine_run_is_private_and_repeatable) ... ok
+test_abrupt_kill_leaves_recoverable_stale_state (tests.integration.test_install_engine_process.InterruptionProcessTests.test_abrupt_kill_leaves_recoverable_stale_state) ... ok
+test_advisory_complete_state_never_overrides_failed_probe (tests.integration.test_install_engine_process.InterruptionProcessTests.test_advisory_complete_state_never_overrides_failed_probe) ... ok
+test_term_interrupt_before_during_after_every_fake_step_then_converges (tests.integration.test_install_engine_process.InterruptionProcessTests.test_term_interrupt_before_during_after_every_fake_step_then_converges) ... ok
+
+----------------------------------------------------------------------
+Ran 10 tests in 15.498s
+
+OK
+# finished_utc: 2026-09-22T14:13:55Z
+# duration_seconds: 16.276
+# returncode: 0

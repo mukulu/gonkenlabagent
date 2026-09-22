@@ -1,0 +1,34 @@
+# command: /opt/pyvenv/bin/python -m unittest -v tests.unit.test_b12_automation
+# started_utc: 2026-09-22T14:13:39Z
+test_actuator_failure_cancels_schedule_and_never_claims_success (tests.unit.test_b12_automation.AutomationTests.test_actuator_failure_cancels_schedule_and_never_claims_success) ... ok
+test_cycle_expiry_stops_on_state_without_repeating (tests.unit.test_b12_automation.AutomationTests.test_cycle_expiry_stops_on_state_without_repeating) ... ok
+test_cycle_is_bounded_and_cancel_forces_safe_off (tests.unit.test_b12_automation.AutomationTests.test_cycle_is_bounded_and_cancel_forces_safe_off) ... ok
+test_delay_is_owner_polled_and_respects_minimum_off (tests.unit.test_b12_automation.AutomationTests.test_delay_is_owner_polled_and_respects_minimum_off) ... ok
+test_delta_measures_from_last_successfully_announced_temperature (tests.unit.test_b12_automation.AutomationTests.test_delta_measures_from_last_successfully_announced_temperature) ... ok
+test_direct_sensor_announcement_updates_baseline_only_on_ack (tests.unit.test_b12_automation.AutomationTests.test_direct_sensor_announcement_updates_baseline_only_on_ack) ... ok
+test_disabled_rejects_actuator_job (tests.unit.test_b12_automation.AutomationTests.test_disabled_rejects_actuator_job) ... ok
+test_failed_host_power_action_hold_expires_to_prior_mode (tests.unit.test_b12_automation.AutomationTests.test_failed_host_power_action_hold_expires_to_prior_mode) ... ok
+test_generation_prevents_cross_restart_ack (tests.unit.test_b12_automation.AutomationTests.test_generation_prevents_cross_restart_ack) ... ok
+test_invalid_params_are_not_actions (tests.unit.test_b12_automation.AutomationTests.test_invalid_params_are_not_actions) ... ok
+test_job_limit_and_history_are_bounded (tests.unit.test_b12_automation.AutomationTests.test_job_limit_and_history_are_bounded) ... ok
+test_manual_override_cancels_actuator_timers_not_reports (tests.unit.test_b12_automation.AutomationTests.test_manual_override_cancels_actuator_timers_not_reports) ... ok
+test_one_shot_sensor_notification_and_ack (tests.unit.test_b12_automation.AutomationTests.test_one_shot_sensor_notification_and_ack) ... ok
+test_overlapping_composite_rejected_without_losing_first (tests.unit.test_b12_automation.AutomationTests.test_overlapping_composite_rejected_without_losing_first) ... ok
+test_power_preparation_acknowledges_off_and_locks_mutation (tests.unit.test_b12_automation.AutomationTests.test_power_preparation_acknowledges_off_and_locks_mutation) ... ok
+test_power_prepare_failure_does_not_invent_ack (tests.unit.test_b12_automation.AutomationTests.test_power_prepare_failure_does_not_invent_ack) ... ok
+test_protocol_transports_typed_schedule_no_command_string (tests.unit.test_b12_automation.AutomationTests.test_protocol_transports_typed_schedule_no_command_string) ... ok
+test_read_only_queries_do_not_fire_timers_or_sample_sensor (tests.unit.test_b12_automation.AutomationTests.test_read_only_queries_do_not_fire_timers_or_sample_sensor) ... ok
+test_recovery_sample_requirement_protects_timer_on (tests.unit.test_b12_automation.AutomationTests.test_recovery_sample_requirement_protects_timer_on) ... ok
+test_repeat_no_catchup_burst (tests.unit.test_b12_automation.AutomationTests.test_repeat_no_catchup_burst) ... ok
+test_run_pair_switches_off_after_actual_start_duration (tests.unit.test_b12_automation.AutomationTests.test_run_pair_switches_off_after_actual_start_duration) ... ok
+test_sensor_fault_cancels_future_on_no_replay_after_recovery (tests.unit.test_b12_automation.AutomationTests.test_sensor_fault_cancels_future_on_no_replay_after_recovery) ... ok
+test_stale_notifications_expire_without_false_acknowledgement (tests.unit.test_b12_automation.AutomationTests.test_stale_notifications_expire_without_false_acknowledgement) ... ok
+test_unknown_power_action_never_acquires_a_hold (tests.unit.test_b12_automation.AutomationTests.test_unknown_power_action_never_acquires_a_hold) ... ok
+
+----------------------------------------------------------------------
+Ran 24 tests in 0.012s
+
+OK
+# finished_utc: 2026-09-22T14:13:40Z
+# duration_seconds: 0.768
+# returncode: 0

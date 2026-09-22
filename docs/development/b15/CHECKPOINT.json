@@ -3,9 +3,29 @@
   "baseline_commit": "648f5b151d4c753cf1660243afacd010d73d05b7",
   "baseline_archive_sha256": "52713e418f7762ab655fc102314cadccfb7017337c3bd18645c2bf0778e2d6b6",
   "prior_attempt": "INTERRUPTED; no B15 branch or local edits recovered",
-  "batch1": "PASS: 156 focused tests; raw capture, short announcements, inline complete questions and once-only ready cue",
-  "batch2": "PASS focused: streaming segmenter, full voice-loop branches, real PCM child processes and native ABI silence/reset; synthetic acoustic campaign and wider regression pending",
-  "batch3": "PASS: numeric/boolean-only support metrics, capture timing, failure cleanup, conservative native defaults; lifecycle and final package checks pending",
+  "batch1": "PASS: raw PCM finalization; short announcements; inline completion; once-only startup speech",
+  "batch2": "PASS: bounded streaming capture and native/utterance fallback control flow; native synthetic misses recorded, not a physical recall PASS",
+  "batch3": "PASS: typed support timing metrics; truthful CLI/config; installed-policy-preserving runbook; complete distinct test accounting",
   "physical_acceptance_claimed": false,
-  "next_action": "Finish bounded lifecycle tests, update current docs and package a clean exact checkpoint; retain synthetic misses as limitations, do not claim physical acceptance."
+  "next_action": "Read the adjacent B15 delivery receipt. If exact archive qualification passed, install this checkpoint using INSTALL_AND_VERIFY.md and collect B15 physical voice/reboot evidence; otherwise rerun only the failed export check.",
+  "checkpoint_status": "HOST_VERIFIED; exported-byte result belongs to the adjacent delivery receipt",
+  "product_freeze_commit": "5c063291ff232a97defceb4344ee5ec398e855e5",
+  "verified_tests": {
+    "unit": 1011,
+    "integration": 97,
+    "total_distinct": 1108,
+    "skipped": 0
+  },
+  "current_execution": "COMPLETED; no tests left RUNNING",
+  "physical_gates": {
+    "wake_recall_false_positives": "BLOCKED_TARGET_GATE",
+    "microphone_to_speaker_latency": "BLOCKED_TARGET_GATE",
+    "inline_and_standalone_real_speech": "BLOCKED_TARGET_GATE",
+    "microphone_hotplug_no_login_reboot": "BLOCKED_TARGET_GATE"
+  },
+  "known_limitations": [
+    "Conservative native synthetic wake recall was 6/12 with 0/24 false hits; fallback still invokes full-utterance Whisper and may take several seconds.",
+    "Latest supplied support boot had no usable microphone.",
+    "Whole Attempt03 strict promotion remains NOT_READY; not weakened."
+  ]
 }

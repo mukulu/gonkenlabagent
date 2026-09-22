@@ -1,0 +1,11 @@
+# command: /opt/pyvenv/bin/python -m unittest -v tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_full_lifecycle_repeat_status_and_private_record
+# started_utc: 2026-09-22T14:04:06Z
+test_full_lifecycle_repeat_status_and_private_record (tests.integration.test_speech_lifecycle_process.SpeechLifecycleProcessTests.test_full_lifecycle_repeat_status_and_private_record) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 17.127s
+
+OK
+# finished_utc: 2026-09-22T14:04:24Z
+# duration_seconds: 18.013
+# returncode: 0

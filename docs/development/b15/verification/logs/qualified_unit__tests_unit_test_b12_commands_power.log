@@ -1,0 +1,50 @@
+# command: /opt/pyvenv/bin/python -m unittest -v tests.unit.test_b12_commands_power
+# started_utc: 2026-09-22T14:13:40Z
+test_cycles (tests.unit.test_b12_commands_power.GrammarTests.test_cycles) ... ok
+test_delay_and_run_exact_minutes (tests.unit.test_b12_commands_power.GrammarTests.test_delay_and_run_exact_minutes) ... ok
+test_existing_threshold_syntax_retained (tests.unit.test_b12_commands_power.GrammarTests.test_existing_threshold_syntax_retained) ... ok
+test_immediate_run (tests.unit.test_b12_commands_power.GrammarTests.test_immediate_run) ... ok
+test_malformed_scheduling_does_not_become_immediate_fan_on (tests.unit.test_b12_commands_power.GrammarTests.test_malformed_scheduling_does_not_become_immediate_fan_on) ... ok
+test_negation_quote_and_hypothetical_are_not_authorization (tests.unit.test_b12_commands_power.GrammarTests.test_negation_quote_and_hypothetical_are_not_authorization) ... ok
+test_one_shot_report (tests.unit.test_b12_commands_power.GrammarTests.test_one_shot_report) ... ok
+test_reports_first_due_after_interval (tests.unit.test_b12_commands_power.GrammarTests.test_reports_first_due_after_interval) ... ok
+test_schedule_control (tests.unit.test_b12_commands_power.GrammarTests.test_schedule_control) ... ok
+test_start_stop_delay (tests.unit.test_b12_commands_power.GrammarTests.test_start_stop_delay) ... ok
+test_temperature_units_not_time (tests.unit.test_b12_commands_power.GrammarTests.test_temperature_units_not_time) ... ok
+test_new_power_step_follows_activation_and_environment_before_voice (tests.unit.test_b12_commands_power.InstallerBoundaryTests.test_new_power_step_follows_activation_and_environment_before_voice) ... ok
+test_small_model_skips_only_legacy_gate_and_not_roster (tests.unit.test_b12_commands_power.InstallerBoundaryTests.test_small_model_skips_only_legacy_gate_and_not_roster) ... ok
+test_action_waits_for_ack_speech (tests.unit.test_b12_commands_power.IntegrationTests.test_action_waits_for_ack_speech) ... ok
+test_cli_command_rejects_power_shortcut (tests.unit.test_b12_commands_power.IntegrationTests.test_cli_command_rejects_power_shortcut) ... ok
+test_cli_schedule_uses_same_ipc (tests.unit.test_b12_commands_power.IntegrationTests.test_cli_schedule_uses_same_ipc) ... ok
+test_immediate_reading_ack_only_after_speech (tests.unit.test_b12_commands_power.IntegrationTests.test_immediate_reading_ack_only_after_speech) ... ok
+test_interrupted_ack_cannot_execute (tests.unit.test_b12_commands_power.IntegrationTests.test_interrupted_ack_cannot_execute) ... ok
+test_notification_is_numeric_fresh_then_ack (tests.unit.test_b12_commands_power.IntegrationTests.test_notification_is_numeric_fresh_then_ack) ... ok
+test_notification_rejects_stale_and_injected_text (tests.unit.test_b12_commands_power.IntegrationTests.test_notification_rejects_stale_and_injected_text) ... ok
+test_speech_failure_cancels_power (tests.unit.test_b12_commands_power.IntegrationTests.test_speech_failure_cancels_power) ... ok
+test_voice_confirmation_capture_and_ack_order (tests.unit.test_b12_commands_power.IntegrationTests.test_voice_confirmation_capture_and_ack_order) ... ok
+test_voice_timers_are_deterministic_no_llm (tests.unit.test_b12_commands_power.IntegrationTests.test_voice_timers_are_deterministic_no_llm) ... ok
+test_action_then_check_converges (tests.unit.test_b12_commands_power.PowerInstallerProbeContractTests.test_action_then_check_converges) ... ok
+test_conflicting_rule_remains_fatal (tests.unit.test_b12_commands_power.PowerInstallerProbeContractTests.test_conflicting_rule_remains_fatal) ... ok
+test_missing_dependency_remains_fatal (tests.unit.test_b12_commands_power.PowerInstallerProbeContractTests.test_missing_dependency_remains_fatal) ... ok
+test_missing_managed_rule_is_action_required_not_probe_error (tests.unit.test_b12_commands_power.PowerInstallerProbeContractTests.test_missing_managed_rule_is_action_required_not_probe_error) ... ok
+test_rule_present_but_power_preset_pending_is_action_required (tests.unit.test_b12_commands_power.PowerInstallerProbeContractTests.test_rule_present_but_power_preset_pending_is_action_required) ... ok
+test_audit_failure_refuses_execution_and_releases_hold (tests.unit.test_b12_commands_power.PowerTests.test_audit_failure_refuses_execution_and_releases_hold) ... ok
+test_backend_failure_releases_hold_without_retry (tests.unit.test_b12_commands_power.PowerTests.test_backend_failure_releases_hold_without_retry) ... ok
+test_denied_is_not_success (tests.unit.test_b12_commands_power.PowerTests.test_denied_is_not_success) ... ok
+test_disable_and_cancel (tests.unit.test_b12_commands_power.PowerTests.test_disable_and_cancel) ... ok
+test_expired_after_spoken_cannot_execute (tests.unit.test_b12_commands_power.PowerTests.test_expired_after_spoken_cannot_execute) ... ok
+test_fixed_argv_no_inhibitor_bypass_or_shell (tests.unit.test_b12_commands_power.PowerTests.test_fixed_argv_no_inhibitor_bypass_or_shell) ... ok
+test_hypothetical_service_and_fan_never_arm (tests.unit.test_b12_commands_power.PowerTests.test_hypothetical_service_and_fan_never_arm) ... ok
+test_mismatch_negation_expiry_and_session_reset (tests.unit.test_b12_commands_power.PowerTests.test_mismatch_negation_expiry_and_session_reset) ... ok
+test_only_matching_confirm_arms_once (tests.unit.test_b12_commands_power.PowerTests.test_only_matching_confirm_arms_once) ... ok
+test_policy_exact_and_idempotent_no_other_authority (tests.unit.test_b12_commands_power.PowerTests.test_policy_exact_and_idempotent_no_other_authority) ... ok
+test_safe_off_before_fixed_execution_and_audit (tests.unit.test_b12_commands_power.PowerTests.test_safe_off_before_fixed_execution_and_audit) ... ok
+test_simulated_or_unacknowledged_actuator_cannot_power_off_real_profile (tests.unit.test_b12_commands_power.PowerTests.test_simulated_or_unacknowledged_actuator_cannot_power_off_real_profile) ... ok
+
+----------------------------------------------------------------------
+Ran 40 tests in 0.165s
+
+OK
+# finished_utc: 2026-09-22T14:13:41Z
+# duration_seconds: 0.900
+# returncode: 0

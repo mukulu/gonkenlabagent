@@ -1,0 +1,1030 @@
+{
+  "authority": "docs/development/CURRENT_GATES.json + ATTEMPT03_PLAN.json",
+  "checkpoint_scope": "Attempt03 current core host program; dedicated display/target campaigns remain separate",
+  "current_gates_completed": [
+    "46.0.1",
+    "46.0.2",
+    "46.0.3",
+    "46.2.1",
+    "46.2.2",
+    "46.2.3",
+    "46.2.4",
+    "46.3.1",
+    "46.3.2",
+    "46.4.1",
+    "46.5.1",
+    "46.5.2",
+    "46.6.1",
+    "46.6.2",
+    "46.6.4",
+    "46.8.3",
+    "46.8.4",
+    "46.9.P5",
+    "46.9.P4",
+    "46.9.P3",
+    "46.9.P2",
+    "46.9.P1",
+    "46.9.1",
+    "46.9.2",
+    "46.9.4",
+    "46.9.5",
+    "46.10.1",
+    "46.10.2",
+    "46.10.3",
+    "46.10.4",
+    "46.10.5",
+    "46.10.6",
+    "46.2.6",
+    "46.6.6"
+  ],
+  "current_gates_remaining": [
+    {
+      "evidence": [
+        "docs/development/rebuild/SOURCE_REGISTER.json",
+        "tools/recovery_guard.py",
+        "tests/recovery/test_recovery_guard.py"
+      ],
+      "id": "46.0.4",
+      "source_line": 1700,
+      "status": "WIP",
+      "title": "Takeoff checkpoint close"
+    },
+    {
+      "evidence": [],
+      "id": "46.1.1",
+      "source_line": 1715,
+      "status": "NOT_STARTED",
+      "title": "Git identity/origin/upstream validator"
+    },
+    {
+      "evidence": [],
+      "id": "46.1.2",
+      "source_line": 1719,
+      "status": "NOT_STARTED",
+      "title": "`.tar.bz2` package qualifier support"
+    },
+    {
+      "evidence": [],
+      "id": "46.1.3",
+      "source_line": 1723,
+      "status": "NOT_STARTED",
+      "title": "Package Git false-green fixtures"
+    },
+    {
+      "evidence": [],
+      "id": "46.1.4",
+      "source_line": 1727,
+      "status": "NOT_STARTED",
+      "title": "CP46.1 integration close"
+    },
+    {
+      "evidence": [
+        "docs/development/rebuild/CURRENT_GATE_CONVERGENCE.md"
+      ],
+      "id": "46.2.5",
+      "source_line": 1753,
+      "status": "WIP",
+      "title": "CP46.2 close"
+    },
+    {
+      "evidence": [
+        "src/gonken_agent/support.py"
+      ],
+      "id": "46.3.3",
+      "source_line": 1778,
+      "status": "WIP",
+      "title": "Incident vs collection status"
+    },
+    {
+      "evidence": [],
+      "id": "46.3.4",
+      "source_line": 1785,
+      "status": "NOT_STARTED",
+      "title": "Bounded Ollama journal/runtime/resource correlation"
+    },
+    {
+      "evidence": [],
+      "id": "46.3.5",
+      "source_line": 1789,
+      "status": "NOT_STARTED",
+      "title": "Sanitized Checkpoint-45 regression fixtures and checkpoint close"
+    },
+    {
+      "evidence": [],
+      "id": "46.4.2",
+      "source_line": 1808,
+      "status": "BLOCKED_TARGET",
+      "title": "Schema matrix"
+    },
+    {
+      "evidence": [],
+      "id": "46.4.3",
+      "source_line": 1812,
+      "status": "BLOCKED_TARGET",
+      "title": "Token/context/output-bound matrix"
+    },
+    {
+      "evidence": [],
+      "id": "46.4.4",
+      "source_line": 1816,
+      "status": "BLOCKED_TARGET",
+      "title": "Runtime-version rollback experiment"
+    },
+    {
+      "evidence": [],
+      "id": "46.4.5",
+      "source_line": 1820,
+      "status": "BLOCKED_TARGET",
+      "title": "Correct-layer repair"
+    },
+    {
+      "evidence": [
+        "scripts/model_roster_manager.py",
+        "src/gonken_agent/llm/qualification.py",
+        "tests/unit/test_b11_alternate_models.py",
+        "docs/development/b12/verification/VERIFICATION.json"
+      ],
+      "id": "46.4.6",
+      "note": "B11/B12 required-default versus optional-alternate degradation and runtime admission are host-verified. Full removal of historical model authorities remains separate cleanup work.",
+      "source_line": 1824,
+      "status": "WIP",
+      "title": "Model authority consolidation and degradation policy"
+    },
+    {
+      "evidence": [],
+      "id": "46.4.7",
+      "source_line": 1828,
+      "status": "NOT_STARTED",
+      "title": "CP46.4 close"
+    },
+    {
+      "evidence": [],
+      "id": "46.5.3",
+      "source_line": 1840,
+      "status": "NOT_STARTED",
+      "title": "Failure rollback semantic verification"
+    },
+    {
+      "evidence": [],
+      "id": "46.5.4",
+      "source_line": 1841,
+      "status": "NOT_STARTED",
+      "title": "Repeat/reinstall/dirty-target fixtures"
+    },
+    {
+      "evidence": [],
+      "id": "46.5.5",
+      "source_line": 1842,
+      "status": "NOT_STARTED",
+      "title": "CP46.5 broad lifecycle close"
+    },
+    {
+      "evidence": [],
+      "id": "46.6.3",
+      "source_line": 1854,
+      "status": "NOT_STARTED",
+      "title": "Service-user vs operator audio evidence separation"
+    },
+    {
+      "evidence": [
+        "docs/development/rebuild/EVIDENCE_TRANSPORT.md",
+        "docs/development/rebuild/READINESS_CONVERGENCE.md",
+        "tests/unit/test_attempt03_evidence_transport.py"
+      ],
+      "id": "46.6.5",
+      "source_line": 1856,
+      "status": "WIP",
+      "title": "Evidence contradiction rules + checkpoint close"
+    },
+    {
+      "evidence": [],
+      "id": "46.7.1",
+      "source_line": 1866,
+      "status": "NOT_STARTED",
+      "title": "Reachability scanner/inventory mechanism"
+    },
+    {
+      "evidence": [],
+      "id": "46.7.2",
+      "source_line": 1867,
+      "status": "NOT_STARTED",
+      "title": "Classify legacy orchestrator/setup entry points"
+    },
+    {
+      "evidence": [],
+      "id": "46.7.3",
+      "source_line": 1868,
+      "status": "NOT_STARTED",
+      "title": "Migrate one compatibility consumer family"
+    },
+    {
+      "evidence": [],
+      "id": "46.7.4",
+      "source_line": 1869,
+      "status": "NOT_STARTED",
+      "title": "Migrate dependency/provenance/CI consumers"
+    },
+    {
+      "evidence": [],
+      "id": "46.7.5",
+      "source_line": 1870,
+      "status": "NOT_STARTED",
+      "title": "CP46.7 no-deletion-yet review/close"
+    },
+    {
+      "evidence": [],
+      "id": "46.8.1",
+      "source_line": 1880,
+      "status": "NOT_STARTED",
+      "title": "Remove one proven-unreachable runtime family"
+    },
+    {
+      "evidence": [],
+      "id": "46.8.2",
+      "source_line": 1881,
+      "status": "NOT_STARTED",
+      "title": "Remove obsolete cloud/UI/setup/dependency family"
+    },
+    {
+      "evidence": [],
+      "id": "46.8.5",
+      "source_line": 1884,
+      "status": "NOT_STARTED",
+      "title": "Historical docs/evidence cleanup in bounded directory groups"
+    },
+    {
+      "evidence": [],
+      "id": "46.8.6",
+      "source_line": 1885,
+      "status": "NOT_STARTED",
+      "title": "Semantic stale-content/historical-creep gate"
+    },
+    {
+      "evidence": [],
+      "id": "46.8.7",
+      "source_line": 1886,
+      "status": "NOT_STARTED",
+      "title": "CP46.8 package-size/reachability/current-doc close"
+    },
+    {
+      "evidence": [],
+      "id": "46.9.3",
+      "source_line": 1898,
+      "status": "NOT_STARTED",
+      "title": "Commissioning record/state-machine logic"
+    },
+    {
+      "evidence": [],
+      "id": "46.9.6",
+      "source_line": 1901,
+      "status": "NOT_STARTED",
+      "title": "CP46.9 close"
+    },
+    {
+      "evidence": [],
+      "id": "46.11.1",
+      "source_line": 1926,
+      "status": "NOT_STARTED",
+      "title": "Semantic currentness validator"
+    },
+    {
+      "evidence": [],
+      "id": "46.11.2",
+      "source_line": 1927,
+      "status": "NOT_STARTED",
+      "title": "Authority uniqueness validator"
+    },
+    {
+      "evidence": [],
+      "id": "46.11.3",
+      "source_line": 1928,
+      "status": "NOT_STARTED",
+      "title": "Reachability/hygiene validator"
+    },
+    {
+      "evidence": [
+        "docs/development/rebuild/INCREMENTAL_TEST_EVIDENCE.md",
+        "tests/unit/test_bounded_unittest_runner.py",
+        "docs/development/rebuild/b8-runner-tests.log"
+      ],
+      "id": "46.11.4",
+      "source_line": 1929,
+      "status": "WIP",
+      "title": "Validator seeded-defect/mutation tests"
+    },
+    {
+      "evidence": [],
+      "id": "46.11.5",
+      "source_line": 1930,
+      "status": "NOT_STARTED",
+      "title": "Cascade/change-impact record"
+    },
+    {
+      "evidence": [],
+      "id": "46.11.6",
+      "source_line": 1931,
+      "status": "NOT_STARTED",
+      "title": "Package Git/current-state cross-check"
+    },
+    {
+      "evidence": [],
+      "id": "46.11.7",
+      "source_line": 1932,
+      "status": "NOT_STARTED",
+      "title": "CP46.11 close"
+    },
+    {
+      "evidence": [
+        "docs/development/b12/verification/VERIFICATION.json",
+        "docs/development/b12/VERIFICATION.md",
+        "docs/development/b15/REPAIR_RECORD.md",
+        "docs/development/b15/verification/VERIFICATION.json"
+      ],
+      "id": "46.12.1",
+      "note": "B15 current-corpus verification is in the referenced manifest; full-program slot closure is not inferred. Exact archive qualification is an adjacent receipt, and physical B15 acceptance remains open.",
+      "source_line": 1942,
+      "status": "WIP",
+      "title": "Complete unit suite"
+    },
+    {
+      "evidence": [
+        "docs/development/b12/verification/VERIFICATION.json",
+        "docs/development/b12/VERIFICATION.md",
+        "docs/development/b15/REPAIR_RECORD.md",
+        "docs/development/b15/verification/VERIFICATION.json"
+      ],
+      "id": "46.12.2",
+      "note": "B15 current-corpus verification is in the referenced manifest; full-program slot closure is not inferred. Exact archive qualification is an adjacent receipt, and physical B15 acceptance remains open.",
+      "source_line": 1943,
+      "status": "WIP",
+      "title": "Integration/process/lifecycle suite"
+    },
+    {
+      "evidence": [
+        "docs/development/b12/verification/VERIFICATION.json",
+        "docs/development/b12/VERIFICATION.md",
+        "docs/development/b15/REPAIR_RECORD.md",
+        "docs/development/b15/verification/VERIFICATION.json"
+      ],
+      "id": "46.12.3",
+      "note": "B15 current-corpus verification is in the referenced manifest; full-program slot closure is not inferred. Exact archive qualification is an adjacent receipt, and physical B15 acceptance remains open.",
+      "source_line": 1944,
+      "status": "WIP",
+      "title": "Installer/reinstaller/update/rollback suite"
+    },
+    {
+      "evidence": [
+        "docs/development/b12/verification/VERIFICATION.json",
+        "docs/development/b12/VERIFICATION.md",
+        "docs/development/b15/REPAIR_RECORD.md",
+        "docs/development/b15/verification/VERIFICATION.json"
+      ],
+      "id": "46.12.4",
+      "note": "B15 current-corpus verification is in the referenced manifest; full-program slot closure is not inferred. Exact archive qualification is an adjacent receipt, and physical B15 acceptance remains open.",
+      "source_line": 1945,
+      "status": "WIP",
+      "title": "Speech/voice/environment non-regression suite"
+    },
+    {
+      "evidence": [
+        "docs/development/b12/verification/VERIFICATION.json",
+        "docs/development/b12/VERIFICATION.md",
+        "docs/development/b15/REPAIR_RECORD.md",
+        "docs/development/b15/verification/VERIFICATION.json"
+      ],
+      "id": "46.12.5",
+      "note": "B15 current-corpus verification is in the referenced manifest; full-program slot closure is not inferred. Exact archive qualification is an adjacent receipt, and physical B15 acceptance remains open.",
+      "source_line": 1946,
+      "status": "WIP",
+      "title": "Release readiness/T0/current-state/docs checks"
+    },
+    {
+      "evidence": [
+        "docs/development/b12/verification/VERIFICATION.json",
+        "docs/development/b12/VERIFICATION.md",
+        "docs/development/b15/REPAIR_RECORD.md",
+        "docs/development/b15/verification/VERIFICATION.json"
+      ],
+      "id": "46.12.6",
+      "note": "B15 current-corpus verification is in the referenced manifest; full-program slot closure is not inferred. Exact archive qualification is an adjacent receipt, and physical B15 acceptance remains open.",
+      "source_line": 1947,
+      "status": "WIP",
+      "title": "Exact archive qualifier + fresh extraction"
+    },
+    {
+      "evidence": [
+        "docs/development/b12/verification/VERIFICATION.json",
+        "docs/development/b12/VERIFICATION.md"
+      ],
+      "id": "46.12.7",
+      "note": "B12 current implementation corpus is 972 unit + 88 integration tests, no skips. Whole-program final convergence remains open where preceding implementation is unfinished. Exact exported-byte qualification is an adjacent receipt, not inferred here.",
+      "source_line": 1948,
+      "status": "WIP",
+      "title": "Package-size/tracked-file/provenance review"
+    },
+    {
+      "evidence": [],
+      "id": "46.6.7",
+      "source_line": 315,
+      "status": "NOT_STARTED",
+      "title": "private presentation boundary guard"
+    }
+  ],
+  "git": {
+    "branch": "dev-unstable/attempt03-b15-voice-repair",
+    "commit": "b18f58b825b0acc6c5787104c86ba3c46bd2dcd0",
+    "dirty": false
+  },
+  "next_action": "Install the exact B15 archive using b15/INSTALL_AND_VERIFY.md; verify microphone availability, wake-only and inline commands, short actuator speech, timing metrics and no-login reboot. Preserve existing working SHT31/GPIO23 control.",
+  "physical_acceptance_claimed": false,
+  "readiness_scope": "current host requirements plus target-shadow replay; no Raspberry Pi release candidate or physical gate is implied PASS by development validation",
+  "schema": 2,
+  "secret_findings": [],
+  "state_errors": [],
+  "status": "NOT_READY",
+  "target_gates_remaining": [
+    {
+      "evidence": [],
+      "id": "47.0.1",
+      "source_line": 1974,
+      "status": "NOT_STARTED",
+      "title": "Install exact package + collect baseline evidence"
+    },
+    {
+      "evidence": [],
+      "id": "47.0.2",
+      "source_line": 1975,
+      "status": "NOT_STARTED",
+      "title": "Reproduce/verify model/tool behavior"
+    },
+    {
+      "evidence": [],
+      "id": "47.0.3",
+      "source_line": 1976,
+      "status": "NOT_STARTED",
+      "title": "Required-model capability qualification"
+    },
+    {
+      "evidence": [],
+      "id": "47.0.4",
+      "source_line": 1977,
+      "status": "NOT_STARTED",
+      "title": "latency/resource/thermal evidence"
+    },
+    {
+      "evidence": [],
+      "id": "47.0.5",
+      "source_line": 1978,
+      "status": "NOT_STARTED",
+      "title": "CP47.0 close or repair handoff"
+    },
+    {
+      "evidence": [],
+      "id": "47.1.1",
+      "source_line": 1986,
+      "status": "NOT_STARTED",
+      "title": "safe OFF / identity / permission proof"
+    },
+    {
+      "evidence": [],
+      "id": "47.1.2",
+      "source_line": 1987,
+      "status": "NOT_STARTED",
+      "title": "repeated valid SHT31 reads"
+    },
+    {
+      "evidence": [],
+      "id": "47.1.3",
+      "source_line": 1988,
+      "status": "NOT_STARTED",
+      "title": "unloaded/controlled relay commissioning if required"
+    },
+    {
+      "evidence": [],
+      "id": "47.1.4",
+      "source_line": 1989,
+      "status": "NOT_STARTED",
+      "title": "GonKen CLI OFF/ON/OFF with human observation"
+    },
+    {
+      "evidence": [],
+      "id": "47.1.5",
+      "source_line": 1990,
+      "status": "NOT_STARTED",
+      "title": "voice ON/OFF with human observation"
+    },
+    {
+      "evidence": [],
+      "id": "47.1.6",
+      "source_line": 1991,
+      "status": "NOT_STARTED",
+      "title": "reboot safe-state verification"
+    },
+    {
+      "evidence": [],
+      "id": "47.1.7",
+      "source_line": 1992,
+      "status": "NOT_STARTED",
+      "title": "CP47.1 close"
+    },
+    {
+      "evidence": [],
+      "id": "47.2.1",
+      "source_line": 2000,
+      "status": "NOT_STARTED",
+      "title": "cancellation/timeout/replay target checks"
+    },
+    {
+      "evidence": [],
+      "id": "47.2.2",
+      "source_line": 2001,
+      "status": "NOT_STARTED",
+      "title": "one confirmed reboot + boot-ID/no-login recovery"
+    },
+    {
+      "evidence": [],
+      "id": "47.2.3",
+      "source_line": 2002,
+      "status": "NOT_STARTED",
+      "title": "one confirmed shutdown + manual power-on recovery"
+    },
+    {
+      "evidence": [],
+      "id": "47.2.4",
+      "source_line": 2003,
+      "status": "NOT_STARTED",
+      "title": "support/evidence review"
+    },
+    {
+      "evidence": [],
+      "id": "47.2.5",
+      "source_line": 2004,
+      "status": "NOT_STARTED",
+      "title": "CP47.2 close"
+    },
+    {
+      "evidence": [],
+      "id": "47.3.1",
+      "source_line": 2012,
+      "status": "NOT_STARTED",
+      "title": "same-package reinstall"
+    },
+    {
+      "evidence": [],
+      "id": "47.3.2",
+      "source_line": 2013,
+      "status": "NOT_STARTED",
+      "title": "update from predecessor"
+    },
+    {
+      "evidence": [],
+      "id": "47.3.3",
+      "source_line": 2014,
+      "status": "NOT_STARTED",
+      "title": "injected rollback case"
+    },
+    {
+      "evidence": [],
+      "id": "47.3.4",
+      "source_line": 2015,
+      "status": "NOT_STARTED",
+      "title": "repeated no-login reboot persistence"
+    },
+    {
+      "evidence": [],
+      "id": "47.3.5",
+      "source_line": 2016,
+      "status": "NOT_STARTED",
+      "title": "bounded soak/resource/log-growth campaign"
+    },
+    {
+      "evidence": [],
+      "id": "47.3.6",
+      "source_line": 2017,
+      "status": "NOT_STARTED",
+      "title": "CP47.3 close"
+    },
+    {
+      "evidence": [],
+      "id": "47.4.1",
+      "source_line": 2027,
+      "status": "NOT_STARTED",
+      "title": "ingest final target evidence / close or retain gates"
+    },
+    {
+      "evidence": [],
+      "id": "47.4.2",
+      "source_line": 2028,
+      "status": "NOT_STARTED",
+      "title": "remove temporary campaign artifacts from current tree"
+    },
+    {
+      "evidence": [],
+      "id": "47.4.3",
+      "source_line": 2029,
+      "status": "NOT_STARTED",
+      "title": "update `CURRENT_STATE` to evidence-backed final truth"
+    },
+    {
+      "evidence": [],
+      "id": "47.4.4",
+      "source_line": 2030,
+      "status": "NOT_STARTED",
+      "title": "final main/Git/package audit"
+    },
+    {
+      "evidence": [],
+      "id": "47.4.5",
+      "source_line": 2031,
+      "status": "NOT_STARTED",
+      "title": "exact final package + fresh extraction + handoff"
+    },
+    {
+      "evidence": [],
+      "id": "49.0.1",
+      "source_line": 910,
+      "status": "NOT_STARTED",
+      "title": "mechanical/install acceptance record"
+    },
+    {
+      "evidence": [],
+      "id": "49.0.2",
+      "source_line": 911,
+      "status": "NOT_STARTED",
+      "title": "first-power/display/SSH/power baseline"
+    },
+    {
+      "evidence": [],
+      "id": "49.0.3",
+      "source_line": 912,
+      "status": "NOT_STARTED",
+      "title": "SHT31 coexistence while display updates"
+    },
+    {
+      "evidence": [],
+      "id": "49.0.4",
+      "source_line": 913,
+      "status": "NOT_STARTED",
+      "title": "GPIO23 room-fan coexistence + supervised OFF/ON/OFF"
+    },
+    {
+      "evidence": [],
+      "id": "49.0.5",
+      "source_line": 914,
+      "status": "NOT_STARTED",
+      "title": "voice/audio/STT/model/TTS non-regression with display active"
+    },
+    {
+      "evidence": [],
+      "id": "49.0.6",
+      "source_line": 915,
+      "status": "NOT_STARTED",
+      "title": "local + two SSH viewers independent-scroll/resize test"
+    },
+    {
+      "evidence": [],
+      "id": "49.0.7",
+      "source_line": 916,
+      "status": "NOT_STARTED",
+      "title": "HDMI-only / OSOYOO-only / claimed coexistence cases"
+    },
+    {
+      "evidence": [],
+      "id": "49.0.8",
+      "source_line": 917,
+      "status": "NOT_STARTED",
+      "title": "no-login reboot x2 with empty-on-reboot ring semantics"
+    },
+    {
+      "evidence": [],
+      "id": "49.0.9",
+      "source_line": 918,
+      "status": "NOT_STARTED",
+      "title": "CP49.0 evidence close"
+    },
+    {
+      "evidence": [],
+      "id": "49.1.1",
+      "source_line": 926,
+      "status": "NOT_STARTED",
+      "title": "bounded 1-4 hour initial soak"
+    },
+    {
+      "evidence": [],
+      "id": "49.1.2",
+      "source_line": 927,
+      "status": "NOT_STARTED",
+      "title": "resource/log/ring/backpressure review"
+    },
+    {
+      "evidence": [],
+      "id": "49.1.3",
+      "source_line": 928,
+      "status": "NOT_STARTED",
+      "title": "optional fault injection/recovery cases"
+    },
+    {
+      "evidence": [],
+      "id": "49.1.4",
+      "source_line": 929,
+      "status": "NOT_STARTED",
+      "title": "display-profile rollback to pre-display graphics state"
+    },
+    {
+      "evidence": [],
+      "id": "49.1.5",
+      "source_line": 930,
+      "status": "NOT_STARTED",
+      "title": "reinstall/update/idempotency of selected display profile"
+    },
+    {
+      "evidence": [],
+      "id": "49.1.6",
+      "source_line": 931,
+      "status": "NOT_STARTED",
+      "title": "final privacy/evidence review"
+    },
+    {
+      "evidence": [],
+      "id": "49.1.7",
+      "source_line": 932,
+      "status": "NOT_STARTED",
+      "title": "final current-state/gate/documentation synchronization"
+    },
+    {
+      "evidence": [],
+      "id": "49.1.8",
+      "source_line": 933,
+      "status": "NOT_STARTED",
+      "title": "exact package + final display acceptance handoff"
+    }
+  ],
+  "target_shadow_failures": [],
+  "target_shadow_passed": [
+    {
+      "detail": "",
+      "elapsed_ms": 0.137,
+      "expected_code": "GPIO_HEADER_RESOLVED",
+      "expected_status": "PASS",
+      "id": "checkpoint34_duplicate_rp1_alias",
+      "observed_code": "GPIO_HEADER_RESOLVED",
+      "observed_status": "PASS",
+      "path": "tests/fixtures/target_probe/checkpoint34_duplicate_rp1_alias_manifest.json",
+      "status": "PASS"
+    },
+    {
+      "detail": "",
+      "elapsed_ms": 0.077,
+      "expected_code": "GPIO_HEADER_UNRESOLVED",
+      "expected_status": "FAIL",
+      "id": "distinct_duplicate_header_fail_closed",
+      "observed_code": "GPIO_HEADER_UNRESOLVED",
+      "observed_status": "FAIL",
+      "path": "tests/fixtures/target_probe/distinct_duplicate_header_manifest.json",
+      "status": "PASS"
+    },
+    {
+      "detail": "",
+      "elapsed_ms": 0.083,
+      "expected_code": "TARGET_SHADOW_READY",
+      "expected_status": "PASS",
+      "id": "capability_ready_audio_identity_release",
+      "observed_code": "TARGET_SHADOW_READY",
+      "observed_status": "PASS",
+      "path": "tests/fixtures/target_probe/capability_ready_audio_identity_release_manifest.json",
+      "status": "PASS"
+    },
+    {
+      "detail": "",
+      "elapsed_ms": 0.056,
+      "expected_code": "AUDIO_ROUTE_UNRESOLVED",
+      "expected_status": "FAIL",
+      "id": "ambiguous_audio_route_fail_closed",
+      "observed_code": "AUDIO_ROUTE_UNRESOLVED",
+      "observed_status": "FAIL",
+      "path": "tests/fixtures/target_probe/ambiguous_audio_route_manifest.json",
+      "status": "PASS"
+    },
+    {
+      "detail": "",
+      "elapsed_ms": 0.047,
+      "expected_code": "AUDIO_CAPTURE_RUNTIME_UNREADY",
+      "expected_status": "FAIL",
+      "id": "ckpt42_20260917_audio_capture_runtime_fail_closed",
+      "observed_code": "AUDIO_CAPTURE_RUNTIME_UNREADY",
+      "observed_status": "FAIL",
+      "path": "tests/fixtures/target_probe/ckpt42_20260917_audio_capture_runtime_failure_manifest.json",
+      "status": "PASS"
+    },
+    {
+      "detail": "",
+      "elapsed_ms": 0.038,
+      "expected_code": "READINESS_IDENTITY_MISMATCH",
+      "expected_status": "FAIL",
+      "id": "ckpt43_20260917_readiness_identity_mismatch_fail_closed",
+      "observed_code": "READINESS_IDENTITY_MISMATCH",
+      "observed_status": "FAIL",
+      "path": "tests/fixtures/target_probe/ckpt43_20260917_readiness_identity_mismatch_manifest.json",
+      "status": "PASS"
+    },
+    {
+      "detail": "",
+      "elapsed_ms": 0.043,
+      "expected_code": "SERVICE_IDENTITY_UNRESOLVED",
+      "expected_status": "FAIL",
+      "id": "missing_service_identity_fail_closed",
+      "observed_code": "SERVICE_IDENTITY_UNRESOLVED",
+      "observed_status": "FAIL",
+      "path": "tests/fixtures/target_probe/missing_service_identity_manifest.json",
+      "status": "PASS"
+    },
+    {
+      "detail": "",
+      "elapsed_ms": 0.058,
+      "expected_code": "RELEASE_STATE_UNSAFE",
+      "expected_status": "FAIL",
+      "id": "dirty_release_state_fail_closed",
+      "observed_code": "RELEASE_STATE_UNSAFE",
+      "observed_status": "FAIL",
+      "path": "tests/fixtures/target_probe/dirty_release_state_manifest.json",
+      "status": "PASS"
+    },
+    {
+      "detail": "",
+      "elapsed_ms": 0.336,
+      "expected_code": "TARGET_SHADOW_READY",
+      "expected_status": "PASS",
+      "id": "i2c_sht31_ready_full_real",
+      "observed_code": "TARGET_SHADOW_READY",
+      "observed_status": "PASS",
+      "path": "tests/fixtures/target_probe/i2c_sht31_ready_full_real_manifest.json",
+      "status": "PASS"
+    },
+    {
+      "detail": "",
+      "elapsed_ms": 0.087,
+      "expected_code": "I2C_REBOOT_REQUIRED",
+      "expected_status": "FAIL",
+      "id": "i2c_reboot_required_fail_closed",
+      "observed_code": "I2C_REBOOT_REQUIRED",
+      "observed_status": "FAIL",
+      "path": "tests/fixtures/target_probe/i2c_reboot_required_manifest.json",
+      "status": "PASS"
+    },
+    {
+      "detail": "",
+      "elapsed_ms": 0.069,
+      "expected_code": "I2C_SHT31_UNRESOLVED",
+      "expected_status": "FAIL",
+      "id": "sht31_absent_real_sensor_fail_closed",
+      "observed_code": "I2C_SHT31_UNRESOLVED",
+      "observed_status": "FAIL",
+      "path": "tests/fixtures/target_probe/sht31_absent_real_sensor_manifest.json",
+      "status": "PASS"
+    },
+    {
+      "detail": "",
+      "elapsed_ms": 0.052,
+      "expected_code": "ENVIRONMENT_PROFILE_UNREADY",
+      "expected_status": "FAIL",
+      "id": "environment_full_real_missing_relay_fail_closed",
+      "observed_code": "ENVIRONMENT_PROFILE_UNREADY",
+      "observed_status": "FAIL",
+      "path": "tests/fixtures/target_probe/environment_full_real_missing_relay_manifest.json",
+      "status": "PASS"
+    },
+    {
+      "detail": "",
+      "elapsed_ms": 0.037,
+      "expected_code": "TARGET_SHADOW_READY",
+      "expected_status": "PASS",
+      "id": "environment_full_simulation_safe",
+      "observed_code": "TARGET_SHADOW_READY",
+      "observed_status": "PASS",
+      "path": "tests/fixtures/target_probe/environment_disabled_safe_manifest.json",
+      "status": "PASS"
+    },
+    {
+      "detail": "",
+      "elapsed_ms": 0.066,
+      "expected_code": "TARGET_SHADOW_READY",
+      "expected_status": "PASS",
+      "id": "release_lifecycle_ready",
+      "observed_code": "TARGET_SHADOW_READY",
+      "observed_status": "PASS",
+      "path": "tests/fixtures/target_probe/release_lifecycle_ready_manifest.json",
+      "status": "PASS"
+    },
+    {
+      "detail": "",
+      "elapsed_ms": 0.035,
+      "expected_code": "RELEASE_STATE_UNSAFE",
+      "expected_status": "FAIL",
+      "id": "partial_installer_state_fail_closed",
+      "observed_code": "RELEASE_STATE_UNSAFE",
+      "observed_status": "FAIL",
+      "path": "tests/fixtures/target_probe/partial_installer_state_manifest.json",
+      "status": "PASS"
+    },
+    {
+      "detail": "",
+      "elapsed_ms": 0.029,
+      "expected_code": "RELEASE_LIFECYCLE_UNSAFE",
+      "expected_status": "FAIL",
+      "id": "stale_release_temp_fail_closed",
+      "observed_code": "RELEASE_LIFECYCLE_UNSAFE",
+      "observed_status": "FAIL",
+      "path": "tests/fixtures/target_probe/stale_release_temp_manifest.json",
+      "status": "PASS"
+    },
+    {
+      "detail": "",
+      "elapsed_ms": 0.028,
+      "expected_code": "TARGET_SHADOW_READY",
+      "expected_status": "PASS",
+      "id": "corrupt_historical_noncurrent_safe",
+      "observed_code": "TARGET_SHADOW_READY",
+      "observed_status": "PASS",
+      "path": "tests/fixtures/target_probe/corrupt_historical_noncurrent_manifest.json",
+      "status": "PASS"
+    },
+    {
+      "detail": "",
+      "elapsed_ms": 0.029,
+      "expected_code": "RELEASE_LIFECYCLE_UNSAFE",
+      "expected_status": "FAIL",
+      "id": "runtime_authoritative_drift_fail_closed",
+      "observed_code": "RELEASE_LIFECYCLE_UNSAFE",
+      "observed_status": "FAIL",
+      "path": "tests/fixtures/target_probe/runtime_authoritative_drift_manifest.json",
+      "status": "PASS"
+    },
+    {
+      "detail": "",
+      "elapsed_ms": 0.028,
+      "expected_code": "RELEASE_LIFECYCLE_UNSAFE",
+      "expected_status": "FAIL",
+      "id": "support_wrong_release_fail_closed",
+      "observed_code": "RELEASE_LIFECYCLE_UNSAFE",
+      "observed_status": "FAIL",
+      "path": "tests/fixtures/target_probe/support_wrong_release_manifest.json",
+      "status": "PASS"
+    },
+    {
+      "detail": "",
+      "elapsed_ms": 0.025,
+      "expected_code": "SYSTEMD_RUNTIME_UNREADY",
+      "expected_status": "FAIL",
+      "id": "old_systemd_units_fail_closed",
+      "observed_code": "SYSTEMD_RUNTIME_UNREADY",
+      "observed_status": "FAIL",
+      "path": "tests/fixtures/target_probe/old_systemd_units_manifest.json",
+      "status": "PASS"
+    },
+    {
+      "detail": "",
+      "elapsed_ms": 0.024,
+      "expected_code": "SYSTEMD_RUNTIME_UNREADY",
+      "expected_status": "FAIL",
+      "id": "service_restart_failure_fail_closed",
+      "observed_code": "SYSTEMD_RUNTIME_UNREADY",
+      "observed_status": "FAIL",
+      "path": "tests/fixtures/target_probe/service_restart_failure_manifest.json",
+      "status": "PASS"
+    },
+    {
+      "detail": "",
+      "elapsed_ms": 0.02,
+      "expected_code": "OPERATOR_IDENTITY_UNREADY",
+      "expected_status": "FAIL",
+      "id": "operator_missing_control_group_fail_closed",
+      "observed_code": "OPERATOR_IDENTITY_UNREADY",
+      "observed_status": "FAIL",
+      "path": "tests/fixtures/target_probe/operator_missing_control_group_manifest.json",
+      "status": "PASS"
+    },
+    {
+      "detail": "",
+      "elapsed_ms": 0.02,
+      "expected_code": "RESOURCE_CAPACITY_LOW",
+      "expected_status": "FAIL",
+      "id": "low_disk_fail_closed",
+      "observed_code": "RESOURCE_CAPACITY_LOW",
+      "observed_status": "FAIL",
+      "path": "tests/fixtures/target_probe/low_disk_manifest.json",
+      "status": "PASS"
+    },
+    {
+      "detail": "",
+      "elapsed_ms": 0.025,
+      "expected_code": "MODEL_FINALIZATION_UNREADY",
+      "expected_status": "FAIL",
+      "id": "interrupted_model_finalization_fail_closed",
+      "observed_code": "MODEL_FINALIZATION_UNREADY",
+      "observed_status": "FAIL",
+      "path": "tests/fixtures/target_probe/interrupted_model_finalization_manifest.json",
+      "status": "PASS"
+    }
+  ],
+  "validation_status": "PASS"
+}
