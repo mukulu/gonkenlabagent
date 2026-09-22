@@ -410,6 +410,22 @@ def _execute_wake_command(args: argparse.Namespace) -> int:
         )
 
         phrase = effective.config.extensions.wake_word.phrase
+        streaming = effective.config.extensions.wake_word.backend == "streaming"
+        capture = ({
+            "mode": "streaming-kws-vad", "window_seconds": 0, "queue_size": 1,
+            "frame_ms": 80, "max_utterance_seconds": 12,
+            "capture_continues_during_transcription": False,
+            "wake_and_command_share_capture": True,
+            "backlog_policy": "one_complete_utterance_no_whisper_window_queue",
+            "native_decoder": "libpocketsphinx.so.3",
+            "keyword_threshold": effective.config.extensions.wake_word.keyword_threshold,
+            "fallback": "completed_speech_utterance_whisper",
+            "dependencies_verified_by_this_command": False,
+        } if streaming else {
+            "mode": WAKE_CAPTURE_MODE, "window_seconds": WAKE_CAPTURE_WINDOW_SECONDS,
+            "queue_size": WAKE_CAPTURE_QUEUE_SIZE, "capture_continues_during_transcription": True,
+            "backlog_policy": "drop_stale_keep_newest",
+        })
         payload = {
             "status": "READY_FOR_HOST_MATCHING",
             "wake_phrase": phrase,
@@ -421,13 +437,7 @@ def _execute_wake_command(args: argparse.Namespace) -> int:
                 "bounded_one_edit_for_gonken_like_tokens": True,
                 "hey_gonken_alias": True,
             },
-            "capture": {
-                "mode": WAKE_CAPTURE_MODE,
-                "window_seconds": WAKE_CAPTURE_WINDOW_SECONDS,
-                "queue_size": WAKE_CAPTURE_QUEUE_SIZE,
-                "capture_continues_during_transcription": True,
-                "backlog_policy": "drop_stale_keep_newest",
-            },
+            "capture": capture,
             "monitoring_indicator": {
                 "logical_bcm": effective.config.extensions.wake_word.monitoring_led_gpio,
                 "line_resolution": "gpio_line_name",

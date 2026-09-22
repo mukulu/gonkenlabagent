@@ -47,9 +47,9 @@ The default wake phrase is:
 GonKen
 ```
 
-Say the wake phrase, wait for the spoken `Yes?` acknowledgement, then ask the
-question. Separating wake detection from the question avoids truncating a long
-question inside the short phrase-spotting capture window.
+B15 supports both `GonKen` followed by `Yes?` and a command, and a single
+utterance such as `GonKen, what is the temperature?`. A complete inline request
+is processed without a second recording or a spoken `Yes?` over the request.
 
 Check the configured phrase and host matcher boundary with:
 
@@ -61,11 +61,22 @@ gonken-agent wake status --json
 
 The host matcher accepts the default `GonKen`, the backward-compatible `Hey GonKen` alias, split-token `Gon Ken`, punctuation/case variants and bounded one-character STT errors for the GonKen token.  This is host software evidence only; real microphone false-accept/false-reject and wake-to-acknowledgement latency evidence still belongs to the Raspberry Pi acceptance run.
 
-Wake standby uses a bounded pipelined capture path: the microphone continues collecting the next short wake window while the previous window is transcribed. A two-window newest-wins queue prevents unbounded Whisper backlog; stale queued windows are dropped and reported categorically. The dedicated wake-monitoring indicator on logical GPIO22 is requested by line name and is ON only while standby capture is active. The software contract is host-tested, but the actual Raspberry Pi gpiochip mapping and visible LED behavior must still be verified on the target.
+B15 standby reads 80 ms raw PCM frames through a local phonetic keyword detector
+and a 400 ms pre-roll/speech endpoint buffer. A speech utterance has a 12-second
+bound and ends after the configured silence (900 ms by default). The recorder
+closes before playback or command transcription; no second recording is needed
+for an inline request. Native misses use one completed-speech Whisper check,
+not repeated transcriptions of silent two-second windows. Whisper still takes
+time to transcribe actual commands. `extensions.wake_word.backend="whisper"`
+retains the older pipelined path only as an explicit compatibility selection.
+The GPIO22 wake indicator remains voice-owned and requires target visibility
+verification. See [B15 voice repair](development/b15/REPAIR_RECORD.md).
 
 After a captured request begins processing, ordinary deterministic environment commands should normally answer without filler.  Slower general-model requests may receive `Just a second.` and, if still unresolved, at most one `I'm still working on that.` cue.  These cues are generated locally through Piper and cached under the voice cache directory; legacy unknown-provenance filler WAVs remain excluded.
 
-Autonomous environment transition announcements are voice-owned.  The environment daemon records typed transition events, and the voice runtime may announce priority automatic/safety transitions without claiming fan blade motion or software speed control.  Simulated transitions are spoken as simulation.
+Autonomous environment transition announcements are voice-owned.  The environment daemon records typed transition events, and the voice runtime may announce priority automatic/safety transitions without claiming fan blade motion or software speed control.  Simulated transitions are spoken as simulation. Normal real transitions say
+`Fan actuator started.` or `Fan actuator stopped.`; evidence qualifications stay
+in diagnostics. Actuator errors do not falsely announce a successful stop.
 
 ## Service controls
 

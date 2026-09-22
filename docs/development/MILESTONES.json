@@ -1,6 +1,6 @@
 {
   "baseline_commit": "6466f26a1a9cb97e4c24182505b37cefb766b3c3",
-  "checkpoint_scope": "V09 checkpoint 45 completes the dependency-ready V04 host/package convergence tranche after Checkpoint 44: it ingests the successful real-SHT31/simulated-actuator Pi observation, adds the governed three-model roster and switch/benchmark lifecycle, typed LLM tool broker plus deterministic clock/environment fast paths, independent component/operator observability, richer passive environment watch, phase-aware causal one-ZIP evidence, and content-free latency/resource instrumentation. M10.40 is host-verified only after checkpoint-close gates; exact-package three-model/tool target validation, reboot/soak, and supervised real GPIO23/ELUTENG fan acceptance remain open.",
+  "checkpoint_scope": "Historical M-series ledger retained for compatibility. Current implementation authority is CURRENT_GATES.json / docs/CURRENT_STATE.md. B15 repairs B14 voice capture, streaming wake/whole-utterance handling, concise fan speech and latency evidence; see b15/REPAIR_RECORD.md. The current physical B15 wake/audio/reboot acceptance remains open.",
   "milestones": [
     {
       "evidence": "TEST_MATRIX.md (M2.1)",
@@ -91,17 +91,17 @@
       "title": "Coordinator/state/health"
     },
     {
-      "evidence": "src/gonken_agent/audio/; src/gonken_agent/voice_runtime.py; tests/unit/test_runtime_audio.py; tests/unit/test_voice_appliance.py; docs/development/evidence/v09/checkpoint23/unit_resumption_manifest.json; docs/development/evidence/v09/checkpoint23/pretarget_affected_code_slice_rerun.log",
+      "evidence": "b15/REPAIR_RECORD.md; b15/verification/VERIFICATION.json; tests/unit/test_b15_capture_repair.py; tests/unit/test_b15_streaming_wake.py; tests/integration/test_b15_pcm_stream_process.py",
       "id": "M4.2",
-      "remaining": "Host software covers deterministic device selection/re-enumeration, bounded capture lifecycle and recovery logic. Real ALSA/PipeWire enumeration, USB/Bluetooth hotplug, microphone/speaker routing and audible recovery remain target-run evidence.",
+      "remaining": "B15 code paths are host-tested; native synthetic misses remain documented. Actual Raspberry Pi capture, keyword recall/false wakes, Whisper/Piper latency, microphone hotplug and no-login reboot require exact-package target evidence.",
       "software": "host-verified",
       "target": "not-run",
       "title": "Audio discovery and recovery"
     },
     {
-      "evidence": "src/gonken_agent/audio/resample.py; src/gonken_agent/audio/speech.py; src/gonken_agent/voice_runtime.py; tests/unit/test_runtime_audio.py; tests/unit/test_voice_appliance.py; docs/development/evidence/v09/checkpoint23/unit_resumption_manifest.json; docs/development/evidence/v09/checkpoint23/pretarget_affected_code_slice_rerun.log",
+      "evidence": "b15/REPAIR_RECORD.md; b15/verification/VERIFICATION.json; tests/unit/test_b15_capture_repair.py; tests/unit/test_b15_streaming_wake.py; tests/integration/test_b15_pcm_stream_process.py",
       "id": "M4.3",
-      "remaining": "Host software covers FIR resampling, Whisper/Piper subprocess validation/cleanup, wake/question capture and bounded progress-cue lifecycle. Real speech recognition, audible Piper output, latency and thermal/resource behavior remain target-run evidence.",
+      "remaining": "B15 code paths are host-tested; native synthetic misses remain documented. Actual Raspberry Pi capture, keyword recall/false wakes, Whisper/Piper latency, microphone hotplug and no-login reboot require exact-package target evidence.",
       "software": "host-verified",
       "target": "not-run",
       "title": "Resampling/STT/TTS lifecycle"
@@ -334,10 +334,10 @@
       "title": "Hybrid HIL and simulation-aware voice"
     },
     {
-      "evidence": "config/defaults.toml; src/gonken_agent/voice_runtime.py; src/gonken_agent/interaction/gpiod_ptt.py; src/gonken_agent/cli.py; tests/unit/test_voice_appliance.py; tests/unit/test_m5_1_ptt_runtime.py; tests/unit/test_m2_1.py; docs/development/evidence/v09/checkpoint20/; docs/development/evidence/v09/checkpoint23/pretarget_affected_code_slice_rerun.log",
+      "evidence": "b15/REPAIR_RECORD.md; b15/verification/VERIFICATION.json; tests/unit/test_b15_capture_repair.py; tests/unit/test_b15_streaming_wake.py; tests/integration/test_b15_pcm_stream_process.py",
       "id": "M10.12",
       "notes": "Checkpoint 23 repairs the checkpoint-20 false-green: production standby now captures into a bounded pipeline while the previous window is transcribed, so host software no longer intentionally stops capture during Whisper work. This still does not prove physical wake performance.",
-      "remaining": "Default GonKen, tolerant matching, bounded pipelined standby capture, progress cues, wake diagnostics, wake monitoring indicator and voice-owned transition announcements are host-verified. Real microphone/STT recall/false-wake/latency, GPIO22 visibility and real progress/announcement audio remain target-gated under M10.7.",
+      "remaining": "B15 code paths are host-tested; native synthetic misses remain documented. Actual Raspberry Pi capture, keyword recall/false wakes, Whisper/Piper latency, microphone hotplug and no-login reboot require exact-package target evidence.",
       "software": "host-verified",
       "status": "host-verified",
       "target": "not-run",

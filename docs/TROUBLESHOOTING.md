@@ -105,7 +105,13 @@ then a simulated backend appeared in JSON returned by a physical-evidence comman
 
 ## 7. “Wake phrase is unreliable”
 
-The packaged default wake phrase is `GonKen`, and `Hey GonKen` is retained as a backward-compatible alias. `gonken-agent wake status --json` should report `capture.mode=pipelined` and `capture_continues_during_transcription=true`. The production standby path uses a bounded newest-wins queue so synchronous Whisper work no longer intentionally stops microphone capture of the next wake window.
+The B15 default is `capture.mode=streaming-kws-vad`. `GonKen` and the
+backward-compatible `Hey GonKen` alias remain supported. Wake and inline command
+share one continuous recording; capture closes before transcription/playback.
+`capture_continues_during_transcription=false` is therefore intentional, not a
+fault. The explicit `backend="whisper"` compatibility mode retains old pipelined
+windows and may still fall behind on this Pi. `wake status` reports configuration,
+not native dependency usability or physical acceptance.
 
 Check:
 
@@ -116,7 +122,7 @@ gpiodetect
 gpioinfo --strict GPIO22
 ```
 
-If the journal reports dropped wake windows, record the count and recognition latency; do not increase the queue without measuring CPU/RAM/thermal effects. If the service reports a wake-monitoring GPIO error, correct permissions/mapping rather than bypassing the privacy indicator. Host matcher/pipeline tests are not real microphone evidence. For target evaluation, use the Raspberry Pi acceptance runbook, record intended detections, misses, benign false wakes, wake-to-`Yes?` latency, accent/distance/noise conditions, and preserve logs without retaining raw transcripts by default.
+On B15, inspect `WAKE_STREAM_METRICS` (native hit, utterance length, decode and transcription timing) and `VOICE_CAPTURE_METRICS`. The ordinary support bundle retains these numeric/boolean fields without transcripts. If the journal reports old dropped wake windows, check the configured backend and exact installed commit; do not increase the queue without measuring CPU/RAM/thermal effects. If the service reports a wake-monitoring GPIO error, correct permissions/mapping rather than bypassing the privacy indicator. Host matcher/pipeline tests are not real microphone evidence. For target evaluation, use the Raspberry Pi acceptance runbook, record intended detections, misses, benign false wakes, wake-to-`Yes?` latency, accent/distance/noise conditions, and preserve logs without retaining raw transcripts by default.
 
 ## 7A. “Push-to-talk does not record or the recording LED is wrong”
 

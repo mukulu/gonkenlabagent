@@ -1499,3 +1499,26 @@ Expected, malformed, sensor-fault, stale-config, acoustic-truncation, denied-pow
 expiry/replay and privacy paths are checked. The final per-case verification index
 is under `docs/development/b12/verification`; old PASS rows do not prove B12.
 No Raspberry Pi acoustic/electrical/power/display acceptance is claimed by host runs.
+
+
+## B15 - exact B14-derived voice repair (2026-09-22)
+
+Current evidence is `b15/verification/VERIFICATION.json`, with bounded per-module
+unit logs, per-module process integration logs, and per-case release/speech
+lifecycle logs. Repeated narrow checks are not added to unique test totals.
+The retained intermediate documentation-link failure is superseded only by the
+explicit final documentation rerun, not silently deleted from history.
+
+| Boundary | Cases / evidence | Scope |
+|---|---|---|
+| WAV finalization | stale promised-length reproduction; raw ALSA/Pulse; empty/misaligned/nonzero failure | Host/mock |
+| Wake/inline | full utterance beyond two seconds; short pause retains delayed qualifier; native-only Yes?; inline general and sensor requests; native miss fallback; wakeless command refused | Host/fake STT |
+| Speech limits | 400 ms pre-roll; 12 second maximum; clipped command not executed; idle silence not transcribed | Host |
+| Native dependency | real distro ABI/model silence/reset/close; absent library/model rejected | Host x86_64, not Pi |
+| Native acoustic characterization | 36 synthetic utterances; conservative 6/12 intended hits and 0/24 negative hits; misses recorded, not a full recall PASS | Host synthetic only |
+| Process ownership | fragmented reads; stderr bound; cancellation; EOF/stall; child ignoring SIGINT reaped | Real host subprocesses |
+| Speech wording | exact short real-actuator messages; simulation prefix; error unconfirmed; once-only startup speech | Host |
+| Diagnostics | numeric/boolean timing fields only; no raw audio/transcript; 20-record bound; truthful configured backend | Host |
+| Non-regression | full discovered unit/integration/lifecycle corpus; unchanged environment source vs B14 | Host; refer to final manifest |
+| Exact delivery | clean clone, hash, Git identity, extraction and archive qualification | Adjacent delivery receipt |
+| Physical voice | actual microphone/speaker, keyword accuracy, command STT/TTS, latency, hotplug/reboot/soak | NOT RUN against B15 |

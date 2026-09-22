@@ -1,6 +1,6 @@
 # GonKenLab Agent
 
-**B13 installation-path repair candidate.** A local, voice-first
+**B15 voice-runtime repair checkpoint.** A local, voice-first
 Raspberry Pi assistant with real temperature/humidity sensing, automatic room-fan
 control, bounded timers, and explicitly confirmed reboot/shutdown. The existing
 Attempt03 programme also contains later display and cleanup work; those items are
@@ -14,6 +14,19 @@ and the supplied verification receipt state exactly what was tested.
 ![GonKen architecture: separate voice, model, environment and power owners](docs/diagrams/system-overview.svg)
 
 ## 1. Install this exact package
+
+For the downloaded B15 package, use the [B15 upgrade instructions](docs/development/b15/INSTALL_AND_VERIFY.md).
+B15 is not automatically installed by pulling `main`: this delivery does not push
+or merge GitHub. Run from the clean extracted full-Git B15 directory:
+
+```bash
+./bootstrap.sh --local-checkpoint --environment-profile full-real --environment-mode preserve --appliance-preset none
+```
+
+These maintenance options preserve your existing thresholds, mode and selected
+model rather than reapplying the factory responsive-room preset. No wiring change
+is part of B15. The general post-merge/fresh-machine workflows below remain valid
+for their explicitly stated purpose.
 
 Target: Raspberry Pi 5, Raspberry Pi OS Lite 64-bit / Debian Trixie, the already
 wired SHT31 on I2C1 at **0x44**, and an **active-high BCM GPIO23** relay switching
@@ -93,11 +106,10 @@ identity. A failure still produces one canonical diagnostic `.tar.bz2`.
 
 ## 2. Voice-command catalogue
 
-Say **GonKen**, wait for **Yes?**, then say the command. The acknowledgement is a
-cached fixed Piper phrase, not an LLM request. A complete command following the
-wake word may use the inline fast path, but only when the captured audio includes
-a completed utterance; waiting for the acknowledgement is the least ambiguous
-procedure. Speak a complete timed command rather than pausing between "fan on"
+Say **GonKen**, wait for **Yes?**, then say the command; or say **GonKen, what is
+the temperature?** as one utterance. B15 retains the entire inline utterance and
+does not ask for it again. The acknowledgement is a cached fixed Piper phrase,
+not an LLM request. Speak a complete timed command rather than pausing between "fan on"
 and "in two minutes".
 
 Sensor, time, fan, policy, timer and power requests use deterministic local
@@ -352,9 +364,12 @@ persistent cue store. Question capture can end after sustained speech followed b
 900 ms of silence rather than always waiting eight seconds. Continuous noise,
 uncertain speech completion or silence still uses the bounded maximum window.
 
-These are implemented latency reductions, **not measured Raspberry Pi latency
-promises**. Wake recognition still uses local speech recognition, microphone
-routing and capture windows; a smaller conversational model alone cannot make
+B15 additionally uses streaming phonetic keyword detection plus a bounded
+utterance buffer instead of repeatedly transcribing silent wake windows. Native
+misses use one complete-utterance Whisper fallback. These are implemented latency
+reductions, **not measured Raspberry Pi latency promises**. Command transcription,
+microphone routing and acoustic recognition still need real-target measurement;
+a smaller conversational model alone cannot make
 that path instantaneous. Audio noise, CPU load and model cold-start remain relevant.
 `llm benchmark` measures model transactions, not microphone-to-speaker latency.
 

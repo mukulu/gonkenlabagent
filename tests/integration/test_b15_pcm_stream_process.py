@@ -55,6 +55,25 @@ class PCMProcessTests(unittest.TestCase):
             except AssertionError as exc:
                 if 'WAKE_NATIVE_LIBRARY_MISSING' in str(exc):self.skipTest('distro native library absent on this host')
                 raise
+    def test_real_raw_recording_child_endpoints_and_gonken_finalizes_both_transports(self):
+        from types import SimpleNamespace
+        from gonken_agent.voice_runtime import AudioBackend
+        from gonken_agent.audio.speech import validate_wav
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp);recorder=root/'recorder'
+            recorder.write_text('#!'+sys.executable+'\nimport os,signal,time,sys\nsignal.signal(signal.SIGINT,lambda *args:sys.exit(0))\nos.write(1,b"\\x10\\x08"*6400+b"\\0"*38400)\ntime.sleep(10)\n')
+            recorder.chmod(0o700)
+            b=AudioBackend.__new__(AudioBackend)
+            b.config=SimpleNamespace(audio=SimpleNamespace(processing_rate=16000,speech_energy_threshold=250,speech_end_silence_ms=900))
+            b.input_device='fixture';b.arecord=b.parecord=recorder
+            for mode in ('alsa-usb','pipewire-usb'):
+                with self.subTest(mode=mode):
+                    b.input_mode=mode;dest=root/(mode+'.wav')
+                    started=time.monotonic();b._record_to(dest,8,end_on_silence=True)
+                    self.assertEqual(validate_wav(dest)['frames'],25600)
+                    self.assertLess(time.monotonic()-started,3)
+                    self.assertEqual(list(root.glob('*.pcm')),[])
+
     def test_actual_native_abi_silence_reset_close_and_invalid_input(self):
         with tempfile.TemporaryDirectory() as t:
             try:d=NativeKeywordDetector('GonKen',Path(t))

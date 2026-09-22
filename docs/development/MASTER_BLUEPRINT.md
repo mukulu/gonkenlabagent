@@ -1,9 +1,10 @@
 # GonKenLab Agent Implementation Master Blueprint
 
 > Current Attempt03 task authority is `CURRENT_GATES.json` / `../CURRENT_STATE.md`.
-> B10 target-run repair evidence: `b10/REPAIR_RECORD.md`, `b10/VERIFICATION.json`.
-> The current wired deployment is described in `../ROOM_APPLIANCE_INSTALL.md`;
-> older simulation-first checkpoint instructions are historical, not its default.
+> Current B15 voice repair: `b15/REPAIR_RECORD.md`, `b15/INSTALL_AND_VERIFY.md`,
+> and `b15/verification/VERIFICATION.json`. Historical M-series plans below do
+> not override current Attempt03/B15 source or confer physical acceptance.
+
 
 
 **Blueprint revision:** 2.1-appliance-readiness

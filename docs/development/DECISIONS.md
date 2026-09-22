@@ -1956,3 +1956,21 @@ PRD describes the current offline room appliance; the older root Pi-Genius conce
 is retained in Git history rather than presented as current. Later display and
 full semantic rollback requirements remain in the current registry, not silently
 satisfied by documentation or the current regression corpus.
+
+
+## D-B15-VOICE-20260922 - Repair wake/capture boundaries without changing environment ownership
+
+Status: Accepted for the B15 host repair checkpoint; physical voice acceptance remains open.
+Use one streaming raw-PCM recorder, a distro-native phonetic keyword search, a bounded
+whole-utterance buffer, and a completed-speech Whisper fallback. Do not rename the
+original project's Hey Jansky model as GonKen, and do not transcribe silent windows.
+Keep the conservative 1e-20 keyword threshold: a more permissive 1e-40 synthetic
+trial raised false wakes. Record the observed misses, not a fictitious acoustic PASS.
+ALSA and Pulse share application-owned WAV finalization. Only wake-only input says
+Yes?; complete inline requests need no second capture. Startup readiness speech
+happens once per process, but recovery probes still execute. Ordinary fan speech is
+short actuator-state wording; internal evidence, simulation prefixes and error
+qualifications remain truthful. See b15/REPAIR_RECORD.md and the versioned test evidence.
+The environment controller, GPIO23 owner, thresholds/dwell logic, typed power domain,
+immutable release lifecycle, strict whole-program promotion and offline boundary are
+not weakened. No GitHub push/merge or physical acceptance is implied by this checkpoint.

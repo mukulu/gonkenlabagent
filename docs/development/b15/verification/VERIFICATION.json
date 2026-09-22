@@ -1,0 +1,7 @@
+{
+  "schema": "gonken-b15-verification-v1",
+  "status": "FINAL_ACCOUNTING_PENDING",
+  "physical_acceptance_claimed": false,
+  "source_tests_completed": true,
+  "exact_archive_qualification": "PENDING"
+}

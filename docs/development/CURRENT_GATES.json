@@ -1,11 +1,11 @@
 {
   "schema": "gonken-current-state-v1",
-  "lineage": "Recovered actual B11i 2fabc0985db4 plus B12 responsive-room commits; not reconstructed lost CP46.7R1",
+  "lineage": "Attempt03 reconstructed lineage -> exact B14 648f5b151d4c753cf1660243afacd010d73d05b7 -> B15 voice repair; local branch only",
   "blueprint": "Attempt03 (Attempt02 execution + original V7 + Display V2)",
   "blueprint_sha256": "4f932dac8b03ffcef03b7fc77a2f67d99966cab460217c59821f8e1535a5e441",
   "physical_acceptance_claimed": false,
-  "package_status": "B12_RESPONSIVE_ROOM_CANDIDATE_HOST_TESTED; exact exported bytes require the adjacent qualification receipt; not full Attempt03 stable release",
-  "next_action": "Verify the B12 delivery receipt, run install-room-appliance.sh on the wired target, and continue remaining Attempt03 work from this actual source. Next core engineering tranche: 46.5.3 late semantic rollback, without undoing the B12 real-thermostat/model/commands work.",
+  "package_status": "B15 host-tested voice repair checkpoint; not STABLE_FINAL_RELEASE, not whole-program completion, and no B15 physical acceptance claimed",
+  "next_action": "Install the exact B15 archive using b15/INSTALL_AND_VERIFY.md; verify microphone availability, wake-only and inline commands, short actuator speech, timing metrics and no-login reboot. Preserve existing working SHT31/GPIO23 control.",
   "slots": [
     {
       "id": "46.0.1",
@@ -683,9 +683,11 @@
       "status": "WIP",
       "evidence": [
         "docs/development/b12/verification/VERIFICATION.json",
-        "docs/development/b12/VERIFICATION.md"
+        "docs/development/b12/VERIFICATION.md",
+        "docs/development/b15/REPAIR_RECORD.md",
+        "docs/development/b15/verification/VERIFICATION.json"
       ],
-      "note": "B12 current implementation corpus is 972 unit + 88 integration tests, no skips. Whole-program final convergence remains open where preceding implementation is unfinished. Exact exported-byte qualification is an adjacent receipt, not inferred here."
+      "note": "B15 current-corpus verification is in the referenced manifest; full-program slot closure is not inferred. Exact archive qualification is an adjacent receipt, and physical B15 acceptance remains open."
     },
     {
       "id": "46.12.2",
@@ -694,9 +696,11 @@
       "status": "WIP",
       "evidence": [
         "docs/development/b12/verification/VERIFICATION.json",
-        "docs/development/b12/VERIFICATION.md"
+        "docs/development/b12/VERIFICATION.md",
+        "docs/development/b15/REPAIR_RECORD.md",
+        "docs/development/b15/verification/VERIFICATION.json"
       ],
-      "note": "B12 current implementation corpus is 972 unit + 88 integration tests, no skips. Whole-program final convergence remains open where preceding implementation is unfinished. Exact exported-byte qualification is an adjacent receipt, not inferred here."
+      "note": "B15 current-corpus verification is in the referenced manifest; full-program slot closure is not inferred. Exact archive qualification is an adjacent receipt, and physical B15 acceptance remains open."
     },
     {
       "id": "46.12.3",
@@ -705,9 +709,11 @@
       "status": "WIP",
       "evidence": [
         "docs/development/b12/verification/VERIFICATION.json",
-        "docs/development/b12/VERIFICATION.md"
+        "docs/development/b12/VERIFICATION.md",
+        "docs/development/b15/REPAIR_RECORD.md",
+        "docs/development/b15/verification/VERIFICATION.json"
       ],
-      "note": "B12 current implementation corpus is 972 unit + 88 integration tests, no skips. Whole-program final convergence remains open where preceding implementation is unfinished. Exact exported-byte qualification is an adjacent receipt, not inferred here."
+      "note": "B15 current-corpus verification is in the referenced manifest; full-program slot closure is not inferred. Exact archive qualification is an adjacent receipt, and physical B15 acceptance remains open."
     },
     {
       "id": "46.12.4",
@@ -716,9 +722,11 @@
       "status": "WIP",
       "evidence": [
         "docs/development/b12/verification/VERIFICATION.json",
-        "docs/development/b12/VERIFICATION.md"
+        "docs/development/b12/VERIFICATION.md",
+        "docs/development/b15/REPAIR_RECORD.md",
+        "docs/development/b15/verification/VERIFICATION.json"
       ],
-      "note": "B12 current implementation corpus is 972 unit + 88 integration tests, no skips. Whole-program final convergence remains open where preceding implementation is unfinished. Exact exported-byte qualification is an adjacent receipt, not inferred here."
+      "note": "B15 current-corpus verification is in the referenced manifest; full-program slot closure is not inferred. Exact archive qualification is an adjacent receipt, and physical B15 acceptance remains open."
     },
     {
       "id": "46.12.5",
@@ -727,9 +735,11 @@
       "status": "WIP",
       "evidence": [
         "docs/development/b12/verification/VERIFICATION.json",
-        "docs/development/b12/VERIFICATION.md"
+        "docs/development/b12/VERIFICATION.md",
+        "docs/development/b15/REPAIR_RECORD.md",
+        "docs/development/b15/verification/VERIFICATION.json"
       ],
-      "note": "B12 current implementation corpus is 972 unit + 88 integration tests, no skips. Whole-program final convergence remains open where preceding implementation is unfinished. Exact exported-byte qualification is an adjacent receipt, not inferred here."
+      "note": "B15 current-corpus verification is in the referenced manifest; full-program slot closure is not inferred. Exact archive qualification is an adjacent receipt, and physical B15 acceptance remains open."
     },
     {
       "id": "46.12.6",
@@ -738,9 +748,11 @@
       "status": "WIP",
       "evidence": [
         "docs/development/b12/verification/VERIFICATION.json",
-        "docs/development/b12/VERIFICATION.md"
+        "docs/development/b12/VERIFICATION.md",
+        "docs/development/b15/REPAIR_RECORD.md",
+        "docs/development/b15/verification/VERIFICATION.json"
       ],
-      "note": "B12 current implementation corpus is 972 unit + 88 integration tests, no skips. Whole-program final convergence remains open where preceding implementation is unfinished. Exact exported-byte qualification is an adjacent receipt, not inferred here."
+      "note": "B15 current-corpus verification is in the referenced manifest; full-program slot closure is not inferred. Exact archive qualification is an adjacent receipt, and physical B15 acceptance remains open."
     },
     {
       "id": "46.12.7",

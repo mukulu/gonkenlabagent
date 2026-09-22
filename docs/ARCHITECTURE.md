@@ -1,5 +1,13 @@
 # GonKenLab Agent: current architecture and design
 
+> B15 voice path: raw PCM -> streaming phonetic KWS + complete-utterance buffer ->
+> native wake-only acknowledgement or one complete-utterance Whisper check -> typed
+> routing / optional local LLM -> Piper. The recorder closes before output. A native
+> miss has a speech-utterance fallback, not a silent-window transcription queue.
+> The native library/model are distro prerequisites, not a new hardware owner.
+> See [B15 repair](development/b15/REPAIR_RECORD.md).
+
+
 This describes implemented B12 code, not an assertion that the entire retained
 Attempt03 blueprint is complete. The authoritative code lives in `src/gonken_agent`;
 installer maintenance tools are under `scripts`. Paths in the table are repository
