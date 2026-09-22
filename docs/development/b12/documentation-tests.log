@@ -1,0 +1,17 @@
+test_ambiguous_new_requirements_are_not_silently_acted_on (tests.unit.test_b12_documented_commands.DocumentationTests.test_ambiguous_new_requirements_are_not_silently_acted_on) ... ok
+test_catalogue_is_visible_in_root_readme_not_buried (tests.unit.test_b12_documented_commands.DocumentationTests.test_catalogue_is_visible_in_root_readme_not_buried) ... ok
+test_current_document_local_links_exist (tests.unit.test_b12_documented_commands.DocumentationTests.test_current_document_local_links_exist) ... ok
+test_every_terminal_example_parses_without_execution (tests.unit.test_b12_documented_commands.DocumentationTests.test_every_terminal_example_parses_without_execution) ... ok
+test_every_voice_example_maps_to_documented_operation_and_arguments (tests.unit.test_b12_documented_commands.DocumentationTests.test_every_voice_example_maps_to_documented_operation_and_arguments) ... ok
+test_future_display_not_presented_as_shipped_command (tests.unit.test_b12_documented_commands.DocumentationTests.test_future_display_not_presented_as_shipped_command) ... ok
+test_svg_architecture_is_native_accessible_and_passive (tests.unit.test_b12_documented_commands.DocumentationTests.test_svg_architecture_is_native_accessible_and_passive) ... ok
+test_effective_config_process_can_explicitly_show_installer_paths (tests.integration.test_cli_process.CliProcessTests.test_effective_config_process_can_explicitly_show_installer_paths) ... ok
+test_effective_config_process_is_local_and_redacted (tests.integration.test_cli_process.CliProcessTests.test_effective_config_process_is_local_and_redacted) ... ok
+test_run_process_fails_categorically_when_target_voice_dependencies_are_absent (tests.integration.test_cli_process.CliProcessTests.test_run_process_fails_categorically_when_target_voice_dependencies_are_absent) ... ok
+test_service_process_once_is_content_free_and_degraded (tests.integration.test_cli_process.CliProcessTests.test_service_process_once_is_content_free_and_degraded) ... ok
+test_version_and_status_process_contracts (tests.integration.test_cli_process.CliProcessTests.test_version_and_status_process_contracts) ... ok
+
+----------------------------------------------------------------------
+Ran 12 tests in 0.768s
+
+OK

@@ -1,6 +1,8 @@
 # Operating and troubleshooting GonKenLab Agent
 
-## B10 current real-room deployment
+For the current responsive real-room deployment, use the [README command catalogue](../README.md) and [room runbook](ROOM_APPLIANCE_INSTALL.md). The explicit preset selects qwen3:0.6b and 28 C ON / 26 C OFF, preserves valid dwell, and supports the documented bounded timers and confirmed power actions. [Architecture and SVG diagrams](ARCHITECTURE.md).
+
+## B12 current real-room deployment
 
 For this already-wired SHT31/GPIO23 appliance, use the exact candidate checkout:
 
@@ -14,7 +16,7 @@ dwell, service status and one-archive failure reporting. Prior physical PASS
 reports are not a prerequisite to this explicit deployment. Invalid safety
 configuration or unavailable real hardware still fails honestly; simulation is
 never a fallback. Historical Checkpoint-44/45 simulation-first examples below are
-retained as test/campaign history, not the B10 production default.
+retained as test/campaign history, not the B12 production default.
 
 
 This document is the operational reference after installation. Normal everyday
@@ -400,7 +402,7 @@ gonken-agent env mode set manual
 gonken-agent env mode set semi-automatic
 gonken-agent env mode set automatic
 gonken-agent env policy show
-gonken-agent env policy set --start-c 28 --stop-c 26.5
+gonken-agent env policy set --start-c 28 --stop-c 26
 gonken-agent env watch --interval 2
 gonken-agent env status --json
 ```
@@ -445,7 +447,7 @@ values for a real hardware path.
 The voice route now has a deterministic environment-intent parser before the
 ordinary local model path. Clear phrases such as “what is the room temperature?”,
 “what is the humidity?”, “is the room fan on?”, “turn the room fan on”, “turn the
-room fan off”, “use automatic mode”, and “turn it on at 28 and off at 26.5” are
+room fan off”, “use automatic mode”, and “turn it on at 28 and off at 26” are
 converted into typed environment-daemon operations. Ambiguous phrases such as
 “set the temperature to 25” ask for clarification instead of changing policy.
 General conversation still uses the local LLM.
@@ -540,7 +542,7 @@ The installer then owns the following convergence work rather than requiring man
 
 `full-simulation` remains an explicit test profile. `sensor-deferred-relay`
 (simulated sensor / real actuator) still stops at `ENVIRONMENT_PHYSICAL_COMMISSION_REQUIRED`.
-B10 explicitly selected `full-real` instead validates the real static profile,
+The explicit room preset selected `full-real` instead validates the real static profile,
 reconciles/restarts the sole environment daemon, checks real backend/readiness,
 and applies the requested policy mode through IPC. No earlier physical-PASS
 archive is required; actual fan-motion acceptance is still separately observed.

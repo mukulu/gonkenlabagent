@@ -1,0 +1,932 @@
+{
+  "format": "gonken-command-examples-v1",
+  "voice": [
+    {
+      "group": "Readings and status",
+      "text": "What is the room temperature?",
+      "parser": "environment",
+      "operation": "sensor.read",
+      "params": {
+        "response_kind": "temperature"
+      }
+    },
+    {
+      "group": "Readings and status",
+      "text": "How warm is the room?",
+      "parser": "environment",
+      "operation": "sensor.read",
+      "params": {
+        "response_kind": "temperature"
+      }
+    },
+    {
+      "group": "Readings and status",
+      "text": "What is the humidity?",
+      "parser": "environment",
+      "operation": "sensor.read",
+      "params": {
+        "response_kind": "humidity"
+      }
+    },
+    {
+      "group": "Readings and status",
+      "text": "Tell me the temperature and humidity",
+      "parser": "environment",
+      "operation": "sensor.read",
+      "params": {
+        "response_kind": "sensor_read"
+      }
+    },
+    {
+      "group": "Readings and status",
+      "text": "Is the room fan on?",
+      "parser": "environment",
+      "operation": "status.get",
+      "params": {
+        "response_kind": "fan_status"
+      }
+    },
+    {
+      "group": "Readings and status",
+      "text": "What are the fan settings?",
+      "parser": "environment",
+      "operation": "policy.get",
+      "params": {
+        "response_kind": "policy"
+      }
+    },
+    {
+      "group": "Immediate fan control",
+      "text": "Turn the fan on",
+      "parser": "environment",
+      "operation": "fan.set",
+      "params": {
+        "power": "on"
+      }
+    },
+    {
+      "group": "Immediate fan control",
+      "text": "Turn on the fan",
+      "parser": "environment",
+      "operation": "fan.set",
+      "params": {
+        "power": "on"
+      }
+    },
+    {
+      "group": "Immediate fan control",
+      "text": "Start the room fan",
+      "parser": "environment",
+      "operation": "fan.set",
+      "params": {
+        "power": "on"
+      }
+    },
+    {
+      "group": "Immediate fan control",
+      "text": "Turn the fan off",
+      "parser": "environment",
+      "operation": "fan.set",
+      "params": {
+        "power": "off"
+      }
+    },
+    {
+      "group": "Immediate fan control",
+      "text": "Stop the room fan",
+      "parser": "environment",
+      "operation": "fan.set",
+      "params": {
+        "power": "off"
+      }
+    },
+    {
+      "group": "Modes",
+      "text": "Use automatic mode",
+      "parser": "environment",
+      "operation": "mode.set",
+      "params": {
+        "mode": "automatic"
+      }
+    },
+    {
+      "group": "Modes",
+      "text": "Use manual mode",
+      "parser": "environment",
+      "operation": "mode.set",
+      "params": {
+        "mode": "manual"
+      }
+    },
+    {
+      "group": "Modes",
+      "text": "Use semi automatic mode",
+      "parser": "environment",
+      "operation": "mode.set",
+      "params": {
+        "mode": "semi_automatic"
+      }
+    },
+    {
+      "group": "Modes",
+      "text": "Use disabled mode",
+      "parser": "environment",
+      "operation": "mode.set",
+      "params": {
+        "mode": "disabled"
+      }
+    },
+    {
+      "group": "Thermostat",
+      "text": "Set fan on threshold to twenty eight and off threshold to twenty six",
+      "parser": "environment",
+      "operation": "policy.update",
+      "params": {
+        "start_c": 28.0,
+        "stop_c": 26.0
+      }
+    },
+    {
+      "group": "Thermostat",
+      "text": "Set fan on threshold to 29 and off threshold to 27",
+      "parser": "environment",
+      "operation": "policy.update",
+      "params": {
+        "start_c": 29.0,
+        "stop_c": 27.0
+      }
+    },
+    {
+      "group": "Time and date",
+      "text": "What time is it?",
+      "parser": "clock",
+      "operation": "local_datetime",
+      "params": {}
+    },
+    {
+      "group": "Time and date",
+      "text": "What is the date?",
+      "parser": "clock",
+      "operation": "local_datetime",
+      "params": {}
+    },
+    {
+      "group": "Time and date",
+      "text": "Tell me the local date and time",
+      "parser": "clock",
+      "operation": "local_datetime",
+      "params": {}
+    },
+    {
+      "group": "Timers and announcements",
+      "text": "Turn the fan on in two minutes",
+      "parser": "schedule",
+      "operation": "automation.add",
+      "params": {
+        "kind": "fan_on",
+        "delay_seconds": 120
+      }
+    },
+    {
+      "group": "Timers and announcements",
+      "text": "Stop the fan after three minutes",
+      "parser": "schedule",
+      "operation": "automation.add",
+      "params": {
+        "kind": "fan_off",
+        "delay_seconds": 180
+      }
+    },
+    {
+      "group": "Timers and announcements",
+      "text": "Turn the fan on in two minutes for three minutes",
+      "parser": "schedule",
+      "operation": "automation.add",
+      "params": {
+        "kind": "fan_run",
+        "delay_seconds": 120,
+        "duration_seconds": 180
+      }
+    },
+    {
+      "group": "Timers and announcements",
+      "text": "Run the fan for three minutes",
+      "parser": "schedule",
+      "operation": "automation.add",
+      "params": {
+        "kind": "fan_run",
+        "duration_seconds": 180
+      }
+    },
+    {
+      "group": "Timers and announcements",
+      "text": "Switch the fan on and off every three minutes for thirty minutes",
+      "parser": "schedule",
+      "operation": "automation.add",
+      "params": {
+        "kind": "fan_cycle",
+        "interval_seconds": 180,
+        "lease_seconds": 1800
+      }
+    },
+    {
+      "group": "Timers and announcements",
+      "text": "Tell me the temperature after two minutes",
+      "parser": "schedule",
+      "operation": "automation.add",
+      "params": {
+        "kind": "temperature",
+        "delay_seconds": 120
+      }
+    },
+    {
+      "group": "Timers and announcements",
+      "text": "Tell me the temperature every two minutes for one hour",
+      "parser": "schedule",
+      "operation": "automation.add",
+      "params": {
+        "kind": "temperature",
+        "interval_seconds": 120,
+        "delay_seconds": 120,
+        "lease_seconds": 3600
+      }
+    },
+    {
+      "group": "Timers and announcements",
+      "text": "Report humidity every three minutes",
+      "parser": "schedule",
+      "operation": "automation.add",
+      "params": {
+        "kind": "humidity",
+        "interval_seconds": 180,
+        "delay_seconds": 180
+      }
+    },
+    {
+      "group": "Timers and announcements",
+      "text": "Tell me the temperature and humidity every two minutes",
+      "parser": "schedule",
+      "operation": "automation.add",
+      "params": {
+        "kind": "environment",
+        "interval_seconds": 120,
+        "delay_seconds": 120
+      }
+    },
+    {
+      "group": "Timers and announcements",
+      "text": "Tell me when the temperature increases by two degrees from the last mentioned temperature",
+      "parser": "schedule",
+      "operation": "automation.add",
+      "params": {
+        "kind": "temperature_delta",
+        "delta_c": 2
+      }
+    },
+    {
+      "group": "Timer administration",
+      "text": "List timers",
+      "parser": "schedule",
+      "operation": "automation.list",
+      "params": {}
+    },
+    {
+      "group": "Timer administration",
+      "text": "Cancel all timers",
+      "parser": "schedule",
+      "operation": "automation.cancel",
+      "params": {}
+    },
+    {
+      "group": "Timer administration",
+      "text": "Cancel timer ab12cd34",
+      "parser": "schedule",
+      "operation": "automation.cancel",
+      "params": {
+        "job_id": "ab12cd34"
+      }
+    },
+    {
+      "group": "Confirmed device power",
+      "text": "Restart the Raspberry Pi",
+      "parser": "power",
+      "operation": "REBOOT_DEVICE",
+      "params": {}
+    },
+    {
+      "group": "Confirmed device power",
+      "text": "Shut down the Raspberry Pi",
+      "parser": "power",
+      "operation": "POWEROFF_DEVICE",
+      "params": {}
+    }
+  ],
+  "terminal": [
+    {
+      "group": "Inspect",
+      "command": "gonken-agent status --json",
+      "args": [
+        "status",
+        "--json"
+      ],
+      "purpose": "Voice startup readiness and identity"
+    },
+    {
+      "group": "Inspect",
+      "command": "gonken-agent components --json",
+      "args": [
+        "components",
+        "--json"
+      ],
+      "purpose": "Separate voice, model, sensor, relay and tool status"
+    },
+    {
+      "group": "Inspect",
+      "command": "gonken-agent wake status --json",
+      "args": [
+        "wake",
+        "status",
+        "--json"
+      ],
+      "purpose": "Wake configuration and matcher information"
+    },
+    {
+      "group": "Inspect",
+      "command": "gonken-agent env health --json",
+      "args": [
+        "env",
+        "health",
+        "--json"
+      ],
+      "purpose": "Actual backend, command truth and sensor health"
+    },
+    {
+      "group": "Inspect",
+      "command": "gonken-agent env status --json",
+      "args": [
+        "env",
+        "status",
+        "--json"
+      ],
+      "purpose": "Room state and capabilities"
+    },
+    {
+      "group": "Inspect",
+      "command": "gonken-agent env temperature",
+      "args": [
+        "env",
+        "temperature"
+      ],
+      "purpose": "Read temperature"
+    },
+    {
+      "group": "Inspect",
+      "command": "gonken-agent env humidity",
+      "args": [
+        "env",
+        "humidity"
+      ],
+      "purpose": "Read humidity"
+    },
+    {
+      "group": "Inspect",
+      "command": "gonken-agent env read",
+      "args": [
+        "env",
+        "read"
+      ],
+      "purpose": "Read both sensor quantities"
+    },
+    {
+      "group": "Inspect",
+      "command": "gonken-agent env policy show",
+      "args": [
+        "env",
+        "policy",
+        "show"
+      ],
+      "purpose": "Show active thresholds, mode and dwell"
+    },
+    {
+      "group": "Inspect",
+      "command": "gonken-agent env watch --changes-only --health",
+      "args": [
+        "env",
+        "watch",
+        "--changes-only",
+        "--health"
+      ],
+      "purpose": "Watch meaningful control/health changes"
+    },
+    {
+      "group": "Inspect",
+      "command": "gonken-agent env watch --health",
+      "args": [
+        "env",
+        "watch",
+        "--health"
+      ],
+      "purpose": "Watch readings as well as control state"
+    },
+    {
+      "group": "Inspect",
+      "command": "gonken-agent env probe --json",
+      "args": [
+        "env",
+        "probe",
+        "--json"
+      ],
+      "purpose": "Bounded read-only probe"
+    },
+    {
+      "group": "Control",
+      "command": "gonken-agent env fan on",
+      "args": [
+        "env",
+        "fan",
+        "on"
+      ],
+      "purpose": "Immediate manual ON request"
+    },
+    {
+      "group": "Control",
+      "command": "gonken-agent env fan off",
+      "args": [
+        "env",
+        "fan",
+        "off"
+      ],
+      "purpose": "Immediate manual OFF request"
+    },
+    {
+      "group": "Control",
+      "command": "gonken-agent env mode set automatic",
+      "args": [
+        "env",
+        "mode",
+        "set",
+        "automatic"
+      ],
+      "purpose": "Restore temperature-driven control"
+    },
+    {
+      "group": "Control",
+      "command": "gonken-agent env mode set manual",
+      "args": [
+        "env",
+        "mode",
+        "set",
+        "manual"
+      ],
+      "purpose": "Select manual operation"
+    },
+    {
+      "group": "Control",
+      "command": "gonken-agent env mode set semi_automatic",
+      "args": [
+        "env",
+        "mode",
+        "set",
+        "semi_automatic"
+      ],
+      "purpose": "Select manually armed, automatic-OFF operation"
+    },
+    {
+      "group": "Control",
+      "command": "gonken-agent env mode set disabled",
+      "args": [
+        "env",
+        "mode",
+        "set",
+        "disabled"
+      ],
+      "purpose": "Disable control and command safe OFF"
+    },
+    {
+      "group": "Control",
+      "command": "gonken-agent env policy set --start-c 28 --stop-c 26 --mode automatic",
+      "args": [
+        "env",
+        "policy",
+        "set",
+        "--start-c",
+        "28",
+        "--stop-c",
+        "26",
+        "--mode",
+        "automatic"
+      ],
+      "purpose": "Set requested thermostat range and automatic mode"
+    },
+    {
+      "group": "Control",
+      "command": "gonken-agent env policy set --minimum-on-seconds 60 --minimum-off-seconds 60",
+      "args": [
+        "env",
+        "policy",
+        "set",
+        "--minimum-on-seconds",
+        "60",
+        "--minimum-off-seconds",
+        "60"
+      ],
+      "purpose": "Set dwell deliberately; do not use short cycles on the relay"
+    },
+    {
+      "group": "Schedule",
+      "command": "gonken-agent command \"What time is it?\"",
+      "args": [
+        "command",
+        "What time is it?"
+      ],
+      "purpose": "Deterministic local clock, without inference"
+    },
+    {
+      "group": "Schedule",
+      "command": "gonken-agent command \"Turn the fan on in two minutes for three minutes\"",
+      "args": [
+        "command",
+        "Turn the fan on in two minutes for three minutes"
+      ],
+      "purpose": "Same operational grammar as spoken commands"
+    },
+    {
+      "group": "Schedule",
+      "command": "gonken-agent env schedule add fan_on --after 120",
+      "args": [
+        "env",
+        "schedule",
+        "add",
+        "fan_on",
+        "--after",
+        "120"
+      ],
+      "purpose": "One delayed ON"
+    },
+    {
+      "group": "Schedule",
+      "command": "gonken-agent env schedule add fan_off --after 180",
+      "args": [
+        "env",
+        "schedule",
+        "add",
+        "fan_off",
+        "--after",
+        "180"
+      ],
+      "purpose": "One delayed OFF"
+    },
+    {
+      "group": "Schedule",
+      "command": "gonken-agent env schedule add fan_run --after 120 --duration 180",
+      "args": [
+        "env",
+        "schedule",
+        "add",
+        "fan_run",
+        "--after",
+        "120",
+        "--duration",
+        "180"
+      ],
+      "purpose": "Delayed finite ON/OFF pair"
+    },
+    {
+      "group": "Schedule",
+      "command": "gonken-agent env schedule add fan_cycle --every 180 --lease 1800",
+      "args": [
+        "env",
+        "schedule",
+        "add",
+        "fan_cycle",
+        "--every",
+        "180",
+        "--lease",
+        "1800"
+      ],
+      "purpose": "Finite cycling; 180 seconds per phase"
+    },
+    {
+      "group": "Schedule",
+      "command": "gonken-agent env schedule add temperature --after 120",
+      "args": [
+        "env",
+        "schedule",
+        "add",
+        "temperature",
+        "--after",
+        "120"
+      ],
+      "purpose": "One spoken temperature reminder"
+    },
+    {
+      "group": "Schedule",
+      "command": "gonken-agent env schedule add temperature --after 120 --every 120 --lease 3600",
+      "args": [
+        "env",
+        "schedule",
+        "add",
+        "temperature",
+        "--after",
+        "120",
+        "--every",
+        "120",
+        "--lease",
+        "3600"
+      ],
+      "purpose": "Repeated temperature reports for one hour"
+    },
+    {
+      "group": "Schedule",
+      "command": "gonken-agent env schedule add humidity --after 180 --every 180 --lease 3600",
+      "args": [
+        "env",
+        "schedule",
+        "add",
+        "humidity",
+        "--after",
+        "180",
+        "--every",
+        "180",
+        "--lease",
+        "3600"
+      ],
+      "purpose": "Repeated humidity reports"
+    },
+    {
+      "group": "Schedule",
+      "command": "gonken-agent env schedule add environment --after 120 --every 120 --lease 3600",
+      "args": [
+        "env",
+        "schedule",
+        "add",
+        "environment",
+        "--after",
+        "120",
+        "--every",
+        "120",
+        "--lease",
+        "3600"
+      ],
+      "purpose": "Repeated temperature and humidity"
+    },
+    {
+      "group": "Schedule",
+      "command": "gonken-agent env schedule add temperature_delta --delta-c 2 --lease 3600",
+      "args": [
+        "env",
+        "schedule",
+        "add",
+        "temperature_delta",
+        "--delta-c",
+        "2",
+        "--lease",
+        "3600"
+      ],
+      "purpose": "Report a two-degree rise"
+    },
+    {
+      "group": "Schedule",
+      "command": "gonken-agent env schedule list --json",
+      "args": [
+        "env",
+        "schedule",
+        "list",
+        "--json"
+      ],
+      "purpose": "IDs, next due time, expiry and timer state"
+    },
+    {
+      "group": "Schedule",
+      "command": "gonken-agent env schedule cancel ab12cd34",
+      "args": [
+        "env",
+        "schedule",
+        "cancel",
+        "ab12cd34"
+      ],
+      "purpose": "Cancel one actual ID; example ID is a placeholder"
+    },
+    {
+      "group": "Schedule",
+      "command": "gonken-agent env schedule cancel all",
+      "args": [
+        "env",
+        "schedule",
+        "cancel",
+        "all"
+      ],
+      "purpose": "Cancel all pending timers"
+    },
+    {
+      "group": "Administration",
+      "command": "gonken-agent llm status --json",
+      "args": [
+        "llm",
+        "status",
+        "--json"
+      ],
+      "purpose": "Effective selected model and qualification"
+    },
+    {
+      "group": "Administration",
+      "command": "gonken-agent llm models",
+      "args": [
+        "llm",
+        "models"
+      ],
+      "purpose": "Available admitted roster"
+    },
+    {
+      "group": "Administration",
+      "command": "gonken-agent llm benchmark --model qwen3:0.6b --iterations 3 --json",
+      "args": [
+        "llm",
+        "benchmark",
+        "--model",
+        "qwen3:0.6b",
+        "--iterations",
+        "3",
+        "--json"
+      ],
+      "purpose": "Explicit bounded model test; not a wake-latency measurement"
+    },
+    {
+      "group": "Administration",
+      "command": "gonken-agent llm capabilities --model qwen3:0.6b --json",
+      "args": [
+        "llm",
+        "capabilities",
+        "--model",
+        "qwen3:0.6b",
+        "--json"
+      ],
+      "purpose": "Explicit read-only tool qualification"
+    },
+    {
+      "group": "Administration",
+      "command": "gonken-agent llm switch qwen3:0.6b --json",
+      "args": [
+        "llm",
+        "switch",
+        "qwen3:0.6b",
+        "--json"
+      ],
+      "purpose": "Administrator model selection; restart and rollback checks"
+    },
+    {
+      "group": "Administration",
+      "command": "gonken-agent config show --effective --json",
+      "args": [
+        "config",
+        "show",
+        "--effective",
+        "--json"
+      ],
+      "purpose": "Validated effective configuration, paths redacted"
+    },
+    {
+      "group": "Administration",
+      "command": "gonken-agent config fingerprint",
+      "args": [
+        "config",
+        "fingerprint"
+      ],
+      "purpose": "Fingerprint only; no private values"
+    },
+    {
+      "group": "Administration",
+      "command": "gonken-agent doctor",
+      "args": [
+        "doctor"
+      ],
+      "purpose": "Non-mutating diagnostics"
+    },
+    {
+      "group": "Administration",
+      "command": "gonken-agent support --output-dir /tmp",
+      "args": [
+        "support",
+        "--output-dir",
+        "/tmp"
+      ],
+      "purpose": "Canonical support archive with no conversation content"
+    },
+    {
+      "group": "Administration",
+      "command": "gonken-agent version",
+      "args": [
+        "version"
+      ],
+      "purpose": "Package API version; use commit for B12 build identity"
+    },
+    {
+      "group": "Administration",
+      "command": "gonken-agent talk --seconds 8",
+      "args": [
+        "talk",
+        "--seconds",
+        "8"
+      ],
+      "purpose": "One foreground voice turn; stop the supervised voice service first"
+    },
+    {
+      "group": "Administration",
+      "command": "gonken-agent run",
+      "args": [
+        "run"
+      ],
+      "purpose": "Foreground voice loop; do not run a second audio owner"
+    },
+    {
+      "group": "Power",
+      "command": "gonken-agent power reboot --confirm restart",
+      "args": [
+        "power",
+        "reboot",
+        "--confirm",
+        "restart"
+      ],
+      "purpose": "Separate explicitly confirmed orderly reboot; run as the designated service identity"
+    },
+    {
+      "group": "Power",
+      "command": "gonken-agent power shutdown --confirm shutdown",
+      "args": [
+        "power",
+        "shutdown",
+        "--confirm",
+        "shutdown"
+      ],
+      "purpose": "Separate explicitly confirmed orderly shutdown; requires manual power-on afterward"
+    },
+    {
+      "group": "Advanced",
+      "command": "gonken-agent index build --index /srv/gonken-agent/index --calibration /srv/gonken-agent/calibration.json",
+      "args": [
+        "index",
+        "build",
+        "--index",
+        "/srv/gonken-agent/index",
+        "--calibration",
+        "/srv/gonken-agent/calibration.json"
+      ],
+      "purpose": "Advanced calibrated local-corpus indexing"
+    },
+    {
+      "group": "Advanced",
+      "command": "gonken-agent index verify --index /srv/gonken-agent/index",
+      "args": [
+        "index",
+        "verify",
+        "--index",
+        "/srv/gonken-agent/index"
+      ],
+      "purpose": "Validate an existing corpus index"
+    },
+    {
+      "group": "Advanced",
+      "command": "gonken-agent ask \"Explain this topic\" --index /srv/gonken-agent/index --extractive",
+      "args": [
+        "ask",
+        "Explain this topic",
+        "--index",
+        "/srv/gonken-agent/index",
+        "--extractive"
+      ],
+      "purpose": "Local-corpus excerpt diagnostic, not the voice/control route"
+    },
+    {
+      "group": "Advanced",
+      "command": "gonken-agent run --text-only --index /srv/gonken-agent/index --extractive",
+      "args": [
+        "run",
+        "--text-only",
+        "--index",
+        "/srv/gonken-agent/index",
+        "--extractive"
+      ],
+      "purpose": "Interactive corpus text diagnostic"
+    },
+    {
+      "group": "Advanced",
+      "command": "gonken-agent dashboard --index /srv/gonken-agent/index",
+      "args": [
+        "dashboard",
+        "--index",
+        "/srv/gonken-agent/index"
+      ],
+      "purpose": "Optional loopback-only diagnostic view; not the planned LCD console"
+    },
+    {
+      "group": "Advanced",
+      "command": "gonken-agent env simulate status",
+      "args": [
+        "env",
+        "simulate",
+        "status"
+      ],
+      "purpose": "Development only; not used by the full-real room deployment"
+    }
+  ]
+}

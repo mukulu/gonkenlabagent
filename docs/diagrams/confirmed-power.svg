@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300" height="810" viewBox="0 0 1300 810" role="img" aria-labelledby="title desc">
+<title id="title">Confirmed orderly power request</title><desc id="desc">A direct user power request requires action-specific confirmation, completed acknowledgement, real relay safe-OFF, and permitted logind request. Failure does not trigger retry or inhibitor bypass.</desc>
+<rect width="1300" height="810" fill="#f5f8fb"/>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#576a7b"/></marker></defs>
+<style>text{font-family:DejaVu Sans,Arial,sans-serif;fill:#17324d}.title{font-size:29px;font-weight:700}.h{font-size:19px;font-weight:700}.body{font-size:16px}.small{font-size:14px;fill:#576a7b}.caption{font-size:14px;fill:#007f86;font-weight:700}</style>
+<text x="40" y="55" class="title">Power control is not a model command</text>
+<text x="40" y="86" class="small">A short-lived user authorization crosses a fixed, narrowly privileged boundary.</text>
+<circle cx="72" cy="169" r="26" fill="#007f86"/>
+<text x="64" y="176" style="fill:white;font-size:22px;font-weight:700;font-family:DejaVu Sans,Arial">1</text>
+<rect x="126" y="125" width="1100" height="96" rx="12" fill="white" stroke="#cbd6df" stroke-width="1.5"/><rect x="126" y="137" width="5" height="72" rx="2" fill="#007f86"/>
+<text x="144" y="157" class="h">Direct request</text>
+<text x="144" y="187" class="body">Restart the Raspberry Pi / shut down the Raspberry Pi</text>
+<text x="144" y="211" class="body">No quoted, hypothetical, negated or fan-only request.</text>
+<path d="M 72 195 V 215" fill="none" stroke="#576a7b" stroke-width="2" marker-end="url(#arrow)"/>
+<circle cx="72" cy="286" r="26" fill="#007f86"/>
+<text x="64" y="293" style="fill:white;font-size:22px;font-weight:700;font-family:DejaVu Sans,Arial">2</text>
+<rect x="126" y="242" width="1100" height="96" rx="12" fill="white" stroke="#cbd6df" stroke-width="1.5"/><rect x="126" y="254" width="5" height="72" rx="2" fill="#007f86"/>
+<text x="144" y="274" class="h">Action-specific confirmation</text>
+<text x="144" y="304" class="body">Confirm restart / confirm shutdown / cancel</text>
+<text x="144" y="328" class="body">Same wake session, 20-second expiry, one-shot authorization.</text>
+<path d="M 72 312 V 332" fill="none" stroke="#576a7b" stroke-width="2" marker-end="url(#arrow)"/>
+<circle cx="72" cy="403" r="26" fill="#007f86"/>
+<text x="64" y="410" style="fill:white;font-size:22px;font-weight:700;font-family:DejaVu Sans,Arial">3</text>
+<rect x="126" y="359" width="1100" height="96" rx="12" fill="white" stroke="#cbd6df" stroke-width="1.5"/><rect x="126" y="371" width="5" height="72" rx="2" fill="#007f86"/>
+<text x="144" y="391" class="h">Finish acknowledgement</text>
+<text x="144" y="421" class="body">Piper playback completes before any power operation</text>
+<text x="144" y="445" class="body">Failed speech cancels the request; no silent power action.</text>
+<path d="M 72 429 V 449" fill="none" stroke="#576a7b" stroke-width="2" marker-end="url(#arrow)"/>
+<circle cx="72" cy="520" r="26" fill="#007f86"/>
+<text x="64" y="527" style="fill:white;font-size:22px;font-weight:700;font-family:DejaVu Sans,Arial">4</text>
+<rect x="126" y="476" width="1100" height="96" rx="12" fill="white" stroke="#cbd6df" stroke-width="1.5"/><rect x="126" y="488" width="5" height="72" rx="2" fill="#007f86"/>
+<text x="144" y="508" class="h">Prepare and audit</text>
+<text x="144" y="538" class="body">Environment owner acknowledges real relay OFF</text>
+<text x="144" y="562" class="body">Cancel fan work; fsync bounded content-free power record.</text>
+<path d="M 72 546 V 566" fill="none" stroke="#576a7b" stroke-width="2" marker-end="url(#arrow)"/>
+<circle cx="72" cy="637" r="26" fill="#007f86"/>
+<text x="64" y="644" style="fill:white;font-size:22px;font-weight:700;font-family:DejaVu Sans,Arial">5</text>
+<rect x="126" y="593" width="1100" height="96" rx="12" fill="white" stroke="#cbd6df" stroke-width="1.5"/><rect x="126" y="605" width="5" height="72" rx="2" fill="#ad580d"/>
+<text x="144" y="625" class="h">Fixed logind request</text>
+<text x="144" y="655" class="body">Reboot(false) or PowerOff(false) via system D-Bus</text>
+<text x="144" y="679" class="body">PolicyKit, inhibitors and errors remain effective; no shell.</text>
+<text x="40" y="749" class="small">Failure: report categorical reason, do not retry automatically, and release or expire the temporary safe-OFF hold.</text>
+<text x="40" y="777" class="small">Success here means logind accepted a request. Boot-ID change and physical restart are separate target evidence.</text>
+</svg>

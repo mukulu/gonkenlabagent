@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300" height="1060" viewBox="0 0 1300 1060" role="img" aria-labelledby="title desc">
+<title id="title">GonKenLab Agent: B12 responsibility boundaries</title><desc id="desc">Voice owns audio. Typed commands go to the environment daemon, which alone owns sensor, relay, timers and safety. General questions use Ollama. Confirmed power uses logind, not shell.</desc>
+<rect width="1300" height="1060" fill="#f5f8fb"/>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#576a7b"/></marker></defs>
+<style>text{font-family:DejaVu Sans,Arial,sans-serif;fill:#17324d}.title{font-size:29px;font-weight:700}.h{font-size:19px;font-weight:700}.body{font-size:16px}.small{font-size:14px;fill:#576a7b}.caption{font-size:14px;fill:#007f86;font-weight:700}</style>
+<text x="40" y="55" class="title">GonKenLab Agent</text>
+<text x="40" y="86" class="small">B12 / current execution architecture / offline during normal operation</text>
+<rect x="40" y="150" width="235" height="150" rx="12" fill="white" stroke="#cbd6df" stroke-width="1.5"/><rect x="40" y="162" width="5" height="126" rx="2" fill="#007f86"/>
+<text x="58" y="182" class="h">Spoken interaction</text>
+<text x="58" y="212" class="body">GonKen wake phrase</text>
+<text x="58" y="236" class="body">USB microphone / speaker</text>
+<text x="58" y="260" class="body">Local audio devices</text>
+<rect x="370" y="150" width="405" height="150" rx="12" fill="white" stroke="#cbd6df" stroke-width="1.5"/><rect x="370" y="162" width="5" height="126" rx="2" fill="#007f86"/>
+<text x="388" y="182" class="h">Voice service</text>
+<text x="388" y="212" class="body">Capture + local Whisper transcription</text>
+<text x="388" y="236" class="body">Cached acknowledgement + Piper speech</text>
+<text x="388" y="260" class="body">One microphone and speaker owner</text>
+<rect x="950" y="150" width="310" height="150" rx="12" fill="white" stroke="#cbd6df" stroke-width="1.5"/><rect x="950" y="162" width="5" height="126" rx="2" fill="#007f86"/>
+<text x="968" y="182" class="h">Local Ollama</text>
+<text x="968" y="212" class="body">General and indirect queries</text>
+<text x="968" y="236" class="body">qwen3:0.6b default</text>
+<text x="968" y="260" class="body">Thinking off; bounded answer</text>
+<path d="M 275 222 H 370" fill="none" stroke="#576a7b" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="296" y="207" class="caption">Audio</text>
+<path d="M 775 222 H 950" fill="none" stroke="#576a7b" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="798" y="207" class="caption">Conversation</text>
+<path d="M 1104 300 V 335 H 740 V 300" fill="none" stroke="#576a7b" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="768" y="357" class="caption">Model text returns to voice</text>
+<rect x="40" y="425" width="235" height="160" rx="12" fill="white" stroke="#cbd6df" stroke-width="1.5"/><rect x="40" y="437" width="5" height="136" rx="2" fill="#007f86"/>
+<text x="58" y="457" class="h">Terminal CLI</text>
+<text x="58" y="487" class="body">Read status / readings</text>
+<text x="58" y="511" class="body">Set policy / timers</text>
+<text x="58" y="535" class="body">Same typed operations</text>
+<rect x="370" y="425" width="405" height="180" rx="12" fill="white" stroke="#cbd6df" stroke-width="1.5"/><rect x="370" y="437" width="5" height="156" rx="2" fill="#007f86"/>
+<text x="388" y="457" class="h">Deterministic command boundary</text>
+<text x="388" y="487" class="body">Fan, sensor, time, timers and policy</text>
+<text x="388" y="511" class="body">No LLM needed for explicit commands</text>
+<text x="388" y="535" class="body">Unknown or ambiguous action: clarify</text>
+<text x="388" y="559" class="body">LLM text has no shell / GPIO authority</text>
+<rect x="950" y="425" width="310" height="180" rx="12" fill="white" stroke="#cbd6df" stroke-width="1.5"/><rect x="950" y="437" width="5" height="156" rx="2" fill="#ad580d"/>
+<text x="968" y="457" class="h">Confirmed power</text>
+<text x="968" y="487" class="body">Same-session confirmation</text>
+<text x="968" y="511" class="body">Spoken acknowledgement</text>
+<text x="968" y="535" class="body">Relay safe-OFF handshake</text>
+<text x="968" y="559" class="body">Fixed logind method only</text>
+<path d="M 570 300 V 425" fill="none" stroke="#576a7b" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="582" y="396" class="caption">Final transcript</text>
+<path d="M 275 501 H 370" fill="none" stroke="#576a7b" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="306" y="486" class="caption">CLI</text>
+<path d="M 775 501 H 950" fill="none" stroke="#576a7b" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="803" y="486" class="caption">Power enum</text>
+<rect x="40" y="765" width="235" height="160" rx="12" fill="white" stroke="#cbd6df" stroke-width="1.5"/><rect x="40" y="777" width="5" height="136" rx="2" fill="#007f86"/>
+<text x="58" y="797" class="h">Physical SHT31</text>
+<text x="58" y="827" class="body">I2C1 / address 0x44</text>
+<text x="58" y="851" class="body">CRC-backed readings</text>
+<text x="58" y="875" class="body">No extra viewer polling</text>
+<rect x="370" y="705" width="595" height="255" rx="14" fill="#e9f5f4" stroke="#007f86" stroke-width="2"/>
+<text x="390" y="740" class="h">Environment daemon: sole physical owner</text>
+<rect x="390" y="766" width="260" height="160" rx="12" fill="white" stroke="#cbd6df" stroke-width="1.5"/><rect x="390" y="778" width="5" height="136" rx="2" fill="#007f86"/>
+<text x="408" y="798" class="h">Control + sensor</text>
+<text x="408" y="828" class="body">Freshness / filtering</text>
+<text x="408" y="852" class="body">Automatic hysteresis</text>
+<text x="408" y="876" class="body">28 C ON / 26 C OFF</text>
+<text x="408" y="900" class="body">Safe OFF on sensor faults</text>
+<rect x="670" y="766" width="275" height="160" rx="12" fill="white" stroke="#cbd6df" stroke-width="1.5"/><rect x="670" y="778" width="5" height="136" rx="2" fill="#007f86"/>
+<text x="688" y="798" class="h">Timers + actuator</text>
+<text x="688" y="828" class="body">Bounded monotonic jobs</text>
+<text x="688" y="852" class="body">Dwell / manual override</text>
+<text x="688" y="876" class="body">GPIO23 active-high relay</text>
+<text x="688" y="900" class="body">Command success != motion</text>
+<rect x="1030" y="765" width="230" height="160" rx="12" fill="white" stroke="#cbd6df" stroke-width="1.5"/><rect x="1030" y="777" width="5" height="136" rx="2" fill="#ad580d"/>
+<text x="1048" y="797" class="h">Physical room fan</text>
+<text x="1048" y="827" class="body">Switched 5 V USB power</text>
+<text x="1048" y="851" class="body">ELUTENG inline speed</text>
+<text x="1048" y="875" class="body">No RPM / motion sensor</text>
+<path d="M 570 605 V 705" fill="none" stroke="#576a7b" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="584" y="665" class="caption">Bounded local AF_UNIX</text>
+<path d="M 275 842 H 390" fill="none" stroke="#576a7b" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="311" y="826" class="caption">I2C</text>
+<path d="M 945 842 H 1030" fill="none" stroke="#576a7b" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="952" y="824" class="caption">GPIO23</text>
+<path d="M 1100 605 V 661 H 825 V 705" fill="none" stroke="#576a7b" stroke-width="2" marker-end="url(#arrow)"/>
+<text x="829" y="641" class="caption">Safe-OFF request before logind</text>
+<text x="40" y="1006" class="small">Cross-cutting: immutable releases, configuration fingerprints, systemd supervision and content-free evidence.</text>
+<text x="40" y="1032" class="small">Future LCD/live console is separate planned work; it is not a second hardware controller and is not shipped here.</text>
+</svg>

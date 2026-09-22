@@ -48,7 +48,7 @@ class CliProcessTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         payload = json.loads(result.stdout)
         serialized = json.dumps(payload)
-        self.assertEqual(payload["config"]["llm"]["model"], "qwen3.5:2b-q4_K_M")
+        self.assertEqual(payload["config"]["llm"]["model"], "qwen3:0.6b")
         self.assertNotIn(str(ROOT), serialized)
 
     def test_effective_config_process_can_explicitly_show_installer_paths(self) -> None:

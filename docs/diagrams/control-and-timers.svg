@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300" height="855" viewBox="0 0 1300 855" role="img" aria-labelledby="title desc">
+<title id="title">Thermostat and scheduled fan actions</title><desc id="desc">Automatic policy and finite timer requests converge through one environment controller and shared safety checks. Relay command state is distinct from physical motion.</desc>
+<rect width="1300" height="855" fill="#f5f8fb"/>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#576a7b"/></marker></defs>
+<style>text{font-family:DejaVu Sans,Arial,sans-serif;fill:#17324d}.title{font-size:29px;font-weight:700}.h{font-size:19px;font-weight:700}.body{font-size:16px}.small{font-size:14px;fill:#576a7b}.caption{font-size:14px;fill:#007f86;font-weight:700}</style>
+<text x="40" y="55" class="title">One controller, multiple requested behaviours</text>
+<text x="40" y="86" class="small">Safety and ownership stay authoritative regardless of whether a request was spoken, typed or scheduled.</text>
+<rect x="40" y="140" width="365" height="235" rx="12" fill="white" stroke="#cbd6df" stroke-width="1.5"/><rect x="40" y="152" width="5" height="211" rx="2" fill="#007f86"/>
+<text x="58" y="172" class="h">Automatic thermostat</text>
+<text x="58" y="202" class="body">Fresh SHT31 measurement</text>
+<text x="58" y="226" class="body">Median-filtered temperature</text>
+<text x="58" y="250" class="body">ON at / above 28 C</text>
+<text x="58" y="274" class="body">OFF at / below 26 C</text>
+<text x="58" y="298" class="body">Between thresholds: keep state</text>
+<text x="58" y="322" class="body">Minimum ON / OFF dwell</text>
+<rect x="465" y="140" width="365" height="235" rx="12" fill="white" stroke="#cbd6df" stroke-width="1.5"/><rect x="465" y="152" width="5" height="211" rx="2" fill="#007f86"/>
+<text x="483" y="172" class="h">Explicit fan requests</text>
+<text x="483" y="202" class="body">Manual ON or OFF</text>
+<text x="483" y="226" class="body">Delayed ON / delayed OFF</text>
+<text x="483" y="250" class="body">Run for a bounded duration</text>
+<text x="483" y="274" class="body">Finite repeating ON / OFF cycle</text>
+<text x="483" y="298" class="body">Timers cleared on daemon restart</text>
+<text x="483" y="322" class="body">Direct intervention cancels fan jobs</text>
+<rect x="890" y="140" width="370" height="235" rx="12" fill="white" stroke="#cbd6df" stroke-width="1.5"/><rect x="890" y="152" width="5" height="211" rx="2" fill="#007f86"/>
+<text x="908" y="172" class="h">Read-only announcements</text>
+<text x="908" y="202" class="body">One delayed reading</text>
+<text x="908" y="226" class="body">Periodic temperature / humidity</text>
+<text x="908" y="250" class="body">Report a stated temperature rise</text>
+<text x="908" y="274" class="body">Uses canonical sensor snapshots</text>
+<text x="908" y="298" class="body">Voice speaks when idle</text>
+<text x="908" y="322" class="body">Bounded notices; no stale backlog</text>
+<path d="M 220 375 V 417 H 648 V 460" fill="none" stroke="#576a7b" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M 648 375 V 460" fill="none" stroke="#576a7b" stroke-width="2" marker-end="url(#arrow)"/>
+<path d="M 1075 375 V 417 H 648" fill="none" stroke="#576a7b" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="220" y="460" width="855" height="175" rx="14" fill="#e9f5f4" stroke="#007f86" stroke-width="2"/>
+<text x="245" y="498" class="h">Shared safety and state authority</text>
+<text x="245" y="530" class="body">Validate values and authorization; serialize changes in the environment daemon.</text>
+<text x="245" y="554" class="body">Reject conflicting fan schedules; preserve minimum dwell and fresh sensor checks.</text>
+<text x="245" y="578" class="body">On stale/faulty sensor or shutdown: cancel unsafe pending actions and command OFF.</text>
+<text x="245" y="602" class="body">Only the actuator adapter acquires GPIO23. No cron, shell script or model bypass.</text>
+<path d="M 648 635 V 688" fill="none" stroke="#576a7b" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="220" y="690" width="855" height="110" rx="12" fill="white" stroke="#cbd6df" stroke-width="1.5"/><rect x="220" y="702" width="5" height="86" rx="2" fill="#007f86"/>
+<text x="238" y="722" class="h">Truthful outcome</text>
+<text x="238" y="752" class="body">Desired state, acknowledged or failed relay write, then health and journal event</text>
+<text x="238" y="776" class="body">Physical fan rotation remains unobserved unless supplied as separate target evidence.</text>
+</svg>

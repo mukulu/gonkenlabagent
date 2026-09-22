@@ -48,7 +48,7 @@ Typical policy commands:
 
 ```bash
 gonken-agent env policy show
-gonken-agent env policy set --start-c 28 --stop-c 26.5
+gonken-agent env policy set --start-c 28 --stop-c 26
 gonken-agent env policy set --mode automatic --minimum-on-seconds 60 --minimum-off-seconds 60
 ```
 
@@ -104,7 +104,7 @@ is the room fan on?
 turn the room fan on
 turn the room fan off
 use automatic mode
-turn it on at 28 and off at 26.5
+turn it on at 28 and off at 26
 ```
 
 Ambiguous phrases such as “set the temperature to 25” require clarification.
@@ -134,3 +134,7 @@ turn the room fan off
 ```
 
 When `relay_backend=simulated`, a successful fan command means only that simulated commanded power changed. It is not physical fan-motion evidence.
+
+## B12 deterministic timers and command truth
+
+Use the [README](../README.md#4-timers-modes-and-safety) for the canonical current timer/voice catalogue and 28 C / 26 C responsive preset. The scheduler is part of the same daemon, never a second GPIO owner. Numeric notifications are acknowledged only after successful voice playback. Timers do not survive daemon restart. Power preparation uses a bounded safe-OFF hold; it is not a persistent policy change. [Architecture](ARCHITECTURE.md).

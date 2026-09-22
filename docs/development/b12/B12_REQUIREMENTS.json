@@ -8,8 +8,8 @@
     "scheduled_actions": "HOST_VERIFIED",
     "voice_cli_integration": "HOST_VERIFIED",
     "confirmed_power": "HOST_VERIFIED",
-    "readme_commands": "NOT_STARTED",
-    "svg_architecture": "NOT_STARTED",
+    "readme_commands": "HOST_VERIFIED",
+    "svg_architecture": "HOST_VERIFIED",
     "full_regression": "NOT_STARTED",
     "exact_package": "NOT_STARTED"
   },

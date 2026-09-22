@@ -1931,3 +1931,28 @@ compatibility fields are not reservations. GPIO22 remains independently governed
 - Scope: this supersedes earlier deployment wording requiring a prior HIL report
   or simulated actuator for the current profile, not physical acceptance criteria,
   privacy indication, speed-control limitations or future display/power governance.
+
+## B12-D001 - Explicit responsive-room preset
+
+The user's 22 September request selects qwen3:0.6b (smallest admitted roster tag),
+no thinking and short responses; the explicit room wrapper applies ON28/OFF26
+while preserving valid dwell. Ordinary restart does not reset site policy.
+Operational commands bypass inference. No claim of physical latency is inferred
+from a model tag or synthetic endpoint tests.
+
+## B12-D002 - Timer and power ownership
+
+Timers remain bounded, finite and memory-only in the sole environment daemon;
+there is no cron, arbitrary script or second GPIO owner. Sensor reports become
+voice-owned numeric announcements; only acknowledged speech advances change-alert
+baselines. Reboot/poweroff require matching same-session confirmation, completed
+audio, real safe-OFF preparation and fixed logind authorization without inhibitor
+bypass. Uninstall removes the exact managed privilege rule, never an admin edit.
+
+## B12-D003 - Root documentation currentness
+
+README is the main command catalogue and links current native-SVG architecture.
+PRD describes the current offline room appliance; the older root Pi-Genius concept
+is retained in Git history rather than presented as current. Later display and
+full semantic rollback requirements remain in the current registry, not silently
+satisfied by documentation or the current regression corpus.

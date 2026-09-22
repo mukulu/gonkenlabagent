@@ -115,3 +115,19 @@ uninstaller. Uninstall removes only the exact managed rule and rejects administr
 modification before stopping services or deleting releases. An installed-layout
 subprocess test confirms removal without a source PYTHONPATH or installed package.
 Full integration/README/architecture/final archive qualification remain next work.
+
+## B12-07 current documentation
+
+The root README now contains the parsed voice/terminal example catalogue, timer
+semantics, response controls, installation path, exact privilege boundary, and
+architecture link. Three native SVGs describe current owners, thermostat/timers
+and confirmed power. All three were rendered and visually inspected; a model
+return arrow was separated from the command-input arrow to avoid implying model
+text is user action authority. No future LCD implementation is implied.
+
+Seven documentation tests validate parser argument semantics, README visibility,
+local links, SVG accessibility/passivity and future-feature boundaries. The existing
+CLI process default assertion was migrated from the old 2B tag to qwen3:0.6b;
+combined 12 tests pass. A probe example using nonexistent --count was rejected by
+the parser check and corrected before publication. A documentation checker has
+--json, not --check; the actual available command was subsequently executed.

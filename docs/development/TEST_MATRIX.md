@@ -1488,3 +1488,14 @@ Checkpoint 24 closes the host-side root cause and adds regression protection, bu
 | CP45-T269 | Broad regression and checkpoint-close static gates | `checkpoint45_host_verification_summary.json`; checkpoint-45 logs | PASS — 85 focused; 603 unit tests across 57 modules; process/lifecycle portfolios fully accounted | Host/package only; no physical acceptance. |
 | CP45-T270 | Exact tagged archive + fresh extraction | checkpoint-45 qualification artifacts | POST-TAG DELIVERY GATE — recorded externally after immutable source tag | Package integrity only; no physical acceptance. |
 | CP45-T271 | Supervised real GPIO23/ELUTENG actuation | WP-45C runbook | NOT RUN / BLOCKED TARGET GATE | Must not be inferred from simulated actuator results. |
+
+## B12 responsive-room additions
+
+Current checks: `test_b12_responsive_preset`, `test_b12_automation`,
+`test_b12_commands_power`, `test_b12_speech_latency`, `test_b12_spoken_numbers`,
+`test_b12_inline_cache`, `test_b12_configuration_freshness`,
+`test_b12_documented_commands` and process/IPC `test_b12_operational_transactions`.
+Expected, malformed, sensor-fault, stale-config, acoustic-truncation, denied-power,
+expiry/replay and privacy paths are checked. The final per-case verification index
+is under `docs/development/b12/verification`; old PASS rows do not prove B12.
+No Raspberry Pi acoustic/electrical/power/display acceptance is claimed by host runs.

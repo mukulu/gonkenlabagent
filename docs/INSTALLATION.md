@@ -1,6 +1,8 @@
 # GonKenLab Agent installation and recovery
 
-## B10 current real-room deployment
+For the current responsive real-room deployment, use the [README command catalogue](../README.md) and [room runbook](ROOM_APPLIANCE_INSTALL.md). The explicit preset selects qwen3:0.6b and 28 C ON / 26 C OFF, preserves valid dwell, and supports the documented bounded timers and confirmed power actions. [Architecture and SVG diagrams](ARCHITECTURE.md).
+
+## B12 current real-room deployment
 
 For this already-wired SHT31/GPIO23 appliance, use the exact candidate checkout:
 
@@ -14,7 +16,7 @@ dwell, service status and one-archive failure reporting. Prior physical PASS
 reports are not a prerequisite to this explicit deployment. Invalid safety
 configuration or unavailable real hardware still fails honestly; simulation is
 never a fallback. Historical Checkpoint-44/45 simulation-first examples below are
-retained as test/campaign history, not the B10 production default.
+retained as test/campaign history, not the B12 production default.
 
 
 The README gives the shortest supported path. This document covers fresh-Pi
