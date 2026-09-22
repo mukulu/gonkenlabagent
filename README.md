@@ -413,4 +413,5 @@ See [implementation disposition](docs/CURRENT_STATE.md), [operations](docs/OPERA
 [environment control](docs/ENVIRONMENT_CONTROL.md), [simulation guide](docs/SIMULATION.md),
 [target acceptance procedures](docs/RASPBERRY_PI_ACCEPTANCE_RUN.md), and
 [license/provenance](docs/development/LICENSE_PROVENANCE.md). No project
-redistribution license is granted; private development provenance is preserved.
+redistribution license is granted. The project policy prohibits redistribution;
+private development provenance is preserved.

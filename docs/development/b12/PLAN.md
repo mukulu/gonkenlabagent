@@ -131,3 +131,14 @@ CLI process default assertion was migrated from the old 2B tag to qwen3:0.6b;
 combined 12 tests pass. A probe example using nonexistent --count was rejected by
 the parser check and corrected before publication. A documentation checker has
 --json, not --check; the actual available command was subsequently executed.
+
+## B12-08 routing/documentation consistency closure
+
+Current-source revalidation found that a conceptual question such as "Why does
+humidity change?" was incorrectly routed to a live sensor reading. Conceptual
+questions now proceed to conversation, after the independent negation/quotation
+safety boundary; direct current-room queries retain their fast path. The README
+redistribution prohibition was restored verbatim rather than weakening its old
+governance check. An initially selected nonexistent environment test module was
+replaced by the actual test_v09_environment_voice_intents module. The corrected
+routing/documentation/provenance/power/number-word cascade passes.

@@ -72,6 +72,12 @@ def parse_environment_intent(text: str) -> EnvironmentIntent | EnvironmentClarif
         if re.search(r"\b(?:turn|switch|set|start|stop|change|enable|disable)\b", normalized):
             return EnvironmentClarification("No setting was changed. Use a direct, unquoted command with explicit values.")
 
+    # Conceptual questions are conversation, not requests for a live reading.
+    # This occurs after the action-negation/quotation boundary, so an explanation
+    # containing a quoted control command still cannot authorize mutation.
+    if re.match(r"^(?:why\b|explain\b|define\b|describe\b|what causes\b|what is (?:temperature|humidity|relative humidity)$)", normalized):
+        return None
+
     start_c = _extract_number(normalized, _START_PATTERNS)
     stop_c = _extract_number(normalized, _STOP_PATTERNS)
     requested_mode = _requested_mode(normalized)

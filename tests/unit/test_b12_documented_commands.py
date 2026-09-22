@@ -72,6 +72,13 @@ class DocumentationTests(unittest.TestCase):
                      'turn the fan on in two minutes and stop after three minutes']:
             with self.subTest(text=text):self.assertIsInstance(parse_command(text),CommandClarification)
 
+    def test_conceptual_sensor_questions_reach_conversation_not_live_reading(self):
+        for text in ["Why does humidity change?", "What is humidity?", "Explain photosynthesis in one sentence"]:
+            with self.subTest(text=text):
+                self.assertIsNone(parse_command(text))
+                self.assertIsNone(parse_environment_intent(text))
+                self.assertIsNone(power_intent(text))
+
     def test_future_display_not_presented_as_shipped_command(self):
         readme=(ROOT/'README.md').read_text()
         self.assertIn('does not\nprovide `gonken-agent console`',readme)
