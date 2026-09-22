@@ -92,7 +92,7 @@ class PipelineTests(unittest.TestCase):
 
 
 class StreamingConversationTests(unittest.TestCase):
-    def run_turn(self, *, native, activity, heard, followup='what is the temperature', complete=True):
+    def run_turn(self, *, native, activity, heard, followup='what is the temperature', complete=True, stop_failure=False):
         tmp=tempfile.TemporaryDirectory();self.addCleanup(tmp.cleanup);root=Path(tmp.name)
         path=root/'voice.wav'
         with wave.open(str(path),'wb') as wav:wav.setnchannels(1);wav.setsampwidth(2);wav.setframerate(16000);wav.writeframes(pcm(1600,1000))
@@ -109,7 +109,10 @@ class StreamingConversationTests(unittest.TestCase):
         class Pipeline:
             window_seconds=0;dropped_windows=0;capture_mode='streaming-kws-vad'
             def start(self):pass
-            def stop(self,**kw):pass
+            def stop(self,**kw):
+                if stop_failure:
+                    a.stop.set()
+                    raise VoiceRuntimeError('WAKE_CAPTURE_STOP_TIMEOUT')
             def next_window(self,**kw):return event
         pipe=Pipeline();count=[0]
         def factory():
@@ -121,6 +124,9 @@ class StreamingConversationTests(unittest.TestCase):
         self.assertEqual(a.wake_loop(),0)
         self.assertFalse(path.exists())
         return a
+    def test_stop_failure_cleans_consumer_owned_audio_without_routing(self):
+        a=self.run_turn(native=True,activity=True,heard='GonKen turn on the fan',stop_failure=True)
+        a._answer_question.assert_not_called();a._transcribe_captured_audio.assert_not_called()
     def test_inline_temperature_no_yes_no_second_capture(self):
         a=self.run_turn(native=True,activity=True,heard="GonKen what's the temperature")
         a._answer_question.assert_called_once_with("what's the temperature");a.capture_text.assert_not_called();a.speak_progress_cue.assert_not_called()

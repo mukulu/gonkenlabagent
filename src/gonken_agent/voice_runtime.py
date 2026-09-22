@@ -1865,6 +1865,7 @@ class VoiceAppliance:
         while not self.stop.is_set():
             monitor_led: GpiodWakeMonitoringLed | None = None
             pipeline: WakeCapturePipeline | None = None
+            pending_audio: Path | None = None
             try:
                 # Privacy boundary: continuous standby capture is not declared
                 # READY until the dedicated monitoring indicator line can be
@@ -2009,6 +2010,8 @@ class VoiceAppliance:
                 self.stop.wait(retry_seconds)
             finally:
                 self._discard_wake_pipeline(pipeline, suppress=True)
+                if pending_audio is not None:
+                    pending_audio.unlink(missing_ok=True)
                 if monitor_led is not None:
                     try:
                         monitor_led.close(suppress_errors=True)

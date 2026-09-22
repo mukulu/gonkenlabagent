@@ -153,6 +153,16 @@ whole utterance retention, no second capture for inline requests, native misses,
 false attention without wake-bearing commands, bounded child cleanup, raw-WAV
 finalization, recovery speech and content-free support timings.
 
+## Final false-green review correction
+
+A final source review found that one intended cleanup insertion had not actually
+matched the current wake-loop layout: a producer-stop failure after handing its
+WAV to the consumer could leave that temporary file behind. The new regression
+`test_stop_failure_cleans_consumer_owned_audio_without_routing` failed before the
+fix. The wake-loop finally block now owns cleanup of the handed-off WAV even when
+stopping fails. A 53-test wake/capture regression then passed. The original failed
+reproduction log is preserved; it is not counted as a passing product test.
+
 ## Remaining gates and continuation
 
 Host implementation and package checks are recorded independently from target
@@ -162,3 +172,29 @@ Development archive qualification does not promote this to a stable-final releas
 The next action is the exact B15 target installation and the voice matrix in
 `INSTALL_AND_VERIFY.md`, after confirming the microphone is physically connected.
 Continue from the recorded checkpoint and execute the next dependency-ready batch.
+
+## External primary-source comparison register
+
+Inspected on 2026-09-22: upstream `mayukh4/pibot_local_agent` README blob
+`9458f9885f3972f6cd1c33d195d3a57c22ff421d` and
+`senses/wake_word_detector.py` blob `e491fecbb8b268193df5554e19c24abefafe7844`.
+The code uses 3,840 samples at 48 kHz (80 ms), adaptive gain, decimation and
+openWakeWord; it closes the stream before invoking the command callback. Its
+fallback when a custom model is missing is a bundled Hey Jarvis model, not a
+GonKen model. B15 preserves the separation of lightweight wake and full STT, but
+uses the explicitly described different phonetic backend and adds continuous
+same-utterance retention rather than claiming to copy that trained keyword model.
+
+Primary documentation consulted:
+
+```text
+https://github.com/mayukh4/pibot_local_agent
+https://pocketsphinx.readthedocs.io/en/latest/pocketsphinx.html
+https://packages.debian.org/trixie/libpocketsphinx3
+https://packages.debian.org/trixie/pocketsphinx-en-us
+```
+
+The old Trixie native ABI is the implementation dependency, not the newer Python
+PocketSphinx package documented by pip examples. Offline host characterization
+used the installed Debian library/model; no external source weights are copied
+into this package.
