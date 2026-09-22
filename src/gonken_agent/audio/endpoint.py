@@ -10,6 +10,7 @@ import math
 from pathlib import Path
 import struct
 import sys
+import wave
 
 class SpeechEndpoint:
     def __init__(self, rate: int, *, threshold: int=250, silence_ms: int=900):
@@ -34,8 +35,7 @@ class SpeechEndpoint:
                 if self.voiced>=8: self.speech_seen=True
             else:
                 self.voiced=0;self.quiet+=1
-            if self.frames>=60 and self.speech_seen and self.quiet>=self.silence_frames:
-                self.finished=True
+            self.finished = self.frames>=60 and self.speech_seen and self.quiet>=self.silence_frames
         self.tail=data[upto:]
         return self.finished
 
@@ -67,3 +67,22 @@ class SpeechEndpoint:
             return self.feed(data)
         except (OSError,ValueError,struct.error):
             return False
+
+
+def complete_wake_utterance(path: Path, *, threshold: int=250, silence_ms: int=900) -> bool:
+    """Acoustic completeness, not merely a syntactically complete transcript.
+
+    A wake window may cut off a trailing timer qualifier. Only an actual quiet
+    tail permits executing its inline command without another question capture.
+    """
+    try:
+        path=Path(path)
+        if path.is_symlink() or path.stat().st_size>1048576:return False
+        with wave.open(str(path),'rb') as wav:
+            if wav.getnchannels()!=1 or wav.getsampwidth()!=2 or wav.getcomptype()!='NONE':return False
+            rate=wav.getframerate()
+            if wav.getnframes()>rate*8:return False
+            detector=SpeechEndpoint(rate,threshold=threshold,silence_ms=silence_ms)
+            while data:=wav.readframes(8192): detector.feed(data)
+            return detector.finished
+    except (OSError,ValueError,EOFError,wave.Error):return False

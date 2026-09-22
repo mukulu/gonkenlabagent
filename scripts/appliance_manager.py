@@ -87,8 +87,23 @@ def _read_state(path: Path, *, expected_status: str | None = None) -> dict[str, 
     return value if value and (expected_status is None or value['status'] == expected_status) else None
 
 
+def expected_configuration_digest() -> str | None:
+    """Read effective config using the exact installed consumer, not source imports."""
+    try:
+        result = subprocess.run([str(CURRENT_LINK / ".venv/bin/gonken-agent"), "config", "fingerprint"],
+                                check=False, capture_output=True, text=True, timeout=5)
+        text = result.stdout.strip()
+        return text if result.returncode == 0 and re.fullmatch(r"[0-9a-f]{64}", text) else None
+    except (OSError, subprocess.TimeoutExpired):
+        return None
+
+
 def read_ready() -> dict[str, object] | None:
-    return rr.read_ready(READY_FILE, binding=_binding(), pending_path=READINESS_FILE)
+    value = rr.read_ready(READY_FILE, binding=_binding(), pending_path=READINESS_FILE)
+    if value is None:
+        return None
+    expected = expected_configuration_digest()
+    return value if expected is not None and value.get("configuration_sha256") == expected else None
 
 
 def read_readiness() -> dict[str, object] | None:

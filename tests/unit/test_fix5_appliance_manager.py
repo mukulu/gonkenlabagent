@@ -17,6 +17,7 @@ def load_module():
     module = importlib.util.module_from_spec(spec)
     assert spec.loader is not None
     spec.loader.exec_module(module)
+    module.expected_configuration_digest = mock.Mock(return_value="c" * 64)
     return module
 
 
@@ -33,7 +34,7 @@ class ApplianceManagerTests(unittest.TestCase):
                 "release_profile": "development",
                 "boot_id": module.current_boot_id(), "service_pid": __import__("os").getpid(),
                 "service_start_ticks": module.process_start_ticks(__import__("os").getpid()),
-                "observed_epoch": 1,
+                "observed_epoch": 1, "configuration_sha256": "c" * 64,
             }
             path.write_text(__import__("json").dumps(payload) + "\n", encoding="utf-8")
             with mock.patch.object(module, "current_release_commit", return_value="a" * 40), \
@@ -53,7 +54,7 @@ class ApplianceManagerTests(unittest.TestCase):
                 "status": "READY", "code": "VOICE_RUNTIME_READY", "wake_phrase": "GonKen",
                 "boot_id": module.current_boot_id(), "service_pid": __import__("os").getpid(),
                 "service_start_ticks": module.process_start_ticks(__import__("os").getpid()),
-                "release_profile": "fixture-profile", "observed_epoch": 1,
+                "release_profile": "fixture-profile", "observed_epoch": 1, "configuration_sha256": "c" * 64,
             }
             wrong = dict(base, release_commit=previous)
             path.write_text(__import__("json").dumps(wrong) + "\n", encoding="utf-8")
@@ -92,7 +93,7 @@ class ApplianceManagerTests(unittest.TestCase):
                 "recoverable": True, "release_commit": "a" * 40, "release_profile": "development",
                 "boot_id": module.current_boot_id(), "service_pid": __import__("os").getpid(),
                 "service_start_ticks": module.process_start_ticks(__import__("os").getpid()),
-                "observed_epoch": 1,
+                "observed_epoch": 1, "configuration_sha256": "c" * 64,
             }
             path.write_text(__import__("json").dumps(payload) + "\n", encoding="utf-8")
             with mock.patch.object(module, "current_release_commit", return_value="a" * 40), \

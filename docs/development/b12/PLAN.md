@@ -82,3 +82,21 @@ tests and 12 spoken-number/safety cases. An earlier command selected a nonexiste
 voice test module; the actual test_voice_appliance module replaced that selection.
 The older policy-update wording expectation was preserved in the concise reply.
 No Raspberry Pi latency or physical acceptance is inferred from host checks.
+
+## B12-05 boundary closure
+
+Real AF_UNIX and subprocess integration checks traverse command parsing, daemon
+scheduling, sensor reports, cancellation, and power-safe-OFF preparation. Hardware
+and final logind execution are injected; no physical claims result. 64 focused
+tests pass, including eight real IPC/CLI process cases.
+
+Voice readiness now binds the full effective typed configuration fingerprint.
+The installed appliance manager obtains that fingerprint using the exact installed
+CLI, making a same-release config change invalidate old READY and trigger restart.
+Power diagnostics export only a bounded allow-listed action record. Cue caches
+accept only governed canned phrases and verify WAV content against its digest.
+
+An inline wake transcript is not automatically a complete utterance: acoustic
+trailing-silence evidence is required to skip follow-up capture. A truncated
+"turn fan on" cannot become immediate actuation if "after two minutes" was cut
+from the window. This closes a timing false-green introduced by fast-path work.

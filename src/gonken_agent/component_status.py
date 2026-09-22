@@ -15,7 +15,7 @@ READY_FILE = Path("/run/gonken-agent/ready.json")
 def collect(config, *, ready_file: Path = READY_FILE, environment_client_factory=None,
             roster_file: Path = Path("/var/lib/gonken-agent/ollama/roster.json"),
             environment_evidence: dict | None = None) -> dict[str, object]:
-    ready = read_ready(ready_file)
+    ready = read_ready(ready_file, config=config)
     voice_ready = ready is not None
     expected_model = active_model(config.llm.model)
     ready_model = ready.get("model") if isinstance(ready, dict) else None
@@ -41,7 +41,7 @@ def collect(config, *, ready_file: Path = READY_FILE, environment_client_factory
             "code": "VOICE_RUNTIME_READY" if voice_ready and model_matches else "VOICE_RUNTIME_NOT_CURRENT",
             "model": ready_model,
             "wake_phrase": ready.get("wake_phrase") if ready else None,
-            "evidence": "boot_process_release_bound_runtime_record",
+            "evidence": "boot_process_release_configuration_bound_runtime_record",
         },
         "ollama_inference": {
             "status": "READY" if voice_ready and model_matches else "DEGRADED",

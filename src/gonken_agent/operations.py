@@ -79,7 +79,7 @@ def effective(args):
 
 def doctor(config,index_path=None,probe_ollama=False,probe_audio=False):
     ready_file=Path('/run/gonken-agent/ready.json')
-    voice_runtime_ready=read_ready(ready_file) is not None
+    voice_runtime_ready=read_ready(ready_file, config=config) is not None
     rows=[ComponentHealth('config',Readiness.READY,'VALID'), ComponentHealth('privacy',Readiness.READY,'OFFLINE_CONTENT_FREE')]
     whisper_ready=Path(config.paths.whisper_binary).is_file() and Path(config.paths.whisper_model).is_file()
     piper_ready=Path('/usr/local/bin/piper').is_file() and Path(config.paths.piper_voice).is_file()

@@ -913,6 +913,8 @@ def create_bundle(
     collect_optional('component_readiness.json', lambda: collect_component_status(effective_config.config, environment_evidence=files['environment_control.json']))
     from .resources import resource_document
     collect_optional('resource_claims.json', lambda: resource_document(effective_config.config))
+    from .power_diagnostics import collect as collect_power_status
+    collect_optional('power_status.json', lambda: collect_power_status(effective_config.config))
     collect_optional('evidence_phase.json', lambda: _evidence_phase_context(files.get('install_events.json') if isinstance(files.get('install_events.json'), dict) else None))
     collect_optional('permissions.json', lambda: _permissions_manifest(effective_config.config))
     collect_optional('systemd_effective.json', _systemd_effective_state)

@@ -25,11 +25,11 @@ def _status() -> dict[str, object]:
     wake_phrase = "GonKen"
     try:
         from .runtime_readiness import read_ready
-        payload = read_ready(ready_file)
+        payload = read_ready(ready_file, config=load_config().config)
         runtime_ready = payload is not None
         if payload and isinstance(payload.get("wake_phrase"), str):
             wake_phrase = payload["wake_phrase"]
-    except (OSError, ValueError):
+    except (OSError, ValueError, ConfigError):
         runtime_ready = False
     try:
         power_enabled = load_config().config.extensions.voice_power.enabled
@@ -148,6 +148,8 @@ def _build_parser() -> argparse.ArgumentParser:
         "config", help="inspect or migrate validated configuration"
     )
     config_commands = config_parser.add_subparsers(dest="config_command", required=True)
+    config_commands.add_parser("fingerprint", help="print effective configuration digest only; no private values")
+
     show_parser = config_commands.add_parser(
         "show", help="show validated effective configuration"
     )
@@ -338,6 +340,10 @@ def main(argv: Sequence[str] | None = None) -> int:
     if args.command == "env":
         return _execute_environment_command(args)
     if args.command == "config":
+        if args.config_command == "fingerprint":
+            from .runtime_readiness import configuration_digest
+            print(configuration_digest(load_config().config))
+            return 0
         try:
             if args.config_command == "show":
                 if args.site is not None and args.no_site:

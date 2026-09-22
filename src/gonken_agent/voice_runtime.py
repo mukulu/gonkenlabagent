@@ -30,7 +30,8 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from .operational import OperationalCommands, NotificationAnnouncer
-from .audio.endpoint import SpeechEndpoint
+from .runtime_readiness import configuration_digest
+from .audio.endpoint import SpeechEndpoint, complete_wake_utterance
 from .audio.speech import Piper, Whisper, validate_wav
 from .audio.process import ProcessFailure
 from .environment import (
@@ -494,31 +495,50 @@ class VoiceCueCache:
         self.manifest_path = self.cache_dir / "manifest.json"
 
     def ensure(self, *, text: str, piper: Piper, stop: threading.Event) -> Path:
+        allowed = {"Yes?", *(cue.text for cue in ProcessingCuePlan.DEFAULT_CUES)}
+        if text not in allowed:
+            raise VoiceRuntimeError("CUE_TEXT_NOT_GOVERNED")
+        if self.cache_dir.is_symlink():
+            raise VoiceRuntimeError("CUE_CACHE_UNSAFE")
         self.cache_dir.mkdir(mode=0o700, parents=True, exist_ok=True)
+        if self.cache_dir.stat().st_uid != os.geteuid() or self.cache_dir.stat().st_mode & 0o022:
+            raise VoiceRuntimeError("CUE_CACHE_UNSAFE")
         key = hashlib.sha256(f"{piper.voice}\0{text}".encode("utf-8")).hexdigest()
         wav_path = self.cache_dir / f"{key}.wav"
-        manifest = self._read_manifest()
+        manifest = {k:v for k,v in self._read_manifest().items()
+                    if isinstance(v,dict) and v.get("text") in allowed}
         entry = manifest.get(key)
-        if isinstance(entry, dict) and wav_path.is_file():
+        if wav_path.is_symlink():
+            raise VoiceRuntimeError("CUE_CACHE_UNSAFE")
+        if isinstance(entry, dict) and wav_path.is_file() and wav_path.stat().st_size <= 2097152:
             try:
                 validate_wav(wav_path, max_seconds=10)
-                return wav_path
+                if hashlib.sha256(wav_path.read_bytes()).hexdigest() == entry.get("wav_sha256"):
+                    return wav_path
             except Exception:
-                wav_path.unlink(missing_ok=True)
+                pass
         with piper.synthesize(text, stop) as generated:
+            validate_wav(generated, max_seconds=10)
+            if generated.stat().st_size > 2097152:
+                raise VoiceRuntimeError("CUE_TOO_LARGE")
             data = generated.read_bytes()
-        wav_path.write_bytes(data)
-        validate_wav(wav_path, max_seconds=10)
-        digest = hashlib.sha256(data).hexdigest()
-        manifest[key] = {
-            "text": text,
-            "voice": str(piper.voice),
-            "wav_sha256": digest,
-            "physical_evidence": False,
-        }
-        temporary = self.manifest_path.with_name(f".{self.manifest_path.name}.{os.getpid()}")
-        temporary.write_text(json.dumps(manifest, sort_keys=True, indent=2) + "\n", encoding="utf-8")
-        os.replace(temporary, self.manifest_path)
+        fd, name = tempfile.mkstemp(prefix=".cue-", dir=self.cache_dir)
+        try:
+            with os.fdopen(fd,"wb") as out:
+                out.write(data); out.flush(); os.fsync(out.fileno())
+            os.replace(name,wav_path)
+        finally:
+            Path(name).unlink(missing_ok=True)
+        manifest[key] = {"text": text, "voice": str(piper.voice),
+                         "wav_sha256": hashlib.sha256(data).hexdigest(), "physical_evidence": False}
+        manifest = dict(list(manifest.items())[-9:])
+        fd, name = tempfile.mkstemp(prefix=".manifest-", dir=self.cache_dir)
+        try:
+            with os.fdopen(fd,"w") as out:
+                json.dump(manifest,out,sort_keys=True); out.flush(); os.fsync(out.fileno())
+            os.replace(name,self.manifest_path)
+        finally:
+            Path(name).unlink(missing_ok=True)
         return wav_path
 
     def _read_manifest(self) -> dict[str, object]:
@@ -1502,7 +1522,7 @@ class VoiceAppliance:
             path = self.audio.capture(seconds)
         return self._transcribe_captured_audio(path)
 
-    def _question_after_wake(self, remainder: str) -> str:
+    def _question_after_wake(self, remainder: str, *, utterance_complete: bool = False) -> str:
         """Use a complete deterministic command immediately, not a partial window.
 
         Wake windows can end mid-sentence. General questions retain bounded
@@ -1510,9 +1530,14 @@ class VoiceAppliance:
         """
         initial = " ".join(remainder.split())
         fast = getattr(self.brain, "complete_inline_command", None) or getattr(self.brain, "is_fast_deterministic", None)
-        if initial and callable(fast) and fast(initial):
+        inline_ready = bool(initial and callable(fast) and fast(initial))
+        if inline_ready and utterance_complete:
             return initial
         following = self.capture_text(8)
+        if inline_ready and not utterance_complete and not following:
+            # A window ending in speech can omit "after two minutes". Never
+            # convert a possibly delayed action into immediate actuation.
+            return ""
         if not initial or not following:
             return following or initial
         left, right = initial.split(), following.split()
@@ -1639,6 +1664,7 @@ class VoiceAppliance:
             "boot_id": _boot_id(),
             "service_pid": os.getpid(),
             "service_start_ticks": _process_start_ticks(),
+            "configuration_sha256": configuration_digest(self.config),
             "observed_epoch": int(time.time()),
         }
         temporary = self.READINESS_FILE.with_name(f".{self.READINESS_FILE.name}.{os.getpid()}")
@@ -1663,6 +1689,7 @@ class VoiceAppliance:
             "boot_id": _boot_id(),
             "service_pid": os.getpid(),
             "service_start_ticks": _process_start_ticks(),
+            "configuration_sha256": configuration_digest(self.config),
             "observed_epoch": int(time.time()),
         }
         temporary = self.READY_FILE.with_name(f".{self.READY_FILE.name}.{os.getpid()}")
@@ -1721,6 +1748,8 @@ class VoiceAppliance:
         return False
 
     def one_turn(self, *, seconds: int = 8, foreground: bool = False) -> str | None:
+        begin = getattr(self.brain, "begin_interaction", None)
+        if callable(begin): begin()
         self._event("RUNNING", "VOICE_LISTENING", seconds=seconds)
         question = self.capture_text(seconds)
         if not question:
@@ -1887,6 +1916,7 @@ class VoiceAppliance:
                     if window is None:
                         continue
                     recognition_started = time.monotonic()
+                    utterance_complete = complete_wake_utterance(window.path)
                     heard = self._transcribe_captured_audio(window.path)
                     recognition_ms = round((time.monotonic() - recognition_started) * 1000)
                     if pipeline.dropped_windows > reported_drops:
@@ -1923,7 +1953,7 @@ class VoiceAppliance:
                         pass
                     begin = getattr(self.brain, "begin_interaction", None)
                     if callable(begin): begin()
-                    question = self._question_after_wake(match.remainder)
+                    question = self._question_after_wake(match.remainder, utterance_complete=utterance_complete)
                     if not question:
                         self._event("INFO", "VOICE_NO_SPEECH")
                     else:

@@ -8,6 +8,8 @@ This stdlib-only module is also copied into the sealed maintenance payload.
 from __future__ import annotations
 
 import json
+import hashlib
+from dataclasses import asdict, is_dataclass
 import os
 import re
 import stat
@@ -155,6 +157,9 @@ def validate_record(value: object, binding: Binding, *,
     phrase = value.get('wake_phrase')
     if isinstance(phrase, str) and 0 < len(phrase.strip()) <= 64 and all(c.isalnum() or c in ' -_' for c in phrase):
         result['wake_phrase'] = phrase
+    config_digest = value.get('configuration_sha256')
+    if isinstance(config_digest,str) and re.fullmatch(r'[0-9a-f]{64}',config_digest):
+        result['configuration_sha256'] = config_digest
     digest = value.get('model_digest')
     if isinstance(digest, str) and re.fullmatch(r'[0-9a-f]{64}', digest):
         result['model_digest'] = digest
@@ -180,11 +185,26 @@ def read_pending(path: Path | None = None, *, binding: Binding | None = None) ->
     return value
 
 
+def configuration_digest(config) -> str:
+    """One canonical fingerprint of the effective typed runtime configuration."""
+    if not is_dataclass(config):
+        raise ValueError('CONFIGURATION_FINGERPRINT_REQUIRES_TYPED_CONFIG')
+    def encode(value):
+        if isinstance(value, Path): return str(value)
+        raise TypeError('unsupported configuration value')
+    data=json.dumps(asdict(config),sort_keys=True,separators=(',',':'),allow_nan=False,default=encode)
+    return hashlib.sha256(data.encode()).hexdigest()
+
+
 def read_ready(path: Path | None = None, *, binding: Binding | None = None,
-               pending_path: Path | None = None) -> dict | None:
+               pending_path: Path | None = None, config=None, expected_configuration_digest: str | None = None) -> dict | None:
     binding = binding or current_binding()
     value = read_state(path or READY_FILE, expected_status='READY', binding=binding)
     if value is None or value['code'] != 'VOICE_RUNTIME_READY' or not value.get('wake_phrase'):
+        return None
+    if config is not None:
+        expected_configuration_digest = configuration_digest(config)
+    if expected_configuration_digest is not None and (not re.fullmatch(r'[0-9a-f]{64}', expected_configuration_digest) or value.get('configuration_sha256') != expected_configuration_digest):
         return None
     pending = read_pending(pending_path, binding=binding)
     if (pending and pending['status'] == 'WAITING' and pending['service_pid'] == value['service_pid']

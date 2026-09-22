@@ -15,6 +15,9 @@ import tempfile
 import time
 from dataclasses import dataclass
 from pathlib import Path
+from datetime import datetime, timezone
+from .runtime_readiness import current_boot_id
+from .release_identity import runtime_release_identity
 from .command_intents import normalized
 
 ACTIONS = {'REBOOT_DEVICE':'Reboot', 'POWEROFF_DEVICE':'PowerOff'}
@@ -136,7 +139,9 @@ def execute_confirmed(authorization: Authorization, *, client_factory, environme
             or clock()>=authorization.expires): raise PowerError('POWER_CONFIRMATION_EXPIRED')
     client=None; token=None
     record={'format':'gonken-power-action-v1','action_id':authorization.id,'action':authorization.action,
-            'status':'PREPARING','content_logging':False,'physical_acceptance_claimed':False}
+            'status':'PREPARING','content_logging':False,'physical_acceptance_claimed':False,
+            'created_at':datetime.now(timezone.utc).isoformat(), 'boot_id':current_boot_id(),
+            'release_commit':runtime_release_identity().commit}
     try:
         if environment_required:
             client=client_factory()

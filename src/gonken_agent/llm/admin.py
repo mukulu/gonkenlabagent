@@ -303,12 +303,12 @@ def benchmark(config, model: str, iterations: int = 3, *, thinking: bool = False
     }
 
 
-def _ready_model(path: Path, model: str) -> bool:
-    value = read_ready(path)
+def _ready_model(path: Path, model: str, *, config=None) -> bool:
+    value = read_ready(path, config=config)
     return bool(value and value.get("model") == model)
 
 
-def _restart_and_wait(model: str, *, ready_file: Path = READY_FILE, timeout_seconds: int = 120) -> None:
+def _restart_and_wait(model: str, *, ready_file: Path = READY_FILE, timeout_seconds: int = 120, config=None) -> None:
     try:
         result = subprocess.run(
             ["/usr/bin/systemctl", "restart", "gonken-agent.service"],
@@ -320,7 +320,7 @@ def _restart_and_wait(model: str, *, ready_file: Path = READY_FILE, timeout_seco
         raise ModelAdminError("MODEL_SWITCH_RESTART_FAILED", "voice service restart failed")
     deadline = time.monotonic() + timeout_seconds
     while time.monotonic() < deadline:
-        if _ready_model(ready_file, model):
+        if _ready_model(ready_file, model, config=config):
             return
         time.sleep(1)
     raise ModelAdminError("MODEL_SWITCH_NOT_READY", "voice service did not publish READY for selected model")
@@ -341,12 +341,12 @@ def switch(config, model: str, *, selection_path: Path = DEFAULT_SELECTION_PATH,
         raise ModelAdminError("MODEL_TOOL_CAPABILITY_FAILED", "selected model failed the typed tool capability smoke")
     write_selection(model, path=selection_path, previous_model=previous)
     try:
-        _restart_and_wait(model, ready_file=ready_file)
+        _restart_and_wait(model, ready_file=ready_file, config=config)
     except ModelAdminError as exc:
         # Roll selection back before retrying the prior known-good voice model.
         write_selection(previous, path=selection_path, previous_model=model)
         try:
-            _restart_and_wait(previous, ready_file=ready_file)
+            _restart_and_wait(previous, ready_file=ready_file, config=config)
         except ModelAdminError as rollback_exc:
             raise ModelAdminError("MODEL_SWITCH_AND_ROLLBACK_FAILED", f"{exc.code}; rollback={rollback_exc.code}") from rollback_exc
         raise
