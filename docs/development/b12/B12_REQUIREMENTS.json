@@ -1,1 +1,17 @@
-{"schema":"gonken-b12-requirements-v1","baseline":"2fabc0985db44a3660b5af3be01a4b0e3af80f1b","requirements":{"lightweight_default":"NOT_STARTED","wake_fast_path":"NOT_STARTED","thermostat_28_26":"NOT_STARTED","scheduled_actions":"NOT_STARTED","voice_cli_integration":"NOT_STARTED","confirmed_power":"NOT_STARTED","readme_commands":"NOT_STARTED","svg_architecture":"NOT_STARTED","full_regression":"NOT_STARTED","exact_package":"NOT_STARTED"},"physical_acceptance_claimed":false}
+{
+  "schema": "gonken-b12-requirements-v1",
+  "baseline": "2fabc0985db44a3660b5af3be01a4b0e3af80f1b",
+  "requirements": {
+    "lightweight_default": "HOST_VERIFIED",
+    "wake_fast_path": "HOST_VERIFIED",
+    "thermostat_28_26": "HOST_VERIFIED",
+    "scheduled_actions": "NOT_STARTED",
+    "voice_cli_integration": "NOT_STARTED",
+    "confirmed_power": "NOT_STARTED",
+    "readme_commands": "NOT_STARTED",
+    "svg_architecture": "NOT_STARTED",
+    "full_regression": "NOT_STARTED",
+    "exact_package": "NOT_STARTED"
+  },
+  "physical_acceptance_claimed": false
+}

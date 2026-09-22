@@ -238,7 +238,7 @@ def status(root: Path, roster: Mapping[str, Any], endpoint: str, *, require_defa
     return {"status": "READY", "models": observed, "selection": selection, "record": record}
 
 
-def provision(root: Path, roster: Mapping[str, Any], endpoint: str, context_tokens: int, mode: str) -> dict[str, Any]:
+def provision(root: Path, roster: Mapping[str, Any], endpoint: str, context_tokens: int, mode: str, *, select_default: bool = False) -> dict[str, Any]:
     if mode not in {"online", "preseeded-offline"}:
         _fail("MODEL_ROSTER_MODE", "invalid provisioning mode", 64)
     previous = _read_json(_record_path(root))
@@ -303,7 +303,7 @@ def provision(root: Path, roster: Mapping[str, Any], endpoint: str, context_toke
     models = stage(record, "INVENTORY_AFTER_PULL", lambda: _tags(endpoint))
     initial_selection = _selection(root)
     required_models = {str(roster["default_model"])}
-    if initial_selection and initial_selection.get("model") in {s["tag"] for s in roster["models"]}:
+    if not select_default and initial_selection and initial_selection.get("model") in {s["tag"] for s in roster["models"]}:
         required_models.add(str(initial_selection["model"]))
     for spec in roster["models"]:
         row: dict[str, Any] = {"tag": spec["tag"], "digest_prefix": spec["digest_prefix"],
@@ -358,14 +358,14 @@ def provision(root: Path, roster: Mapping[str, Any], endpoint: str, context_toke
     default = str(roster["default_model"])
     selection = _selection(root)
     admitted = {str(item["tag"]) for item in roster["models"]}
-    selected_tag = str(selection["model"]) if selection and selection.get("model") in admitted else default
+    selected_tag = str(selection["model"]) if not select_default and selection and selection.get("model") in admitted else default
     def admission():
         for tag, code in ((default, "MODEL_DEFAULT_TOOL_SMOKE"), (selected_tag, "MODEL_SELECTED_TOOL_SMOKE")):
             row = next(r for r in record["models"] if r["tag"] == tag)
             if row["tool_call_smoke"] != "PASS":
                 _fail(code, "required model failed typed tool capability smoke", 69)
     stage(record, "ADMISSION", admission)
-    if not selection or selection.get("model") not in admitted:
+    if not selection or selection.get("model") not in admitted or (select_default and selection.get("model") != default):
         previous_model = str(selection["model"]) if selection else "qwen3.5:2b-q4_K_M"
         selection = _write_selection(root, default, previous_model)
     record.update(status="READY", validated_epoch=int(time.time()),
@@ -380,6 +380,7 @@ def provision(root: Path, roster: Mapping[str, Any], endpoint: str, context_toke
 def parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("command", choices=("status", "provision"))
+    p.add_argument("--select-default", action="store_true", help="explicitly select the qualified lightweight roster default")
     p.add_argument("--manifest", required=True)
     p.add_argument("--endpoint", default="http://127.0.0.1:11434")
     p.add_argument("--context-tokens", type=int, default=2048)
@@ -402,9 +403,11 @@ def main(argv=None) -> int:
             _fail("MODEL_ROSTER_CONTEXT", "context tokens outside bounded Pi budget", 65)
         if args.command == "status":
             value = status(root, roster, endpoint)
+            if args.select_default and value["selection"]["model"] != roster["default_model"]:
+                _fail("MODEL_SELECTION_MISMATCH", "responsive preset requires the roster default", 75)
             print(json.dumps({"status": "READY", "default_model": roster["default_model"], "selection": value["selection"], "roster_capabilities_status": value["record"].get("roster_capabilities_status", "UNKNOWN"), "optional_failures": value["record"].get("optional_failures", [])}, sort_keys=True))
         else:
-            provision(root, roster, endpoint, args.context_tokens, args.mode)
+            provision(root, roster, endpoint, args.context_tokens, args.mode, select_default=args.select_default)
     except RosterError as exc:
         print(f"[ERROR] code={exc.code} message={str(exc).replace(' ', '_')}", file=sys.stderr)
         return exc.exit_code

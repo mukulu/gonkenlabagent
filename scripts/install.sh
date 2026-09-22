@@ -756,12 +756,14 @@ gonken_environment_service_action() {
 }
 
 gonken_environment_current_reconciliation() {
+  local -a threshold_arguments=()
+  mapfile -t threshold_arguments < <(gonken_room_threshold_arguments)
   python3 "$CANDIDATE_RELEASE/maintenance/environment_current_reconcile.py" \
     --system-root / --release-root "$RELEASE_ROOT" --state-root "$INSTALL_STATE_ROOT" \
     --candidate-commit "${GONKEN_SOURCE_RECORD[resolved_commit]}" \
     --mode "${GONKEN_SOURCE_RECORD[environment_mode]}" \
     --unit-template "$(gonken_environment_service_unit_template)" \
-    --tmpfiles-template "$(gonken_environment_service_tmpfiles_template)" "$@"
+    --tmpfiles-template "$(gonken_environment_service_tmpfiles_template)" "${threshold_arguments[@]}" "$@"
 }
 
 gonken_environment_current_postcondition() {
@@ -823,17 +825,39 @@ gonken_environment_readiness_action() {
     --profile "$profile" --expect-commit "${GONKEN_SOURCE_RECORD[resolved_commit]}" --check-config --timeout 30 --interval 1
 }
 
+gonken_room_preset_selected() {
+  [[ "${GONKEN_SOURCE_RECORD[appliance_preset]:-none}" == "responsive-room" ]]
+}
+
+gonken_room_preset_postcondition() {
+  "$CANDIDATE_RELEASE/.venv/bin/python" -m gonken_agent.deployment llm --check >/dev/null 2>&1
+}
+
+gonken_room_preset_action() {
+  "$CANDIDATE_RELEASE/.venv/bin/python" -m gonken_agent.deployment llm
+}
+
+gonken_room_threshold_arguments() {
+  if gonken_room_preset_selected; then
+    printf '%s\n' --start-c 28 --stop-c 26
+  fi
+}
+
 gonken_environment_policy_postcondition() {
+  local -a threshold_arguments=()
+  mapfile -t threshold_arguments < <(gonken_room_threshold_arguments)
   python3 "$CANDIDATE_RELEASE/maintenance/environment_policy_manager.py" \
     --agent "$CANDIDATE_RELEASE/.venv/bin/gonken-agent" \
-    --mode "${GONKEN_SOURCE_RECORD[environment_mode]}" --check >/dev/null 2>&1 || return 1
+    --mode "${GONKEN_SOURCE_RECORD[environment_mode]}" "${threshold_arguments[@]}" --check >/dev/null 2>&1 || return 1
   GONKEN_STEP_EVIDENCE="environment_mode_${GONKEN_SOURCE_RECORD[environment_mode]}_thresholds_preserved"
 }
 
 gonken_environment_policy_action() {
+  local -a threshold_arguments=()
+  mapfile -t threshold_arguments < <(gonken_room_threshold_arguments)
   python3 "$CANDIDATE_RELEASE/maintenance/environment_policy_manager.py" \
     --agent "$CANDIDATE_RELEASE/.venv/bin/gonken-agent" \
-    --mode "${GONKEN_SOURCE_RECORD[environment_mode]}"
+    --mode "${GONKEN_SOURCE_RECORD[environment_mode]}" "${threshold_arguments[@]}"
 }
 
 gonken_print_component_summary() {
@@ -929,23 +953,27 @@ gonken_ollama_model_action() {
 }
 
 gonken_model_roster_postcondition() {
+  local -a selection_arguments=()
+  if gonken_room_preset_selected; then selection_arguments=(--select-default); fi
   gonken_load_effective_ollama_config || return 65
   python3 "$(gonken_model_roster_manager)" status \
     --manifest "$(gonken_model_roster_manifest)" \
     --system-root / --endpoint "$OLLAMA_ENDPOINT" \
-    --context-tokens "$OLLAMA_CONTEXT_TOKENS" >/dev/null 2>&1 || return 1
+    --context-tokens "$OLLAMA_CONTEXT_TOKENS" "${selection_arguments[@]}" >/dev/null 2>&1 || return 1
   OLLAMA_ACTIVE_MODEL="$(python3 -c 'import json; print(json.load(open("/var/lib/gonken-agent/ollama/active-model.json"))["model"])' 2>/dev/null)" || return 1
   [[ -n "$OLLAMA_ACTIVE_MODEL" ]] || return 1
   GONKEN_STEP_EVIDENCE="ollama_roster_three_models_default_${OLLAMA_ACTIVE_MODEL}"
 }
 
 gonken_model_roster_action() {
+  local -a selection_arguments=()
+  if gonken_room_preset_selected; then selection_arguments=(--select-default); fi
   gonken_load_effective_ollama_config || return 65
   python3 "$(gonken_model_roster_manager)" provision \
     --manifest "$(gonken_model_roster_manifest)" \
     --system-root / --endpoint "$OLLAMA_ENDPOINT" \
     --context-tokens "$OLLAMA_CONTEXT_TOKENS" \
-    --mode "${GONKEN_SOURCE_RECORD[model_provision_mode]}"
+    --mode "${GONKEN_SOURCE_RECORD[model_provision_mode]}" "${selection_arguments[@]}"
 }
 
 
@@ -1311,6 +1339,15 @@ if ((ENGINE_ONLY == 0)); then
         "create_or_merge_only_compatible_environment_only_site_config_without_hardware_actuation" \
         "unrelated_or_conflicting_administrator_configuration_fails_closed" || exit $?
       environment_identity_postcondition="gonken_environment_profile_postcondition"
+    fi
+
+    if gonken_room_preset_selected; then
+      gonken_register_step \
+        "responsive_configuration" "1" \
+        "$environment_identity_postcondition" "gonken_room_preset_action" "gonken_room_preset_postcondition" \
+        "explicit_small_model_configuration" "merge_selected_fields_preserve_other_settings" \
+        "no_model_inference_no_hardware_access" || exit $?
+      environment_identity_postcondition="gonken_room_preset_postcondition"
     fi
 
     gonken_register_step \

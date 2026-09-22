@@ -34,19 +34,31 @@ def _policy(payload: dict) -> dict:
     return policy
 
 
-def converge(agent: Path, mode: str, *, check: bool = False) -> dict:
+def converge(agent: Path, mode: str, *, check: bool = False, start_c: float | None = None, stop_c: float | None = None) -> dict:
     if mode not in MODES:
         raise ValueError("mode_invalid")
     before = _policy(read_agent(agent, ["env", "policy", "show", "--json"], 4.0))
-    if mode == "preserve" or before["mode"] == mode:
+    if (start_c is None) != (stop_c is None):
+        raise ValueError("threshold_pair_required")
+    if start_c is not None and (not all(type(v) in (float, int) and math.isfinite(v) for v in (start_c, stop_c))
+                               or not -10 <= stop_c < start_c <= 60 or not 0.5 <= start_c-stop_c <= 15):
+        raise ValueError("threshold_invalid")
+    desired_mode = before["mode"] if mode == "preserve" else mode
+    desired_start = before["start_c"] if start_c is None else start_c
+    desired_stop = before["stop_c"] if stop_c is None else stop_c
+    if before["mode"] == desired_mode and before["start_c"] == desired_start and before["stop_c"] == desired_stop:
         return before
     if check:
-        raise ValueError("mode_mismatch")
-    read_agent(agent, ["env", "policy", "set", "--expected-generation", str(before["generation"]),
-                       "--mode", mode, "--json"], 4.0)
+        raise ValueError("policy_mismatch")
+    arguments = ["env", "policy", "set", "--expected-generation", str(before["generation"]),
+                 "--mode", desired_mode, "--json"]
+    if start_c is not None:
+        arguments += ["--start-c", str(start_c), "--stop-c", str(stop_c)]
+    read_agent(agent, arguments, 4.0)
     after = _policy(read_agent(agent, ["env", "policy", "show", "--json"], 4.0))
-    if (after["mode"] != mode or after["generation"] != before["generation"] + 1
-            or any(after.get(key) != before.get(key) for key in PRESERVED)):
+    if (after["mode"] != desired_mode or after["start_c"] != desired_start or after["stop_c"] != desired_stop
+            or after["generation"] != before["generation"] + 1
+            or any(after.get(key) != before.get(key) for key in PRESERVED if key not in {"start_c", "stop_c"})):
         raise ValueError("policy_postcondition_mismatch")
     return after
 
@@ -55,10 +67,12 @@ def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--agent", required=True)
     p.add_argument("--mode", choices=MODES, required=True)
+    p.add_argument("--start-c", type=float)
+    p.add_argument("--stop-c", type=float)
     p.add_argument("--check", action="store_true")
     args = p.parse_args(argv)
     try:
-        policy = converge(require_agent(args.agent), args.mode, check=args.check)
+        policy = converge(require_agent(args.agent), args.mode, check=args.check, start_c=args.start_c, stop_c=args.stop_c)
         print(f"[OK] code=ENVIRONMENT_POLICY_SELECTED mode={policy['mode']} generation={policy['generation']} "
               f"start_c={policy['start_c']} stop_c={policy['stop_c']} minimum_on_seconds={policy['minimum_on_seconds']} "
               f"minimum_off_seconds={policy['minimum_off_seconds']} physical_acceptance=false")

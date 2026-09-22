@@ -58,7 +58,7 @@ class EnvironmentPolicyTests(unittest.TestCase):
         policy = EnvironmentPolicy.default().validated(bounds=self.bounds)
         self.assertEqual(policy.mode, EnvironmentMode.MANUAL)
         self.assertEqual(policy.start_c, 28.0)
-        self.assertEqual(policy.stop_c, 26.5)
+        self.assertEqual(policy.stop_c, 26.0)
         self.assertEqual(policy.minimum_on_seconds, 60)
         self.assertEqual(policy.minimum_off_seconds, 60)
 

@@ -178,7 +178,7 @@ gonken_load_source_record() {
     rpi_image_reference pi_model pid1 systemd_version free_kib memory_kib
     observed_epoch existing_checkout
   )
-  local -a optional_fields=(bluetooth_audio bluetooth_device source_mode environment_profile environment_sensor_address environment_mode model_provision_mode)
+  local -a optional_fields=(bluetooth_audio bluetooth_device source_mode environment_profile environment_sensor_address environment_mode model_provision_mode appliance_preset)
   local -a fields=("${required_fields[@]}" "${optional_fields[@]}")
   gonken_validate_absolute_path "$path" "source record" || return 65
   gonken_read_record "$path" fields GONKEN_SOURCE_RECORD || return $?
@@ -194,6 +194,7 @@ gonken_load_source_record() {
   GONKEN_SOURCE_RECORD[environment_profile]="${GONKEN_SOURCE_RECORD[environment_profile]:-none}"
   GONKEN_SOURCE_RECORD[environment_mode]="${GONKEN_SOURCE_RECORD[environment_mode]:-preserve}"
   GONKEN_SOURCE_RECORD[environment_sensor_address]="${GONKEN_SOURCE_RECORD[environment_sensor_address]:-0x44}"
+  GONKEN_SOURCE_RECORD[appliance_preset]="${GONKEN_SOURCE_RECORD[appliance_preset]:-none}"
   GONKEN_SOURCE_RECORD[model_provision_mode]="${GONKEN_SOURCE_RECORD[model_provision_mode]:-online}"
   [[ "${GONKEN_SOURCE_RECORD[format]}" == "gonken-bootstrap-source-v1" ]] || {
     gonken_error "INSTALL_RECORD_VERSION" "unsupported source record format" "rerun the matching supported bootstrap"
@@ -235,6 +236,11 @@ gonken_load_source_record() {
       gonken_error "INSTALL_RECORD" "source record has an invalid environment profile" "rerun bootstrap with a supported --environment-profile"
       return 65
       ;;
+  esac
+  case "${GONKEN_SOURCE_RECORD[appliance_preset]}" in
+    none) ;;
+    responsive-room) [[ "${GONKEN_SOURCE_RECORD[environment_profile]}" == "full-real" ]] || return 65 ;;
+    *) gonken_error "INSTALL_RECORD" "invalid appliance preset" "rerun bootstrap"; return 65 ;;
   esac
   case "${GONKEN_SOURCE_RECORD[environment_mode]}" in
     preserve|manual|semi_automatic|automatic|disabled) ;;

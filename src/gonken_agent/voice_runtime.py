@@ -1456,6 +1456,28 @@ class VoiceAppliance:
         path = self.audio.capture(seconds)
         return self._transcribe_captured_audio(path)
 
+    def _question_after_wake(self, remainder: str) -> str:
+        """Use a complete deterministic command immediately, not a partial window.
+
+        Wake windows can end mid-sentence. General questions retain bounded
+        follow-up capture; overlap matching avoids duplicating a repeated prefix.
+        """
+        initial = " ".join(remainder.split())
+        fast = getattr(self.brain, "is_fast_deterministic", None)
+        if initial and callable(fast) and fast(initial):
+            return initial
+        following = self.capture_text(8)
+        if not initial or not following:
+            return following or initial
+        left, right = initial.split(), following.split()
+        if following.casefold().startswith(initial.casefold()):
+            return following
+        overlap = 0
+        for size in range(1, min(len(left), len(right)) + 1):
+            if [v.casefold() for v in left[-size:]] == [v.casefold() for v in right[:size]]:
+                overlap = size
+        return " ".join(left + right[overlap:])
+
     def speak(self, text: str) -> None:
         with self.piper.synthesize(text, self.stop) as wav:
             self.audio.play(wav)
@@ -1601,6 +1623,7 @@ class VoiceAppliance:
                 # readiness.  This closes the gap between an ALSA device that can
                 # open and an appliance that can actually speak.
                 self.speak("GonKen assistant is ready.")
+                self.cue_cache.ensure(text="Yes?", piper=self.piper, stop=self.stop)
                 self._write_ready(probe)
                 self.ready = True
                 self._event(
@@ -1824,10 +1847,10 @@ class VoiceAppliance:
                         dropped_windows=dropped_at_detection,
                     )
                     try:
-                        self.speak("Yes?")
+                        self.speak_progress_cue("Yes?")
                     except Exception:
                         pass
-                    question = self.capture_text(8)
+                    question = self._question_after_wake(match.remainder)
                     if not question:
                         self._event("INFO", "VOICE_NO_SPEECH")
                     else:

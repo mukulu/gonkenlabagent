@@ -511,6 +511,7 @@ class VoiceTurnTests(unittest.TestCase):
         appliance.transition_announcer = None
         spoken = []
         appliance.speak = lambda text: spoken.append(text)
+        appliance.speak_progress_cue = lambda text: spoken.append(text)
 
         class Brain:
             def reply(self, question, stop):
@@ -561,6 +562,8 @@ class VoiceTurnTests(unittest.TestCase):
         appliance._last_wait_code = ""
         appliance.emit = lambda *args, **kwargs: None
         appliance.probe = lambda: {"audio": {"backend": "fixture"}, "model": {"model": "qwen"}}
+        appliance.cue_cache = mock.Mock()
+        appliance.piper = mock.Mock()
         appliance.speak = lambda text: order.append(("speak", text))
         appliance._write_ready = lambda probe: order.append(("ready", probe["audio"]["backend"]))
         self.assertTrue(appliance.wait_until_ready())

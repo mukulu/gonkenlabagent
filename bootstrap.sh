@@ -35,6 +35,7 @@ ENVIRONMENT_PROFILE="none"
 ENVIRONMENT_MODE="preserve"
 ENVIRONMENT_SENSOR_ADDRESS="0x44"
 MODEL_PROVISION_MODE="online"
+APPLIANCE_PRESET="none"
 
 usage() {
   cat <<'EOF'
@@ -73,6 +74,8 @@ Options:
                            Mode updates preserve temperature thresholds/dwell.
   --sensor-address ADDR    SHT31 address for real-sensor profiles: 0x44 or 0x45
                            (default: 0x44).
+  --appliance-preset P     none (default) or responsive-room; requires full-real.
+                           Selects qwen3:0.6b and thermostat ON=28/OFF=26.
   --model-provision-mode M V04 model roster mode: online or preseeded-offline
                            (default: online).
   -h, --help               Show this help.
@@ -97,7 +100,7 @@ while (($#)); do
       BLUETOOTH_AUDIO="requested"
       shift
       ;;
-    --source-url|--ref|--existing-checkout|--staging-parent|--bluetooth-device|--environment-profile|--sensor-address|--environment-mode|--model-provision-mode)
+    --source-url|--ref|--existing-checkout|--staging-parent|--bluetooth-device|--environment-profile|--sensor-address|--environment-mode|--model-provision-mode|--appliance-preset)
       option="$1"
       (($# >= 2)) || {
         usage >&2
@@ -119,6 +122,7 @@ while (($#)); do
           ;;
         --environment-profile) ENVIRONMENT_PROFILE="$value" ;;
         --environment-mode) ENVIRONMENT_MODE="$value" ;;
+        --appliance-preset) APPLIANCE_PRESET="$value" ;;
         --sensor-address) ENVIRONMENT_SENSOR_ADDRESS="$value" ;;
         --model-provision-mode) MODEL_PROVISION_MODE="$value" ;;
       esac
@@ -166,6 +170,13 @@ case "$ENVIRONMENT_PROFILE" in
     exit 64
     ;;
 esac
+case "$APPLIANCE_PRESET" in
+  none|responsive-room) ;;
+  *) gonken_error "PREFLIGHT_PRESET" "unsupported appliance preset" "use none or responsive-room" || true; exit 64 ;;
+esac
+if [[ "$APPLIANCE_PRESET" == "responsive-room" && "$ENVIRONMENT_PROFILE" != "full-real" ]]; then
+  gonken_error "PREFLIGHT_PRESET" "responsive-room requires full-real" "select the wired room profile" || true; exit 64
+fi
 case "$ENVIRONMENT_MODE" in
   preserve|manual|semi_automatic|automatic|disabled) ;;
   *) gonken_error "PREFLIGHT_ENVIRONMENT_MODE" "unsupported environment mode" "use a documented mode" || true; exit 64 ;;
@@ -314,6 +325,7 @@ gonken_create_staging "$STAGING_PARENT" \
   "environment_profile=$ENVIRONMENT_PROFILE" \
   "environment_mode=$ENVIRONMENT_MODE" \
   "environment_sensor_address=$ENVIRONMENT_SENSOR_ADDRESS" \
+  "appliance_preset=$APPLIANCE_PRESET" \
   "model_provision_mode=$MODEL_PROVISION_MODE" || exit 73
 
 printf '[OK] code=PREFLIGHT_COMPLETE staging=%s\n' "$GONKEN_STAGING_DIR"

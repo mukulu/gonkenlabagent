@@ -19,7 +19,7 @@ class RoomInstallerTests(unittest.TestCase):
     def test_default_exact_local_full_real_automatic(self):
         result=self.run_wrapper([])
         self.assertEqual(result.returncode,0,result.stderr)
-        self.assertEqual(json.loads(result.stdout.splitlines()[-1]),['--local-checkpoint','--environment-profile','full-real','--environment-mode','automatic'])
+        self.assertEqual(json.loads(result.stdout.splitlines()[-1]),['--local-checkpoint','--environment-profile','full-real','--environment-mode','automatic','--appliance-preset','responsive-room'])
     def test_safe_options_forward_without_shell_reinterpretation(self):
         result=self.run_wrapper(['--environment-mode','preserve','--bluetooth-device','speaker; echo nope','--sensor-address','0x45','--preflight-only'])
         self.assertEqual(result.returncode,0,result.stderr)

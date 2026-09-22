@@ -163,10 +163,10 @@ def compatible_environment_only_profile(path: Path, name: str, *, sensor_address
     overwriting unrelated administrator configuration.
     """
     payload = _load(path)
-    if set(payload) != {"extensions"} or not isinstance(payload.get("extensions"), dict):
+    if not isinstance(payload.get("extensions"), dict):
         return False
     extensions = payload["extensions"]
-    if set(extensions) != {"environment"} or not isinstance(extensions.get("environment"), dict):
+    if not isinstance(extensions.get("environment"), dict):
         return False
     environment = extensions["environment"]
     target = profile_spec(name, sensor_address=sensor_address)
@@ -176,11 +176,11 @@ def compatible_environment_only_profile(path: Path, name: str, *, sensor_address
 
 def detect_managed_profile_details(path: Path) -> tuple[str, int | None] | None:
     payload = _load(path)
-    # Managed profile files contain only the exact extensions.environment table.
-    if set(payload) != {"extensions"} or not isinstance(payload.get("extensions"), dict):
+    # The environment table must be exact; other administrator tables are preserved.
+    if not isinstance(payload.get("extensions"), dict):
         return None
     extensions = payload["extensions"]
-    if set(extensions) != {"environment"} or not isinstance(extensions.get("environment"), dict):
+    if not isinstance(extensions.get("environment"), dict):
         return None
     environment = extensions["environment"]
     for name in PROFILE_SPECS:
@@ -240,6 +240,15 @@ def _atomic_write(path: Path, text: str, *, group: str) -> None:
 def ensure_profile(path: Path, *, name: str, group: str, sensor_address: int = 0x44) -> str:
     target_spec = profile_spec(name, sensor_address=sensor_address)
     target_text = profile_text(name, sensor_address=sensor_address)
+    if path.is_file() and not path.is_symlink():
+        # Preserve unrelated site settings; fail closed on noncanonical inline tables.
+        import re
+        original = path.read_text(encoding="utf-8")
+        pattern = re.compile(r"(?ms)^\[extensions\.environment\][ \t]*(?:#[^\n]*)?\n.*?(?=^\[|\Z)")
+        matches = list(pattern.finditer(original))
+        if len(matches) != 1:
+            fail("ENV_PROFILE_CONFLICT", "environment table cannot be replaced safely", "use an explicit TOML table", 75)
+        target_text = pattern.sub(lambda _: target_text + "\n", original, count=1)
     if path.exists() or path.is_symlink():
         current = detect_managed_profile_details(path)
         if current is not None and read_environment(path) == target_spec:

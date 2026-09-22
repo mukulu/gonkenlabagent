@@ -14,7 +14,7 @@ from .domain import EnvironmentMode, PolicyBounds
 
 POLICY_SCHEMA_VERSION = 1
 DEFAULT_START_C = 28.0
-DEFAULT_STOP_C = 26.5
+DEFAULT_STOP_C = 26.0
 DEFAULT_DWELL_SECONDS = 60
 
 

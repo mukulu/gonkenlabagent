@@ -33,3 +33,11 @@ Current Attempt03 registry remains authoritative for older work. New B12
 requirements are tracked here and in B12_REQUIREMENTS.json without relabeling
 unimplemented display/physical/lifecycle gates PASS. Missing physical evidence
 does not prevent delivery of a host-tested installation candidate.
+
+Batch 1: 85 preset/config/policy/model + 26 voice + 19 installer tests PASS.
+One broader test command was terminated after 45s: an old __new__ readiness
+fixture lacked the now-required cached-cue dependency and retried. Fixture was
+corrected with an explicit fake cue cache; isolated voice tests complete in
+0.104s. Production retry deadlines were not increased. The incomplete grouped
+run is not counted as a completed suite. Default factory stop threshold changed
+intentionally; custom policies still change only via the explicit preset/IPC.

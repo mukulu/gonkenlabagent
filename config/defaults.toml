@@ -11,9 +11,9 @@ interaction_mode = "wake_word"
 [llm]
 provider = "ollama"
 base_url = "http://127.0.0.1:11434"
-model = "qwen3.5:2b-q4_K_M"
+model = "qwen3:0.6b"
 context_tokens = 2048
-max_output_tokens = 160
+max_output_tokens = 96
 keep_alive = "5m"
 
 [audio]
