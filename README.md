@@ -1,6 +1,6 @@
 # GonKenLab Agent
 
-**B12 responsive room-appliance installation candidate.** A local, voice-first
+**B13 installation-path repair candidate.** A local, voice-first
 Raspberry Pi assistant with real temperature/humidity sensing, automatic room-fan
 control, bounded timers, and explicitly confirmed reboot/shutdown. The existing
 Attempt03 programme also contains later display and cleanup work; those items are
@@ -25,25 +25,31 @@ Disconnect power before changing wiring. Do not add a second GPIO controller or
 use `gpioset` during ordinary operation: `gonken-environment.service` owns the line.
 See [hardware setup](docs/HARDWARE_SETUP.md) before changing any connection.
 
-From a newly extracted package, as your normal administrator:
+The normal Git workflow is now the primary installation path. After the verified
+release branch has been merged into `main`, update the existing clean Pi checkout:
 
 ```bash
-./install-room-appliance.sh
+cd "$HOME/gonkenlabagent"
+git checkout main
+git pull --ff-only origin main
+./bootstrap.sh
 ```
 
-For an archive copied into the Pi home directory:
+A no-argument target `./bootstrap.sh` selects the same standard room-appliance
+profile as `install-room-appliance.sh`: real SHT31, real GPIO23 relay, automatic
+mode and the responsive-room preset. Explicit environment/preset arguments still
+override this default.
+
+For a fresh machine, the streamed launcher uses the same governed bootstrap path:
 
 ```bash
-archive="$HOME/gonkenlabagent-attempt03-b12-responsive-candidate.tar.bz2"
-work_dir="$(mktemp -d "$HOME/gonken-b12.XXXXXX")" &&
-tar -xjf "$archive" -C "$work_dir" &&
-cd "$work_dir/gonkenlabagent" &&
-./install-room-appliance.sh
+curl -fsSL https://raw.githubusercontent.com/mukulu/gonkenlabagent/main/install-gonken.sh | bash
 ```
 
-Verify the adjacent delivery checksum before extraction. Do not overlay an old
-checkout or modify `/usr/local/lib/gonken-agent/current`. This wrapper selects
-**the extracted Git commit**, not a remote branch. Installation may download
+The curl launcher only prepares/updates the Git checkout and delegates to
+`./bootstrap.sh`; it does not maintain a second installation implementation.
+`./install-room-appliance.sh` remains available when deliberately installing an
+exact downloaded checkpoint with `--local-checkpoint`. Installation may download
 pinned dependencies and model assets; normal control and conversation are local.
 The source archive does not contain gigabytes of model weights.
 
@@ -249,7 +255,7 @@ pretty response is not proof of physical fan rotation.
 | `gonken-agent config fingerprint` | Fingerprint only; no private values |
 | `gonken-agent doctor` | Non-mutating diagnostics |
 | `gonken-agent support --output-dir /tmp` | Canonical support archive with no conversation content |
-| `gonken-agent version` | Package API version; use commit for B12 build identity |
+| `gonken-agent version` | Package API version; use commit for exact build identity |
 | `gonken-agent talk --seconds 8` | One foreground voice turn; stop the supervised voice service first |
 | `gonken-agent run` | Foreground voice loop; do not run a second audio owner |
 
@@ -384,7 +390,7 @@ identity, runtime/config fingerprints and model qualification are more useful
 than repeatedly rewriting the same valid hardware configuration.
 
 The earlier physical fan cycle used a different logged release. It informs this
-repair but is not falsely relabeled B12 physical acceptance. No previous HIL report
+repair but is not falsely relabeled current-build physical acceptance. No previous HIL report
 is required as a runtime prerequisite. Required current configuration, permissions,
 actual device availability and semantic readiness are still checked.
 
@@ -396,7 +402,7 @@ Asia/Tokyo`. The installer does not change unrelated system timezone settings.
 ## 7. Development, recovery and feature boundary
 
 This package includes committed source and full Git history. The API version can
-remain `0.2.0.dev0`; the adjacent receipt and Git commit identify the exact B12 build.
+remain `0.2.0.dev0`; the adjacent receipt and Git commit identify the exact build.
 Development/WIP commits are not release acceptance. The strict whole-Attempt03
 promotion gate remains separate from qualification of this installation candidate.
 Run `scripts/current_state.py --check` and `scripts/release_readiness.py --validate`

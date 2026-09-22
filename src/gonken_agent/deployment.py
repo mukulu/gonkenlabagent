@@ -103,7 +103,17 @@ def main(argv=None) -> int:
         changed = apply_preset(args.config, phase=args.phase, check=args.check)
         print(f"[OK] code=ROOM_PRESET_APPLIED phase={args.phase} changed={str(changed).lower()}")
         return 0
-    except (OSError, ValueError, ConfigError) as exc:
+    except ValueError as exc:
+        # `--check` is an installer postcondition probe. A preset that has not
+        # been applied yet is the normal "action required" state and must map
+        # to the install engine's ordinary unsatisfied status (1), not a probe
+        # failure. Unsafe/malformed input still fails closed with 65.
+        if args.check and str(exc) == "PRESET_NOT_APPLIED":
+            print(f"[INFO] code=ROOM_PRESET_PENDING phase={args.phase}")
+            return 1
+        print(f"[ERROR] code=ROOM_PRESET_REJECTED reason={type(exc).__name__}")
+        return 65
+    except (OSError, ConfigError) as exc:
         # No site content or raw exception body goes to diagnostics.
         print(f"[ERROR] code=ROOM_PRESET_REJECTED reason={type(exc).__name__}")
         return 65

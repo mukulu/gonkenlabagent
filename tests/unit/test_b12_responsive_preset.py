@@ -1,6 +1,7 @@
 from __future__ import annotations
 import json
 import os
+import subprocess
 from pathlib import Path
 import sys
 import tempfile
@@ -10,7 +11,7 @@ import unittest
 from unittest.mock import Mock, patch
 
 from gonken_agent.config import load_config, ConfigError
-from gonken_agent.deployment import apply_preset, LLM_PRESET
+from gonken_agent.deployment import apply_preset, LLM_PRESET, main as deployment_main
 from gonken_agent.environment.policy import EnvironmentPolicy
 from gonken_agent.llm.models import DEFAULT_MODEL
 from gonken_agent.voice_runtime import VoiceAppliance
@@ -52,6 +53,32 @@ class ResponsivePresetTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'NOT_APPLIED'): apply_preset(self.path, check=True)
         self.assertEqual(self.path.read_bytes(), before)
         self.assertEqual(len(list(self.path.parent.iterdir())), 1)
+
+    def test_cli_check_maps_pending_preset_to_normal_unsatisfied_status(self):
+        before = self.path.read_bytes()
+        self.assertEqual(deployment_main(["llm", "--config", str(self.path), "--check"]), 1)
+        self.assertEqual(self.path.read_bytes(), before)
+        self.assertTrue(apply_preset(self.path))
+        self.assertEqual(deployment_main(["llm", "--config", str(self.path), "--check"]), 0)
+
+    def test_module_cli_pending_exit_is_install_engine_unsatisfied_status(self):
+        before = self.path.read_bytes()
+        env = os.environ.copy()
+        env["PYTHONPATH"] = str(ROOT / "src")
+        result = subprocess.run(
+            [sys.executable, "-m", "gonken_agent.deployment", "llm", "--config", str(self.path), "--check"],
+            cwd=ROOT, env=env, capture_output=True, text=True, timeout=10, check=False,
+        )
+        self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+        self.assertIn("code=ROOM_PRESET_PENDING", result.stdout)
+        self.assertEqual(self.path.read_bytes(), before)
+
+    def test_cli_check_keeps_malformed_or_unsafe_configuration_fatal(self):
+        self.path.write_text('[llm]\nmodel="one"\nmodel="two"\n')
+        self.assertEqual(deployment_main(["llm", "--config", str(self.path), "--check"]), 65)
+        link = self.path.with_name("unsafe-link")
+        link.symlink_to(self.path)
+        self.assertEqual(deployment_main(["llm", "--config", str(link), "--check"]), 65)
 
     def test_symlink_unknown_and_malformed_site_rejected(self):
         link = self.path.with_name('link'); link.symlink_to(self.path)

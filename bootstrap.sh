@@ -36,6 +36,7 @@ ENVIRONMENT_MODE="preserve"
 ENVIRONMENT_SENSOR_ADDRESS="0x44"
 MODEL_PROVISION_MODE="online"
 APPLIANCE_PRESET="none"
+ENVIRONMENT_SELECTION_EXPLICIT=0
 
 usage() {
   cat <<'EOF'
@@ -43,8 +44,10 @@ Usage: ./bootstrap.sh [OPTIONS]
 
 Preflight-only performs no installation. A normal target invocation performs the
 complete governed install through local model, speech artifacts and system service.
-The official repository and main branch are defaults, so ./bootstrap.sh is enough
-for the standard installation.
+The official repository and main branch are defaults. On a Raspberry Pi target,
+./bootstrap.sh with no environment/preset override installs the standard GonKen room
+appliance: real SHT31 + GPIO23 relay, automatic 28/26 thermostat, responsive-room
+preset. Explicit environment/preset options override that target default.
 
 Options:
   --preflight-only          Return success after writing the source manifest.
@@ -63,19 +66,21 @@ Options:
   --bluetooth-device VALUE Optional Bluetooth name substring or exact MAC.
                            Without it, exactly one unpaired audio device must
                            appear during the guided pairing checkpoint.
-  --environment-profile P Commission an explicit room-environment profile.
+  --environment-profile P Override the target room-environment profile.
                            Choices: none, full-simulation,
                            real-sensor-simulated-actuator,
                            sensor-deferred-relay, full-real.
-                           Default none. Explicit full-real starts the wired
-                           SHT31/GPIO23 daemon with safe-OFF initialization.
-  --environment-mode M    preserve (default), manual, semi_automatic, automatic,
-                           or disabled; requires an explicit environment profile.
+                           Target default when no environment/preset override is
+                           given: full-real. Development-host default: none.
+  --environment-mode M    preserve, manual, semi_automatic, automatic, or disabled.
+                           Target default with standard room install: automatic.
+                           Explicit non-preserve mode requires an environment profile.
                            Mode updates preserve temperature thresholds/dwell.
   --sensor-address ADDR    SHT31 address for real-sensor profiles: 0x44 or 0x45
                            (default: 0x44).
-  --appliance-preset P     none (default) or responsive-room; requires full-real.
-                           Selects qwen3:0.6b and thermostat ON=28/OFF=26.
+  --appliance-preset P     none or responsive-room; requires full-real.
+                           Target default with standard room install: responsive-room,
+                           selecting qwen3:0.6b and thermostat ON=28/OFF=26.
   --model-provision-mode M V04 model roster mode: online or preseeded-offline
                            (default: online).
   -h, --help               Show this help.
@@ -120,9 +125,9 @@ while (($#)); do
           BLUETOOTH_DEVICE="$value"
           BLUETOOTH_AUDIO="requested"
           ;;
-        --environment-profile) ENVIRONMENT_PROFILE="$value" ;;
-        --environment-mode) ENVIRONMENT_MODE="$value" ;;
-        --appliance-preset) APPLIANCE_PRESET="$value" ;;
+        --environment-profile) ENVIRONMENT_PROFILE="$value"; ENVIRONMENT_SELECTION_EXPLICIT=1 ;;
+        --environment-mode) ENVIRONMENT_MODE="$value"; ENVIRONMENT_SELECTION_EXPLICIT=1 ;;
+        --appliance-preset) APPLIANCE_PRESET="$value"; ENVIRONMENT_SELECTION_EXPLICIT=1 ;;
         --sensor-address) ENVIRONMENT_SENSOR_ADDRESS="$value" ;;
         --model-provision-mode) MODEL_PROVISION_MODE="$value" ;;
       esac
@@ -157,6 +162,15 @@ fi
 
 if ((EXISTING_CHECKOUT_EXPLICIT == 0)) && [[ -d "$SCRIPT_DIR/.git" ]]; then
   EXISTING_CHECKOUT="$SCRIPT_DIR"
+fi
+
+# Standard Raspberry Pi installation is the already-defined real room appliance.
+# This is applied only when the operator supplied no environment/mode/preset
+# override, so explicit simulation, disablement, or maintenance intent wins.
+if [[ "$PLATFORM_MODE" == "target" && "$ENVIRONMENT_SELECTION_EXPLICIT" == "0" ]]; then
+  ENVIRONMENT_PROFILE="full-real"
+  ENVIRONMENT_MODE="automatic"
+  APPLIANCE_PRESET="responsive-room"
 fi
 
 if [[ "$PLATFORM_MODE" != "target" && "$BLUETOOTH_AUDIO" == "requested" ]]; then

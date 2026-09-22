@@ -27,7 +27,9 @@ usage() {
 Usage: install-gonken.sh [OPTIONS] [BOOTSTRAP OPTIONS]
 
 One-command Raspberry Pi launcher. It installs the small base prerequisites,
-creates/updates a clean GonKenLab Agent checkout, then runs ./bootstrap.sh.
+creates/updates a clean GonKenLab Agent checkout, then runs ./bootstrap.sh. The
+no-override target path therefore uses bootstrap's standard full-real automatic
+responsive-room deployment; there is no separate curl installation policy.
 
 Launcher options:
   --source-url URL    Git repository URL (default: official GonKenLab Agent repo).

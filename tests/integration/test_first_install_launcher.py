@@ -29,21 +29,26 @@ class FirstInstallLauncherTests(unittest.TestCase):
         self.assertIn("--bluetooth-device", result.stdout)
         self.assertIn("~/gonkenlabagent", result.stdout)
 
-    def test_standard_bootstrap_has_official_source_and_main_defaults(self) -> None:
+    def test_standard_bootstrap_has_official_source_main_and_room_defaults(self) -> None:
         text = BOOTSTRAP.read_text(encoding="utf-8")
         self.assertIn('SOURCE_URL="https://github.com/mukulu/gonkenlabagent.git"', text)
         self.assertIn('SOURCE_REF="main"', text)
+        self.assertIn('ENVIRONMENT_SELECTION_EXPLICIT=0', text)
+        target_defaults = text[text.index('# Standard Raspberry Pi installation'):text.index('if [[ "$PLATFORM_MODE" != "target"')]
+        self.assertIn('ENVIRONMENT_PROFILE="full-real"', target_defaults)
+        self.assertIn('ENVIRONMENT_MODE="automatic"', target_defaults)
+        self.assertIn('APPLIANCE_PRESET="responsive-room"', target_defaults)
         self.assertIn("Usage: ./bootstrap.sh [OPTIONS]", text)
         self.assertIn("--local-checkpoint", text)
 
-    def test_readme_primary_install_pins_the_delivered_room_candidate(self) -> None:
+    def test_readme_primary_install_uses_main_bootstrap_and_same_curl_path(self) -> None:
         text = README.read_text(encoding="utf-8")
-        # B12's explicit room preset supersedes the historical remote-main
-        # primary workflow: the distributed candidate is not yet remote main.
-        self.assertIn("./install-room-appliance.sh", text)
-        self.assertIn("**the extracted Git commit**, not a remote branch", text)
-        self.assertIn("gonkenlabagent-attempt03-b12-responsive-candidate.tar.bz2", text)
-        self.assertNotIn("curl -fsSL https://raw.githubusercontent.com/mukulu/gonkenlabagent/main/install-gonken.sh | bash", text)
+        self.assertIn('git checkout main', text)
+        self.assertIn('git pull --ff-only origin main', text)
+        self.assertIn('./bootstrap.sh', text)
+        self.assertIn('curl -fsSL https://raw.githubusercontent.com/mukulu/gonkenlabagent/main/install-gonken.sh | bash', text)
+        self.assertIn('delegates to', text)
+        self.assertIn('install-room-appliance.sh', text)
         self.assertIn("--bluetooth-device AA:BB:CC:DD:EE:FF", " ".join(text.split()))
 
     def test_stream_launcher_prepares_checkout_and_forwards_bluetooth_parameters(self) -> None:
@@ -144,6 +149,9 @@ exit 99
                     "AA:BB:CC:DD:EE:FF",
                 ],
             )
+            self.assertNotIn("--environment-profile", forwarded)
+            self.assertNotIn("--environment-mode", forwarded)
+            self.assertNotIn("--appliance-preset", forwarded)
 
 
 if __name__ == "__main__":

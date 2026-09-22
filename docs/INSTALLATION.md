@@ -2,13 +2,22 @@
 
 For the current responsive real-room deployment, use the [README command catalogue](../README.md) and [room runbook](ROOM_APPLIANCE_INSTALL.md). The explicit preset selects qwen3:0.6b and 28 C ON / 26 C OFF, preserves valid dwell, and supports the documented bounded timers and confirmed power actions. [Architecture and SVG diagrams](ARCHITECTURE.md).
 
-## B12 current real-room deployment
+## Current real-room deployment
 
-For this already-wired SHT31/GPIO23 appliance, use the exact candidate checkout:
+For this already-wired SHT31/GPIO23 appliance, the standard target bootstrap is
+the production path after the verified change is merged to `main`:
 
 ```bash
-./install-room-appliance.sh
+cd ~/gonkenlabagent
+git checkout main
+git pull --ff-only origin main
+./bootstrap.sh
 ```
+
+With no environment/preset override on a Raspberry Pi target, bootstrap selects
+`full-real`, `automatic`, and `responsive-room`. The curl launcher below updates
+the checkout and delegates to this same bootstrap path. `install-room-appliance.sh`
+remains the explicit exact-checkpoint wrapper.
 
 See [ROOM_APPLIANCE_INSTALL.md](ROOM_APPLIANCE_INSTALL.md) for migration from the
 managed simulated relay, automatic mode, preserved temperature thresholds and
@@ -16,7 +25,7 @@ dwell, service status and one-archive failure reporting. Prior physical PASS
 reports are not a prerequisite to this explicit deployment. Invalid safety
 configuration or unavailable real hardware still fails honestly; simulation is
 never a fallback. Historical Checkpoint-44/45 simulation-first examples below are
-retained as test/campaign history, not the B12 production default.
+retained as test/campaign history, not the current production default.
 
 
 The README gives the shortest supported path. This document covers fresh-Pi
