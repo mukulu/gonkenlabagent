@@ -60,7 +60,7 @@ gonken_run_registered_steps
         steps=[line[5:] for line in result.stdout.splitlines() if line.startswith('STEP ')]
         for before,after in [('environment_profile','target_gpio_identity'),('speech_smoke','activate_release'),
                 ('activate_release','environment_commissioning'),('environment_readiness','environment_policy'),
-                ('environment_policy','application_service')]:
+                ('environment_policy','voice_power_configuration'),('voice_power_configuration','application_service')]:
             self.assertLess(steps.index(before),steps.index(after))
     def test_no_environment_profile_does_not_start_environment(self):
         result,current=self.run_plan(profile='none')
