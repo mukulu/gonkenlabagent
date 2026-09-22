@@ -87,6 +87,27 @@ class EnvironmentClient:
         params = {} if limit is None else {"limit": limit}
         return _result(self.call("events.get", params))
 
+    def automation_add(self, **params: Any) -> Mapping[str, Any]:
+        return _result(self.call("automation.add", params))
+
+    def automation_list(self) -> Mapping[str, Any]:
+        return _result(self.call("automation.list"))
+
+    def automation_cancel(self, job_id: str | None = None) -> Mapping[str, Any]:
+        return _result(self.call("automation.cancel", {} if job_id is None else {"id": job_id}))
+
+    def notifications(self) -> Mapping[str, Any]:
+        return _result(self.call("notifications.get"))
+
+    def acknowledge_notification(self, token: str, generation: str) -> Mapping[str, Any]:
+        return _result(self.call("notifications.ack", {"id": token, "generation": generation}))
+
+    def prepare_power(self, action: str) -> Mapping[str, Any]:
+        return _result(self.call("power.prepare", {"action": action}))
+
+    def release_power(self, token: str) -> Mapping[str, Any]:
+        return _result(self.call("power.release", {"token": token}))
+
     def simulation_status(self) -> Mapping[str, Any]:
         return _result(self.call("simulation.status.get"))
 

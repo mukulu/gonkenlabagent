@@ -9,11 +9,13 @@ service boundary.
 from __future__ import annotations
 
 import os
+import secrets
 import threading
 from dataclasses import dataclass
 from time import monotonic
 from typing import Callable, Mapping, Any
 
+from .automation import Automation, AutomationError, FAN_KINDS
 from .controller import ControllerError, EnvironmentController
 from .domain import EnvironmentMode, FanPower, PolicyBounds, SensorQuality, SensorReading
 from .policy import EnvironmentPolicy, PolicyError, PolicyStore
@@ -154,6 +156,8 @@ class EnvironmentServiceCore:
         self._last_actuator_command_monotonic: float | None = None
         self._last_actuator_write_result = "NOT_ATTEMPTED"
         self._last_actuator_error_event: float | None = None
+        self.automation = Automation()
+        self._power_hold: dict | None = None
 
     @classmethod
     def with_defaults(
@@ -197,7 +201,7 @@ class EnvironmentServiceCore:
             self._request_count += 1
             try:
                 return self._handle_locked(request.operation, request.params)
-            except (EnvironmentServiceError, ControllerError, PolicyError, SimulationStateError) as exc:
+            except (EnvironmentServiceError, ControllerError, PolicyError, SimulationStateError, AutomationError) as exc:
                 self._error_count += 1
                 code = getattr(exc, "code", "INTERNAL_ERROR")
                 raise EnvironmentServiceError(str(code), _public_message(exc)) from exc
@@ -223,10 +227,13 @@ class EnvironmentServiceCore:
             now = float(self.now())
             self._last_poll_monotonic = now
             try:
+                self._expire_power_hold(now)
                 reading = self._read_sensor_locked(now)
                 state = self.controller.observe(reading, now_monotonic=now)
                 self._apply_actuator_if_needed(now)
                 self._record_controller_transition_if_changed(now, self.controller.state)
+                self._tick_automation(now)
+                state = self.controller.state
                 self._last_poll_error_code = None if reading.is_valid() else reading.error_code
                 return {
                     "ok": True,
@@ -242,6 +249,7 @@ class EnvironmentServiceCore:
                     "provenance": self._provenance_payload(),
                 }
             except EnvironmentServiceError as exc:
+                self.automation.cancel(now=now, fan_only=True)
                 self._poll_error_count += 1
                 self._last_poll_error_code = exc.code
                 return {
@@ -257,6 +265,10 @@ class EnvironmentServiceCore:
 
     def _handle_locked(self, operation: str, params: Mapping[str, Any]) -> dict[str, object]:
         now = float(self.now())
+        if self._power_hold is not None and operation in {"fan.set", "mode.set", "policy.update", "automation.add"}:
+            raise EnvironmentServiceError("BUSY", "power transition is pending")
+        if operation.startswith(("automation.", "notifications.", "power.")):
+            return self._automation_operation(operation, params, now)
         if operation == "status.get":
             _reject_unknown_params(params, set())
             return self._status_payload(now)
@@ -270,6 +282,7 @@ class EnvironmentServiceCore:
             self._apply_actuator_if_needed(now)
             self._record_controller_transition_if_changed(now, self.controller.state)
             return {
+                "announcement_token": self.automation.reading_receipt(self._public_state(now), now=now),
                 "reading": reading.as_dict(
                     now_monotonic=now,
                     stale_after_seconds=self.controller.stale_after_seconds,
@@ -284,7 +297,9 @@ class EnvironmentServiceCore:
         if operation == "fan.set":
             _reject_unknown_params(params, {"power"})
             power = _required_string(params, "power")
-            state = self.controller.set_fan_power(FanPower.parse(power), now_monotonic=now)
+            selected_power = FanPower.parse(power)
+            self.automation.cancel(now=now, fan_only=True)
+            state = self.controller.set_fan_power(selected_power, now_monotonic=now)
             self._apply_actuator_if_needed(now)
             self._record_controller_transition_if_changed(now, self.controller.state)
             self._save_policy_if_configured()
@@ -292,7 +307,9 @@ class EnvironmentServiceCore:
         if operation == "mode.set":
             _reject_unknown_params(params, {"mode"})
             mode = _required_string(params, "mode")
-            state = self.controller.set_mode(EnvironmentMode.parse(mode), now_monotonic=now)
+            selected_mode = EnvironmentMode.parse(mode)
+            self.automation.cancel(now=now, fan_only=True)
+            state = self.controller.set_mode(selected_mode, now_monotonic=now)
             self._apply_actuator_if_needed(now)
             self._record_controller_transition_if_changed(now, self.controller.state)
             self._save_policy_if_configured()
@@ -321,6 +338,7 @@ class EnvironmentServiceCore:
                 minimum_on_seconds=_optional_int(params, "minimum_on_seconds"),
                 minimum_off_seconds=_optional_int(params, "minimum_off_seconds"),
             )
+            self.automation.cancel(now=now, fan_only=True)
             state = self.controller.update_policy(next_policy, now_monotonic=now)
             self._apply_actuator_if_needed(now)
             self._record_controller_transition_if_changed(now, self.controller.state)
@@ -388,6 +406,89 @@ class EnvironmentServiceCore:
                 "physical_evidence": False,
             }
         raise EnvironmentServiceError("UNKNOWN_OPERATION", f"unsupported operation: {operation}")
+
+    def _scheduled_fan_write(self, power: str, reason: str) -> None:
+        now = float(self.now())
+        if self.fan_actuator is None:
+            raise EnvironmentServiceError("ACTUATOR_UNAVAILABLE", "no actuator is configured")
+        self.controller.scheduled_fan_power(FanPower.parse(power), now_monotonic=now,
+                                            expired=reason == "TIMER_EXPIRED_SAFE_OFF")
+        self._apply_actuator_if_needed(now)
+        self._record_controller_transition_if_changed(now, self.controller.state)
+        # Timer control mode is session-local, not a persisted policy rewrite.
+
+    def _tick_automation(self, now: float) -> None:
+        if self._power_hold is not None:
+            return
+        policy = self.controller.policy
+        self.automation.tick(now=now, snapshot=self._public_state(now),
+                             minimum_on=policy.minimum_on_seconds, minimum_off=policy.minimum_off_seconds,
+                             fan_write=self._scheduled_fan_write)
+
+    def _expire_power_hold(self, now: float) -> None:
+        if self._power_hold is not None and now >= self._power_hold["expires"]:
+            self._restore_power_hold(now)
+
+    def _restore_power_hold(self, now: float) -> None:
+        hold, self._power_hold = self._power_hold, None
+        if hold is not None:
+            policy = self.controller.policy.updated(bounds=self.bounds, mode=hold["previous_mode"])
+            self.controller.update_policy(policy, now_monotonic=now)
+            self._apply_actuator_if_needed(now)
+            self._record_controller_transition_if_changed(now, self.controller.state)
+
+    def _automation_operation(self, operation: str, params: Mapping[str, Any], now: float) -> dict:
+        if operation == "automation.add":
+            policy = self.controller.policy
+            job = self.automation.add(params, now=now, snapshot=self._public_state(now),
+                                      minimum_on=policy.minimum_on_seconds, minimum_off=policy.minimum_off_seconds)
+            return {"job": job, "generation": self.automation.generation, "persistent": False}
+        if operation == "automation.list":
+            _reject_unknown_params(params, set())
+            return self.automation.status(now=now)
+        if operation == "automation.cancel":
+            _reject_unknown_params(params, {"id"})
+            job_id = _optional_string(params, "id")
+            active = any(j.kind in FAN_KINDS and j.phase == "on" and (job_id is None or job_id == j.id)
+                         for j in self.automation.jobs.values())
+            cancelled = self.automation.cancel(now=now, job_id=job_id)
+            if active:
+                self._scheduled_fan_write("off", "TIMER_EXPIRED_SAFE_OFF")
+            return {"cancelled": cancelled, "safe_off_requested": active, "persistent": False}
+        if operation == "notifications.get":
+            _reject_unknown_params(params, set())
+            return self.automation.pending_notifications(now=now)
+        if operation == "notifications.ack":
+            _reject_unknown_params(params, {"id", "generation"})
+            ok = self.automation.acknowledge(_required_string(params,"id"), _required_string(params,"generation"), now=now)
+            return {"acknowledged": ok}
+        if operation == "power.prepare":
+            _reject_unknown_params(params, {"action"})
+            action = _required_string(params, "action")
+            if action not in {"REBOOT_DEVICE", "POWEROFF_DEVICE"}:
+                raise EnvironmentServiceError("BAD_REQUEST", "invalid power action")
+            if self._power_hold is not None:
+                raise EnvironmentServiceError("BUSY", "power transition already pending")
+            if self.fan_actuator is None:
+                raise EnvironmentServiceError("ACTUATOR_UNAVAILABLE", "safe OFF cannot be acknowledged")
+            token = secrets.token_hex(16)
+            self._power_hold = {"token": token, "expires": now + 30, "previous_mode": self.controller.policy.mode.value}
+            self.automation.cancel(now=now)
+            self.controller.set_mode(EnvironmentMode.DISABLED, now_monotonic=now)
+            self._apply_actuator_if_needed(now)
+            self._record_controller_transition_if_changed(now, self.controller.state)
+            if self._last_actuator_command != FanPower.OFF or self._last_actuator_write_result != "SUCCESS":
+                raise EnvironmentServiceError("ACTUATOR_UNAVAILABLE", "safe OFF was not acknowledged")
+            return {"token": token, "safe_off_acknowledged": True, "expires_in_seconds": 30,
+                    "generation": self.automation.generation, "action": action, "physical_acceptance_claimed": False}
+        if operation == "power.release":
+            _reject_unknown_params(params, {"token"})
+            token = _required_string(params, "token")
+            if self._power_hold is None or not secrets.compare_digest(token, self._power_hold["token"]):
+                raise EnvironmentServiceError("BAD_REQUEST", "unknown power transition")
+            self._restore_power_hold(now)
+            return {"released": True}
+        raise EnvironmentServiceError("UNKNOWN_OPERATION", "unsupported operation")
 
     def _observed_sensor_quality(self, now: float) -> SensorQuality:
         quality = self.controller.state.sensor_quality
@@ -483,6 +584,9 @@ class EnvironmentServiceCore:
             "actuator_commands": self._actuator_command_payload(),
             "controller": "ACTIVE" if sensor_quality == SensorQuality.READY and self._actuator_error_code is None else "SUSPENDED_OR_STARTING",
             "overall": self._overall_environment_state(now),
+            "automation": {"jobs": len(self.automation.jobs), "generation": self.automation.generation,
+                           "notifications": len(self.automation.notices), "persistent": False,
+                           "power_pending": self._power_hold is not None},
             "polling": self._polling_payload(),
             "state": self._public_state(now),
             "physical_evidence": False,
@@ -785,6 +889,8 @@ class EnvironmentServiceCore:
             if self._closed:
                 return
             now = float(self.now())
+            self.automation.cancel(now=now)
+            self._power_hold = None
             previous = self._last_actuator_command
             self.controller.shutdown(now_monotonic=now)
             if self.fan_actuator is not None:

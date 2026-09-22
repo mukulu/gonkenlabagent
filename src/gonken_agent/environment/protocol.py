@@ -33,6 +33,8 @@ RESPONSE_FIELDS = frozenset(
 
 OPERATIONS = frozenset(
     {
+        "automation.add", "automation.list", "automation.cancel",
+        "notifications.get", "notifications.ack", "power.prepare", "power.release",
         "status.get",
         "sensor.read",
         "health.get",

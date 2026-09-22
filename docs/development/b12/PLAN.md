@@ -41,3 +41,11 @@ corrected with an explicit fake cue cache; isolated voice tests complete in
 0.104s. Production retry deadlines were not increased. The incomplete grouped
 run is not counted as a completed suite. Default factory stop threshold changed
 intentionally; custom policies still change only via the explicit preset/IPC.
+
+Batch 2: daemon-owned monotonic automation, numeric spoken-acknowledgement receipts,
+32-job/32-notification limits, finite recurring leases, no catch-up bursts,
+manual-override and sensor-fault cancellation, dwell-respecting fan writes, and
+bounded power safe-OFF holds. 61 affected controller/IPC/lifecycle/automation
+cases PASS. Voice/CLI surfaces and power privilege adapter remain next work.
+An initial test-selection typo named two nonexistent modules; it was corrected
+by inspecting actual test filenames. No missing module was counted as PASS.

@@ -210,6 +210,19 @@ class EnvironmentController:
         reason = TransitionReason.USER_MANUAL_ON if requested == FanPower.ON else TransitionReason.USER_MANUAL_OFF
         return self._transition(requested, semi_armed=False, reason=reason, now_monotonic=now)
 
+    def scheduled_fan_power(self, power: FanPower, *, now_monotonic: float,
+                            expired: bool = False) -> ControllerState:
+        """Internal scheduler adapter. Dwell is enforced by the scheduler."""
+        previous = self._state.fan_power
+        self.set_fan_power(power, now_monotonic=now_monotonic)
+        reason = (TransitionReason.TIMER_EXPIRED_SAFE_OFF if expired else
+                  TransitionReason.TIMER_ON if power == FanPower.ON else TransitionReason.TIMER_OFF)
+        values = {"last_decision_reason": reason}
+        if self._state.fan_power != previous:
+            values["last_transition_reason"] = reason
+        self._state = replace(self._state, **values)
+        return self._state
+
     def set_mode(self, mode: str | EnvironmentMode, *, now_monotonic: float) -> ControllerState:
         next_policy = self.policy.updated(bounds=self.bounds, mode=EnvironmentMode.parse(mode))
         return self.update_policy(next_policy, now_monotonic=now_monotonic)
