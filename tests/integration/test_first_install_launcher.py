@@ -36,14 +36,15 @@ class FirstInstallLauncherTests(unittest.TestCase):
         self.assertIn("Usage: ./bootstrap.sh [OPTIONS]", text)
         self.assertIn("--local-checkpoint", text)
 
-    def test_readme_primary_install_is_one_command_and_manual_bootstrap_is_short(self) -> None:
+    def test_readme_primary_install_pins_the_delivered_room_candidate(self) -> None:
         text = README.read_text(encoding="utf-8")
-        self.assertIn(
-            "curl -fsSL https://raw.githubusercontent.com/mukulu/gonkenlabagent/main/install-gonken.sh | bash",
-            text,
-        )
-        self.assertIn("./bootstrap.sh", text)
-        self.assertIn("--bluetooth-device AA:BB:CC:DD:EE:FF", text)
+        # B12's explicit room preset supersedes the historical remote-main
+        # primary workflow: the distributed candidate is not yet remote main.
+        self.assertIn("./install-room-appliance.sh", text)
+        self.assertIn("**the extracted Git commit**, not a remote branch", text)
+        self.assertIn("gonkenlabagent-attempt03-b12-responsive-candidate.tar.bz2", text)
+        self.assertNotIn("curl -fsSL https://raw.githubusercontent.com/mukulu/gonkenlabagent/main/install-gonken.sh | bash", text)
+        self.assertIn("--bluetooth-device AA:BB:CC:DD:EE:FF", " ".join(text.split()))
 
     def test_stream_launcher_prepares_checkout_and_forwards_bluetooth_parameters(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
