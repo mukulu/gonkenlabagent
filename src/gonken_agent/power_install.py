@@ -47,6 +47,15 @@ def main(argv=None):
         print('[OK] code=VOICE_POWER_POLICY_CONFIGURED actions=reboot,poweroff confirmation=required inhibitor_bypass=false')
         return 0
     except (OSError,ValueError) as exc:
+        # ``--check`` is an installer postcondition probe. A missing managed
+        # rule or a not-yet-applied voice-power preset is the ordinary
+        # "action required" state and must return 1 so the step engine runs
+        # the configured action. Unsafe/conflicting paths, missing
+        # dependencies, malformed configuration, permission errors, and all
+        # other failures remain hard probe errors (65).
+        if args.check and str(exc) in {"POWER_RULE_MISSING", "PRESET_NOT_APPLIED"}:
+            print('[INFO] code=VOICE_POWER_POLICY_PENDING actions=reboot,poweroff')
+            return 1
         print(f'[ERROR] code=VOICE_POWER_POLICY_FAILED reason={type(exc).__name__}')
         return 65
 

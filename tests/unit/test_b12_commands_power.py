@@ -10,7 +10,7 @@ from unittest.mock import Mock, patch
 from gonken_agent.command_intents import parse_command, CommandIntent, CommandClarification
 from gonken_agent.operational import OperationalCommands, NotificationAnnouncer
 from gonken_agent.power import PowerSession, PowerError, execute_confirmed, logind_action, Authorization
-from gonken_agent.power_install import install, RULE, RULE_NAME
+from gonken_agent.power_install import install, main as power_install_main, RULE, RULE_NAME
 from gonken_agent.config import load_config
 from gonken_agent.voice_runtime import ConversationBrain, VoiceAppliance
 from gonken_agent.environment.intents import parse_environment_intent, EnvironmentClarification
@@ -119,6 +119,64 @@ class PowerTests(unittest.TestCase):
         self.assertTrue(load_config(site_path=root/'etc/gonken-agent/config.toml',environ={}).config.extensions.voice_power.enabled)
         path.write_text('// administrator choice')
         with self.assertRaises(ValueError):install(root)
+
+class PowerInstallerProbeContractTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp=tempfile.TemporaryDirectory();self.addCleanup(self.tmp.cleanup)
+        self.root=Path(self.tmp.name)/'root'
+        (self.root/'usr/bin').mkdir(parents=True)
+        (self.root/'usr/bin/busctl').write_text('fixture')
+        (self.root/'usr/share/polkit-1/actions').mkdir(parents=True)
+        (self.root/'etc/gonken-agent').mkdir(parents=True)
+        (self.root/'etc/gonken-agent/config.toml').write_text('')
+
+    def _run_main_against_root(self, *, check):
+        # The command-line entry normally uses /. Patch only install's root
+        # binding so this test exercises main() exit semantics without touching
+        # the host PolicyKit/configuration tree.
+        from gonken_agent import power_install
+        original=power_install.install
+        def bound(*, check=False):
+            return original(self.root,check=check)
+        argv=['--check'] if check else []
+        with patch.object(power_install,'install',bound), patch('os.geteuid',return_value=0), patch('sys.stdout',new_callable=io.StringIO) as out:
+            rc=power_install_main(argv)
+        return rc,out.getvalue()
+
+    def test_missing_managed_rule_is_action_required_not_probe_error(self):
+        rc,out=self._run_main_against_root(check=True)
+        self.assertEqual(rc,1,out)
+        self.assertIn('VOICE_POWER_POLICY_PENDING',out)
+        self.assertFalse((self.root/'etc/polkit-1/rules.d'/RULE_NAME).exists())
+
+    def test_rule_present_but_power_preset_pending_is_action_required(self):
+        parent=self.root/'etc/polkit-1/rules.d';parent.mkdir(parents=True)
+        path=parent/RULE_NAME;path.write_text(RULE);path.chmod(0o644)
+        with patch('os.geteuid',return_value=0):
+            rc,out=self._run_main_against_root(check=True)
+        self.assertEqual(rc,1,out)
+        self.assertIn('VOICE_POWER_POLICY_PENDING',out)
+
+    def test_action_then_check_converges(self):
+        rc,out=self._run_main_against_root(check=False)
+        self.assertEqual(rc,0,out)
+        rc,out=self._run_main_against_root(check=True)
+        self.assertEqual(rc,0,out)
+        self.assertIn('VOICE_POWER_POLICY_CONFIGURED',out)
+        self.assertTrue(load_config(site_path=self.root/'etc/gonken-agent/config.toml',environ={}).config.extensions.voice_power.enabled)
+
+    def test_missing_dependency_remains_fatal(self):
+        (self.root/'usr/bin/busctl').unlink()
+        rc,out=self._run_main_against_root(check=True)
+        self.assertEqual(rc,65,out)
+        self.assertIn('VOICE_POWER_POLICY_FAILED',out)
+
+    def test_conflicting_rule_remains_fatal(self):
+        parent=self.root/'etc/polkit-1/rules.d';parent.mkdir(parents=True)
+        path=parent/RULE_NAME;path.write_text('// administrator choice')
+        rc,out=self._run_main_against_root(check=True)
+        self.assertEqual(rc,65,out)
+        self.assertIn('VOICE_POWER_POLICY_FAILED',out)
 
 class IntegrationTests(unittest.TestCase):
     def setUp(self):
