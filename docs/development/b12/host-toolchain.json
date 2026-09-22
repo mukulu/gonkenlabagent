@@ -1,7 +1,0 @@
-{
-  "python": "3.13.5 (main, Jun 25 2025, 18:55:22) [GCC 14.2.0]",
-  "setuptools": "82.0.1",
-  "wheel": "0.46.1",
-  "packaging": "25.0",
-  "origin": "isolated venv; already-installed local packaging tools copied offline; no global library modifications"
-}
