@@ -1047,6 +1047,7 @@ def build_release(
             source / "scripts" / "collect-support.sh": maintenance / "collect-support.sh",
             source / "scripts" / "rollback.sh": maintenance / "rollback.sh",
             source / "scripts" / "uninstall.sh": maintenance / "uninstall.sh",
+            source / "src" / "gonken_agent" / "power_policy.py": maintenance / "gonken_power_policy.py",
             source / "scripts" / "ollama_manager.py": maintenance / "ollama_manager.py",
             source / "scripts" / "model_roster_manager.py": maintenance / "model_roster_manager.py",
             source / "scripts" / "ollama_qualification_matrix.py": maintenance / "ollama_qualification_matrix.py",

@@ -175,6 +175,24 @@ def uninstall(
         environment_service_installed = validate_managed_or_absent(environment_unit_path, environment_unit_payload)
         validate_managed_or_absent(environment_tmpfiles_path, environment_tmpfiles_payload)
 
+    # The fixed policy is a standalone sidecar in sealed releases, and a pure
+    # data module in a source checkout. Never require the installed venv merely
+    # to remove its own privilege grant.
+    sidecar = Path(__file__).resolve().parent / "gonken_power_policy.py"
+    if sidecar.is_file():
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("gonken_power_policy", sidecar)
+        assert spec and spec.loader
+        policy = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(policy)
+        rule_name, rule = policy.RULE_NAME, policy.RULE
+    else:
+        sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+        from gonken_agent.power_policy import RULE_NAME, RULE
+        rule_name, rule = RULE_NAME, RULE
+    rule_path = mapped(root, "/etc/polkit-1/rules.d/" + rule_name)
+    rule_installed = validate_managed_or_absent(rule_path, rule.encode("utf-8"))
+
     removed: list[str] = []
     if service_installed:
         run_tool(systemctl, "stop", SERVICE_NAME)
@@ -196,6 +214,9 @@ def uninstall(
             removed.append("/etc/tmpfiles.d/gonken-environment.conf")
     if service_installed or environment_service_installed:
         run_tool(systemctl, "daemon-reload")
+    if rule_installed:
+        remove_if_managed(rule_path, rule.encode("utf-8"))
+        removed.append("/etc/polkit-1/rules.d/" + rule_name)
     if remove_entrypoint(root):
         removed.append("/usr/local/bin/gonken-agent")
     if remove_tree(mapped(root, "/usr/local/lib/gonken-agent")):

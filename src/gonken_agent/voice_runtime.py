@@ -1419,7 +1419,7 @@ class PushToTalkVoiceAdapter:
         if not question:
             self.appliance._event("INFO", "VOICE_NO_SPEECH")
             return
-        begin = getattr(self.appliance.brain, "begin_interaction", None)
+        begin = getattr(getattr(self.appliance, "brain", None), "begin_interaction", None)
         if callable(begin): begin()
         self.appliance._event("RUNNING", "VOICE_THINKING")
         answer = self.appliance._answer_question(question)

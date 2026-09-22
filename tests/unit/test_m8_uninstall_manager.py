@@ -102,6 +102,40 @@ class UninstallManagerTests(unittest.TestCase):
         self.addCleanup(temporary.cleanup)
         return UninstallFixture(Path(temporary.name))
 
+    def test_power_rule_removed_without_purging_data(self) -> None:
+        from gonken_agent.power_policy import RULE_NAME, RULE
+        fixture=self.fixture(); fixture.populate()
+        path=fixture.system_root / "etc/polkit-1/rules.d" / RULE_NAME
+        path.parent.mkdir(parents=True); path.write_text(RULE)
+        result=fixture.run()
+        self.assertEqual(result.returncode,0,result.stderr)
+        self.assertFalse(path.exists()); self.assertTrue(fixture.state.exists())
+
+    def test_modified_power_rule_conflicts_before_service_stop_or_deletion(self) -> None:
+        from gonken_agent.power_policy import RULE_NAME, RULE
+        fixture=self.fixture(); fixture.populate()
+        path=fixture.system_root / "etc/polkit-1/rules.d" / RULE_NAME
+        path.parent.mkdir(parents=True); path.write_text(RULE+"// administrator edit\n")
+        result=fixture.run()
+        self.assertEqual(result.returncode,75,result.stderr)
+        self.assertTrue(path.exists()); self.assertTrue(fixture.release.exists())
+        self.assertFalse(fixture.systemctl_log.exists())
+
+    def test_installed_sidecar_needs_no_source_pythonpath(self) -> None:
+        import shutil
+        fixture=self.fixture(); fixture.populate()
+        installed=fixture.root / "maintenance"; installed.mkdir()
+        for name in ("uninstall_manager.py","service_manager.py","environment_service_manager.py"):
+            shutil.copyfile(ROOT / "scripts" / name, installed/name)
+        shutil.copyfile(ROOT/'src/gonken_agent/power_policy.py',installed/'gonken_power_policy.py')
+        environment=dict(os.environ,GONKEN_ENABLE_TEST_FAILURES="1",GONKEN_FAKE_SYSTEMCTL_LOG=str(fixture.systemctl_log))
+        environment.pop("PYTHONPATH",None)
+        result=subprocess.run([sys.executable,"-s",str(installed/'uninstall_manager.py'),
+            '--system-root',str(fixture.system_root),'--unit-template',str(UNIT),
+            '--tmpfiles-template',str(TMPFILES),'--systemctl',str(fixture.systemctl)],
+            cwd=fixture.root,env=environment,capture_output=True,text=True,timeout=10)
+        self.assertEqual(result.returncode,0,result.stderr)
+
     def test_keep_data_default_removes_code_and_service_but_retains_data(self) -> None:
         fixture = self.fixture()
         fixture.populate()

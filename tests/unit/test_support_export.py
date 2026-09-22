@@ -45,6 +45,7 @@ class SupportTests(unittest.TestCase):
                 'platform_inventory.json',
                 'runtime_bindings.json',
                 'resource_claims.json',
+                'power_status.json',
                 'service_events.json',
                 'systemd_effective.json',
                 'target_manifest.json',

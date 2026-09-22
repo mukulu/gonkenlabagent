@@ -26,10 +26,10 @@ class DoctorContextTests(unittest.TestCase):
                        'release_commit':binding.commit, 'release_profile':binding.profile,
                        'boot_id':binding.boot_id, 'service_pid':os.getpid(),
                        'service_start_ticks':rr.process_start_ticks(os.getpid()),
-                       'observed_epoch':int(time.time())}
+                       'observed_epoch':int(time.time()), 'configuration_sha256':rr.configuration_digest(self.config)}
             ready.write_text(json.dumps(payload if valid else {}))
-            with mock.patch('gonken_agent.operations.read_ready', side_effect=lambda _path: rr.read_ready(
-                    ready, binding=binding, pending_path=Path(temporary)/'pending.json')), \
+            with mock.patch('gonken_agent.operations.read_ready', side_effect=lambda _path, config: rr.read_ready(
+                    ready, binding=binding, pending_path=Path(temporary)/'pending.json', config=config)), \
                  mock.patch('gonken_agent.voice_runtime.AudioBackend.probe', side_effect=OSError('unavailable')), \
                  mock.patch('gonken_agent.operations.environment_health', return_value={
                      'component_status': Readiness.READY,

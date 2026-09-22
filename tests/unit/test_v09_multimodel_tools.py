@@ -37,7 +37,7 @@ class FakeEnvironmentClient:
 
     def read_sensor(self):
         return {
-            "reading": {"temperature_c": 27.5, "relative_humidity_pct": 56.3, "quality": "ready"},
+            "reading": {"temperature_c": 27.5, "relative_humidity_pct": 56.3, "quality": "ready", "valid": True, "age_seconds": 0.0},
             "provenance": {"sensor_is_simulated": False, "actuator_is_simulated": True},
         }
 

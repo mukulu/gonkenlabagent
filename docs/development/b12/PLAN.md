@@ -100,3 +100,18 @@ An inline wake transcript is not automatically a complete utterance: acoustic
 trailing-silence evidence is required to skip follow-up capture. A truncated
 "turn fan on" cannot become immediate actuation if "after two minutes" was cut
 from the window. This closes a timing false-green introduced by fast-path work.
+
+## B12-06 complete-unit reconciliation and privilege lifecycle
+
+The first complete 87-module unit pass identified four incompatible old fixtures:
+PTT fake appliances lacked a brain; support membership lacked power metadata;
+doctor mocks lacked the configuration argument; the sensor fake omitted its valid
+flag. The PTT adapter now tolerates old test/adaptor instances, while the three
+fixtures were migrated to actual contracts without relaxing safety checks.
+All 84 directly affected cases pass. Original failing shard logs are retained.
+
+Power authorization now has one pure payload shared with the standalone installed
+uninstaller. Uninstall removes only the exact managed rule and rejects administrator
+modification before stopping services or deleting releases. An installed-layout
+subprocess test confirms removal without a source PYTHONPATH or installed package.
+Full integration/README/architecture/final archive qualification remain next work.
