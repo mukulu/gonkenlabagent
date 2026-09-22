@@ -13,6 +13,7 @@ ROOT=Path(__file__).resolve().parents[2]
 
 class RegisteredPlanTests(unittest.TestCase):
     def run_plan(self, fault='', profile='full-real', ollama_only=0):
+        preset='responsive-room' if profile=='full-real' else 'none'
         text=(ROOT/'scripts/install.sh').read_text()
         definitions=text[text.index('gonken_source_marker_content()'):text.index('gonken_engine_initialize "$STATE_DIR"')]
         registration=text[text.index('gonken_register_step \\\n  "source_record_validation"'):text.index('if gonken_run_registered_steps; then')]
@@ -30,7 +31,7 @@ SERVICE_USER=test
 ENGINE_ONLY=0 RELEASE_ONLY=0 OLLAMA_ONLY="$ONLY_OLLAMA" SPEECH_ONLY=0
 SPEECH_STT_MODEL=test SPEECH_TTS_VOICE=test
 TARGET_PREFLIGHT="$ROOT/scripts/target_preflight.py"
-declare -A GONKEN_SOURCE_RECORD=([resolved_commit]=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa [platform_mode]=target [environment_profile]="$PROFILE" [environment_mode]=automatic [bluetooth_audio]=disabled)
+declare -A GONKEN_SOURCE_RECORD=([resolved_commit]=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa [platform_mode]=target [environment_profile]="$PROFILE" [environment_mode]=automatic [appliance_preset]="$PRESET" [bluetooth_audio]=disabled)
 '''+definitions+registration+'''
 gonken_run_step() {
   printf 'STEP %s\\n' "$1"
@@ -41,7 +42,7 @@ gonken_log_event() { :; }
 gonken_release_engine_lock() { :; }
 gonken_run_registered_steps
 '''
-            env={**os.environ,'ROOT':str(ROOT),'WORK':tmp,'PROFILE':profile,'FAULT':fault,'ONLY_OLLAMA':str(ollama_only)}
+            env={**os.environ,'ROOT':str(ROOT),'WORK':tmp,'PROFILE':profile,'PRESET':preset,'FAULT':fault,'ONLY_OLLAMA':str(ollama_only)}
             result=subprocess.run(['bash','-c',script],env=env,capture_output=True,text=True,timeout=10)
             return result,current.read_text()
     def test_model_failure_never_switches_current(self):
