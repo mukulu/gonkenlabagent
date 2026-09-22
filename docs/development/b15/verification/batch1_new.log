@@ -1,0 +1,11 @@
+test_complete_general_inline_question_does_not_wait_for_second_capture (test_b15_capture_repair.CaptureRepairTests.test_complete_general_inline_question_does_not_wait_for_second_capture) ... ok
+test_empty_and_odd_pcm_never_become_valid_wav (test_b15_capture_repair.CaptureRepairTests.test_empty_and_odd_pcm_never_become_valid_wav) ... ok
+test_nonzero_device_error_not_hidden_by_existing_pcm (test_b15_capture_repair.CaptureRepairTests.test_nonzero_device_error_not_hidden_by_existing_pcm) ... ok
+test_recovery_does_not_repeat_startup_announcement (test_b15_capture_repair.CaptureRepairTests.test_recovery_does_not_repeat_startup_announcement) ... ok
+test_short_announcements_and_error_truth (test_b15_capture_repair.CaptureRepairTests.test_short_announcements_and_error_truth) ... ok
+test_stale_recorder_header_reproduction_then_owned_pcm_finalization (test_b15_capture_repair.CaptureRepairTests.test_stale_recorder_header_reproduction_then_owned_pcm_finalization) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.005s
+
+OK

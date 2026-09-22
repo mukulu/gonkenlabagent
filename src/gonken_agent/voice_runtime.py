@@ -570,19 +570,15 @@ def _transition_announcement_text(event: dict[str, object]) -> str | None:
     simulated = bool(provenance.get("sensor_is_simulated") or provenance.get("actuator_is_simulated"))
     prefix = "In simulation, " if simulated else ""
     fan_power = str(detail.get("fan_power", "off"))
-    if reason == "AUTO_START_THRESHOLD":
-        subject = "the simulated fan actuator" if simulated else "the room fan relay"
-        return f"{prefix}automatic control set {subject} power {fan_power} after the start threshold. This is not physical blade-motion evidence."
-    if reason == "AUTO_STOP_THRESHOLD":
-        subject = "the simulated fan actuator" if simulated else "the room fan relay"
-        return f"{prefix}automatic control set {subject} power {fan_power} after the stop threshold."
-    if reason == "SEMI_AUTO_STOP":
-        subject = "the simulated fan actuator" if simulated else "the room fan relay"
-        return f"{prefix}semi-automatic control set {subject} power off after the stop threshold."
+    if reason in {"AUTO_START_THRESHOLD", "AUTO_STOP_THRESHOLD", "SEMI_AUTO_STOP"}:
+        if fan_power not in {"on", "off"}:
+            return None
+        state = "started" if fan_power == "on" else "stopped"
+        return f"{prefix}fan actuator {state}." if simulated else f"Fan actuator {state}."
     if reason == "SENSOR_STALE_SAFE_OFF":
-        return f"{prefix}sensor data became stale, so environment control forced safe off."
+        return f"{prefix}sensor unavailable. Safe off requested."
     if reason == "ACTUATOR_ERROR_SAFE_OFF":
-        return f"{prefix}the actuator reported an error. Safe off was requested; actual relay state is unconfirmed."
+        return f"{prefix}fan actuator error. State unconfirmed."
     return None
 
 
@@ -881,144 +877,90 @@ class AudioBackend:
         self._apply_route("input", self._input_candidates[0])
         self._apply_route("output", self._output_candidates[0])
 
-    def _alsa_record_to(
-        self,
-        destination: Path,
-        seconds: int,
-        *,
-        cancel: threading.Event | None = None,
-        keep_on_cancel: bool = False,
-        end_on_silence: bool = False,
-    ) -> None:
-        args = [
-            str(self.arecord), "-q", "-D", self.input_device,
-            "-t", "wav", "-f", "S16_LE", "-r", str(self.config.audio.processing_rate),
-            "-c", "1", "-d", str(seconds), str(destination),
-        ]
-        try:
-            process = subprocess.Popen(args, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True)
-        except OSError as exc:
-            raise VoiceRuntimeError("AUDIO_CAPTURE_FAILED", f"arecord {type(exc).__name__}") from exc
-        deadline = time.monotonic() + seconds + 8.0
-        stderr = ""
-        cancelled = False
-        ended = False
-        detector = SpeechEndpoint(int(self.config.audio.processing_rate),
-                    threshold=getattr(self.config.audio, "speech_energy_threshold", 250),
-                    silence_ms=getattr(self.config.audio, "speech_end_silence_ms", 900)) if end_on_silence else None
-        try:
-            while process.poll() is None:
-                if cancel is not None and cancel.is_set():
-                    cancelled = True
-                    process.send_signal(signal.SIGINT)
-                    break
-                if detector is not None and detector.observe(destination):
-                    ended = True
-                    process.send_signal(signal.SIGINT)
-                    break
-                if time.monotonic() >= deadline:
-                    process.kill()
-                    raise VoiceRuntimeError("AUDIO_CAPTURE_FAILED", f"backend=alsa device={self.input_device} timeout")
-                time.sleep(0.05)
-            try:
-                _stdout, stderr = process.communicate(timeout=3)
-            except subprocess.TimeoutExpired:
-                process.kill()
-                _stdout, stderr = process.communicate(timeout=3)
-        finally:
-            if process.poll() is None:
-                process.kill()
-                process.wait(timeout=3)
-        if cancelled and not keep_on_cancel:
-            raise VoiceRuntimeError("AUDIO_CAPTURE_CANCELLED")
-        if process.returncode != 0 and not (ended or (cancelled and keep_on_cancel)):
-            detail = stderr or "arecord returned nonzero"
-            code = _classify_audio_capture_failure(detail, backend="alsa")
-            raise VoiceRuntimeError(code, f"backend=alsa device={self.input_device} {_diagnostic_text(detail)}")
+    def _alsa_record_to(self, destination: Path, seconds: int, **options) -> None:
+        self._raw_record_to(destination, seconds, backend="alsa", **options)
 
-    def _pulse_record_to(
-        self,
-        destination: Path,
-        seconds: int,
-        *,
-        cancel: threading.Event | None = None,
-        keep_on_cancel: bool = False,
+    def _pulse_record_to(self, destination: Path, seconds: int, **options) -> None:
+        self._raw_record_to(destination, seconds, backend="pulse", **options)
+
+    def _raw_record_to(
+        self, destination: Path, seconds: int, *, backend: str,
+        cancel: threading.Event | None = None, keep_on_cancel: bool = False,
         end_on_silence: bool = False,
     ) -> None:
-        if self.parecord is None:
-            raise VoiceRuntimeError("PARECORD_MISSING")
-        descriptor, raw_name = tempfile.mkstemp(
-            prefix=".voice-pulse-", suffix=".pcm", dir=destination.parent
-        )
-        raw_path = Path(raw_name)
+        """Capture raw PCM; finalize the WAV only after the writer is reaped.
+
+        Both transports have the same bounded container/endpoint contract. A
+        killed or interrupted recorder can never leave its placeholder WAV
+        header in the file subsequently handed to Whisper.
+        """
         rate = int(self.config.audio.processing_rate)
-        args = [
-            str(self.parecord), f"--device={self.input_device}", "--raw",
-            "--format=s16le", f"--rate={rate}", "--channels=1",
-        ]
-        process: subprocess.Popen[str] | None = None
-        stderr = ""
-        cancelled = False
-        ended = False
-        detector = SpeechEndpoint(int(self.config.audio.processing_rate),
-                    threshold=getattr(self.config.audio, "speech_energy_threshold", 250),
-                    silence_ms=getattr(self.config.audio, "speech_end_silence_ms", 900)) if end_on_silence else None
+        if backend == "pulse":
+            if self.parecord is None:
+                raise VoiceRuntimeError("PARECORD_MISSING")
+            args = [str(self.parecord), f"--device={self.input_device}", "--raw",
+                    "--format=s16le", f"--rate={rate}", "--channels=1"]
+        elif backend == "alsa":
+            args = [str(self.arecord), "-q", "-D", self.input_device, "-t", "raw",
+                    "-f", "S16_LE", "-r", str(rate), "-c", "1", "-d", str(seconds)]
+        else:
+            raise ValueError("unknown capture backend")
+        descriptor, raw_name = tempfile.mkstemp(prefix=".voice-raw-", suffix=".pcm", dir=destination.parent)
+        raw_path = Path(raw_name)
+        detector = SpeechEndpoint(rate,
+            threshold=getattr(self.config.audio, "speech_energy_threshold", 250),
+            silence_ms=getattr(self.config.audio, "speech_end_silence_ms", 900)) if end_on_silence else None
+        process = None
+        cancelled = stopped = False
+        maximum = rate * 2 * (seconds + 1)
         try:
-            with os.fdopen(descriptor, "wb") as raw_output:
+            with os.fdopen(descriptor, "wb") as output:
                 try:
-                    process = subprocess.Popen(
-                        args, stdout=raw_output, stderr=subprocess.PIPE, text=True
-                    )
+                    process = subprocess.Popen(args, stdout=output, stderr=subprocess.PIPE, text=True)
                 except OSError as exc:
-                    raise VoiceRuntimeError(
-                        "AUDIO_CAPTURE_BACKEND_FAILED", f"parecord {type(exc).__name__}"
-                    ) from exc
+                    raise VoiceRuntimeError("AUDIO_CAPTURE_PROCESS_START_FAILED", backend) from exc
                 started = time.monotonic()
-                while time.monotonic() - started < seconds:
+                deadline = started + seconds + (2 if backend == "alsa" else 0)
+                while process.poll() is None:
+                    if raw_path.stat().st_size > maximum:
+                        raise VoiceRuntimeError("AUDIO_CAPTURE_OVERSIZE")
                     if cancel is not None and cancel.is_set():
-                        cancelled = True
+                        cancelled = stopped = True
                         break
                     if detector is not None and detector.observe(raw_path, raw=True):
-                        ended = True
+                        stopped = True
                         break
-                    if process.poll() is not None:
-                        _stdout, stderr = process.communicate(timeout=3)
-                        detail = stderr or f"parecord exited rc={process.returncode}"
-                        code = _classify_audio_capture_failure(detail, backend="pulse")
-                        raise VoiceRuntimeError(
-                            code, f"backend=pulse device={self.input_device} {_diagnostic_text(detail)}"
-                        )
-                    time.sleep(0.05)
-                if process.poll() is None:
-                    process.send_signal(signal.SIGINT)
+                    if time.monotonic() >= deadline:
+                        if backend == "alsa":
+                            raise VoiceRuntimeError("AUDIO_CAPTURE_TIMEOUT")
+                        stopped = True
+                        break
+                    time.sleep(0.02)
+                if stopped and process.poll() is None:
+                    try:
+                        process.send_signal(signal.SIGINT)
+                    except ProcessLookupError:
+                        pass
                 try:
-                    _stdout, stderr = process.communicate(timeout=5)
-                except subprocess.TimeoutExpired:
+                    _, stderr = process.communicate(timeout=3)
+                except subprocess.TimeoutExpired as exc:
                     process.kill()
-                    _stdout, stderr = process.communicate(timeout=3)
+                    process.communicate(timeout=3)
+                    raise VoiceRuntimeError("AUDIO_CAPTURE_STOP_TIMEOUT") from exc
             if cancelled and not keep_on_cancel:
                 raise VoiceRuntimeError("AUDIO_CAPTURE_CANCELLED")
-            max_pcm_bytes = rate * 2 * (seconds + 2)
-            observed_bytes = raw_path.stat().st_size if raw_path.is_file() else 0
-            if observed_bytes > max_pcm_bytes:
-                raise VoiceRuntimeError(
-                    "AUDIO_CAPTURE_OVERSIZE", f"bytes={observed_bytes} limit={max_pcm_bytes}"
-                )
-            try:
-                _write_pcm16_mono_wav(raw_path, destination, rate=rate)
-            except VoiceRuntimeError:
-                if stderr and observed_bytes == 0:
-                    code = _classify_audio_capture_failure(stderr, backend="pulse")
-                    if code != "AUDIO_CAPTURE_BACKEND_FAILED":
-                        raise VoiceRuntimeError(
-                            code, f"backend=pulse device={self.input_device} {_diagnostic_text(stderr)}"
-                        )
-                raise
+            if process.returncode != 0 and not (stopped and process.returncode in (-signal.SIGINT, 1, 130)):
+                detail = stderr or f"recorder exited rc={process.returncode}"
+                raise VoiceRuntimeError(_classify_audio_capture_failure(detail, backend=backend),
+                                        f"backend={backend} {_diagnostic_text(detail)}")
+            if raw_path.stat().st_size > maximum:
+                raise VoiceRuntimeError("AUDIO_CAPTURE_OVERSIZE")
+            _write_pcm16_mono_wav(raw_path, destination, rate=rate)
         finally:
             if process is not None and process.poll() is None:
                 process.kill()
                 try:
-                    process.wait(timeout=3)
+                    process.communicate(timeout=3)
                 except subprocess.TimeoutExpired:
                     pass
             raw_path.unlink(missing_ok=True)
@@ -1531,7 +1473,7 @@ class VoiceAppliance:
         initial = " ".join(remainder.split())
         fast = getattr(self.brain, "complete_inline_command", None) or getattr(self.brain, "is_fast_deterministic", None)
         inline_ready = bool(initial and callable(fast) and fast(initial))
-        if inline_ready and utterance_complete:
+        if initial and utterance_complete:
             return initial
         following = self.capture_text(8)
         if inline_ready and not utterance_complete and not following:
@@ -1715,7 +1657,9 @@ class VoiceAppliance:
                 # Require the real TTS -> physical playback path before publishing
                 # readiness.  This closes the gap between an ALSA device that can
                 # open and an appliance that can actually speak.
-                self.speak("GonKen assistant is ready.")
+                if not getattr(self, "_startup_announced", False):
+                    self.speak("GonKen assistant is ready.")
+                    self._startup_announced = True
                 self.cue_cache.ensure(text="Yes?", piper=self.piper, stop=self.stop)
                 self._write_ready(probe)
                 self.ready = True

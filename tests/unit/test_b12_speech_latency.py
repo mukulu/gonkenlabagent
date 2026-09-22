@@ -70,7 +70,8 @@ class EndpointTests(unittest.TestCase):
                 def kill(self):self.returncode=-9
                 def wait(self,timeout):return self.returncode
             process=Process()
-            def spawn(args,**kw):wav(path,pcm(.4,2500)+pcm(1.2));return process
+            def spawn(args,**kw):
+                kw['stdout'].write(pcm(.4,2500)+pcm(1.2));kw['stdout'].flush();return process
             with patch('gonken_agent.voice_runtime.subprocess.Popen',side_effect=spawn),patch('gonken_agent.voice_runtime.time.sleep'):
                 backend._record_to(path,8,end_on_silence=True)
             self.assertEqual(process.returncode,130);self.assertTrue(backend.last_capture_metadata['speech_endpointing'])

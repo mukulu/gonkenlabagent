@@ -1,0 +1,11 @@
+{
+  "checkpoint": "B15-voice-repair",
+  "baseline_commit": "648f5b151d4c753cf1660243afacd010d73d05b7",
+  "baseline_archive_sha256": "52713e418f7762ab655fc102314cadccfb7017337c3bd18645c2bf0778e2d6b6",
+  "prior_attempt": "INTERRUPTED; no B15 branch or local edits recovered",
+  "batch1": "PASS: 156 focused tests; raw capture, short announcements, inline complete questions and once-only ready cue",
+  "batch2": "NOT_STARTED",
+  "batch3": "NOT_STARTED",
+  "physical_acceptance_claimed": false,
+  "next_action": "Implement streaming keyword/utterance capture; batch1 code is checkpointed."
+}

@@ -124,8 +124,8 @@ class VoiceWakeTests(unittest.TestCase):
         }
         text = _transition_announcement_text(event)
         self.assertIn("In simulation", text)
-        self.assertIn("automatic control", text)
-        self.assertIn("not physical blade-motion evidence", text)
+        self.assertEqual(text, "In simulation, fan actuator started.")
+        self.assertNotIn("evidence", text)
         event["detail"]["reason"] = "USER_MANUAL_ON"
         self.assertIsNone(_transition_announcement_text(event))
 
@@ -545,8 +545,8 @@ class VoiceTurnTests(unittest.TestCase):
         client = Client()
         announcer = EnvironmentTransitionAnnouncer(lambda: client)
         first = announcer.pending()
-        self.assertIn("room fan relay power on", first)
-        self.assertIn("not physical blade-motion evidence", first)
+        self.assertEqual(first, "Fan actuator started.")
+        self.assertNotIn("evidence", first)
         self.assertIsNone(announcer.pending())
 
     def test_ready_is_published_only_after_real_ready_announcement_playback(self) -> None:
