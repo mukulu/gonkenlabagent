@@ -24,13 +24,17 @@ def _status() -> dict[str, object]:
     runtime_ready = False
     wake_phrase = "GonKen"
     try:
-        if ready_file.is_file() and not ready_file.is_symlink() and ready_file.stat().st_size <= 8192:
-            payload = json.loads(ready_file.read_text(encoding="utf-8"))
-            runtime_ready = payload.get("status") == "READY" and payload.get("code") == "VOICE_RUNTIME_READY"
-            if isinstance(payload.get("wake_phrase"), str) and payload["wake_phrase"].strip():
-                wake_phrase = payload["wake_phrase"]
-    except (OSError, ValueError, json.JSONDecodeError):
+        from .runtime_readiness import read_ready
+        payload = read_ready(ready_file)
+        runtime_ready = payload is not None
+        if payload and isinstance(payload.get("wake_phrase"), str):
+            wake_phrase = payload["wake_phrase"]
+    except (OSError, ValueError):
         runtime_ready = False
+    try:
+        power_enabled = load_config().config.extensions.voice_power.enabled
+    except (OSError, ConfigError):
+        power_enabled = False
     return {
         "product": IDENTITY.product_name,
         "package": IDENTITY.package_name,
@@ -45,7 +49,7 @@ def _status() -> dict[str, object]:
         "redistribution_policy": "prohibited",
         "extensions": {
             "wake_word": "enabled",
-            "voice_power": "disabled",
+            "voice_power": "enabled_confirmation_required" if power_enabled else "disabled",
             "lan_dashboard": "disabled",
             "bluetooth": (
                 "configured"
@@ -130,6 +134,14 @@ def _build_parser() -> argparse.ArgumentParser:
     switch.add_argument("model")
     switch.add_argument("--json", action="store_true", dest="as_json")
 
+    command_parser = subparsers.add_parser("command", help="execute a deterministic operational phrase without the LLM")
+    config_arguments(command_parser)
+    command_parser.add_argument("phrase")
+    power_parser = subparsers.add_parser("power", help="confirmed orderly Raspberry Pi reboot or shutdown")
+    config_arguments(power_parser)
+    power_parser.add_argument("action", choices=("reboot", "shutdown"))
+    power_parser.add_argument("--confirm", choices=("restart", "shutdown"), help="explicit action-specific confirmation for noninteractive administration")
+
     _add_environment_commands(subparsers)
 
     config_parser = subparsers.add_parser(
@@ -197,6 +209,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             print(json.dumps({'status': 'FAILED', 'code': 'LOCAL_OPERATION_FAILED',
                               'error_type': type(exc).__name__}), file=sys.stderr)
             return EXIT_FAILED
+    if args.command in {"command", "power"}:
+        return _execute_operational_command(args)
     if args.command is None:
         parser.print_help()
         return 0
@@ -495,6 +509,22 @@ def _add_environment_commands(subparsers: argparse._SubParsersAction[argparse.Ar
     watch.add_argument("--health", action="store_true", help="attach read-only daemon health to each emitted sample")
     _add_env_json_flag(watch)
 
+    schedule_parser = env_commands.add_parser("schedule", help="bounded daemon-owned timers; no cron or shell")
+    schedules = schedule_parser.add_subparsers(dest="schedule_command", required=True)
+    listing = schedules.add_parser("list", help="list active timers and finite expiry")
+    _add_env_json_flag(listing)
+    cancel = schedules.add_parser("cancel", help="cancel one timer or all; active timed fan run is stopped")
+    cancel.add_argument("id", nargs="?", default="all")
+    _add_env_json_flag(cancel)
+    add = schedules.add_parser("add", help="add an allow-listed bounded timer")
+    add.add_argument("kind", choices=("fan_on","fan_off","fan_run","fan_cycle","temperature","humidity","environment","temperature_delta"))
+    add.add_argument("--after", type=float, default=0, dest="delay_seconds", help="seconds from now")
+    add.add_argument("--every", type=float, dest="interval_seconds", help="seconds between executions, minimum 60")
+    add.add_argument("--duration", type=float, dest="duration_seconds", help="fan-run ON duration in seconds")
+    add.add_argument("--lease", type=float, dest="lease_seconds", help="repeating lifetime in seconds, maximum 28800")
+    add.add_argument("--delta-c", type=float)
+    _add_env_json_flag(add)
+
     fan_parser = env_commands.add_parser("fan", help="set room-fan relay power")
     fan_commands = fan_parser.add_subparsers(dest="fan_command", required=True)
     fan_on = fan_commands.add_parser("on", help="request fan relay power on through the daemon")
@@ -753,6 +783,11 @@ def _call_environment_command(client: object, args: argparse.Namespace) -> Mappi
             if not selected:
                 raise ValueError("policy set requires at least one field")
             return client.policy_update(**selected)  # type: ignore[attr-defined]
+    if command == "schedule":
+        if args.schedule_command == "list": return client.automation_list()
+        if args.schedule_command == "cancel": return client.automation_cancel(None if args.id == "all" else args.id)
+        params = {key: getattr(args,key) for key in ("kind","delay_seconds","interval_seconds","duration_seconds","lease_seconds","delta_c") if getattr(args,key,None) is not None}
+        return client.automation_add(**params)
     if command == "simulate":
         return _call_environment_simulation_command(client, args)
     raise ValueError(f"unsupported env command: {command}")
@@ -796,6 +831,18 @@ def _call_environment_simulation_command(client: object, args: argparse.Namespac
 
 def _print_environment_payload(args: argparse.Namespace, payload: Mapping[str, object]) -> None:
     command = args.env_command
+    if command == "schedule":
+        if "job" in payload:
+            job=payload["job"]
+            print(f"Scheduled: {job['id']} kind={job['kind']} due_in={job['due_in_seconds']}s; session-only")
+        elif "cancelled" in payload:
+            print(f"Cancelled: {', '.join(payload['cancelled']) or 'none'}; safe_off_requested={payload.get('safe_off_requested',False)}")
+        else:
+            jobs=payload.get("jobs",[])
+            for job in jobs:
+                print(f"{job['id']} {job['kind']} due_in={job['due_in_seconds']}s expires_in={job['expires_in_seconds']}s runs={job['runs']}")
+            if not jobs: print("No active timers.")
+        return
     if command == "status":
         state = _payload_state(payload)
         print(f"Environment: {payload.get('environment', 'UNKNOWN')}")
@@ -1001,3 +1048,47 @@ def _print_effective_config(
             _print_effective_config(value, sources, dotted)
         else:
             print(f"{dotted} = {value!r} [{sources[dotted]}]")
+
+
+def _execute_operational_command(args):
+    from .operations import effective
+    from .operational import OperationalCommands
+    from .environment import EnvironmentClient
+    from .power import power_related
+    try:
+        config=effective(args)
+        operational=OperationalCommands(lambda: EnvironmentClient(config.extensions.environment.socket_path,timeout_seconds=2),config=config)
+        if args.command=="command":
+            if power_related(args.phrase):
+                print("Use gonken-agent power reboot or gonken-agent power shutdown for a separate confirmation.")
+                return EXIT_UNSUPPORTED
+            answer=operational.handle(args.phrase)
+            if answer is None:
+                print("Not a supported operational command. This command never forwards requests to an LLM.")
+                return EXIT_UNSUPPORTED
+            print(answer)
+            # Terminal text is displayed, not spoken: do not update the last
+            # spoken-temperature baseline from a CLI sensor query.
+            return 0
+        request="restart the Raspberry Pi" if args.action=="reboot" else "shut down the Raspberry Pi"
+        print(operational.handle(request),flush=True)
+        if operational.power.pending is None: return EXIT_UNSUPPORTED
+        if args.confirm is None:
+            if not sys.stdin.isatty():
+                print("Explicit --confirm restart or --confirm shutdown is required without a terminal.",file=sys.stderr)
+                return EXIT_FAILED
+            import select
+            print("Confirmation (20 seconds): ",end="",flush=True)
+            if not select.select([sys.stdin],[],[],20)[0]:
+                operational.speech_failed();print("Cancelled: confirmation expired.");return EXIT_FAILED
+            confirmation=sys.stdin.readline(128).strip()
+        else: confirmation="confirm "+args.confirm
+        response=operational.power.handle(confirmation)
+        print(response or "Power action cancelled.",flush=True)
+        if operational.power.armed is None: return EXIT_FAILED
+        error=operational.after_spoken()
+        if error: print(error,file=sys.stderr);return EXIT_FAILED
+        return 0
+    except (ValueError,OSError,RuntimeError) as exc:
+        print(f"Operational command failed: {getattr(exc,'code',type(exc).__name__)}",file=sys.stderr)
+        return EXIT_FAILED

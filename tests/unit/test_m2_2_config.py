@@ -192,7 +192,6 @@ class ValidationTests(unittest.TestCase):
         "relative path": {"paths.state_dir": "var/lib/gonken-agent"},
         "path escape": {"paths.state_dir": "/var/lib/../tmp"},
         "wake extension": {"extensions.wake_word.enabled": False},
-        "voice power": {"extensions.voice_power.enabled": True},
         "wake threshold": {"extensions.wake_word.threshold": 1.0},
         "wake gpio conflict": {"extensions.wake_word.monitoring_led_gpio": 23, "extensions.environment.enabled": True},
 

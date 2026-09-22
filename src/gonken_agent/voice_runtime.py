@@ -29,6 +29,7 @@ import wave
 from dataclasses import dataclass
 from pathlib import Path
 
+from .operational import OperationalCommands, NotificationAnnouncer
 from .audio.speech import Piper, Whisper, validate_wav
 from .audio.process import ProcessFailure
 from .environment import (
@@ -1110,6 +1111,7 @@ class ConversationBrain:
             if environment_client_factory is not None
             else lambda: EnvironmentClient(config.extensions.environment.socket_path, timeout_seconds=2.0)
         )
+        self.operations = OperationalCommands(self.environment_client_factory, config=config)
         self.tool_broker = ToolBroker(self.environment_client_factory)
         self.last_metrics: dict[str, object] = {}
 
@@ -1155,18 +1157,10 @@ class ConversationBrain:
         if not question or len(question) > 4096:
             raise VoiceRuntimeError("VOICE_QUESTION_INVALID")
 
-        clock_reply = direct_clock_intent(question)
-        if clock_reply is not None:
-            self.last_metrics.update({"route": "system_clock_fast_path", "wall_ns": time.monotonic_ns() - turn_started})
-            return clock_reply
-
-        environment_result = parse_environment_intent(question)
-        if isinstance(environment_result, EnvironmentClarification):
-            self.last_metrics.update({"route": "environment_clarification_fast_path", "wall_ns": time.monotonic_ns() - turn_started})
-            return environment_result.message
-        if isinstance(environment_result, EnvironmentIntent):
-            answer = self._environment_reply(environment_result)
-            self.last_metrics.update({"route": "environment_fast_path", "wall_ns": time.monotonic_ns() - turn_started})
+        operations = self._operations()
+        answer = operations.handle(question)
+        if answer is not None:
+            self.last_metrics.update({"route": operations.last_route, "wall_ns": time.monotonic_ns() - turn_started})
             return answer
 
         messages = [{"role": "system", "content": self.system_prompt}, *self.history,
@@ -1224,33 +1218,39 @@ class ConversationBrain:
         self.last_metrics["wall_ns"] = time.monotonic_ns() - turn_started
         return answer
 
+    def _operations(self):
+        if not hasattr(self, "operations"):
+            self.operations = OperationalCommands(self.environment_client_factory)
+        return self.operations
+
+    def begin_interaction(self):
+        self._operations().begin()
+
     def is_fast_deterministic(self, question: str) -> bool:
-        normalized = " ".join(question.split())
-        if direct_clock_intent(normalized) is not None:
-            return True
-        result = parse_environment_intent(normalized)
-        return isinstance(result, (EnvironmentClarification, EnvironmentIntent))
+        return self._operations().is_fast(question)
+
+    def complete_inline_command(self, question: str) -> bool:
+        return self._operations().complete_inline(question)
 
     def _environment_reply(self, intent: EnvironmentIntent) -> str:
-        try:
-            client = self.environment_client_factory()
-            if intent.operation == "sensor.read":
-                result = client.read_sensor()
-            elif intent.operation == "status.get":
-                result = client.status()
-            elif intent.operation == "policy.get":
-                result = client.policy_get()
-            elif intent.operation == "fan.set":
-                result = client.fan_set(str(intent.params["power"]))
-            elif intent.operation == "mode.set":
-                result = client.mode_set(str(intent.params["mode"]))
-            elif intent.operation == "policy.update":
-                result = client.policy_update(**dict(intent.params))
-            else:
-                raise EnvironmentClientError("UNKNOWN_OPERATION", "unsupported environment voice operation")
-        except EnvironmentClientError as exc:
-            return environment_error_response(exc)
-        return environment_success_response(intent, result)
+        return self._operations().environment_reply(intent)
+
+    def after_spoken(self):
+        return self._operations().after_spoken()
+
+    def speech_failed(self):
+        self._operations().speech_failed()
+
+    def confirmation_pending(self):
+        return self._operations().power.pending is not None
+
+    def confirm_power(self, text):
+        power = self._operations().power
+        answer = power.handle(text)
+        if answer is None:
+            power.cancel()
+            return "Power action cancelled."
+        return answer
 
     def close(self) -> None:
         self.client.close()
@@ -1364,10 +1364,13 @@ class PushToTalkVoiceAdapter:
         if not question:
             self.appliance._event("INFO", "VOICE_NO_SPEECH")
             return
+        begin = getattr(self.appliance.brain, "begin_interaction", None)
+        if callable(begin): begin()
         self.appliance._event("RUNNING", "VOICE_THINKING")
         answer = self.appliance._answer_question(question)
         self.appliance._event("RUNNING", "VOICE_SPEAKING")
-        self.appliance.speak(answer)
+        deliver = getattr(self.appliance, "_deliver_answer", self.appliance.speak)
+        deliver(answer)
         self.appliance._event("OK", "VOICE_TURN_COMPLETE")
 
     def close(self) -> None:
@@ -1414,7 +1417,10 @@ class VoiceAppliance:
         self.cue_cache = VoiceCueCache(Path(config.paths.cache_dir) / "voice-cues")
         self.brain = ConversationBrain(config)
         self.transition_announcer = EnvironmentTransitionAnnouncer(
-            lambda: EnvironmentClient(config.extensions.environment.socket_path, timeout_seconds=1.0)
+            lambda: EnvironmentClient(config.extensions.environment.socket_path, timeout_seconds=0.15)
+        )
+        self.notification_announcer = NotificationAnnouncer(
+            lambda: EnvironmentClient(config.extensions.environment.socket_path, timeout_seconds=0.15)
         )
         self.ready = False
         self.publish_ready = not foreground
@@ -1463,7 +1469,7 @@ class VoiceAppliance:
         follow-up capture; overlap matching avoids duplicating a repeated prefix.
         """
         initial = " ".join(remainder.split())
-        fast = getattr(self.brain, "is_fast_deterministic", None)
+        fast = getattr(self.brain, "complete_inline_command", None) or getattr(self.brain, "is_fast_deterministic", None)
         if initial and callable(fast) and fast(initial):
             return initial
         following = self.capture_text(8)
@@ -1485,6 +1491,26 @@ class VoiceAppliance:
     def speak_progress_cue(self, text: str) -> None:
         wav = self.cue_cache.ensure(text=text, piper=self.piper, stop=self.stop)
         self.audio.play(wav)
+
+    def _deliver_answer(self, answer: str) -> None:
+        """One audio owner, acknowledgement before action, one bounded confirmation."""
+        try:
+            self.speak(answer)
+            after = getattr(self.brain, "after_spoken", None)
+            problem = after() if callable(after) else None
+            if problem:
+                self.speak(problem)
+            pending = getattr(self.brain, "confirmation_pending", None)
+            if callable(pending) and pending():
+                question = self.capture_text(5)
+                response = self.brain.confirm_power(question or "cancel")
+                self.speak(response)
+                problem = after() if callable(after) else None
+                if problem: self.speak(problem)
+        except Exception:
+            failed = getattr(self.brain, "speech_failed", None)
+            if callable(failed): failed()
+            raise
 
     def _answer_question(self, question: str) -> str:
         started = time.monotonic_ns()
@@ -1667,7 +1693,7 @@ class VoiceAppliance:
         if foreground:
             print(f"GonKen: {answer}", flush=True)
         self._event("RUNNING", "VOICE_SPEAKING")
-        self.speak(answer)
+        self._deliver_answer(answer)
         self._event("OK", "VOICE_TURN_COMPLETE")
         return answer
 
@@ -1796,14 +1822,19 @@ class VoiceAppliance:
                 )
                 reported_drops = 0
                 while not self.stop.is_set():
+                    notices = getattr(self, "notification_announcer", None)
+                    announcement = notices.pending() if notices is not None else None
+                    is_notice = announcement is not None
                     announcer = getattr(self, "transition_announcer", None)
-                    announcement = announcer.pending() if announcer is not None else None
+                    if not announcement:
+                        announcement = announcer.pending() if announcer is not None else None
                     if announcement:
                         self._discard_wake_pipeline(pipeline)
                         pipeline = None
                         monitor_led.set(False)
                         self._event("RUNNING", "ENVIRONMENT_TRANSITION_ANNOUNCEMENT")
                         self.speak(announcement)
+                        if is_notice: notices.spoken()
                         if self.stop.wait(0.2):
                             break
                         monitor_led.set(True)
@@ -1850,13 +1881,15 @@ class VoiceAppliance:
                         self.speak_progress_cue("Yes?")
                     except Exception:
                         pass
+                    begin = getattr(self.brain, "begin_interaction", None)
+                    if callable(begin): begin()
                     question = self._question_after_wake(match.remainder)
                     if not question:
                         self._event("INFO", "VOICE_NO_SPEECH")
                     else:
                         answer = self._answer_question(question)
                         self._event("RUNNING", "VOICE_SPEAKING")
-                        self.speak(answer)
+                        self._deliver_answer(answer)
                         self._event("OK", "VOICE_TURN_COMPLETE")
 
                     if self.stop.wait(0.2):

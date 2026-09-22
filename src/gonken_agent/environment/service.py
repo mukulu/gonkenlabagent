@@ -457,7 +457,7 @@ class EnvironmentServiceCore:
             return {"cancelled": cancelled, "safe_off_requested": active, "persistent": False}
         if operation == "notifications.get":
             _reject_unknown_params(params, set())
-            return self.automation.pending_notifications(now=now)
+            return {**self.automation.pending_notifications(now=now), "provenance": self._provenance_payload()}
         if operation == "notifications.ack":
             _reject_unknown_params(params, {"id", "generation"})
             ok = self.automation.acknowledge(_required_string(params,"id"), _required_string(params,"generation"), now=now)

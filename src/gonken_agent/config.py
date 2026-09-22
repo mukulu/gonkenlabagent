@@ -629,8 +629,6 @@ def _validate_values(config: Config) -> None:
     wake = config.extensions.wake_word
     if config.runtime.interaction_mode == "wake_word" and not wake.enabled:
         raise ConfigError("wake_word interaction_mode requires extensions.wake_word.enabled=true")
-    if config.extensions.voice_power.enabled:
-        raise ConfigError("extensions.voice_power.enabled is unsupported until X2 acceptance")
     if not wake.phrase.strip():
         raise ConfigError("extensions.wake_word.phrase must not be empty")
     if wake.model:

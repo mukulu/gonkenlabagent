@@ -9,7 +9,7 @@ from __future__ import annotations
 import argparse
 import re
 
-DEFERRED = ('activate_release', 'environment_commissioning', 'environment_readiness', 'environment_policy')
+DEFERRED = ('activate_release', 'environment_commissioning', 'environment_readiness', 'environment_policy', 'voice_power_configuration')
 
 
 def candidate_order(steps: list[str], *, platform: str, release_only: bool = False) -> list[str]:

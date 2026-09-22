@@ -61,6 +61,14 @@ def parse_environment_intent(text: str) -> EnvironmentIntent | EnvironmentClarif
     if not normalized:
         return None
 
+    # Quoted, negated and hypothetical control language is not authorization.
+    if (_is_environment_related(normalized) and
+            (re.search(r"\b(?:not|never|dont|don t|should|would|could|hypothetical|example|say|imagine)\b", normalized)
+             or re.match(r"(?:what happens|how |if |suppose |imagine )", normalized)
+             or any(c in text for c in ('"', "'", "\u201c", "\u201d")))):
+        if re.search(r"\b(?:turn|switch|set|start|stop|change|enable|disable)\b", normalized):
+            return EnvironmentClarification("No setting was changed. Use a direct, unquoted command with explicit values.")
+
     start_c = _extract_number(normalized, _START_PATTERNS)
     stop_c = _extract_number(normalized, _STOP_PATTERNS)
     requested_mode = _requested_mode(normalized)

@@ -49,3 +49,20 @@ bounded power safe-OFF holds. 61 affected controller/IPC/lifecycle/automation
 cases PASS. Voice/CLI surfaces and power privilege adapter remain next work.
 An initial test-selection typo named two nonexistent modules; it was corrected
 by inspecting actual test filenames. No missing module was counted as PASS.
+
+## B12-03 operational voice and power boundary
+Implemented shared deterministic scheduler/voice/CLI routing, action-specific power confirmation,
+voice acknowledgement before fixed logind calls, daemon safe-OFF preparation, bounded power audit,
+and exact root-owned PolicyKit rule. Timers clear on daemon restart; no delayed power actions.
+The small-model preset also bypasses the *legacy-only* model provisioning gate and delegates
+model availability/qualification to the canonical roster; it does not skip required qualification.
+Found and fixed a hypothetical threshold-command authorization defect with a negative regression.
+New narrow command/power tests: 33; combined directly affected campaign: 105 PASS.
+Power is not executed on this host. User must apply the updated installer on the target.
+A real downstream defect was found before delivery: changing the effective model to
+qwen3:0.6b caused the legacy 2B-only provisioning helper to reject it. Governed
+models now defer that legacy-only step to the existing canonical roster step;
+required model/tool qualification still runs. Explicit legacy rollback remains.
+Power provisioning includes polkitd/dbus prerequisites, uses the existing writable
+runtime state directory, and is ordered after environment convergence and before
+voice startup. Direct voice/model and new command/power cascade: 79 tests PASS.

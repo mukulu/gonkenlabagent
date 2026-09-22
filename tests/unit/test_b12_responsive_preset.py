@@ -89,13 +89,13 @@ class ResponsivePresetTests(unittest.TestCase):
 
     def test_complete_inline_command_never_requests_extra_capture(self):
         a=VoiceAppliance.__new__(VoiceAppliance)
-        a.brain=Mock();a.brain.is_fast_deterministic.return_value=True;a.capture_text=Mock(side_effect=AssertionError('extra_capture'))
+        a.brain=Mock(spec=["is_fast_deterministic"]);a.brain.is_fast_deterministic.return_value=True;a.capture_text=Mock(side_effect=AssertionError('extra_capture'))
         self.assertEqual(a._question_after_wake('turn the fan on'),'turn the fan on')
         a.capture_text.assert_not_called()
 
     def test_partial_wake_window_keeps_followup_and_removes_overlap(self):
         a=VoiceAppliance.__new__(VoiceAppliance)
-        a.brain=Mock();a.brain.is_fast_deterministic.return_value=False;a.capture_text=Mock(return_value='What is Python?')
+        a.brain=Mock(spec=["is_fast_deterministic"]);a.brain.is_fast_deterministic.return_value=False;a.capture_text=Mock(return_value='What is Python?')
         self.assertEqual(a._question_after_wake('what is'),'What is Python?')
         a.capture_text.assert_called_once_with(8)
         a.capture_text.return_value='capital of France?'

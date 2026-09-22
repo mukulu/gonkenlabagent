@@ -260,6 +260,11 @@ gonken_prerequisite_postcondition() {
       command -v "$command_name" >/dev/null 2>&1 || return 1
     done
     python3 -c 'import gpiod' >/dev/null 2>&1 || return 1
+    if gonken_room_preset_selected; then
+      command -v busctl >/dev/null 2>&1 || return 1
+      [[ -d /usr/share/polkit-1/actions ]] || return 1
+      dpkg-query -W -f='${Status}' polkitd 2>/dev/null | grep -qx 'install ok installed' || return 1
+    fi
   fi
   GONKEN_STEP_EVIDENCE="python_${GONKEN_SOURCE_RECORD[python_version]}_${RELEASE_PROFILE}"
 }
@@ -269,8 +274,10 @@ gonken_prerequisite_action() {
   [[ "${GONKEN_SOURCE_RECORD[platform_mode]}" == "target" ]] || return 69
   DEBIAN_FRONTEND=noninteractive apt-get update || return 69
   gonken_step_checkpoint "$step_id" "during" || return $?
+  local -a optional_packages=()
+  if gonken_room_preset_selected; then optional_packages=(polkitd dbus); fi
   DEBIAN_FRONTEND=noninteractive apt-get install -y \
-    alsa-utils build-essential cmake i2c-tools raspi-config \
+    "${optional_packages[@]}" alsa-utils build-essential cmake i2c-tools raspi-config \
     ca-certificates git python3-libgpiod python3-pip python3-setuptools python3-venv \
     tar util-linux zstd || return 69
 }
@@ -837,6 +844,14 @@ gonken_room_preset_action() {
   "$CANDIDATE_RELEASE/.venv/bin/python" -m gonken_agent.deployment llm
 }
 
+gonken_voice_power_postcondition() {
+  "$CANDIDATE_RELEASE/.venv/bin/python" -m gonken_agent.power_install --check >/dev/null 2>&1
+}
+
+gonken_voice_power_action() {
+  "$CANDIDATE_RELEASE/.venv/bin/python" -m gonken_agent.power_install
+}
+
 gonken_room_threshold_arguments() {
   if gonken_room_preset_selected; then
     printf '%s\n' --start-c 28 --stop-c 26
@@ -933,9 +948,17 @@ gonken_ollama_service_action() {
     --manifest "$(gonken_ollama_manifest)" --system-root / "${arguments[@]}"
 }
 
+gonken_model_uses_roster() {
+  "$CANDIDATE_RELEASE/.venv/bin/python" -c 'import sys; from gonken_agent.llm.models import roster_tags; sys.exit(0 if sys.argv[1] in roster_tags() else 1)' "$OLLAMA_MODEL"
+}
+
 gonken_ollama_model_postcondition() {
   local -a arguments
   gonken_load_effective_ollama_config || return 65
+  if gonken_model_uses_roster; then
+    GONKEN_STEP_EVIDENCE="model_provision_owned_by_canonical_roster"
+    return 0
+  fi
   mapfile -t arguments < <(gonken_ollama_template_arguments)
   python3 "$(gonken_ollama_manager)" model-status \
     --manifest "$(gonken_ollama_manifest)" --system-root / \
@@ -946,6 +969,10 @@ gonken_ollama_model_postcondition() {
 gonken_ollama_model_action() {
   local -a arguments
   gonken_load_effective_ollama_config || return 65
+  if gonken_model_uses_roster; then
+    GONKEN_STEP_EVIDENCE="model_provision_owned_by_canonical_roster"
+    return 0
+  fi
   mapfile -t arguments < <(gonken_ollama_template_arguments)
   python3 "$(gonken_ollama_manager)" provision-model \
     --manifest "$(gonken_ollama_manifest)" --system-root / \
@@ -1443,7 +1470,7 @@ if ((ENGINE_ONLY == 0)); then
     gonken_register_step \
       "ollama_model" "1" \
       "gonken_ollama_service_postcondition" "gonken_ollama_model_action" "gonken_ollama_model_postcondition" \
-      "legacy_working_model_retained_for_rollback" \
+      "legacy_explicit_model_or_deferred_to_canonical_small_model_roster" \
       "resume_blob_pull_then_require_digest_prefix_and_inference" \
       "existing_model_blobs_are_retained_and_tag_drift_fails_closed" || exit $?
 
@@ -1464,7 +1491,16 @@ if ((ENGINE_ONLY == 0)); then
       gonken_register_step         "speech_smoke" "1"         "gonken_speech_models_postcondition" "gonken_speech_smoke_action" "gonken_speech_smoke_postcondition"         "content_free_real_tts_then_stt_smoke_record"         "rerun_smoke_when_validation_record_is_missing_or_drifted"         "smoke_samples_are_temporary_and_not_retained" || exit $?
 
       if ((SPEECH_ONLY == 0)); then
-        gonken_register_step         "application_service" "3"         "gonken_speech_smoke_postcondition" "gonken_app_service_action" "gonken_app_service_postcondition"         "exact_systemd_unit_tmpfiles_runtime_env_root_reconcile_and_boot_enablement"         "upgrade_known_managed_unit_generate_service_uid_audio_env_then_enable_start"         "no_privilege_or_power_grants_are_added_to_long_running_service" || exit $?
+        if gonken_room_preset_selected; then
+          gonken_register_step \
+            "voice_power_configuration" "1" \
+            "gonken_environment_readiness_postcondition" "gonken_voice_power_action" "gonken_voice_power_postcondition" \
+            "root_owned_fixed_logind_policy_and_explicit_voice_power_config" \
+            "configure_only_after_candidate_activation_before_voice_service" \
+            "no_power_action_no_shell_authority_no_inhibitor_override" || exit $?
+        fi
+
+        gonken_register_step         "application_service" "3"         "gonken_speech_smoke_postcondition" "gonken_app_service_action" "gonken_app_service_postcondition"         "exact_systemd_unit_tmpfiles_runtime_env_root_reconcile_and_boot_enablement"         "upgrade_known_managed_unit_generate_service_uid_audio_env_then_enable_start"         "no_root_shell_or_raw_power_command_privileges_granted_to_voice_service" || exit $?
 
         if [[ "${GONKEN_SOURCE_RECORD[bluetooth_audio]:-disabled}" == "requested" ]]; then
           gonken_register_step \
