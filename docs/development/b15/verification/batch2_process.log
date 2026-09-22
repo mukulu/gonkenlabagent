@@ -1,0 +1,13 @@
+test_actual_native_abi_silence_reset_close_and_invalid_input (test_b15_pcm_stream_process.PCMProcessTests.test_actual_native_abi_silence_reset_close_and_invalid_input) ... ok
+test_cancel_during_prime_does_not_wait_for_deadline (test_b15_pcm_stream_process.PCMProcessTests.test_cancel_during_prime_does_not_wait_for_deadline) ... ok
+test_device_error_not_reported_ready (test_b15_pcm_stream_process.PCMProcessTests.test_device_error_not_reported_ready) ... ok
+test_forced_cleanup_of_child_ignoring_sigint_is_bounded (test_b15_pcm_stream_process.PCMProcessTests.test_forced_cleanup_of_child_ignoring_sigint_is_bounded) ... ok
+test_fragmented_raw_reads_are_lossless_and_stderr_is_bounded (test_b15_pcm_stream_process.PCMProcessTests.test_fragmented_raw_reads_are_lossless_and_stderr_is_bounded) ... ok
+test_native_missing_library_fails_closed_before_decoder_creation (test_b15_pcm_stream_process.PCMProcessTests.test_native_missing_library_fails_closed_before_decoder_creation) ... ok
+test_native_missing_model_fails_closed (test_b15_pcm_stream_process.PCMProcessTests.test_native_missing_model_fails_closed) ... ok
+test_stalled_child_is_not_silence_and_is_reaped (test_b15_pcm_stream_process.PCMProcessTests.test_stalled_child_is_not_silence_and_is_reaped) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 3.255s
+
+OK

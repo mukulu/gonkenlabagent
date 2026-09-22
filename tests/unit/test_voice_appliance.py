@@ -525,8 +525,7 @@ class VoiceTurnTests(unittest.TestCase):
         self.assertEqual(monitor.states[:2], [True, False])
         self.assertTrue(monitor.closed)
         self.assertEqual(appliance.brain.question, "What is Python?")
-        self.assertEqual(spoken[0], "Yes?")
-        self.assertEqual(spoken[1], "Python is a programming language.")
+        self.assertEqual(spoken, ["Python is a programming language."])
 
 
     def test_transition_announcer_returns_one_priority_message_without_daemon_audio_ownership(self) -> None:

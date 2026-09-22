@@ -24,7 +24,7 @@ from typing import Iterable
 
 FORMAT = "gonken-target-preflight-v1"
 REQUIRED_PACKAGES = (
-    "alsa-utils", "build-essential", "cmake", "i2c-tools", "ca-certificates",
+    "alsa-utils", "libpocketsphinx3", "pocketsphinx-en-us", "build-essential", "cmake", "i2c-tools", "ca-certificates",
     "git", "python3-libgpiod", "python3-pip", "python3-setuptools", "raspi-config",
     "python3-venv", "tar", "util-linux", "zstd",
 )

@@ -260,6 +260,8 @@ gonken_prerequisite_postcondition() {
       command -v "$command_name" >/dev/null 2>&1 || return 1
     done
     python3 -c 'import gpiod' >/dev/null 2>&1 || return 1
+    python3 -c 'import ctypes; ctypes.CDLL("libpocketsphinx.so.3"); ctypes.CDLL("libsphinxbase.so.3")' >/dev/null 2>&1 || return 1
+    [[ -r /usr/share/pocketsphinx/model/en-us/en-us/mdef ]] || return 1
     if gonken_room_preset_selected; then
       command -v busctl >/dev/null 2>&1 || return 1
       [[ -d /usr/share/polkit-1/actions ]] || return 1
@@ -277,7 +279,7 @@ gonken_prerequisite_action() {
   local -a optional_packages=()
   if gonken_room_preset_selected; then optional_packages=(polkitd dbus); fi
   DEBIAN_FRONTEND=noninteractive apt-get install -y \
-    "${optional_packages[@]}" alsa-utils build-essential cmake i2c-tools raspi-config \
+    "${optional_packages[@]}" alsa-utils libpocketsphinx3 pocketsphinx-en-us build-essential cmake i2c-tools raspi-config \
     ca-certificates git python3-libgpiod python3-pip python3-setuptools python3-venv \
     tar util-linux zstd || return 69
 }

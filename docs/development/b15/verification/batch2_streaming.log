@@ -1,0 +1,25 @@
+test_cancel_discards_pending_audio (test_b15_streaming_wake.PipelineTests.test_cancel_discards_pending_audio) ... ok
+test_one_stream_to_full_wav_and_close_before_publish (test_b15_streaming_wake.PipelineTests.test_one_stream_to_full_wav_and_close_before_publish) ... ok
+test_stream_failure_propagates_without_ready_event (test_b15_streaming_wake.PipelineTests.test_stream_failure_propagates_without_ready_event) ... ok
+test_command_numbers_are_not_destroyed_by_wake_stripping (test_b15_streaming_wake.SegmenterTests.test_command_numbers_are_not_destroyed_by_wake_stripping) ... ok
+test_full_inline_sentence_not_cut_at_old_two_second_boundary (test_b15_streaming_wake.SegmenterTests.test_full_inline_sentence_not_cut_at_old_two_second_boundary) ... ok
+test_idle_silence_is_bounded_and_never_a_whisper_window (test_b15_streaming_wake.SegmenterTests.test_idle_silence_is_bounded_and_never_a_whisper_window) ... ok
+test_invalid_bounds_and_partial_frames_rejected (test_b15_streaming_wake.SegmenterTests.test_invalid_bounds_and_partial_frames_rejected) ... ok
+test_keyword_only_vs_inline_activity (test_b15_streaming_wake.SegmenterTests.test_keyword_only_vs_inline_activity) ... ok
+test_never_execute_a_maximum_length_partial_sentence (test_b15_streaming_wake.SegmenterTests.test_never_execute_a_maximum_length_partial_sentence) ... ok
+test_noisy_impulse_does_not_create_a_command (test_b15_streaming_wake.SegmenterTests.test_noisy_impulse_does_not_create_a_command) ... ok
+test_short_pause_preserves_delayed_action_qualifier (test_b15_streaming_wake.SegmenterTests.test_short_pause_preserves_delayed_action_qualifier) ... ok
+test_background_speech_ignored_without_wake (test_b15_streaming_wake.StreamingConversationTests.test_background_speech_ignored_without_wake) ... ok
+test_inline_general_question_no_unnecessary_capture (test_b15_streaming_wake.StreamingConversationTests.test_inline_general_question_no_unnecessary_capture) ... ok
+test_inline_temperature_no_yes_no_second_capture (test_b15_streaming_wake.StreamingConversationTests.test_inline_temperature_no_yes_no_second_capture) ... ok
+test_keyword_only_fast_yes_then_command (test_b15_streaming_wake.StreamingConversationTests.test_keyword_only_fast_yes_then_command) ... ok
+test_native_false_attention_cannot_route_wakeless_inline_command (test_b15_streaming_wake.StreamingConversationTests.test_native_false_attention_cannot_route_wakeless_inline_command) ... ok
+test_native_miss_uses_complete_utterance_fallback_not_new_capture (test_b15_streaming_wake.StreamingConversationTests.test_native_miss_uses_complete_utterance_fallback_not_new_capture) ... ok
+test_truncated_delayed_command_never_executed (test_b15_streaming_wake.StreamingConversationTests.test_truncated_delayed_command_never_executed) ... ok
+test_bad_backend_and_threshold_rejected (test_b15_streaming_wake.WakeConfigurationTests.test_bad_backend_and_threshold_rejected) ... ok
+test_default_and_legacy_migration (test_b15_streaming_wake.WakeConfigurationTests.test_default_and_legacy_migration) ... ok
+
+----------------------------------------------------------------------
+Ran 20 tests in 0.198s
+
+OK

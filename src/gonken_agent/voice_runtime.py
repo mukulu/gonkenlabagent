@@ -32,6 +32,9 @@ from pathlib import Path
 from .operational import OperationalCommands, NotificationAnnouncer
 from .runtime_readiness import configuration_digest
 from .audio.endpoint import SpeechEndpoint, complete_wake_utterance
+from .audio.pcm_stream import PCMInputStream, PCMStreamError
+from .audio.keyword_native import NativeKeywordDetector
+from .audio.wake_stream import StreamingWakePipeline, StreamingWakeWindow
 from .audio.speech import Piper, Whisper, validate_wav
 from .audio.process import ProcessFailure
 from .environment import (
@@ -318,7 +321,9 @@ def _wake_match(text: str, phrase: str) -> WakeMatch | None:
                 selected = candidate_words[start : start + len(target)]
                 if all(_wake_token_matches(actual, expected) for actual, expected in zip(selected, target)):
                     source_end = spans[start + len(target) - 1][1]
-                    remainder = " ".join(original_words[source_end:]).strip()
+                    spans_original = list(re.finditer(r"[a-z0-9]+", text.casefold()))
+                    tail = text.casefold()[spans_original[source_end - 1].end():]
+                    remainder = " ".join(re.sub(r"[?!,;:]", " ", tail).strip(" .").split())
                     return WakeMatch(
                         phrase=phrase,
                         alias=alias,
@@ -1029,6 +1034,38 @@ class AudioBackend:
             path.unlink(missing_ok=True)
             raise
 
+    def open_pcm_stream(self, *, cancel: threading.Event):
+        if self.config.audio.processing_rate != 16000:
+            raise VoiceRuntimeError("AUDIO_STREAM_RATE_INVALID")
+        if not self._input_candidates:
+            self.refresh()
+        failures = []
+        for route in list(self._input_candidates):
+            if cancel.is_set():
+                raise VoiceRuntimeError("AUDIO_CAPTURE_CANCELLED")
+            self._apply_route("input", route)
+            if self.input_mode.startswith("pipewire-"):
+                if self.parecord is None:
+                    failures.append(f"{route[0]}:PARECORD_MISSING")
+                    continue
+                args = [str(self.parecord), f"--device={self.input_device}", "--raw",
+                        "--format=s16le", "--rate=16000", "--channels=1"]
+            else:
+                args = [str(self.arecord), "-q", "-D", self.input_device,
+                        "-t", "raw", "-f", "S16_LE", "-r", "16000", "-c", "1"]
+            stream = None
+            try:
+                stream = PCMInputStream(args)
+                stream.prime(cancel=cancel)
+                return stream
+            except PCMStreamError as exc:
+                if stream is not None:
+                    stream.close()
+                if exc.code == "AUDIO_CAPTURE_CANCELLED":
+                    raise VoiceRuntimeError(exc.code) from exc
+                failures.append(f"{route[0]}:{exc.code}")
+        raise VoiceRuntimeError("AUDIO_CAPTURE_FAILED", "routes=" + ",".join(failures)[:240])
+
     def _alsa_play(self, wav_path: Path) -> None:
         result = _safe_run([str(self.aplay), "-q", "-D", self.output_device, str(wav_path)], timeout=70)
         if result.returncode != 0:
@@ -1585,6 +1622,10 @@ class VoiceAppliance:
 
     def probe(self) -> dict[str, object]:
         audio = self.audio.probe()
+        if (self.config.runtime.interaction_mode == "wake_word"
+                and getattr(self.config.extensions.wake_word, "backend", "whisper") == "streaming"):
+            self._get_keyword_detector()
+            audio["wake_backend"] = "streaming-kws-vad"
         identity = self.brain.probe(self.stop)
         return {"audio": audio, "model": identity}
 
@@ -1710,12 +1751,23 @@ class VoiceAppliance:
         self._event("OK", "VOICE_TURN_COMPLETE")
         return answer
 
-    def _new_wake_capture_pipeline(self) -> WakeCapturePipeline:
-        return WakeCapturePipeline(
-            self.audio.capture,
-            window_seconds=WAKE_CAPTURE_WINDOW_SECONDS,
-            queue_size=WAKE_CAPTURE_QUEUE_SIZE,
-        )
+    def _get_keyword_detector(self):
+        detector = getattr(self, "_keyword_detector", None)
+        if detector is None:
+            wake = self.config.extensions.wake_word
+            detector = NativeKeywordDetector(wake.phrase, self.runtime_dir,
+                threshold=wake.keyword_threshold)
+            self._keyword_detector = detector
+        return detector
+
+    def _new_wake_capture_pipeline(self):
+        if getattr(self.config.extensions.wake_word, "backend", "whisper") == "streaming":
+            return StreamingWakePipeline(self.audio.open_pcm_stream,
+                self._get_keyword_detector(), self.runtime_dir,
+                threshold=self.config.audio.speech_energy_threshold,
+                silence_ms=self.config.audio.speech_end_silence_ms)
+        return WakeCapturePipeline(self.audio.capture,
+            window_seconds=WAKE_CAPTURE_WINDOW_SECONDS, queue_size=WAKE_CAPTURE_QUEUE_SIZE)
 
     def _start_wake_standby(self, phrase: str) -> tuple[RollingWakeTranscriptMatcher, WakeCapturePipeline]:
         matcher = RollingWakeTranscriptMatcher(phrase)
@@ -1726,7 +1778,7 @@ class VoiceAppliance:
             "WAKE_STANDBY",
             phrase=phrase,
             matcher=WAKE_MATCHER_VERSION,
-            capture_mode=WAKE_CAPTURE_MODE,
+            capture_mode=getattr(pipeline, "capture_mode", WAKE_CAPTURE_MODE),
             window_seconds=pipeline.window_seconds,
         )
         return matcher, pipeline
@@ -1860,25 +1912,54 @@ class VoiceAppliance:
                     if window is None:
                         continue
                     recognition_started = time.monotonic()
-                    utterance_complete = complete_wake_utterance(window.path)
-                    heard = self._transcribe_captured_audio(window.path)
+                    streaming = isinstance(window, StreamingWakeWindow)
+                    capture_mode = getattr(pipeline, "capture_mode", WAKE_CAPTURE_MODE)
+                    if streaming:
+                        self._discard_wake_pipeline(pipeline)
+                        pipeline = None
+                        monitor_led.set(False)
+                        utterance_complete = window.utterance_complete
+                        if not utterance_complete:
+                            window.path.unlink(missing_ok=True)
+                            self._event("INFO", "VOICE_UTTERANCE_LIMIT", action="discarded_not_executed")
+                            if window.native_keyword:
+                                self.speak("Please repeat a shorter command.")
+                            monitor_led.set(True)
+                            matcher, pipeline = self._start_wake_standby(phrase)
+                            continue
+                        if window.native_keyword and not window.command_activity:
+                            window.path.unlink(missing_ok=True)
+                            match = WakeMatch(phrase, phrase, "", (), "native-kws-v1")
+                        else:
+                            heard = self._transcribe_captured_audio(window.path)
+                            # Native attention is not authority to execute unrelated
+                            # speech. Full inline commands still carry the wake name.
+                            match = _wake_match(heard, phrase)
+                        self._event("INFO", "WAKE_STREAM_METRICS",
+                            native_keyword=window.native_keyword,
+                            utterance_ms=window.utterance_ms,
+                            keyword_decode_max_ms=window.keyword_decode_max_ms,
+                            transcription_ms=round((time.monotonic()-recognition_started)*1000),
+                            fallback=not window.native_keyword)
+                    else:
+                        utterance_complete = complete_wake_utterance(window.path)
+                        heard = self._transcribe_captured_audio(window.path)
+                        match = matcher.observe(heard)
+                        if pipeline.dropped_windows > reported_drops:
+                            reported_drops = pipeline.dropped_windows
+                            self._event("INFO", "WAKE_CAPTURE_WINDOWS_DROPPED",
+                                count=reported_drops, reason="recognition_backlog_newest_wins")
                     recognition_ms = round((time.monotonic() - recognition_started) * 1000)
-                    if pipeline.dropped_windows > reported_drops:
-                        reported_drops = pipeline.dropped_windows
-                        self._event(
-                            "INFO",
-                            "WAKE_CAPTURE_WINDOWS_DROPPED",
-                            count=reported_drops,
-                            reason="recognition_backlog_newest_wins",
-                        )
-                    match = matcher.observe(heard)
                     if match is None:
+                        if streaming:
+                            monitor_led.set(True)
+                            matcher, pipeline = self._start_wake_standby(phrase)
                         continue
 
                     # Stop/cancel standby capture and its visible monitoring
                     # indicator before any assistant speech so self-speech
                     # cannot enter the wake queue.
-                    dropped_at_detection = pipeline.dropped_windows
+                    dropped_at_detection = getattr(pipeline, "dropped_windows", 0)
                     self._discard_wake_pipeline(pipeline)
                     pipeline = None
                     monitor_led.set(False)
@@ -1887,14 +1968,12 @@ class VoiceAppliance:
                         "WAKE_DETECTED",
                         alias=match.alias,
                         matcher=match.matcher_version,
-                        capture_mode=WAKE_CAPTURE_MODE,
+                        capture_mode=capture_mode,
                         recognition_ms=recognition_ms,
                         dropped_windows=dropped_at_detection,
                     )
-                    try:
+                    if not match.remainder:
                         self.speak_progress_cue("Yes?")
-                    except Exception:
-                        pass
                     begin = getattr(self.brain, "begin_interaction", None)
                     if callable(begin): begin()
                     question = self._question_after_wake(match.remainder, utterance_complete=utterance_complete)
@@ -1939,6 +2018,9 @@ class VoiceAppliance:
     def close(self) -> None:
         self._clear_ready(clear_readiness=True)
         self.stop.set()
+        detector = getattr(self, "_keyword_detector", None)
+        if detector is not None:
+            detector.close()
         self.brain.close()
 
 

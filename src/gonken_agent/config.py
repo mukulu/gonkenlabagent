@@ -129,6 +129,8 @@ class WakeWordConfig:
     model: str
     threshold: float
     monitoring_led_gpio: int
+    backend: str = "streaming"
+    keyword_threshold: float = 1e-20
 
 
 @dataclass(frozen=True, slots=True)
@@ -642,6 +644,10 @@ def _validate_values(config: Config) -> None:
         _validate_absolute_path(wake.model, "extensions.wake_word.model", allow_empty=True)
     if not 0.0 < wake.threshold < 1.0:
         raise ConfigError("extensions.wake_word.threshold must be between 0 and 1")
+    if wake.backend not in {"streaming", "whisper"}:
+        raise ConfigError("extensions.wake_word.backend supports streaming or whisper")
+    if not 1e-50 <= wake.keyword_threshold <= 1e-5:
+        raise ConfigError("extensions.wake_word.keyword_threshold must be between 1e-50 and 1e-5")
     _validate_gpio(wake.monitoring_led_gpio, "extensions.wake_word.monitoring_led_gpio")
     _validate_environment_config(config)
     from .resources import claims_for_config, ResourceConflict

@@ -68,6 +68,9 @@ phrase = "GonKen"
 model = ""
 threshold = 0.5
 monitoring_led_gpio = 22
+# Streaming phonetic KWS; Whisper checks complete speech, never silent windows.
+backend = "streaming"
+keyword_threshold = 1e-20
 
 [extensions.voice_power]
 enabled = false
