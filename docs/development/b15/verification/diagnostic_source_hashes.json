@@ -1,0 +1,17 @@
+[
+  {
+    "file": "gonken-support-20260922T130903Z-1425.tar.bz2",
+    "sha256": "b6b362821304a659161a4be511d4482f252bb1659610f164448dcc18f0f8400a",
+    "bytes": 14086
+  },
+  {
+    "file": "raspberrypi-full-diagnostics-raspberrypi-20260922T091258Z(1).zip",
+    "sha256": "636fd15c7f5aa6123e218c787d21884c87de07576946c60c5e6a8409beff7cdd",
+    "bytes": 627137
+  },
+  {
+    "file": "Pasted text(20260922-125719).txt",
+    "sha256": "50fffbebd1228a68a89ff545c7beec99ae853ab64e503ba46280641b789bc500",
+    "bytes": 233601
+  }
+]

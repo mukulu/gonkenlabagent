@@ -5,7 +5,7 @@
   "prior_attempt": "INTERRUPTED; no B15 branch or local edits recovered",
   "batch1": "PASS: 156 focused tests; raw capture, short announcements, inline complete questions and once-only ready cue",
   "batch2": "PASS focused: streaming segmenter, full voice-loop branches, real PCM child processes and native ABI silence/reset; synthetic acoustic campaign and wider regression pending",
-  "batch3": "NOT_STARTED",
+  "batch3": "PASS: numeric/boolean-only support metrics, capture timing, failure cleanup, conservative native defaults; lifecycle and final package checks pending",
   "physical_acceptance_claimed": false,
-  "next_action": "Run synthetic native wake characterization, affected installer/config/audio regressions, then current gates and exact archive qualification."
+  "next_action": "Finish bounded lifecycle tests, update current docs and package a clean exact checkpoint; retain synthetic misses as limitations, do not claim physical acceptance."
 }

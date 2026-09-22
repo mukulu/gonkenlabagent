@@ -1,0 +1,303 @@
+{
+  "format": "gonken-b15-native-characterization-v1",
+  "evidence": "HOST_SYNTHETIC_ONLY",
+  "physical_acceptance_claimed": false,
+  "host": "Linux-6.18.44-x86_64-with-glibc2.41",
+  "python": "3.13.5",
+  "threshold": 1e-30,
+  "samples": 36,
+  "positive_native_hits": 8,
+  "positive_samples": 12,
+  "negative_native_hits": 0,
+  "negative_samples": 24,
+  "audio_seconds": 110.32,
+  "native_compute_seconds": 2.442,
+  "frame_ms": 80,
+  "decode_frame_p50_ms": 2.113,
+  "decode_frame_p95_ms": 2.798,
+  "decode_frame_max_ms": 25.745,
+  "limitations": [
+    "synthetic voices are not user speech",
+    "native misses use utterance-level Whisper fallback in production",
+    "Whisper was not run in this characterization",
+    "not Raspberry Pi timing"
+  ],
+  "cases": [
+    {
+      "synthetic_phrase": "Gon Ken",
+      "voice": "en-us",
+      "wake_expected": true,
+      "native_detected": false,
+      "hit": null
+    },
+    {
+      "synthetic_phrase": "Gonken",
+      "voice": "en-us",
+      "wake_expected": true,
+      "native_detected": false,
+      "hit": null
+    },
+    {
+      "synthetic_phrase": "Gon Ken what is the temperature",
+      "voice": "en-us",
+      "wake_expected": true,
+      "native_detected": false,
+      "hit": null
+    },
+    {
+      "synthetic_phrase": "Hey Gon Ken",
+      "voice": "en-us",
+      "wake_expected": true,
+      "native_detected": false,
+      "hit": null
+    },
+    {
+      "synthetic_phrase": "Hey Gon Ken turn off the fan",
+      "voice": "en-us",
+      "wake_expected": true,
+      "native_detected": true,
+      "hit": {
+        "detected_at_ms": 1280,
+        "keyword_end_ms": 1170
+      }
+    },
+    {
+      "synthetic_phrase": "Gon Ken turn the fan on after two minutes",
+      "voice": "en-us",
+      "wake_expected": true,
+      "native_detected": true,
+      "hit": {
+        "detected_at_ms": 1120,
+        "keyword_end_ms": 960
+      }
+    },
+    {
+      "synthetic_phrase": "hello there",
+      "voice": "en-us",
+      "wake_expected": false,
+      "native_detected": false,
+      "hit": null
+    },
+    {
+      "synthetic_phrase": "turn on the fan",
+      "voice": "en-us",
+      "wake_expected": false,
+      "native_detected": false,
+      "hit": null
+    },
+    {
+      "synthetic_phrase": "what is the temperature",
+      "voice": "en-us",
+      "wake_expected": false,
+      "native_detected": false,
+      "hit": null
+    },
+    {
+      "synthetic_phrase": "good morning",
+      "voice": "en-us",
+      "wake_expected": false,
+      "native_detected": false,
+      "hit": null
+    },
+    {
+      "synthetic_phrase": "the conference starts at ten",
+      "voice": "en-us",
+      "wake_expected": false,
+      "native_detected": false,
+      "hit": null
+    },
+    {
+      "synthetic_phrase": "open the window",
+      "voice": "en-us",
+      "wake_expected": false,
+      "native_detected": false,
+      "hit": null
+    },
+    {
+      "synthetic_phrase": "go and get the book",
+      "voice": "en-us",
+      "wake_expected": false,
+      "native_detected": false,
+      "hit": null
+    },
+    {
+      "synthetic_phrase": "I am going camping",
+      "voice": "en-us",
+      "wake_expected": false,
+      "native_detected": false,
+      "hit": null
+    },
+    {
+      "synthetic_phrase": "the fan actuator started",
+      "voice": "en-us",
+      "wake_expected": false,
+      "native_detected": false,
+      "hit": null
+    },
+    {
+      "synthetic_phrase": "the fan actuator stopped",
+      "voice": "en-us",
+      "wake_expected": false,
+      "native_detected": false,
+      "hit": null
+    },
+    {
+      "synthetic_phrase": "yes",
+      "voice": "en-us",
+      "wake_expected": false,
+      "native_detected": false,
+      "hit": null
+    },
+    {
+      "synthetic_phrase": "thank you",
+      "voice": "en-us",
+      "wake_expected": false,
+      "native_detected": false,
+      "hit": null
+    },
+    {
+      "synthetic_phrase": "Gon Ken",
+      "voice": "en-gb",
+      "wake_expected": true,
+      "native_detected": true,
+      "hit": {
+        "detected_at_ms": 1040,
+        "keyword_end_ms": 920
+      }
+    },
+    {
+      "synthetic_phrase": "Gonken",
+      "voice": "en-gb",
+      "wake_expected": true,
+      "native_detected": true,
+      "hit": {
+        "detected_at_ms": 960,
+        "keyword_end_ms": 840
+      }
+    },
+    {
+      "synthetic_phrase": "Gon Ken what is the temperature",
+      "voice": "en-gb",
+      "wake_expected": true,
+      "native_detected": true,
+      "hit": {
+        "detected_at_ms": 960,
+        "keyword_end_ms": 860
+      }
+    },
+    {
+      "synthetic_phrase": "Hey Gon Ken",
+      "voice": "en-gb",
+      "wake_expected": true,
+      "native_detected": true,
+      "hit": {
+        "detected_at_ms": 1200,
+        "keyword_end_ms": 1090
+      }
+    },
+    {
+      "synthetic_phrase": "Hey Gon Ken turn off the fan",
+      "voice": "en-gb",
+      "wake_expected": true,
+      "native_detected": true,
+      "hit": {
+        "detected_at_ms": 1280,
+        "keyword_end_ms": 1170
+      }
+    },
+    {
+      "synthetic_phrase": "Gon Ken turn the fan on after two minutes",
+      "voice": "en-gb",
+      "wake_expected": true,
+      "native_detected": true,
+      "hit": {
+        "detected_at_ms": 1040,
+        "keyword_end_ms": 900
+      }
+    },
+    {
+      "synthetic_phrase": "hello there",
+      "voice": "en-gb",
+      "wake_expected": false,
+      "native_detected": false,
+      "hit": null
+    },
+    {
+      "synthetic_phrase": "turn on the fan",
+      "voice": "en-gb",
+      "wake_expected": false,
+      "native_detected": false,
+      "hit": null
+    },
+    {
+      "synthetic_phrase": "what is the temperature",
+      "voice": "en-gb",
+      "wake_expected": false,
+      "native_detected": false,
+      "hit": null
+    },
+    {
+      "synthetic_phrase": "good morning",
+      "voice": "en-gb",
+      "wake_expected": false,
+      "native_detected": false,
+      "hit": null
+    },
+    {
+      "synthetic_phrase": "the conference starts at ten",
+      "voice": "en-gb",
+      "wake_expected": false,
+      "native_detected": false,
+      "hit": null
+    },
+    {
+      "synthetic_phrase": "open the window",
+      "voice": "en-gb",
+      "wake_expected": false,
+      "native_detected": false,
+      "hit": null
+    },
+    {
+      "synthetic_phrase": "go and get the book",
+      "voice": "en-gb",
+      "wake_expected": false,
+      "native_detected": false,
+      "hit": null
+    },
+    {
+      "synthetic_phrase": "I am going camping",
+      "voice": "en-gb",
+      "wake_expected": false,
+      "native_detected": false,
+      "hit": null
+    },
+    {
+      "synthetic_phrase": "the fan actuator started",
+      "voice": "en-gb",
+      "wake_expected": false,
+      "native_detected": false,
+      "hit": null
+    },
+    {
+      "synthetic_phrase": "the fan actuator stopped",
+      "voice": "en-gb",
+      "wake_expected": false,
+      "native_detected": false,
+      "hit": null
+    },
+    {
+      "synthetic_phrase": "yes",
+      "voice": "en-gb",
+      "wake_expected": false,
+      "native_detected": false,
+      "hit": null
+    },
+    {
+      "synthetic_phrase": "thank you",
+      "voice": "en-gb",
+      "wake_expected": false,
+      "native_detected": false,
+      "hit": null
+    }
+  ]
+}

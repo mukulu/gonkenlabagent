@@ -457,6 +457,26 @@ def _install_events(limit: int = 40) -> dict[str, object]:
     }
 
 
+def _voice_metric_line(line: str) -> dict[str, object] | None:
+    """Retain only bounded numeric/boolean timing fields, never spoken content."""
+    match = re.search(r"(?:^|\s)code=(WAKE_STREAM_METRICS|VOICE_CAPTURE_METRICS|VOICE_TURN_METRICS|WAKE_DETECTED)(?:\s|$)", line[:4096])
+    if not match:
+        return None
+    result: dict[str, object] = {"code": match.group(1)}
+    for key in ("utterance_ms", "keyword_decode_max_ms", "transcription_ms", "capture_ms",
+                "recognition_ms", "dropped_windows", "answer_ms", "pending_resolved", "ack_cache_ms"):
+        found = re.search(r"(?:^|\s)" + key + r"=([0-9]+(?:\.[0-9]+)?)(?:\s|$)", line[:4096])
+        if found:
+            value = float(found.group(1))
+            if 0 <= value <= 600000:
+                result[key] = int(value) if value.is_integer() else value
+    for key in ("native_keyword", "fallback", "inline", "heard_new_audio"):
+        found = re.search(r"(?:^|\s)" + key + r"=(True|False|true|false)(?:\s|$)", line[:4096])
+        if found:
+            result[key] = found.group(1).lower() == "true"
+    return result if len(result) > 1 else None
+
+
 def _service_event_codes(limit: int = 200) -> dict[str, object]:
     """Summarize current-boot structured reason codes without exporting journal text."""
     journalctl = shutil.which("journalctl")
@@ -475,7 +495,12 @@ def _service_event_codes(limit: int = 200) -> dict[str, object]:
         counts = Counter()
         summaries: dict[str, dict[str, object]] = {}
         actuator_transitions = []
+        voice_metrics = []
         for sequence, line in enumerate(result.stdout.splitlines()[-limit:], 1):
+            if unit == "gonken-agent.service":
+                metric = _voice_metric_line(line)
+                if metric is not None:
+                    voice_metrics.append({"journal_sequence": sequence, **metric})
             event = parse_event_line(line) if unit == "gonken-environment.service" else None
             if event is not None:
                 actuator_transitions.append({"journal_sequence": sequence, **event})
@@ -498,6 +523,7 @@ def _service_event_codes(limit: int = 200) -> dict[str, object]:
             "lines_examined": min(limit, len(result.stdout.splitlines())),
             "raw_text_exported": False,
             "actuator_transitions": actuator_transitions[-40:],
+            "voice_metrics": voice_metrics[-20:],
             "event_scope": "current_boot_history_not_current_readiness",
         }
     return {"status": "READY", "scope": "current_boot", "units": units}

@@ -147,7 +147,7 @@ def _readiness_recoverable(code: str) -> bool:
         "LOCAL_MODEL_TOOLS_NOT_QUALIFIED",
         "LOCAL_MODEL_OUTSIDE_ROSTER",
     }
-    return code not in nonrecoverable
+    return code not in nonrecoverable and not code.startswith("WAKE_NATIVE_")
 
 
 def _runtime_release_directory() -> Path | None:
@@ -1911,6 +1911,7 @@ class VoiceAppliance:
                     window = pipeline.next_window(timeout=0.25)
                     if window is None:
                         continue
+                    pending_audio = window.path
                     recognition_started = time.monotonic()
                     streaming = isinstance(window, StreamingWakeWindow)
                     capture_mode = getattr(pipeline, "capture_mode", WAKE_CAPTURE_MODE)
